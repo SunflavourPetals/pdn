@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="pdn_lexer">
+      <UniqueIdentifier>{43ef018c-04c9-4a7c-84b9-0c4956054b6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_unicode">
+      <UniqueIdentifier>{feafdd76-049f-46b8-a2fb-e8a0a445aeff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_types">
+      <UniqueIdentifier>{6b939eee-1de8-4eb1-8702-065f332f190f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_error">
+      <UniqueIdentifier>{d99ba5a5-d393-441a-a0fa-5852bd4feb7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_source_position">
+      <UniqueIdentifier>{5b2dad98-53ce-4b3a-8a75-545c759a9274}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_token">
+      <UniqueIdentifier>{3eb56e9a-3950-4282-a8cc-57c63373724c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_dfa">
+      <UniqueIdentifier>{4824638b-d981-4874-8980-d1ab52d8ea51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_filestream_adapter">
+      <UniqueIdentifier>{fc63151e-c2a3-4d45-901c-e1a5e07323ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_constants">
+      <UniqueIdentifier>{40a1e42c-07a4-437b-9632-894a4556066d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_proxy">
+      <UniqueIdentifier>{19fb395b-2641-421d-94ae-943f5ef99de1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_parser">
+      <UniqueIdentifier>{c2ea5874-7e4e-490e-9dd2-72f4e9ec281e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_type_generator">
+      <UniqueIdentifier>{5df8c9c8-339c-41ec-9f64-eaa8fb7bc77e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_make_escape_sequence">
+      <UniqueIdentifier>{dac397c7-6a75-4c49-80f9-c44a1f606de7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_exception">
+      <UniqueIdentifier>{726b4cb4-a95f-41de-8b72-27d5173b8880}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pdn_unicode_base.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_utf_8_encoder.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_utf_16_encoder.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_utf_32_encoder.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_swap_chain.h">
+      <Filter>pdn_filestream_adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_lexer_utility.h">
+      <Filter>pdn_lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_lexer.h">
+      <Filter>pdn_lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_code_unit_iterator.h">
+      <Filter>pdn_filestream_adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_types.h">
+      <Filter>pdn_types</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_lexical_error_code.h">
+      <Filter>pdn_lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_code_convert.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_unicode_encoder.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_message.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_code_point_iterator.h">
+      <Filter>pdn_filestream_adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_message_generator.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_string.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_message_generator_en.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_handler.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_source_position.h">
+      <Filter>pdn_source_position</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_source_position_and_newline_recorder.h">
+      <Filter>pdn_source_position</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_newline_modes.h">
+      <Filter>pdn_source_position</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_source_position_recorder.h">
+      <Filter>pdn_source_position</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_code_variant.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_token.h">
+      <Filter>pdn_token</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_token_code.h">
+      <Filter>pdn_token</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_token_value_variant.h">
+      <Filter>pdn_token</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_bom_reader.h">
+      <Filter>pdn_filestream_adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_dfa_state_objects.h">
+      <Filter>pdn_dfa</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_dfa_state_object.h">
+      <Filter>pdn_dfa</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_dfa_state_code.h">
+      <Filter>pdn_dfa</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_constants_std.h">
+      <Filter>pdn_constants</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_constants.h">
+      <Filter>pdn_constants</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_proxy.h">
+      <Filter>pdn_proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_parser.h">
+      <Filter>pdn_parser</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_type_generator_std.h">
+      <Filter>pdn_type_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_type_code.h">
+      <Filter>pdn_type_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_type_generator.h">
+      <Filter>pdn_type_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_type_code_to_type.h">
+      <Filter>pdn_type_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_lex.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_8_enc.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_utf_8_decoder.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_utf_8_base.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_utf_16_base.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_utf_16_decoder.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_utf_32_decoder.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_utf_32_base.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_unicode_decoder.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_unicode.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_8_dec.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_16_enc.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_16_dec.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_32_enc.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_32_dec.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_syn.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_type_code_to_error_msg_string.h">
+      <Filter>pdn_type_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_syntax_error_code.h">
+      <Filter>pdn_parser</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_source_position_recorder_concept.h">
+      <Filter>pdn_source_position</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_type_to_type_code.h">
+      <Filter>pdn_type_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_token_code_to_error_msg_string.h">
+      <Filter>pdn_token</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_make_slashes_string.h">
+      <Filter>pdn_make_escape_sequence</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_exception.h">
+      <Filter>pdn_exception</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pdn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
