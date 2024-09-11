@@ -834,7 +834,7 @@ namespace pdn_test
 
 		if (to_play)
 		{
-			std::cout << "Type help and press enter to het help.\n";
+			std::cout << "Type help and press enter to get help.\n";
 			std::size_t exit_layer{};
 			play(std::cout, dom, exit_layer);
 		}
