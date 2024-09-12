@@ -141,7 +141,7 @@ namespace pdn
 
 		inline extern cdfaso
 			at_sign,              // @ 
-			tilde,                // ~
+			tilde,                // ~ 
 			exclamation_mark,     // ! 
 			hash,                 // # 
 			dollar,               // $ 
@@ -163,7 +163,7 @@ namespace pdn
 			bar,                  // | 
 			colon,                // : 
 			semicolon,            // ; 
-			less_than,            // <
+			less_than,            // < 
 			greater_than,         // > 
 			comma,                // , 
 			dot,                  // . 
@@ -175,7 +175,7 @@ namespace pdn
 		inline dfa_state_object to_unmatched(code_point_t) noexcept { return unmatched; }
 		inline dfa_state_object start_state() noexcept { return start; }
 
-		inline cdfaso unmatched{ dfa_state_code::unmatched, pdn_token_code::invalid };
+		inline cdfaso unmatched             { dfa_state_code::unmatched,              pdn_token_code::invalid };
 		inline cdfaso unacceptable_character{ dfa_state_code::unacceptable_character, pdn_token_code::invalid };
 
 		inline cdfaso start{
@@ -217,7 +217,7 @@ namespace pdn
 				case U'.': return dot;
 				case U'?': return question_mark;
 				case U'0': return zero;
-				case U'∞': return infinity;
+				case U'\u221e': return infinity;
 				default:
 					using namespace lexer_utility;
 					if (in_range(c, U'1', U'9'))

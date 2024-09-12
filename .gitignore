@@ -1,6 +1,9 @@
 # backup
 [Bb]ackup/
 
+*.exe
+*.obj
+
 .vs/
 .doc/
 .temp/
