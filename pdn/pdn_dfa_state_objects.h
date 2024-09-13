@@ -17,7 +17,7 @@ namespace pdn
 		// transformer member of following states are nullptr
 		//     state unmatched: lexer is required to stop dfa
 		//     state other:     process and transform to other state by lexer
-		// list：
+		// list:
 		//     unmatched
 		//     unacceptable_character
 		//     identifier_string_escape
@@ -173,7 +173,7 @@ namespace pdn
 			infinity;
 
 		inline dfa_state_object to_unmatched(code_point_t) noexcept { return unmatched; }
-		inline dfa_state_object start_state() noexcept { return start; }
+		inline dfa_state_object start_state ()             noexcept { return start; }
 
 		inline cdfaso unmatched             { dfa_state_code::unmatched,              pdn_token_code::invalid };
 		inline cdfaso unacceptable_character{ dfa_state_code::unacceptable_character, pdn_token_code::invalid };

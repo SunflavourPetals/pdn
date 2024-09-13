@@ -164,7 +164,7 @@ namespace pdn
 		bar,                  // | 
 		colon,                // : 
 		semicolon,            // ; 
-		less_than,            // <
+		less_than,            // < 
 		greater_than,         // > 
 		comma,                // , 
 		dot,                  // . 
