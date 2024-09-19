@@ -309,9 +309,9 @@ namespace pdn::types
 		using object_proxy = proxy<object>;
 
 	public:
-		auto  ref()       ->       refer<char_type> { return       refer<char_type>{ *this }; }
-		auto  ref() const -> const_refer<char_type> { return const_refer<char_type>{ const_cast<entity&>(*this) }; }
-		auto cref() const -> const_refer<char_type> { return const_refer<char_type>{ const_cast<entity&>(*this) }; }
+		auto  ref()       & ->       refer<char_type> { return       refer<char_type>{ *this }; }
+		auto  ref() const & -> const_refer<char_type> { return const_refer<char_type>{ const_cast<entity&>(*this) }; }
+		auto cref() const & -> const_refer<char_type> { return const_refer<char_type>{ const_cast<entity&>(*this) }; }
 
 		template <dev_util::basic_types<char_type> type>
 		::std::optional<type> get_optional() const

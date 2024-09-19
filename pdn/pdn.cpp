@@ -824,14 +824,14 @@ namespace pdn_test
 		using parser_t = pdn::parser<char_t>;
 
 		auto prev_parse = std::chrono::high_resolution_clock::now();
-		typename parser_t::entity dom = parser.parse(filename);
+		auto dom = parser.parse(filename);
 		auto after_parse = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<double> time_cost = after_parse - prev_parse;
 
 		std::cout << "parse over with " << err_count << " error(s)\n";
 		std::cout << "time cost: " << time_cost << "\n";
-
+		
 		if (to_play)
 		{
 			std::cout << "Type help and press enter to get help.\n";
