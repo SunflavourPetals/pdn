@@ -306,6 +306,17 @@ PDN 使用 `@` 代替了 C++ 原始字符串的前缀 `R`，其余与 C++ 的原
 
 [参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/string_literal)  
 
+##### 拼接字符串
+
+PDN 支持拼接字符串，普通字符串字面量和原始字符串字面量可以混合拼接。  
+拼接字符串示例：  
+
+```pdn
+concatenation_str_1 "Hello" ", " "world" "!" // 等价于 "Hello, world!"
+concatenation_str_2 @"(Hello, )" @"WORLD(world!)WORLD" // 等价于 "Hello, world!"
+concatenation_str_3 "C:" @"(\)" "Users" @"(\)" // 等价于 @"(C:\Users\)" 或 "C:\\Users\\"
+```
+
 ### 转义
 
 PDN 支持 C++ 的转义序列(除了条件转义序列)和通用字符名。  
