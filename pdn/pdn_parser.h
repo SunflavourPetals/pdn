@@ -299,7 +299,7 @@ namespace pdn
 			//     - ...
 			//     + ...
 			//     literals
-			//         integer | floating-points | string | character
+			//         integer | floating-points | string* | character
 			//     @name
 			//     { ... }
 			//     [ ... ]
@@ -370,9 +370,18 @@ namespace pdn
 
 			switch (tk.code)
 			{
+			case literal_string:
+			{
+				str cat_string{};
+				while (tk.code == literal_string) // concatenation
+				{
+					cat_string += *::std::get<str_pr>(tk.value);
+					tk = get_token(begin, end);
+				}
+				return token_value_to_entity(make_proxy<str>(::std::move(cat_string)), negative_sign);
+			}
 			case literal_boolean:
 			case literal_character:
-			case literal_string:
 			case literal_floating_point:
 			case literal_integer:
 			{

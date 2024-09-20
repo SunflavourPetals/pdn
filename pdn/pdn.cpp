@@ -821,8 +821,6 @@ namespace pdn_test
 	template <typename char_t>
 	void test(pdn::parser<char_t>& parser, const std::string& filename, const std::size_t& err_count, std::ostream& out, bool to_play = false)
 	{
-		using parser_t = pdn::parser<char_t>;
-
 		auto prev_parse = std::chrono::high_resolution_clock::now();
 		auto dom = parser.parse(filename);
 		auto after_parse = std::chrono::high_resolution_clock::now();
@@ -863,6 +861,13 @@ int main(int argc, const char* argv[])
 		{
 			filename = "source.pdn";
 		}
+		out_filename = filename + ".pdn-parser-out.txt";
+		log_filename = filename + ".pdn-log.txt";
+	}
+	else if (argc == 2 && argv[1][0] != '-')
+	{
+		to_play = true;
+		filename = argv[1];
 		out_filename = filename + ".pdn-parser-out.txt";
 		log_filename = filename + ".pdn-log.txt";
 	}
