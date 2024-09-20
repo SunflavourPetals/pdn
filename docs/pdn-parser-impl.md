@@ -23,8 +23,9 @@
 1. `get_xxx` 系列函数：对代理进行处理的 `std::get` 的封装；  
 2. `xxx_opt` `xxx_ptr` 系列函数：获得相应类型的值或得到 `nullopt`/`nullptr`；  
 3. `xxx_val` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值。  
-4. `operator[const string<char_t>&]`：获得 Object 的成员数据；  
-5. `operator[size_t]`：获得 List 的元素数据；  
+4. `operator[const string<char_t>&]`：获得 Object 的成员数据，如果当前实体不是 Object 或没有相应成员数据，将抛出异常；  
+5. `operator[size_t]`：获得 List 的元素数据，如果当前实体不是 List 或 out of range，将抛出异常；  
 6. `ref` `cref`：获得 `refer` 或 `const_refer` 类。  
 
-`refer` 和 `const_refer` 类提供不抛出的 `operator[]`。  
+`refer` 和 `const_refer` 类提供不抛出的 `operator[]`，当查询失败时，返回一个空引用，对空引用的任何成员查询操作都只能得到空引用，获取值时只能获得 nullptr、nullopt 或是无意义的值。  
+`refer` 和 `const_refer` 类不提供 `get_xxx` 系列的函数。  
