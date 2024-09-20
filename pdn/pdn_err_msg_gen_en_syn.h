@@ -39,8 +39,8 @@ namespace pdn::dev_util
 		case invalid_operation:
 			return u8"invalid operation: \""_em + src + u8"\""_em;
 
-		case unexcepted_token:
-			return u8"unexcepted token: \""_em + src + u8"\""_em;
+		case unexpected_token:
+			return u8"unexpected token: \""_em + src + u8"\""_em;
 
 		case unknown_type:
 			return u8"no type named \""_em + src + u8"\""_em;

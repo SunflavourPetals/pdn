@@ -429,21 +429,17 @@ namespace pdn
 			case identifier_string_opened:
 			case identifier_string:
 				post_err(position, lex_ec::identifier_string_missing_terminating_character, code_convert<err_ms>(text));
-				break;
+				goto label_process_string_token;
 			case string_opened:
 			case string:
 				post_err(position, lex_ec::string_missing_terminating_character, code_convert<err_ms>(text));
-				break;
-			case character_opened:
-			case character:
-				post_err(position, lex_ec::character_missing_terminating_character, code_convert<err_ms>(text));
-				break;
+				goto label_process_string_token;
 			case identifier_raw_string:
 				post_err(position, lex_ec::identifier_raw_string_missing_terminating_sequence, code_convert<err_ms>(text));
-				break;
+				goto label_process_string_token;
 			case raw_string:
 				post_err(position, lex_ec::raw_string_missing_terminating_sequence, code_convert<err_ms>(text));
-				break;
+				goto label_process_string_token;
 			// ERROR STATES ^^^
 			case at_identifier:
 			{
@@ -476,8 +472,13 @@ namespace pdn
 			case string_closed:
 			case raw_string_closed:
 			case identifier_raw_string_closed:
+			label_process_string_token:
 				result.value = make_proxy<types::string<char_t>>(text_code_convert<char_t>(text, position));
 				break;
+			case character_opened: // <<< ERROR STATE
+			case character: // <<< ERROR STATE
+				post_err(position, lex_ec::character_missing_terminating_character, code_convert<err_ms>(text));
+				[[fallthrough]];
 			case character_closed:
 			{
 				if (text.size() != 1)

@@ -34,6 +34,7 @@ namespace pdn_test
 	namespace
 	{
 		std::vector<header_t> stack{};
+		volatile std::size_t g_err_count{};
 	}
 
 	template <typename char_t>
@@ -229,6 +230,7 @@ namespace pdn_test
 		void operator()(const pdn::error_message& e)
 		{
 			++err_count;
+			g_err_count = err_count;
 			std::string error_type_s{};
 			std::visit([&](auto c)
 			{
@@ -819,7 +821,7 @@ namespace pdn_test
 	}
 
 	template <typename char_t>
-	void test(pdn::parser<char_t>& parser, const std::string& filename, const std::size_t& err_count, std::ostream& out, bool to_play = false)
+	void test(pdn::parser<char_t>& parser, const std::string& filename, std::ostream& out, bool to_play = false)
 	{
 		auto prev_parse = std::chrono::high_resolution_clock::now();
 		auto dom = parser.parse(filename);
@@ -827,7 +829,7 @@ namespace pdn_test
 
 		std::chrono::duration<double> time_cost = after_parse - prev_parse;
 
-		std::cout << "parse over with " << err_count << " error(s)\n";
+		std::cout << "parse over with " << g_err_count << " error(s)\n";
 		std::cout << "time cost: " << time_cost << "\n";
 		
 		if (to_play)
@@ -848,7 +850,7 @@ int main(int argc, const char* argv[])
 	std::string filename{};
 	std::string out_filename{};
 	std::string log_filename{};
-
+	
 	bool is_using_stdout = false;
 	bool to_play = true;
 	if (argc <= 1)
@@ -973,7 +975,7 @@ int main(int argc, const char* argv[])
 
 	try
 	{
-		pdn_test::test(parser, filename, err_handler.err_count, out, to_play);
+		pdn_test::test(parser, filename, out, to_play);
 	}
 	catch (const pdn::runtime_error& e)
 	{
@@ -983,6 +985,5 @@ int main(int argc, const char* argv[])
 	{
 		std::cout << "std exception: " << e.what() << "\n";
 	}
-
 	return 0;
 }

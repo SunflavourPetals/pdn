@@ -217,7 +217,7 @@ namespace pdn
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::unexcepted_token, token_code_to_error_msg_string(tk.code));
+						post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
 						tk = get_token(begin, end);
 					}
 				}
@@ -426,6 +426,7 @@ namespace pdn
 				if (!with_comma && tk.code != pdn_token_code::right_brackets)
 				{
 					post_err(tk.position, syn_ec::expect_comma, token_code_to_error_msg_string(tk.code));
+					tk = get_token(begin, end);
 				}
 			}
 
@@ -518,7 +519,7 @@ namespace pdn
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::unexcepted_token, token_code_to_error_msg_string(tk.code));
+						post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
 						tk = get_token(begin, end);
 					}
 				}

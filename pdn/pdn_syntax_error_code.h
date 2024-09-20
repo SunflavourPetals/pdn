@@ -20,7 +20,7 @@ namespace pdn
 
 		invalid_operation,
 
-		unexcepted_token,
+		unexpected_token,
 
 		unknown_type,
 
