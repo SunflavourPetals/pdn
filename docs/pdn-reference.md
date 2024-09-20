@@ -330,7 +330,9 @@ PDN 支持 C++ 的转义序列(除了条件转义序列)和通用字符名。
 6. `\unnnn` 其中 `nnnn` 为四位十六进制数  
 7. `\u{n*}` 其中 `n*` 为一至多位十六进制数  
 8. `\Unnnnnnnn` 其中 `nnnnnnnn` 为八位十六进制数  
-9. `\N{NAME}` 以 `NAME` 命名的字符(本实现不支持)  
+9. `\N{NAME}` 以 `NAME` 命名的字符(本实现不支持)
+
+如果转义结果不是 Unicode 标量值则非法。  
 
 [参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/escape)  
 
