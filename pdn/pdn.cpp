@@ -21,6 +21,7 @@
 
 #include "pdn_parser.h"
 #include "pdn_make_slashes_string.h"
+#include "pdn_error_code_variant_to_error_msg_string.h"
 
 namespace parser_utf_config
 {
@@ -231,50 +232,12 @@ namespace pdn_test
 		{
 			++err_count;
 			g_err_count = err_count;
-			std::string error_type_s{};
-			std::visit([&](auto c)
-			{
-				using error_type = std::decay_t<decltype(c)>;
-				using namespace std::string_literals;
-
-				if constexpr (std::same_as<error_type, pdn::unicode::utf_8::decode_error_code>)
-				{
-					error_type_s = "utf-8 decode error"s;
-				}
-				else if constexpr (std::same_as<error_type, pdn::unicode::utf_8::encode_error_code>)
-				{
-					error_type_s = "utf-8 encode error"s;
-				}
-				else if constexpr (std::same_as<error_type, pdn::unicode::utf_16::decode_error_code>)
-				{
-					error_type_s = "utf-16 decode error"s;
-				}
-				else if constexpr (std::same_as<error_type, pdn::unicode::utf_16::encode_error_code>)
-				{
-					error_type_s = "utf-16 encode error"s;
-				}
-				else if constexpr (std::same_as<error_type, pdn::unicode::utf_32::decode_error_code>)
-				{
-					error_type_s = "utf-32 decode error"s;
-				}
-				else if constexpr (std::same_as<error_type, pdn::unicode::utf_32::encode_error_code>)
-				{
-					error_type_s = "utf-32 encode error"s;
-				}
-				else if constexpr (std::same_as<error_type, pdn::lexical_error_code>)
-				{
-					error_type_s = "lexical error"s;
-				}
-				else if constexpr (std::same_as<error_type, pdn::syntax_error_code>)
-				{
-					error_type_s = "syntax error"s;
-				}
-				else
-				{
-					static_assert(false, "[pdn] not all cases are enumerated");
-				}
-			}, e.error_code);
-			log << std::format("{}({}:{}) {}\n", error_type_s, e.position.line, e.position.column, (const char*)e.error_message.c_str());
+			auto error_type_s = pdn::error_code_variant_to_error_msg_string(e.error_code);
+			log << std::format("{}({}:{}) {}\n",
+			                   (const char*)error_type_s.c_str(),
+			                   e.position.line,
+			                   e.position.column,
+			                   (const char*)e.error_message.c_str());
 		}
 	};
 

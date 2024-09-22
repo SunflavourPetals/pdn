@@ -240,6 +240,9 @@
     <ClInclude Include="pdn_exception.h">
       <Filter>pdn_exception</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp">

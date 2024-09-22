@@ -141,6 +141,7 @@
     <ClInclude Include="pdn_dfa_state_objects.h" />
     <ClInclude Include="pdn_dfa_state_code.h" />
     <ClInclude Include="pdn_dfa_state_object.h" />
+    <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h" />
     <ClInclude Include="pdn_error_string.h" />
     <ClInclude Include="pdn_error_code_variant.h" />
     <ClInclude Include="pdn_error_handler.h" />
