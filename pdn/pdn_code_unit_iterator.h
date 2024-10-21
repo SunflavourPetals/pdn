@@ -152,7 +152,7 @@ namespace pdn
 			return rhs.swap_chain == lhs;
 		}
 	public:
-		code_unit_iterator(swap_chain_t swap_chain) : swap_chain{ ::std::move(swap_chain) }
+		explicit code_unit_iterator(swap_chain_t swap_chain) : swap_chain{ ::std::move(swap_chain) }
 		{
 			first_goto_next();
 		}
