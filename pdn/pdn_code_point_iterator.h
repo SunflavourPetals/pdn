@@ -97,10 +97,10 @@ namespace pdn
 			return lhs.is_end;
 		}
 	public:
-		code_point_iterator(begin_it_t begin_it,
-		                    end_it_t end_it,
-		                    position_getter pos_getter,
-		                    error_handler err_handler,
+		code_point_iterator(begin_it_t              begin_it,
+		                    end_it_t                end_it,
+		                    position_getter         pos_getter,
+		                    error_handler           err_handler,
 		                    error_message_generator err_msg_generator = error_message_generator_en) :
 			begin{ ::std::move(begin_it) },
 			end{ ::std::move(end_it) },

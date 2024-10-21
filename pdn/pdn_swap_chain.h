@@ -131,10 +131,9 @@ namespace pdn
 		}
 	public:
 		swap_chain() = default;
-		swap_chain(
-			::std::unique_ptr<istream_t, istream_deleter_t>&& istream,
-			size_type buf_size = 1024,
-			::std::unique_ptr<char_type[], buffer_deleter_t>&& adjacent_2_buf = nullptr) :
+		swap_chain(::std::unique_ptr<istream_t, istream_deleter_t>&&  istream,
+		           size_type                                          buf_size = 1024,
+		           ::std::unique_ptr<char_type[], buffer_deleter_t>&& adjacent_2_buf = nullptr) :
 			buffer_size{ buf_size },
 			buffer_ptr{ ::std::move(adjacent_2_buf) },
 			istream_ptr{ ::std::move(istream) }
@@ -206,23 +205,22 @@ namespace pdn
 			return *this;
 		}
 	private:
-		size_type buffer_size{}; // size of buffer
-		char_type* eof_pos{}; // eof position is mapped to buffer position
-		char_type* buffer_end_pos{}; // buffer offset "size"*2
-		char_type* buffer_1_mid_pos{}; // buffer 1 offset "size"/2
-		char_type* buffer_2_mid_pos{}; // buffer 2 offset "size"/2
-		char_type* pos{}; // current input position
-		buffer_manager buffer_ptr; // size = 2*"size"; buffer 1 at buffer, buffer 2 at (buffer offset "size")
+		size_type       buffer_size{};      // size of buffer
+		char_type*      eof_pos{};          // eof position is mapped to buffer position
+		char_type*      buffer_end_pos{};   // buffer offset "size"*2
+		char_type*      buffer_1_mid_pos{}; // buffer 1 offset "size"/2
+		char_type*      buffer_2_mid_pos{}; // buffer 2 offset "size"/2
+		char_type*      pos{};              // current input position
+		buffer_manager  buffer_ptr;         // size = 2*"size"; buffer 1 at buffer, buffer 2 at (buffer offset "size")
 		istream_manager istream_ptr;
 	};
 
-	template <typename istream_t = ::std::istream,
+	template <typename istream_t         = ::std::istream,
 	          typename istream_deleter_t = ::std::default_delete<istream_t>,
-	          typename buffer_deleter_t = ::std::default_delete<typename istream_t::char_type[]>>
-	inline auto make_swap_chain(
-		::std::unique_ptr<istream_t, istream_deleter_t>&& istream,
-		::std::size_t buf_size = 1024,
-		::std::unique_ptr<typename istream_t::char_type[], buffer_deleter_t>&& adjacent_2_buf = nullptr)
+	          typename buffer_deleter_t  = ::std::default_delete<typename istream_t::char_type[]>>
+	inline auto make_swap_chain(::std::unique_ptr<istream_t, istream_deleter_t>&& istream,
+	                            ::std::size_t                                     buf_size = 1024,
+	                            ::std::unique_ptr<typename istream_t::char_type[], buffer_deleter_t>&& adjacent_2_buf = nullptr)
 	{
 		return swap_chain{ ::std::move(istream), buf_size,::std::move(adjacent_2_buf) };
 	}

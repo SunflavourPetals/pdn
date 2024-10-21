@@ -41,10 +41,10 @@ namespace pdn
 	{
 	public:
 		using iterator_category = void; // it does not satisfy the requirements of any legacy iterator
-		using code_unit_type = unicode::type_traits::code_unit_t<encode_type>;
-		using char_type = code_unit_type;
-		using size_type = ::std::size_t;
-		using swap_chain_type = swap_chain_t;
+		using code_unit_type    = unicode::type_traits::code_unit_t<encode_type>;
+		using char_type         = code_unit_type;
+		using size_type         = ::std::size_t;
+		using swap_chain_type   = swap_chain_t;
 		static constexpr size_type bits_count_of_byte{ 8 };
 		static constexpr size_type bits_count_of_unit{ sizeof(char_type) * bits_count_of_byte };
 		static_assert(bits_count_of_unit >= bits_count_of_byte);
@@ -152,8 +152,7 @@ namespace pdn
 			return rhs.swap_chain == lhs;
 		}
 	public:
-		code_unit_iterator(swap_chain_t swap_chain) :
-			swap_chain{ ::std::move(swap_chain) }
+		code_unit_iterator(swap_chain_t swap_chain) : swap_chain{ ::std::move(swap_chain) }
 		{
 			first_goto_next();
 		}
