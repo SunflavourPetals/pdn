@@ -852,11 +852,11 @@ namespace pdn
 
 			switch (source_encode_type)
 			{
-			case utf_8:     return this->parse(make_code_unit_iterator<utf_8>    (source_swap_chain.current()), source_swap_chain.end());
-			case utf_16_le: return this->parse(make_code_unit_iterator<utf_16_le>(source_swap_chain.current()), source_swap_chain.end());
-			case utf_16_be: return this->parse(make_code_unit_iterator<utf_16_be>(source_swap_chain.current()), source_swap_chain.end());
-			case utf_32_le: return this->parse(make_code_unit_iterator<utf_32_le>(source_swap_chain.current()), source_swap_chain.end());
-			case utf_32_be: return this->parse(make_code_unit_iterator<utf_32_be>(source_swap_chain.current()), source_swap_chain.end());
+			case utf_8:     return this->parse(make_code_unit_iterator<utf_8>    (source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
+			case utf_16_le: return this->parse(make_code_unit_iterator<utf_16_le>(source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
+			case utf_16_be: return this->parse(make_code_unit_iterator<utf_16_be>(source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
+			case utf_32_le: return this->parse(make_code_unit_iterator<utf_32_le>(source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
+			case utf_32_be: return this->parse(make_code_unit_iterator<utf_32_be>(source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
 			default:        throw  inner_error{ "[pdn] inner error when process bom_type" };
 			}
 			return 0;

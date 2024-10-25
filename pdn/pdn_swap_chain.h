@@ -58,9 +58,6 @@ namespace pdn
 			using iterator_category = void;
 			using size_type         = typename swap_chain_type::size_type;
 			using value_type        = typename swap_chain_type::value_type;
-		private:
-			swap_chain_type* swap_ptr{};
-		public:
 			swap_chain_type& origin()
 			{
 				return *swap_ptr;
@@ -69,6 +66,10 @@ namespace pdn
 			{
 				return *swap_ptr;
 			}
+			bool eof() const
+			{
+				return *this == swap_chain_iterator{};
+			}
 			const value_type& operator*() const
 			{
 				return origin().get();
@@ -76,26 +77,17 @@ namespace pdn
 			swap_chain_iterator& operator++ ()
 			{
 				origin().to_next();
+				if (origin().eof())
+				{
+					swap_ptr = nullptr;
+				}
 				return *this;
 			}
-			friend bool operator== (const swap_chain_iterator lhs, const swap_chain_iterator rhs) noexcept
-			{
-				if (lhs.swap_ptr == rhs.swap_ptr)
-				{
-					return true;
-				}
-				else if (rhs.swap_ptr == nullptr)
-				{
-					return lhs.origin().eof();
-				}
-				else if (lhs.swap_ptr == nullptr)
-				{
-					return rhs.origin().eof();
-				}
-				return false;
-			}
+			friend bool operator==(swap_chain_iterator, swap_chain_iterator) = default;
 			swap_chain_iterator() : swap_ptr{ nullptr } {}
 			explicit swap_chain_iterator(swap_chain& swap) : swap_ptr{ &swap } {}
+		private:
+			swap_chain_type* swap_ptr{};
 		};
 		friend class swap_chain_iterator;
 	public:

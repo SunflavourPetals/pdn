@@ -111,12 +111,12 @@ namespace pdn
 			++(*this);
 		}
 		code_point_iterator(const code_point_iterator&) = delete;
-		code_point_iterator(code_point_iterator&& o)
+		code_point_iterator(code_point_iterator&& o) noexcept
 		{
 			*this = ::std::move(o);
 		}
 		code_point_iterator& operator=(const code_point_iterator&) = delete;
-		code_point_iterator& operator=(code_point_iterator&& o)
+		code_point_iterator& operator=(code_point_iterator&& o) noexcept
 		{
 			::std::swap(begin, o.begin);
 			::std::swap(end, o.end);
