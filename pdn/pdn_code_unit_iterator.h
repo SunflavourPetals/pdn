@@ -60,7 +60,7 @@ namespace pdn
 		}
 		bool eof() const noexcept
 		{
-			return swap_chain.eof();
+			return swap_chain.origin().eof();
 		}
 		void goto_next()
 		{
@@ -77,22 +77,22 @@ namespace pdn
 		void le_next()
 		{
 			curr_value = char_type{};
-			for (size_type offset{}; offset < bits_count_of_unit && !swap_chain.eof(); offset += bits_count_of_byte)
+			for (size_type offset{}; offset < bits_count_of_unit && !swap_chain.origin().eof(); offset += bits_count_of_byte)
 			{
 				// 0x12345678 le -> 0:0x78, 1:0x56, 2:0x34, 3:0x12
 				++swap_chain;
-				curr_value |= (char_type(::std::make_unsigned_t<typename swap_chain_type::char_type>(swap_chain.get())) << offset);
+				curr_value |= (char_type(::std::make_unsigned_t<typename swap_chain_type::value_type>(*swap_chain)) << offset);
 			}
 		}
 		void be_next()
 		{
 			curr_value = char_type{};
-			for (size_type offset{ bits_count_of_unit }; offset > 0 && !swap_chain.eof(); )
+			for (size_type offset{ bits_count_of_unit }; offset > 0 && !swap_chain.origin().eof(); )
 			{
 				// 0x12345678 be -> 0:0x12, 1:0x34, 2:0x56, 3:0x78
 				offset -= bits_count_of_byte;
 				++swap_chain;
-				curr_value |= (char_type(::std::make_unsigned_t<typename swap_chain_type::char_type>(swap_chain.get())) << offset);
+				curr_value |= (char_type(::std::make_unsigned_t<typename swap_chain_type::value_type>(*swap_chain)) << offset);
 			}
 		}
 		void first_le_next()
@@ -100,9 +100,9 @@ namespace pdn
 			curr_value = char_type{};
 			for (size_type offset{}; ; )
 			{
-				curr_value |= (char_type(::std::make_unsigned_t<typename swap_chain_type::char_type>(swap_chain.get())) << offset);
+				curr_value |= (char_type(::std::make_unsigned_t<typename swap_chain_type::value_type>(*swap_chain)) << offset);
 				offset += bits_count_of_byte;
-				if (offset < bits_count_of_unit && !swap_chain.eof())
+				if (offset < bits_count_of_unit && !swap_chain.origin().eof())
 				{
 					++swap_chain;
 					continue;
@@ -116,8 +116,8 @@ namespace pdn
 			for (size_type offset{ bits_count_of_unit }; ; )
 			{
 				offset -= bits_count_of_byte;
-				curr_value |= (char_type(::std::make_unsigned_t<typename swap_chain_type::char_type>(swap_chain.get())) << offset);
-				if (offset > 0 && !swap_chain.eof())
+				curr_value |= (char_type(::std::make_unsigned_t<typename swap_chain_type::value_type>(*swap_chain)) << offset);
+				if (offset > 0 && !swap_chain.origin().eof())
 				{
 					++swap_chain;
 					continue;

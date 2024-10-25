@@ -92,28 +92,28 @@ namespace pdn
 		}
 		entity parse(const ::std::string& filename)
 		{
-			auto source_file_uptr = ::std::make_unique<::std::ifstream>(filename, ::std::ios::in | ::std::ios::binary);
-			if (!source_file_uptr->is_open())
+			::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
+			if (!source_file.is_open())
 			{
 				using namespace ::std::string_literals;
 				throw failed_in_open_file_error{ "failed in open file \""s + filename + "\""s };
 			}
-			return parse_file(::std::move(source_file_uptr));
+			return parse_file(source_file);
 		}
 		entity parse(const char* const filename)
 		{
-			auto source_file_uptr = ::std::make_unique<::std::ifstream>(filename, ::std::ios::in | ::std::ios::binary);
-			if (!source_file_uptr->is_open())
+			::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
+			if (!source_file.is_open())
 			{
 				using namespace ::std::string_literals;
 				throw failed_in_open_file_error{ "failed in open file \""s + filename + "\""s };
 			}
-			return parse_file(::std::move(source_file_uptr));
+			return parse_file(source_file);
 		}
 		entity parse(const ::std::wstring& filename)
 		{
-			auto source_file_uptr = ::std::make_unique<::std::ifstream>(filename, ::std::ios::in | ::std::ios::binary);
-			if (!source_file_uptr->is_open())
+			::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
+			if (!source_file.is_open())
 			{
 				auto& facet = std::use_facet<::std::codecvt<wchar_t, char, ::std::mbstate_t>>(::std::locale());
 				::std::mbstate_t mb{};
@@ -132,12 +132,12 @@ namespace pdn
 				using namespace ::std::string_literals;
 				throw failed_in_open_file_error{ "failed in open file \""s + external + "\""s };
 			}
-			return parse_file(::std::move(source_file_uptr));
+			return parse_file(source_file);
 		}
 		entity parse(const wchar_t* const filename)
 		{
-			auto source_file_uptr = ::std::make_unique<::std::ifstream>(filename, ::std::ios::in | ::std::ios::binary);
-			if (!source_file_uptr->is_open())
+			::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
+			if (!source_file.is_open())
 			{
 				auto& facet = ::std::use_facet<::std::codecvt<wchar_t, char, ::std::mbstate_t>>(::std::locale());
 				::std::mbstate_t mb{};
@@ -157,7 +157,7 @@ namespace pdn
 				using namespace ::std::string_literals;
 				throw failed_in_open_file_error{ "failed in open file \""s + external + "\""s };
 			}
-			return parse_file(::std::move(source_file_uptr));
+			return parse_file(source_file);
 		}
 		void parse_code_point_sequence(auto&& begin, auto end, obj& o)
 		{
@@ -842,21 +842,21 @@ namespace pdn
 			}
 			return false;
 		}
-		entity parse_file(::std::unique_ptr<::std::ifstream> source_file_uptr)
+		entity parse_file(::std::ifstream& source_file)
 		{
-			auto bom_type = unicode::read_bom(*source_file_uptr);
+			auto bom_type = unicode::read_bom(source_file);
 			auto source_encode_type = unicode::utility::to_encode_type(bom_type);
-			auto source_swap_chain = make_swap_chain(::std::move(source_file_uptr));
+			auto source_swap_chain = make_swap_chain(source_file);
 			using enum unicode::encode_type;
-			using swap_chain_t = ::std::decay_t<decltype(source_swap_chain)>;
+		//	using swap_chain_t = ::std::decay_t<decltype(source_swap_chain)>;
 
 			switch (source_encode_type)
 			{
-			case utf_8:     return this->parse(make_code_unit_iterator<utf_8>    (::std::move(source_swap_chain)), swap_chain_t::eof_obj());
-			case utf_16_le: return this->parse(make_code_unit_iterator<utf_16_le>(::std::move(source_swap_chain)), swap_chain_t::eof_obj());
-			case utf_16_be: return this->parse(make_code_unit_iterator<utf_16_be>(::std::move(source_swap_chain)), swap_chain_t::eof_obj());
-			case utf_32_le: return this->parse(make_code_unit_iterator<utf_32_le>(::std::move(source_swap_chain)), swap_chain_t::eof_obj());
-			case utf_32_be: return this->parse(make_code_unit_iterator<utf_32_be>(::std::move(source_swap_chain)), swap_chain_t::eof_obj());
+			case utf_8:     return this->parse(make_code_unit_iterator<utf_8>    (source_swap_chain.current()), source_swap_chain.end());
+			case utf_16_le: return this->parse(make_code_unit_iterator<utf_16_le>(source_swap_chain.current()), source_swap_chain.end());
+			case utf_16_be: return this->parse(make_code_unit_iterator<utf_16_be>(source_swap_chain.current()), source_swap_chain.end());
+			case utf_32_le: return this->parse(make_code_unit_iterator<utf_32_le>(source_swap_chain.current()), source_swap_chain.end());
+			case utf_32_be: return this->parse(make_code_unit_iterator<utf_32_be>(source_swap_chain.current()), source_swap_chain.end());
 			default:        throw  inner_error{ "[pdn] inner error when process bom_type" };
 			}
 			return 0;

@@ -93,8 +93,8 @@ namespace pdn
 					post_err(pos_recorder.position(),
 					         lex_ec::not_unicode_scalar_value,
 					         reinterpret_to_err_msg_str(msg));
-					++begin;
 					pos_recorder.update(c);
+					++begin;
 					continue;
 				}
 
