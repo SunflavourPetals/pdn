@@ -304,11 +304,8 @@ namespace pdn::inline experimental
 		buffers_manager   buffers_mng;      // unique_ptr for 2 buffers, size = 2*buffer_size; buffer 1 at x, buffer 2 at x offset buffer_size
 	};
 
-	template <typename istream_t = ::std::istream,
-	          typename buffer_deleter_t = ::std::default_delete<typename istream_t::char_type[]>>
-	inline auto make_swap_chain(istream_t& istream,
-	                            ::std::size_t buf_size = 1024,
-	                            ::std::unique_ptr<typename istream_t::char_type[], buffer_deleter_t>&& adjacent_2_buf = nullptr)
+	template <typename istream_t = ::std::istream, typename buffer_deleter_t = ::std::default_delete<typename istream_t::char_type[]>>
+	inline auto make_swap_chain(istream_t& istream, ::std::size_t buf_size = 1024, ::std::unique_ptr<typename istream_t::char_type[], buffer_deleter_t>&& adjacent_2_buf = nullptr)
 	{
 		return swap_chain{ istream, buf_size,::std::move(adjacent_2_buf) };
 	}
