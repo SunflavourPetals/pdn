@@ -36,7 +36,7 @@
 //     v
 //    parser (provide: parse) ----> pdn document object model
 
-namespace pdn::inline experimental
+namespace pdn
 {
 	template <typename istream_t = ::std::istream, typename buffer_deleter_t = ::std::default_delete<typename istream_t::char_type[]>>
 	class swap_chain
