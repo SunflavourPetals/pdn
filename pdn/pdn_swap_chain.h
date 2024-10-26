@@ -70,24 +70,24 @@ namespace pdn
 			{
 				return *this == swap_chain_iterator{};
 			}
-			const value_type& operator*() const
+			const value_type& operator*() const // cannot dereference end
 			{
 				return origin().get();
 			}
-			swap_chain_iterator& operator++ ()
+			swap_chain_iterator& operator++ () // cannot ++end
 			{
 				origin().to_next();
 				if (origin().eof())
 				{
-					swap_ptr = nullptr;
+					swap_ptr = nullptr; // swap_ptr == nullptr -> end
 				}
 				return *this;
 			}
 			friend bool operator==(swap_chain_iterator, swap_chain_iterator) = default;
-			swap_chain_iterator() : swap_ptr{ nullptr } {}
+			swap_chain_iterator() : swap_ptr{ nullptr } {} // default constructor make itself be end iterator
 			explicit swap_chain_iterator(swap_chain& swap) : swap_ptr{ &swap } {}
 		private:
-			swap_chain_type* swap_ptr{};
+			swap_chain_type* swap_ptr{ nullptr }; // swap_ptr == nullptr means it is end
 		};
 		friend class swap_chain_iterator;
 	public:

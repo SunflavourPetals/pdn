@@ -817,9 +817,9 @@ int main(int argc, const char* argv[])
 	bool is_using_stdout = false;
 	bool to_play = true;
 
-	const char* my_argv[]{ "./pdn", "-p", R"(D:\Works\VisualStudio2022\ProjectsUsingGit\Maze\Maze\assets\pdn\level_1_utf-16.pdn)", nullptr};
-	argc = 3;
-	argv = my_argv;
+//	const char* my_argv[]{ "./pdn", "-p", R"(D:\Works\VisualStudio2022\ProjectsUsingGit\Maze\Maze\assets\pdn\level_1_utf-16.pdn)", nullptr};
+//	argc = 3;
+//	argv = my_argv;
 
 	if (argc <= 1)
 	{
