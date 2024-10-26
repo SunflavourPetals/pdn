@@ -822,6 +822,10 @@ int main(int argc, const char* argv[])
 		std::string answer{};
 		std::cout << "do debug test[yes/y = yes, else = no]: ";
 		std::cin >> answer;
+		{
+			std::string ignore{};
+			std::getline(std::cin, ignore);
+		}
 
 		for (auto& c : answer)
 		{
