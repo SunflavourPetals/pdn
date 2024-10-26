@@ -848,7 +848,6 @@ namespace pdn
 			auto source_encode_type = unicode::utility::to_encode_type(bom_type);
 			auto source_swap_chain = make_swap_chain(source_file);
 			using enum unicode::encode_type;
-		//	using swap_chain_t = ::std::decay_t<decltype(source_swap_chain)>;
 
 			switch (source_encode_type)
 			{

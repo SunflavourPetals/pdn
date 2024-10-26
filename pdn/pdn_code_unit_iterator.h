@@ -182,7 +182,7 @@ namespace pdn
 			curr_value = helper::first_to_next(begin, [&]() { return begin == end; });
 		}
 	public:
-		char_type operator*() const noexcept
+		const char_type& operator*() const noexcept
 		{
 			return get();
 		}
@@ -253,7 +253,7 @@ namespace pdn
 			curr_value = helper::first_to_next(begin, [&]() { return begin.eof(); });
 		}
 	public:
-		char_type operator*() const noexcept
+		const char_type& operator*() const noexcept
 		{
 			return get();
 		}
@@ -299,9 +299,16 @@ namespace pdn
 		using char_type = code_unit_type;
 		using size_type = ::std::size_t;
 		using value_type = char_type;
-		char_type operator*() const noexcept
+		auto operator*() const noexcept -> ::std::conditional_t<::std::is_reference_v<decltype(*::std::declval<it_t>())>, const char_type&, char_type>
 		{
-			return *begin;
+			if constexpr (::std::is_reference_v<decltype(*begin)>)
+			{
+				return reinterpret_cast<const char_type&>(*begin);
+			}
+			else
+			{
+				return *begin; // implicit conversation to code_unit_type
+			}
 		}
 		code_unit_iterator& operator++ ()
 		{
