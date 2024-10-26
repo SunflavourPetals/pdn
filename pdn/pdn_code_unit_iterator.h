@@ -336,7 +336,7 @@ namespace pdn
 		it_t begin;
 	};
 
-	template <unicode::encode_type encode_type, typename it_t> // pdn::swap_chain like
+	template <unicode::encode_type encode_type, typename it_t>
 	inline auto make_code_unit_iterator(it_t begin, it_t end)
 	{
 		return code_unit_iterator<encode_type, it_t>{ ::std::move(begin), ::std::move(end) };
