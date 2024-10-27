@@ -3,6 +3,7 @@
 
 #include "pdn_source_position.h"
 #include "pdn_unicode_base.h"
+#include "pdn_source_position_recorder_concept.h"
 
 namespace pdn
 {
@@ -48,6 +49,7 @@ namespace pdn
 
 		bool is_last_CR{};
 	};
+	static_assert(concepts::source_position_recorder<source_position_recorder>);
 }
 
 #endif

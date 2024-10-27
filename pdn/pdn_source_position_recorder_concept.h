@@ -9,10 +9,10 @@
 namespace pdn::concepts
 {
 	template <typename type>
-	concept source_position_recorder = requires(type pos_recorder)
+	concept source_position_recorder = requires(type pos_recorder, unicode::code_point_t c)
 	{
 		{ pos_recorder.position() } -> ::std::convertible_to<source_position>;
-		pos_recorder.update(::std::declval<unicode::code_point_t>());
+		pos_recorder.update(c);
 	};
 }
 

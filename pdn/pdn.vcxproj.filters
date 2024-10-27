@@ -243,6 +243,12 @@
     <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_error_handler_concept.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_message_generator_concept.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp">

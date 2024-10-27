@@ -5,8 +5,6 @@
 
 #include "pdn_error_string.h"
 #include "pdn_error_code_variant.h"
-#include "pdn_error_message_generator.h"
-
 #include "pdn_err_msg_gen_en_lex.h"
 #include "pdn_err_msg_gen_en_syn.h"
 #include "pdn_err_msg_gen_en_utf_8_enc.h"
@@ -31,8 +29,6 @@ namespace pdn
 			return u8"unknown error type, error_message_generator_en unresolved: \""_em + src + u8"\""_em;
 		}, errc);
 	}
-
-	inline const error_message_generator error_message_generator_en{ error_message_generator_en_function };
 }
 
 #endif

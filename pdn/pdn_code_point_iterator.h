@@ -1,21 +1,25 @@
 #ifndef PDN_Header_pdn_code_point_iterator
 #define PDN_Header_pdn_code_point_iterator
 
+#include <functional> // remove this
+
 #include <type_traits>
+#include <iterator>
 #include <utility>
 #include <string>
 #include <memory>
-#include <functional>
 #include <format>
 #include <cstdint>
 
-#include "pdn_source_position_recorder_concept.h"
+#include "pdn_error_handler.h" // remove this
+#include "pdn_error_message_generator.h" // remove this
+
 #include "pdn_unicode.h"
 #include "pdn_code_convert.h"
-#include "pdn_error_handler.h"
-#include "pdn_error_message_generator.h"
-#include "pdn_error_message_generator_en.h"
 #include "pdn_error_message.h"
+#include "pdn_source_position_recorder_concept.h"
+#include "pdn_error_handler_concept.h"
+#include "pdn_error_message_generator_concept.h"
 
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
@@ -46,22 +50,26 @@ namespace pdn::experimental
 {
 	namespace dev_util
 	{
-		template <typename packge_t>
-		concept function_packge_for_code_point_iterator = concepts::source_position_recorder<packge_t>;
+		template <typename type>
+		concept function_package_for_code_point_iterator
+			 = concepts::source_position_recorder<type>
+			&& concepts::error_handler<type>
+			&& concepts::error_message_generator<type>;
 	}
 
-	template <typename begin_it_t, typename end_it_t> //, typename function_packge>
+	template <typename begin_it_t, typename end_it_t, typename function_package>
 	class code_point_iterator
 	{
 	public:
-		using iterator_category = void; // it does not satisfy the requirements of any legacy iterator
-		using code_unit_type = ::std::remove_cvref_t<decltype(*(::std::declval<begin_it_t>()))>;
-		using char_type = unicode::code_point_t;
-		using size_type = ::std::size_t;
+		using iterator_concept  = void;
+		using iterator_category = void;
+		using code_unit_type    = ::std::iter_value_t<begin_it_t>;
+		using char_type         = unicode::code_point_t;
+		using size_type         = ::std::size_t;
+		using value_type        = char_type;
 
-		using position_getter = ::std::function<source_position()>;
 	public:
-		unicode::code_point_t operator*() const noexcept
+		const char_type& operator*() const noexcept
 		{
 			return curr_value;
 		}
@@ -105,11 +113,7 @@ namespace pdn::experimental
 			return lhs.is_end;
 		}
 	public:
-		code_point_iterator(begin_it_t              begin_it,
-			end_it_t                end_it,
-			position_getter         pos_getter,
-			error_handler           err_handler,
-			error_message_generator err_msg_generator = error_message_generator_en) :
+		code_point_iterator(begin_it_t begin_it, end_it_t end_it, function_package& func_package) :
 			begin{ ::std::move(begin_it) },
 			end{ ::std::move(end_it) },
 			pos_getter{ ::std::move(pos_getter) },
@@ -135,13 +139,9 @@ namespace pdn::experimental
 			::std::swap(is_end, o.is_end);
 		}
 	private:
-		begin_it_t begin;
-		end_it_t end;
-
-		position_getter pos_getter;
-		error_handler err_handler;
-		error_message_generator err_msg_gen;
-
+		begin_it_t            begin;
+		end_it_t              end;
+		function_package*     func_pkg{};
 		unicode::code_point_t curr_value{};
 		bool is_end{};
 	};
@@ -149,7 +149,7 @@ namespace pdn::experimental
 	template <typename begin_it_t, typename end_it_t>
 	inline auto make_code_point_iterator(begin_it_t begin_it,
 		end_it_t end_it,
-		typename code_point_iterator<begin_it_t, end_it_t>::position_getter pos_getter,
+		typename code_point_iterator<begin_it_t, end_it_t, void>::position_getter pos_getter,
 		error_handler err_handler,
 		error_message_generator err_msg_generator = error_message_generator_en)
 	{

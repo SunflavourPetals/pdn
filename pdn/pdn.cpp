@@ -831,6 +831,7 @@ int main(int argc, const char* argv[])
 		{
 			argc = 3;
 			argv = my_argv;
+			
 		}
 	}
 

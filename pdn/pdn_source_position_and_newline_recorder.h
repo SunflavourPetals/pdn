@@ -6,6 +6,7 @@
 #include "pdn_source_position.h"
 #include "pdn_newline_modes.h"
 #include "pdn_unicode_base.h"
+#include "pdn_source_position_recorder_concept.h"
 
 namespace pdn
 {
@@ -114,6 +115,7 @@ namespace pdn
 		::std::size_t PS_count{};
 		bool is_last_CR{};
 	};
+	static_assert(concepts::source_position_recorder<source_position_and_newline_recorder>);
 }
 
 #endif
