@@ -20,6 +20,7 @@
 #include "pdn_source_position_recorder_concept.h"
 #include "pdn_error_handler_concept.h"
 #include "pdn_error_message_generator_concept.h"
+#include "pdn_eof_checker_concept.h"
 
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
@@ -56,9 +57,6 @@ namespace pdn::dev_util
 
 namespace pdn::inline experimental
 {
-	// 修改 decoder 使其返回值含有处理的码元个数信息
-	// 
-
 	template <typename begin_it_t, typename end_it_t, dev_util::function_package_for_code_point_iterator function_package>
 	class code_point_iterator
 	{

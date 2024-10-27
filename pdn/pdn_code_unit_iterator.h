@@ -10,6 +10,7 @@
 #include <iterator>
 
 #include "pdn_unicode_base.h"
+#include "pdn_eof_checker_concept.h"
 
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
@@ -37,9 +38,6 @@
 
 namespace pdn::dev_util
 {
-	template <typename it_t>
-	concept eof_tester_iterator = requires(it_t it) { { it.eof() } -> ::std::convertible_to<bool>; };
-
 	template <unicode::encode_type encode_type, typename it_t>
 	class code_unit_iterator_helper final
 	{
@@ -206,7 +204,7 @@ namespace pdn
 		char_type curr_value{};
 	};
 
-	template <unicode::encode_type encode_type, dev_util::eof_tester_iterator it_t>
+	template <unicode::encode_type encode_type, dev_util::eof_checker it_t>
 	class code_unit_iterator<encode_type, it_t>
 	{
 	public:

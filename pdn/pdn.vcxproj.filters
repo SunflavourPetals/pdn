@@ -249,6 +249,9 @@
     <ClInclude Include="pdn_error_message_generator_concept.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_eof_checker_concept.h">
+      <Filter>pdn_filestream_adapter</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp">
