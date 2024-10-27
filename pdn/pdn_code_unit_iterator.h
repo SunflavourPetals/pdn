@@ -45,8 +45,8 @@ namespace pdn::dev_util
 	{
 	public:
 		using code_unit_type = unicode::type_traits::code_unit_t<encode_type>;
-		using char_type = code_unit_type;
-		using size_type = ::std::size_t;
+		using char_type      = code_unit_type;
+		using size_type      = ::std::size_t;
 		static constexpr size_type bits_count_of_byte{ 8 };
 		static constexpr size_type bits_count_of_unit{ sizeof(char_type) * bits_count_of_byte };
 		static_assert(bits_count_of_unit >= bits_count_of_byte);
@@ -277,13 +277,13 @@ namespace pdn
 	class code_unit_iterator<unicode::encode_type::utf_8, it_t>
 	{
 	public:
-		using iterator_concept = void;
+		using iterator_concept  = void;
 		using iterator_category = void;
-		using code_unit_type = unicode::type_traits::code_unit_t<unicode::encode_type::utf_8>;
-		using char_type = code_unit_type;
-		using size_type = ::std::size_t;
-		using value_type = char_type;
-		using deref_value_type = ::std::conditional_t<dev_util::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>, ::std::add_const_t<char_type>&, char_type>;
+		using code_unit_type    = unicode::type_traits::code_unit_t<unicode::encode_type::utf_8>;
+		using char_type         = code_unit_type;
+		using size_type         = ::std::size_t;
+		using value_type        = char_type;
+		using deref_value_type  = ::std::conditional_t<dev_util::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>, ::std::add_const_t<char_type>&, char_type>;
 		deref_value_type operator*() const noexcept
 		{
 			if constexpr (dev_util::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>)

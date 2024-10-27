@@ -28,7 +28,7 @@ namespace pdn::unicode
 			destination.append(s.cbegin(), s.cend()); \
 		};
 
-		PDN_Macro_Temp_make_string_src_des_concepts(utf_8_convert_src, utf_8_convert_des, char8_t)
+		PDN_Macro_Temp_make_string_src_des_concepts(utf_8_convert_src,  utf_8_convert_des,  char8_t)
 		PDN_Macro_Temp_make_string_src_des_concepts(utf_16_convert_src, utf_16_convert_des, char16_t)
 		PDN_Macro_Temp_make_string_src_des_concepts(utf_32_convert_src, utf_32_convert_des, char32_t)
 
@@ -58,15 +58,15 @@ namespace pdn::unicode
 		} \
 	};
 
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src, utf_8, concepts::utf_8_convert_des, utf_8)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src, utf_8, concepts::utf_16_convert_des, utf_16)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src, utf_8, concepts::utf_32_convert_des, utf_32)
+	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src,  utf_8,  concepts::utf_8_convert_des,  utf_8)
+	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src,  utf_8,  concepts::utf_16_convert_des, utf_16)
+	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src,  utf_8,  concepts::utf_32_convert_des, utf_32)
 
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_16_convert_src, utf_16, concepts::utf_8_convert_des, utf_8)
+	PDN_Macro_Temp_make_convert_decision(concepts::utf_16_convert_src, utf_16, concepts::utf_8_convert_des,  utf_8)
 	PDN_Macro_Temp_make_convert_decision(concepts::utf_16_convert_src, utf_16, concepts::utf_16_convert_des, utf_16)
 	PDN_Macro_Temp_make_convert_decision(concepts::utf_16_convert_src, utf_16, concepts::utf_32_convert_des, utf_32)
 
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_32_convert_src, utf_32, concepts::utf_8_convert_des, utf_8)
+	PDN_Macro_Temp_make_convert_decision(concepts::utf_32_convert_src, utf_32, concepts::utf_8_convert_des,  utf_8)
 	PDN_Macro_Temp_make_convert_decision(concepts::utf_32_convert_src, utf_32, concepts::utf_16_convert_des, utf_16)
 	PDN_Macro_Temp_make_convert_decision(concepts::utf_32_convert_src, utf_32, concepts::utf_32_convert_des, utf_32)
 
