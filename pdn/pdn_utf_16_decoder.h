@@ -8,8 +8,7 @@
 
 namespace pdn::unicode::utf_16
 {
-
-	enum class decode_error_code
+	enum class decode_error_code : ::std::uint16_t
 	{
 		success,
 
@@ -32,6 +31,7 @@ namespace pdn::unicode::utf_16
 	public:
 		using value_type = code_point_t;
 		using error_type = decode_error_code;
+		using count_type = ::std::uint16_t;
 	public:
 		constexpr auto value() const noexcept
 		{
@@ -40,6 +40,10 @@ namespace pdn::unicode::utf_16
 		constexpr auto error() const noexcept
 		{
 			return error_code;
+		}
+		constexpr auto distance() const noexcept
+		{
+			return distance_count;
 		}
 		constexpr explicit operator bool() const noexcept
 		{
@@ -50,9 +54,10 @@ namespace pdn::unicode::utf_16
 	private:
 		value_type code_point{};
 		error_type error_code{ error_type::success };
+		count_type distance_count{};
 	};
 
-	template <bool force_to_next>
+	template <bool reach_next_code_point>
 	inline decode_result decode(auto&& begin, auto end)
 	{
 		using value_type = decode_result::value_type;
@@ -72,13 +77,19 @@ namespace pdn::unicode::utf_16
 
 		if (is_non_surrogate(result.code_point))
 		{
-			++begin;
+			// result.code_point must be unicode scalar value
+			if constexpr (reach_next_code_point)
+			{
+				++begin;
+				++result.distance_count;
+			}
 			return result;
 		}
 		else if (is_leading_surrogate(result.code_point))
 		{
 			result.code_point = ((result.code_point & value_type(0x03FF)) << 10) + value_type(0x10000U);
 			++begin;
+			++result.distance_count;
 			if (begin == end)
 			{
 				result.error_code = eof_when_read_trailing_surrogate;
@@ -91,19 +102,20 @@ namespace pdn::unicode::utf_16
 				return result;
 			}
 			result.code_point |= (value_type(trailing) & value_type(0x03FF));
-			++begin;
+			if (!is_scalar_value(result.value()))
+			{
+				result.error_code = not_scalar_value;
+			}
 		}
 		else // must be trailing surrogate
 		{
 			result.error_code = alone_trailing_surrogate;
-			if constexpr (force_to_next) ++begin;
-			return result;
 		}
 
-		if (result && !is_scalar_value(result.value()))
+		if constexpr (reach_next_code_point)
 		{
-			result.error_code = not_scalar_value;
-			return result;
+			++begin;
+			++result.distance_count;
 		}
 
 		return result;

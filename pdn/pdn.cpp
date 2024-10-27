@@ -413,10 +413,34 @@ namespace pdn_test
 			std::getline(std::cin, cmd);
 			auto cmd_v = reinterpret_to_u8sv(cmd);
 			auto lex = get_lex<char_t>(out);
-			auto cp_it = pdn::make_code_point_iterator(cmd_v.begin(),
-			                                           cmd_v.end(),
-													   [&]() { return lex.position(); },
-													   error_handler_t{ out });
+
+
+			using my_lex_t = decltype(lex);
+			struct my_handler_test : public pdn::default_error_message_generator
+			{
+				my_lex_t* my_lex_p;
+				error_handler_t my_err_h;
+				my_handler_test(my_lex_t* l, error_handler_t h) : my_lex_p{ l }, my_err_h{ h } {}
+				pdn::source_position position()
+				{
+					return my_lex_p->position();
+				}
+				void update(char32_t) const
+				{
+					// unused fn
+				}
+				void handle_error(const pdn::error_message& msg)
+				{
+					my_err_h(msg);
+				}
+				pdn::error_msg_string generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str)
+				{
+					return default_error_message_generator::generate_error_message(std::move(errc_variant), std::move(err_msg_str));
+				}
+			};
+			my_handler_test my_hd_test{ &lex, error_handler_t{ out } };
+			auto cp_it = pdn::make_code_point_iterator(cmd_v.begin(), cmd_v.end(), my_hd_test);
+
 			auto tk = lex.get_token(cp_it, cmd_v.end());
 
 			if (is_iden(tk))

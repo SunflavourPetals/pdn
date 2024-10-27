@@ -45,19 +45,21 @@
 //     v
 //    parser (provide: parse) ----> pdn document object model
 
-
-namespace pdn::experimental
+namespace pdn::dev_util
 {
-	namespace dev_util
-	{
-		template <typename type>
-		concept function_package_for_code_point_iterator
-			 = concepts::source_position_recorder<type>
-			&& concepts::error_handler<type>
-			&& concepts::error_message_generator<type>;
-	}
+	template <typename type>
+	concept function_package_for_code_point_iterator
+		 = concepts::source_position_recorder<type>
+		&& concepts::error_handler<type>
+		&& concepts::error_message_generator<type>;
+}
 
-	template <typename begin_it_t, typename end_it_t, typename function_package>
+namespace pdn::inline experimental
+{
+	// 修改 decoder 使其返回值含有处理的码元个数信息
+	// 
+
+	template <typename begin_it_t, typename end_it_t, dev_util::function_package_for_code_point_iterator function_package>
 	class code_point_iterator
 	{
 	public:
@@ -75,34 +77,9 @@ namespace pdn::experimental
 		{
 			return begin == end;
 		}
-		void to_next() // requires decode do not move it to next char
+		void to_next()
 		{
-			while (begin != end)
-			{
-				using decision = unicode::convert_decision<::std::basic_string_view<code_unit_type>, unicode::code_point_string>;
-				auto result = decision::template decode<true>(begin, end);
-				if (result)
-				{
-					curr_value = result.value();
-				}
-				else
-				{
-					static_assert(sizeof(::std::uint32_t) >= sizeof(unicode::code_point_t));
-					::std::string hex_s;
-					if (begin != end)
-					{
-						hex_s = ::std::format("0x{:08X}", static_cast<::std::uint32_t>(*begin));
-					}
-					else
-					{
-						using namespace std::string_literals;
-						hex_s = "EOF"s;
-					}
-					auto hex_em_s = reinterpret_to_err_msg_str(hex_s);
-					err_handler({ pos_getter(), result.error(), err_msg_gen(result.error(), hex_em_s) });
-					continue;
-				}
-			}
+			to_next_impl();
 		}
 		const char_type& operator*() const noexcept
 		{
@@ -118,43 +95,73 @@ namespace pdn::experimental
 		{
 			return lhs.begin == rhs;
 		}
+	private:
+		template <bool is_first = false>
+		void to_next_impl()
+		{
+			if constexpr (!is_first)
+			{
+				if (begin != end)
+				{
+					++begin;
+				}
+			}
+			while (begin != end)
+			{
+				using decision = unicode::convert_decision<::std::basic_string_view<code_unit_type>, unicode::code_point_string>;
+				auto result = decision::template decode<false>(begin, end);
+				if (result)
+				{
+					curr_value = result.value();
+					break;
+				}
+				else
+				{
+					static_assert(sizeof(::std::uint32_t) >= sizeof(unicode::code_point_t));
+					::std::string hex_s;
+					if (begin != end)
+					{
+						hex_s = ::std::format("0x{:08X}", static_cast<::std::uint32_t>(*begin));
+					}
+					else
+					{
+						using namespace std::string_literals;
+						hex_s = "EOF"s;
+					}
+					auto hex_em_s = reinterpret_to_err_msg_str(hex_s);
+					func_pkg->handle_error(error_message{
+						func_pkg->position(),
+						result.error(),
+						func_pkg->generate_error_message(result.error(), hex_em_s) });
+					if (result.distance() == 0) ++begin;
+				}
+			}
+		}
 	public:
 		code_point_iterator(begin_it_t begin_it, end_it_t end_it, function_package& func_package) :
+			func_pkg{ &func_package },
 			begin{ ::std::move(begin_it) },
-			end{ ::std::move(end_it) },
-			func_pkg{ &func_package }
+			end{ ::std::move(end_it) }
 		{
-			++(*this);
+			to_next_impl<true>();
 		}
 	private:
+		function_package*     func_pkg{};
 		begin_it_t            begin;
 		end_it_t              end;
-		function_package*     func_pkg{};
 		unicode::code_point_t curr_value{};
-		bool is_end{};
 	};
 
-	template <typename begin_it_t, typename end_it_t>
-	inline auto make_code_point_iterator(begin_it_t begin_it,
-		end_it_t end_it,
-		typename code_point_iterator<begin_it_t, end_it_t, void>::position_getter pos_getter,
-		error_handler err_handler,
-		error_message_generator err_msg_generator = error_message_generator_en)
+	template <typename begin_it_t, typename end_it_t, dev_util::function_package_for_code_point_iterator function_package>
+	inline auto make_code_point_iterator(begin_it_t begin_it, end_it_t end_it, function_package& func_package)
 	{
-		return code_point_iterator
-		{
-			::std::move(begin_it),
-			::std::move(end_it),
-			::std::move(pos_getter),
-			::std::move(err_handler),
-			::std::move(err_msg_generator)
-		};
+		return code_point_iterator{ ::std::move(begin_it), ::std::move(end_it), func_package };
 	}
 }
 
 
 
-namespace pdn
+namespace pdn::legacy
 {
 	template <typename begin_it_t, typename end_it_t>
 	class code_point_iterator

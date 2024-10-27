@@ -12,7 +12,7 @@
 
 namespace pdn::unicode::utf_8
 {
-	enum class decode_error_code
+	enum class decode_error_code : ::std::uint16_t
 	{
 		success,
 
@@ -40,6 +40,7 @@ namespace pdn::unicode::utf_8
 	public:
 		using value_type = code_point_t;
 		using error_type = decode_error_code;
+		using count_type = ::std::uint16_t;
 	public:
 		constexpr auto value() const noexcept
 		{
@@ -48,6 +49,10 @@ namespace pdn::unicode::utf_8
 		constexpr auto error() const noexcept
 		{
 			return error_code;
+		}
+		constexpr auto distance() const noexcept
+		{
+			return distance_count;
 		}
 		constexpr explicit operator bool() const noexcept
 		{
@@ -58,6 +63,7 @@ namespace pdn::unicode::utf_8
 	private:
 		value_type code_point{};
 		error_type error_code{ error_type::success };
+		count_type distance_count{};
 	};
 }
 
@@ -145,7 +151,7 @@ namespace pdn::unicode::utf_8::impl_components
 
 namespace pdn::unicode::utf_8
 {
-	template <bool force_to_next>
+	template <bool reach_next_code_point>
 	inline decode_result decode(auto&& begin, auto end)
 	{
 		using enum decode_error_code;
@@ -156,12 +162,14 @@ namespace pdn::unicode::utf_8
 		using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
 		using ucu_t = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
 
-		// domain: [1, 6)
+		// domain: [1, 5] int
 		auto process_trailing = [](int trailing_count, auto& begin, auto end) -> decode_result
 		{
 			decode_result result{};
 			for (int i{ 1 }; i <= trailing_count; ++i)
 			{
+				++begin;
+				++result.distance_count;
 				if (begin == end)
 				{
 					switch (i)
@@ -183,7 +191,7 @@ namespace pdn::unicode::utf_8
 						break;
 					default:
 						// do not catch this exception. if throwing there, must be some error in caller(utf_8::decode) or be hacked
-						throw ::std::domain_error("[pdn] inner utf-8 decoder error: trailing_count not belong to [1, 6) int");
+						throw ::std::domain_error("[pdn] inner utf-8 decoder error: trailing_count not belong to [1, 5] int");
 						break;
 					}
 					return result;
@@ -192,7 +200,6 @@ namespace pdn::unicode::utf_8
 				if (utf_8::is_trailing(c))
 				{
 					result.code_point |= (((value_type(c) & 0x3F) << ((trailing_count - i) * 6)));
-					++begin;
 				}
 				else
 				{
@@ -217,48 +224,72 @@ namespace pdn::unicode::utf_8
 		{
 		case code_units_count::c1:
 			result.code_point = value_type(c);
-			++begin;
-			break;
+			if constexpr (reach_next_code_point)
+			{
+				++begin;
+				++result.distance_count;
+			}
+			return result;
 		case code_units_count::c2:
-			(result = process_trailing(1, ++begin, end)).code_point |= ((value_type(c) & 0x1F) << (6 * 1));
+			(result = process_trailing(1, begin, end)).code_point |= ((value_type(c) & 0x1F) << (6 * 1));
 			break;
 		case code_units_count::c3:
-			(result = process_trailing(2, ++begin, end)).code_point |= ((value_type(c) & 0x0F) << (6 * 2));
+			(result = process_trailing(2, begin, end)).code_point |= ((value_type(c) & 0x0F) << (6 * 2));
 			break;
 		case code_units_count::c4:
-			(result = process_trailing(3, ++begin, end)).code_point |= ((value_type(c) & 0x07) << (6 * 3));
+			(result = process_trailing(3, begin, end)).code_point |= ((value_type(c) & 0x07) << (6 * 3));
 			break;
 		case code_units_count::unconfirm:
 			switch (map_second_table(c))
 			{
 			case code_units_count::c5:
-				(result = process_trailing(4, ++begin, end)).code_point |= ((value_type(c) & 0x03) << (6 * 4));
+				(result = process_trailing(4, begin, end)).code_point |= ((value_type(c) & 0x03) << (6 * 4));
 				break;
 			case code_units_count::c6:
-				(result = process_trailing(5, ++begin, end)).code_point |= ((value_type(c) & 0x01) << (6 * 5));
+				(result = process_trailing(5, begin, end)).code_point |= ((value_type(c) & 0x01) << (6 * 5));
 				break;
 			case code_units_count::unknown:
 				result.error_code = unsupported_utf_8_leading;
-				if constexpr (force_to_next) ++begin;
-				break;
+				if constexpr (reach_next_code_point)
+				{
+					++begin;
+					++result.distance_count;
+				}
+				return result;
 			default:
 				// mark c1, c2, c3, c4, trail and unconfirm not in second table, this branch will never be executed.
 				result.error_code = requires_utf_8_leading;
-				if constexpr (force_to_next) ++begin;
-				break;
+				if constexpr (reach_next_code_point)
+				{
+					++begin;
+					++result.distance_count;
+				}
+				return result;
 			}
 			break;
 		case code_units_count::trail:
 		default:
 			// mark c5, c6 and invalid not in first table, this branch only for mark trail.
 			result.error_code = requires_utf_8_leading;
-			if constexpr (force_to_next) ++begin;
-			break;
+			if constexpr (reach_next_code_point)
+			{
+				++begin;
+				++result.distance_count;
+			}
+			return result;
 		}
+
 		if (result && !is_scalar_value(result.value()))
 		{
 			result.error_code = not_scalar_value;
 		}
+
+		if constexpr (reach_next_code_point)
+		{
+			++begin;
+			++result.distance_count;
+		}
+
 		return result;
 	}
 }

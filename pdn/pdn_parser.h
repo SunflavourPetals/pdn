@@ -82,12 +82,36 @@ namespace pdn
 		template <typename it_fwd_t>
 		entity parse(it_fwd_t&& begin, auto end)
 		{
-			auto pos_getter = [&]() { return this->position(); };
-			auto code_point_it = make_code_point_iterator(::std::forward<it_fwd_t>(begin),
-			                                              end,
-			                                              pos_getter,
-			                                              this->err_handler,
-			                                              this->err_msg_gen);
+			struct my_handler_test : public pdn::default_error_message_generator
+			{
+				parser* my_parser;
+				my_handler_test(parser* p) : my_parser{ p } {}
+				pdn::source_position position()
+				{
+					return my_parser->position();
+				}
+				void update(char32_t) const
+				{
+					// unused fn
+				}
+				void handle_error(const error_message& msg)
+				{
+					my_parser->err_handler(msg);
+				}
+				pdn::error_msg_string generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str)
+				{
+					return my_parser->err_msg_gen(std::move(errc_variant), std::move(err_msg_str));
+				}
+			};
+			my_handler_test my_hd_test{ this };
+			auto code_point_it = pdn::make_code_point_iterator(::std::forward<it_fwd_t>(begin), end, my_hd_test);
+
+		//	auto pos_getter = [&]() { return this->position(); };
+		//	auto code_point_it = make_code_point_iterator(::std::forward<it_fwd_t>(begin),
+		//	                                              end,
+		//	                                              pos_getter,
+		//	                                              this->err_handler,
+		//	                                              this->err_msg_gen);
 			return this->parse_code_point_sequence(code_point_it, end);
 		}
 		entity parse(const ::std::string& filename)

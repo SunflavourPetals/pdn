@@ -8,7 +8,7 @@
 
 namespace pdn::unicode::utf_32
 {
-	enum class decode_error_code
+	enum class decode_error_code : ::std::uint16_t
 	{
 		success,
 
@@ -28,6 +28,7 @@ namespace pdn::unicode::utf_32
 	public:
 		using value_type = code_point_t;
 		using error_type = decode_error_code;
+		using count_type = ::std::uint16_t;
 	public:
 		constexpr auto value() const noexcept
 		{
@@ -36,6 +37,10 @@ namespace pdn::unicode::utf_32
 		constexpr auto error() const noexcept
 		{
 			return error_code;
+		}
+		constexpr auto distance() const noexcept
+		{
+			return distance_count;
 		}
 		constexpr explicit operator bool() const noexcept
 		{
@@ -46,9 +51,10 @@ namespace pdn::unicode::utf_32
 	private:
 		value_type code_point{};
 		error_type error_code{ error_type::success };
+		count_type distance_count{};
 	};
 
-	template <bool force_to_next>
+	template <bool reach_next_code_point>
 	inline decode_result decode(auto&& begin, auto end)
 	{
 		using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
@@ -64,15 +70,15 @@ namespace pdn::unicode::utf_32
 		}
 
 		result.code_point = ucu_t(*begin);
-		if (is_scalar_value(result.value()))
-		{
-			++begin;
-		}
-		else
+		if (!is_scalar_value(result.value()))
 		{
 			result.error_code = not_scalar_value;
-			if constexpr (force_to_next) ++begin;
-			return result;
+		}
+
+		if constexpr (reach_next_code_point)
+		{
+			++begin;
+			++result.distance_count;
 		}
 
 		return result;
