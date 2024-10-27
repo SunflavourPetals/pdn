@@ -414,7 +414,6 @@ namespace pdn_test
 			auto cmd_v = reinterpret_to_u8sv(cmd);
 			auto lex = get_lex<char_t>(out);
 
-
 			using my_lex_t = decltype(lex);
 			struct my_handler_test : public pdn::default_error_message_generator
 			{
@@ -424,10 +423,6 @@ namespace pdn_test
 				pdn::source_position position()
 				{
 					return my_lex_p->position();
-				}
-				void update(char32_t) const
-				{
-					// unused fn
 				}
 				void handle_error(const pdn::error_message& msg)
 				{

@@ -90,10 +90,6 @@ namespace pdn
 				{
 					return my_parser->position();
 				}
-				void update(char32_t) const
-				{
-					// unused fn
-				}
 				void handle_error(const error_message& msg)
 				{
 					my_parser->err_handler(msg);
