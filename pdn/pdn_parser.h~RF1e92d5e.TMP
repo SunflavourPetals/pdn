@@ -84,9 +84,12 @@ namespace pdn::dev_util
 
 namespace pdn::experimental
 {
-	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_parser<char_t> function_package>
+	template <unicode::concepts::unicode_code_unit char_t,
+		dev_util::function_package_for_parser<char_t> function_package>
 	class parser
 	{
+	private:
+		using base_type = lexer<char_t, dev_util::my_handler_test<char_t>>;
 	public:
 		using char_type = char_t;
 		using entity = types::entity<char_type>;
@@ -111,7 +114,7 @@ namespace pdn::experimental
 		using obj_pr = proxy<obj>;
 		using syn_ec = syntax_error_code;
 	private:
-		function_package* func_pkg{};
+		type_generator<char_t> type_gen{ type_generator_std<char_t> };
 		token<char_t> tk{};
 	public:
 		entity parse_code_point_sequence(auto&& begin, auto end)
@@ -158,6 +161,7 @@ namespace pdn::experimental
 		}
 		void parse_code_point_sequence(auto&& begin, auto end, obj& o)
 		{
+			this->base_type::reset_position_recorder();
 			using enum pdn_token_code;
 			parse_start(begin, end, o);
 			if (tk.code != eof)
@@ -804,19 +808,19 @@ namespace pdn::experimental
 			}, ::std::move(v));
 		}
 
-	private:
+	protected:
 		template <typename iter_t>
-		auto get_token(iter_t&& begin, auto)
+		auto get_token(iter_t&& begin, auto end)
 		{
-			return *begin;
-		}
-		type_code type_gen(const str& iden)
-		{
-			return func_pkg->generate_type(iden);
+			return this->base_type::get_token(::std::forward<iter_t>(begin), end);
 		}
 		void post_err(source_position pos, auto error_code, error_msg_string&& str_for_msg_gen)
 		{
-			func_pkg->handle_error(error_message{ pos, error_code, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
+			this->base_type::post_err(pos, error_code, ::std::move(str_for_msg_gen));
+		}
+		void reset_position_recorder()
+		{
+			this->base_type::reset_position_recorder();
 		}
 		static constexpr bool is_expr_first(pdn_token_code c) noexcept
 		{
@@ -837,6 +841,24 @@ namespace pdn::experimental
 				break;
 			}
 			return false;
+		}
+		entity parse_file(::std::ifstream& source_file)
+		{
+			auto bom_type = unicode::read_bom(source_file);
+			auto source_encode_type = unicode::utility::to_encode_type(bom_type);
+			auto source_swap_chain = make_swap_chain(source_file);
+			using enum unicode::encode_type;
+
+			switch (source_encode_type)
+			{
+			case utf_8:     return this->parse(make_code_unit_iterator<utf_8>(source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
+			case utf_16_le: return this->parse(make_code_unit_iterator<utf_16_le>(source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
+			case utf_16_be: return this->parse(make_code_unit_iterator<utf_16_be>(source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
+			case utf_32_le: return this->parse(make_code_unit_iterator<utf_32_le>(source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
+			case utf_32_be: return this->parse(make_code_unit_iterator<utf_32_be>(source_swap_chain.current(), source_swap_chain.end()), source_swap_chain.end());
+			default:        throw  inner_error{ "[pdn] inner error when process bom_type" };
+			}
+			return 0;
 		}
 	};
 }

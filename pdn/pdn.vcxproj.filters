@@ -258,6 +258,9 @@
     <ClInclude Include="pdn_constants_variant.h">
       <Filter>pdn_constants</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_type_generator_concept.h">
+      <Filter>pdn_type_generator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp">

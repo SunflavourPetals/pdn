@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_error_message_generator_concept
 #define PDN_Header_pdn_error_message_generator_concept
 
+#include <concepts>
 #include <utility>
 
 #include "pdn_error_code_variant.h"

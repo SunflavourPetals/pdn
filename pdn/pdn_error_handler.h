@@ -15,6 +15,7 @@ namespace pdn
 	public:
 		void handle_error(const error_message&) const
 		{
+			// todo
 			::std::cout << "default_error_handler::handle_error called, pdn error(function uncompleted)\n";
 		}
 	};

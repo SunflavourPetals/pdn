@@ -16,7 +16,7 @@ namespace pdn
 	class default_error_message_generator
 	{
 	public:
-		error_msg_string generate_error_message(error_code_variant errc, error_msg_string src)
+		auto generate_error_message(error_code_variant errc, error_msg_string src) const -> error_msg_string
 		{
 			return error_message_generator_en_function(::std::move(errc), ::std::move(src));
 		}

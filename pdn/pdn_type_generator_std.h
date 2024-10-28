@@ -155,9 +155,6 @@ namespace pdn
 		}
 		return type_code::unknown;
 	}
-
-	template <typename char_t>
-	inline const type_generator<char_t> type_generator_std{ type_generator_function<char_t> };
 }
 
 #endif

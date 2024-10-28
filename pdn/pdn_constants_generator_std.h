@@ -10,7 +10,6 @@
 #include "pdn_code_convert.h"
 #include "pdn_types.h"
 #include "pdn_token_value_variant.h"
-#include "pdn_constants_generator.h"
 
 namespace pdn
 {
@@ -93,9 +92,6 @@ namespace pdn
 
 		return false;
 	}
-
-	template <typename char_t>
-	inline const constants_generator<char_t> constants_generator_std{ constants_generator_std_function<char_t> };
 }
 
 #endif

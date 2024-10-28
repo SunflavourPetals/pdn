@@ -399,8 +399,10 @@ namespace pdn_test
 	}
 
 	template <typename char_t>
-	struct my_handler_test : public pdn::default_error_message_generator
+	struct my_handler_test
 	{
+		pdn::default_error_message_generator err_msg_gen{};
+		pdn::default_constants_generator<char_t> const_gen{};
 		pdn::source_position_and_newline_recorder my_rec_r{};
 		error_handler_t my_err_h;
 		my_handler_test(error_handler_t h) : my_err_h{ h } {}
@@ -418,16 +420,11 @@ namespace pdn_test
 		}
 		pdn::error_msg_string generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str)
 		{
-			return default_error_message_generator::generate_error_message(std::move(errc_variant), std::move(err_msg_str));
+			return err_msg_gen.generate_error_message(std::move(errc_variant), std::move(err_msg_str));
 		}
 		::std::optional<pdn::constant_variant<char_t>> generate_constant(pdn::unicode::utf_8_code_unit_string iden)
 		{
-			pdn::constant_variant<char_t> r = 0;
-			if (pdn::constants_generator_std<char_t>(std::move(iden), r))
-			{
-				return r;
-			}
-			return ::std::nullopt;
+			return const_gen.generate_constant(std::move(iden));
 		}
 	};
 
