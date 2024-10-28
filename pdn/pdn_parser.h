@@ -40,16 +40,19 @@
 
 #include "pdn_source_position_recorder.h"
 
-namespace pdn::dev_util
+namespace pdn
 {
 	template <typename char_t>
-	struct my_handler_test
+	class default_function_package
 	{
-		pdn::default_error_message_generator err_msg_gen{};
-		pdn::default_constants_generator<char_t> const_gen{};
+	private:
 		pdn::source_position_recorder pos_recorder{};
 		pdn::default_error_handler err_handler{};
-		pdn::source_position position()
+		pdn::default_error_message_generator err_msg_gen{};
+		pdn::default_constants_generator<char_t> const_gen{};
+		pdn::default_type_generator<char_t> type_gen{};
+	public:
+		pdn::source_position position() const
 		{
 			return pos_recorder.position();
 		}
@@ -68,6 +71,10 @@ namespace pdn::dev_util
 		::std::optional<pdn::constant_variant<char_t>> generate_constant(pdn::unicode::utf_8_code_unit_string iden)
 		{
 			return const_gen.generate_constant(std::move(iden));
+		}
+		type_code generate_type(const types::string<char_t>& iden)
+		{
+			return type_gen.generate_type(iden);
 		}
 	};
 }
@@ -114,49 +121,7 @@ namespace pdn::experimental
 		function_package* func_pkg{};
 		token<char_t> tk{};
 	public:
-		entity parse_code_point_sequence(auto&& begin, auto end)
-		{
-			obj o;
-			parse_code_point_sequence(begin, end, o);
-			return make_proxy<obj>(::std::move(o));
-		}
-		template <typename it_fwd_t>
-		entity parse(it_fwd_t&& begin, auto end)
-		{
-			struct my_handler_test : public pdn::default_error_message_generator
-			{
-				parser* my_parser;
-				source_position_recorder my_pos_r{};
-				my_handler_test(parser* p) : my_parser{ p } {}
-				pdn::source_position position()
-				{
-					return my_parser->position();
-				}
-				void update(char32_t c)
-				{
-					my_pos_r.update(c);
-				}
-				void handle_error(const error_message& msg)
-				{
-					my_parser->err_handler(msg);
-				}
-				pdn::error_msg_string generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str)
-				{
-					return my_parser->err_msg_gen(std::move(errc_variant), std::move(err_msg_str));
-				}
-			};
-			my_handler_test my_hd_test{ this };
-			auto code_point_it = pdn::make_code_point_iterator(::std::forward<it_fwd_t>(begin), end, my_hd_test);
-
-			//	auto pos_getter = [&]() { return this->position(); };
-			//	auto code_point_it = make_code_point_iterator(::std::forward<it_fwd_t>(begin),
-			//	                                              end,
-			//	                                              pos_getter,
-			//	                                              this->err_handler,
-			//	                                              this->err_msg_gen);
-			return this->parse_code_point_sequence(code_point_it, end);
-		}
-		void parse_code_point_sequence(auto&& begin, auto end, obj& o)
+		void parse(auto&& begin, auto end, obj& o)
 		{
 			using enum pdn_token_code;
 			parse_start(begin, end, o);
@@ -165,15 +130,14 @@ namespace pdn::experimental
 				post_err(tk.position, syn_ec::inner_error_parse_terminated, {});
 			}
 		}
+		entity parse(auto&& begin, auto end)
+		{
+			obj o;
+			parse(begin, end, o);
+			return make_proxy<obj>(::std::move(o));
+		}
 	public:
-		parser(error_handler               err_handler,
-			error_message_generator     err_msg_gen = error_message_generator_en,
-			constants_generator<char_t> constants_gen = constants_generator_std<char_t>,
-			type_generator<char_t>      type_gen = type_generator_std<char_t>) :
-			lexer<char_t, source_position_recorder_t>(::std::move(err_handler),
-				::std::move(err_msg_gen),
-				::std::move(constants_gen)),
-			type_gen{ ::std::move(type_gen) } {}
+		parser(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
 		void parse_start(auto& begin, auto end, obj& o)
 		{
@@ -806,9 +770,15 @@ namespace pdn::experimental
 
 	private:
 		template <typename iter_t>
-		auto get_token(iter_t&& begin, auto)
+		auto get_token(iter_t&& begin, auto end)
 		{
-			return *begin;
+			if (begin != end)
+			{
+				auto my_tk = *begin;
+				++begin;
+				return my_tk;
+			}
+			return token<char_t>{ .position = {}, .code = pdn_token_code::eof, .value = {} };
 		}
 		type_code type_gen(const str& iden)
 		{
@@ -839,6 +809,11 @@ namespace pdn::experimental
 			return false;
 		}
 	};
+}
+
+namespace pdn
+{
+	
 }
 
 

@@ -862,21 +862,20 @@ int main(int argc, const char* argv[])
 			argc = 3;
 			argv = my_argv;
 			
-			pdn_test::my_handler_test<char8_t> my_hd_test{ pdn_test::error_handler_t{ ::std::cout } };
-			pdn::experimental::lexer<char8_t, pdn_test::my_handler_test<char8_t>> lex{ my_hd_test };
+			pdn::default_function_package<char8_t> my_hd_test{};
+			pdn::experimental::lexer<char8_t, pdn::default_function_package<char8_t>> lex{ my_hd_test };
 			std::u32string_view source =
 				UR"xxxyyyzzz(sdjfnalsfn {}
 kajshdkjasd [ 1, 2, 3 ]; aksjdn:f 1; njvjsek[ f:1, int:2, ]
 x "s"
 )xxxyyyzzz";
-			auto it = pdn::experimental::make_token_iterator(lex, source.begin(), source.end());
+
+			auto cp_it = pdn::make_code_point_iterator(source.begin(), source.end(), my_hd_test);
+			auto it = pdn::experimental::make_token_iterator(lex, cp_it, source.end());
 			auto end = pdn::experimental::make_end_token_iterator(it);
 
-			for (; it != end; ++it)
-			{
-				std::cout << static_cast<int>((*it).code) << " ";
-			}
-			std::cout << "\n";
+			pdn::experimental::parser<char8_t, pdn::default_function_package<char8_t>> par{ my_hd_test };
+			par.parse(it, end);
 		}
 	}
 
