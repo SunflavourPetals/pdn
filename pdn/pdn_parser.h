@@ -40,14 +40,14 @@
 
 #include "pdn_source_position_recorder.h"
 
+/*
 namespace pdn::experimental
 {
-	template <unicode::concepts::unicode_code_unit char_t = unicode::utf_8_code_unit_t,
-		concepts::source_position_recorder source_position_recorder_t = source_position_recorder>
-	class parser : public lexer<char_t, source_position_recorder_t>
+	template <unicode::concepts::unicode_code_unit char_t = unicode::utf_8_code_unit_t>
+	class parser
 	{
 	private:
-		using base_type = lexer<char_t, source_position_recorder_t>;
+		using base_type = lexer<char_t>;
 	public:
 		using char_type = char_t;
 		using entity = types::entity<char_type>;
@@ -116,75 +116,6 @@ namespace pdn::experimental
 			//	                                              this->err_handler,
 			//	                                              this->err_msg_gen);
 			return this->parse_code_point_sequence(code_point_it, end);
-		}
-		entity parse(const ::std::string& filename)
-		{
-			::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
-			if (!source_file.is_open())
-			{
-				using namespace ::std::string_literals;
-				throw failed_in_open_file_error{ "failed in open file \""s + filename + "\""s };
-			}
-			return parse_file(source_file);
-		}
-		entity parse(const char* const filename)
-		{
-			::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
-			if (!source_file.is_open())
-			{
-				using namespace ::std::string_literals;
-				throw failed_in_open_file_error{ "failed in open file \""s + filename + "\""s };
-			}
-			return parse_file(source_file);
-		}
-		entity parse(const ::std::wstring& filename)
-		{
-			::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
-			if (!source_file.is_open())
-			{
-				auto& facet = std::use_facet<::std::codecvt<wchar_t, char, ::std::mbstate_t>>(::std::locale());
-				::std::mbstate_t mb{};
-				::std::string external(filename.size() * facet.max_length(), '\0');
-				const wchar_t* from_next{};
-				char* to_next{};
-				facet.out(mb,
-					filename.data(),
-					filename.data() + filename.size(),
-					from_next,
-					&external[0],
-					&external[external.size()],
-					to_next);
-				// skip result checking
-				external.resize(to_next - &external[0]);
-				using namespace ::std::string_literals;
-				throw failed_in_open_file_error{ "failed in open file \""s + external + "\""s };
-			}
-			return parse_file(source_file);
-		}
-		entity parse(const wchar_t* const filename)
-		{
-			::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
-			if (!source_file.is_open())
-			{
-				auto& facet = ::std::use_facet<::std::codecvt<wchar_t, char, ::std::mbstate_t>>(::std::locale());
-				::std::mbstate_t mb{};
-				::std::wstring_view filename_view{ filename };
-				::std::string external(filename_view.size() * facet.max_length(), '\0');
-				const wchar_t* from_next{};
-				char* to_next{};
-				facet.out(mb,
-					filename_view.data(),
-					filename_view.data() + filename_view.size(),
-					from_next,
-					&external[0],
-					&external[external.size()],
-					to_next);
-				// skip result checking
-				external.resize(to_next - &external[0]);
-				using namespace ::std::string_literals;
-				throw failed_in_open_file_error{ "failed in open file \""s + external + "\""s };
-			}
-			return parse_file(source_file);
 		}
 		void parse_code_point_sequence(auto&& begin, auto end, obj& o)
 		{
@@ -889,6 +820,8 @@ namespace pdn::experimental
 		}
 	};
 }
+
+*/
 
 namespace pdn
 {

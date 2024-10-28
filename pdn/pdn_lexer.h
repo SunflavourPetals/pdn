@@ -46,6 +46,110 @@ namespace pdn::dev_util
 namespace pdn::experimental
 {
 	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_lexer<char_t> function_package>
+	class lexer;
+}
+
+namespace pdn::experimental
+{
+	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
+	struct token_iterator_ctrlblk_from_lexer
+	{
+		using lexer_t = lexer<char_t, function_package>;
+		using token_t = token<char_t>;
+		lexer_t    lex;
+		it_begin_t begin;
+		it_end_t   end;
+		token_t get()
+		{
+			return lex.get_token(begin, end); // if begin == end then return eof
+		}
+	};
+
+	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
+	class token_iterator_from_lexer
+	{
+	private:
+		using ctrlblk_t = token_iterator_ctrlblk_from_lexer<char_t, function_package, it_begin_t, it_end_t>;
+		using lexer_t = lexer<char_t, function_package>;
+		using token_t = token<char_t>;
+	public:
+		using iterator_concept = void;
+		using iterator_category = void;
+		using size_type = ::std::size_t;
+		using value_type = token_t;
+	public:
+		bool eof() const noexcept
+		{
+			return static_cast<bool>(ctrl_p);
+		}
+		void to_next()
+		{
+			to_next_impl();
+		}
+		const value_type& operator*() const noexcept
+		{
+			return stored_token;
+		}
+		token_iterator_from_lexer& operator++()
+		{
+			to_next();
+			return *this;
+		}
+		friend bool operator==(const token_iterator_from_lexer& lhs, const token_iterator_from_lexer& rhs)
+		{
+			return lhs.ctrl_p == rhs.ctrl_p;
+		}
+		// construct end iter
+		token_iterator_from_lexer() {}
+		token_iterator_from_lexer(lexer_t lex, it_begin_t begin, it_end_t end) :
+			ctrl_p{ ::std::make_shared<ctrlblk_t>(::std::move(lex), ::std::move(begin), ::std::move(end)) }
+		{
+			to_next_impl<true>();
+		}
+	private:
+		template <bool no_nullptr_check = false>
+		void to_next_impl()
+		{
+			if constexpr (!no_nullptr_check)
+			{
+				if (!ctrl_p) return;
+			}
+			stored_token = ctrl_p->get();
+			if (stored_token.code == pdn_token_code::eof)
+			{
+				ctrl_p.reset();
+			}
+		}
+		::std::shared_ptr<ctrlblk_t> ctrl_p{ nullptr };
+		token_t                      stored_token{ .position = {}, .code = pdn_token_code::eof, .value = {} };
+	};
+
+	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
+	auto make_token_iterator(lexer<char_t, func_pkg> lex, it_begin_t begin, it_end_t end)
+	{
+		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{ ::std::move(lex), ::std::move(begin), ::std::move(end) };
+	}
+	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
+	auto make_end_token_iterator(lexer<char_t, func_pkg> lex, it_begin_t begin, it_end_t end)
+	{
+		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
+	}
+	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
+	auto make_end_token_iterator(const token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>&)
+	{
+		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
+	}
+	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
+	auto make_end_token_iterator()
+	{
+		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
+	}
+}
+
+namespace pdn::experimental
+{
+	
+	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_lexer<char_t> function_package>
 	class lexer
 	{
 	private:
@@ -55,11 +159,8 @@ namespace pdn::experimental
 		{
 			return func_pkg->position();
 		}
-	protected:
-		void post_err(source_position pos, auto error_code, error_msg_string&& str_for_msg_gen)
-		{
-			func_pkg->handle_error({ pos, error_code, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
-		}
+	private:
+		
 	public:
 		lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 
@@ -1396,6 +1497,10 @@ namespace pdn::experimental
 			default:
 				break;
 			}
+		}
+		void post_err(source_position pos, auto error_code, error_msg_string&& str_for_msg_gen)
+		{
+			func_pkg->handle_error(error_message{ pos, error_code, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
 		}
 	};
 }

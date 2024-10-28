@@ -399,6 +399,39 @@ namespace pdn_test
 	}
 
 	template <typename char_t>
+	struct my_handler_test : public pdn::default_error_message_generator
+	{
+		pdn::source_position_and_newline_recorder my_rec_r{};
+		error_handler_t my_err_h;
+		my_handler_test(error_handler_t h) : my_err_h{ h } {}
+		pdn::source_position position()
+		{
+			return my_rec_r.position();
+		}
+		void update(char32_t c)
+		{
+			my_rec_r.update(c);
+		}
+		void handle_error(const pdn::error_message& msg)
+		{
+			my_err_h(msg);
+		}
+		pdn::error_msg_string generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str)
+		{
+			return default_error_message_generator::generate_error_message(std::move(errc_variant), std::move(err_msg_str));
+		}
+		::std::optional<pdn::constant_variant<char_t>> generate_constant(pdn::unicode::utf_8_code_unit_string iden)
+		{
+			pdn::constant_variant<char_t> r = 0;
+			if (pdn::constants_generator_std<char_t>(std::move(iden), r))
+			{
+				return r;
+			}
+			return ::std::nullopt;
+		}
+	};
+
+	template <typename char_t>
 	void play(std::ostream& out, pdn::dom<char_t>& dom, std::size_t& exit_layer, std::size_t layer = 0)
 	{
 		for (; ; )
@@ -413,40 +446,8 @@ namespace pdn_test
 			std::getline(std::cin, cmd);
 			auto cmd_v = reinterpret_to_u8sv(cmd);
 
-			struct my_handler_test : public pdn::default_error_message_generator
-			{
-				pdn::source_position_and_newline_recorder my_rec_r{};
-				error_handler_t my_err_h;
-				my_handler_test(error_handler_t h) :  my_err_h{ h } {}
-				pdn::source_position position()
-				{
-					return my_rec_r.position();
-				}
-				void update(char32_t c)
-				{
-					my_rec_r.update(c);
-				}
-				void handle_error(const pdn::error_message& msg)
-				{
-					my_err_h(msg);
-				}
-				pdn::error_msg_string generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str)
-				{
-					return default_error_message_generator::generate_error_message(std::move(errc_variant), std::move(err_msg_str));
-				}
-				::std::optional<pdn::constant_variant<char_t>> generate_constant(pdn::unicode::utf_8_code_unit_string iden)
-				{
-					pdn::constant_variant<char_t> r = 0;
-					if (pdn::constants_generator_std<char_t>(std::move(iden), r))
-					{
-						return r;
-					}
-					return ::std::nullopt;
-				}
-			};
-
-			my_handler_test my_hd_test{ error_handler_t{ out } };
-			auto lex = get_lex<char_t, my_handler_test>(my_hd_test);
+			my_handler_test<char_t> my_hd_test{ error_handler_t{ out } };
+			auto lex = get_lex<char_t>(my_hd_test);
 			auto cp_it = pdn::make_code_point_iterator(cmd_v.begin(), cmd_v.end(), my_hd_test);
 
 			auto tk = lex.get_token(cp_it, cmd_v.end());
@@ -864,6 +865,21 @@ int main(int argc, const char* argv[])
 			argc = 3;
 			argv = my_argv;
 			
+			pdn_test::my_handler_test<char8_t> my_hd_test{ pdn_test::error_handler_t{ ::std::cout } };
+			pdn::experimental::lexer<char8_t, pdn_test::my_handler_test<char8_t>> lex{ my_hd_test };
+			std::u32string_view source =
+				UR"xxxyyyzzz(sdjfnalsfn {}
+kajshdkjasd [ 1, 2, 3 ]; aksjdn:f 1; njvjsek[ f:1, int:2, ]
+x "s"
+)xxxyyyzzz";
+			auto it = pdn::experimental::make_token_iterator(lex, source.begin(), source.end());
+			auto end = pdn::experimental::make_end_token_iterator(it);
+
+			for (; it != end; ++it)
+			{
+				std::cout << static_cast<int>((*it).code) << " ";
+			}
+			std::cout << "\n";
 		}
 	}
 
