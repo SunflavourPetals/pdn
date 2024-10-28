@@ -261,10 +261,10 @@ namespace pdn_test
 
 	namespace
 	{
-		template <typename char_t>
-		pdn::lexer<char_t> get_lex(std::ostream& o)
+		template <typename char_t, typename func_pkg>
+		pdn::experimental::lexer<char_t, func_pkg> get_lex(func_pkg& fp)
 		{
-			pdn::lexer<char_t> lex{ error_handler_t{ o } };
+			pdn::experimental::lexer<char_t, func_pkg> lex{ fp };
 			return lex;
 		}
 		void print_prompt(std::ostream& out)
@@ -412,18 +412,15 @@ namespace pdn_test
 			print_prompt(out);
 			std::getline(std::cin, cmd);
 			auto cmd_v = reinterpret_to_u8sv(cmd);
-			auto lex = get_lex<char_t>(out);
 
-			using my_lex_t = decltype(lex);
 			struct my_handler_test : public pdn::default_error_message_generator
 			{
-				my_lex_t* my_lex_p;
 				pdn::source_position_and_newline_recorder my_rec_r{};
 				error_handler_t my_err_h;
-				my_handler_test(my_lex_t* l, error_handler_t h) : my_lex_p{ l }, my_err_h{ h } {}
+				my_handler_test(error_handler_t h) :  my_err_h{ h } {}
 				pdn::source_position position()
 				{
-					return my_lex_p->position();
+					return my_rec_r.position();
 				}
 				void update(char32_t c)
 				{
@@ -437,8 +434,19 @@ namespace pdn_test
 				{
 					return default_error_message_generator::generate_error_message(std::move(errc_variant), std::move(err_msg_str));
 				}
+				::std::optional<pdn::constant_variant<char_t>> generate_constant(pdn::unicode::utf_8_code_unit_string iden)
+				{
+					pdn::constant_variant<char_t> r = 0;
+					if (pdn::constants_generator_std<char_t>(std::move(iden), r))
+					{
+						return r;
+					}
+					return ::std::nullopt;
+				}
 			};
-			my_handler_test my_hd_test{ &lex, error_handler_t{ out } };
+
+			my_handler_test my_hd_test{ error_handler_t{ out } };
+			auto lex = get_lex<char_t, my_handler_test>(my_hd_test);
 			auto cp_it = pdn::make_code_point_iterator(cmd_v.begin(), cmd_v.end(), my_hd_test);
 
 			auto tk = lex.get_token(cp_it, cmd_v.end());

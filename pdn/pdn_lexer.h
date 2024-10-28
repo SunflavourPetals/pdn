@@ -72,7 +72,7 @@ namespace pdn::experimental
 			::std::size_t nested_block_comment_layer{};
 			::std::size_t number_delimiter_count{};
 
-			source_position position = pos_recorder.position();
+			source_position position = func_pkg->position();
 
 			auto dfa_state = dfa_state_objects::start_state();
 
@@ -84,16 +84,12 @@ namespace pdn::experimental
 			{
 				auto c = *begin;
 
-				// when the value does not conform to the Unicode scalar value,
-				// the pos_recorder still needs to be updated,
-				// whether or not it moves when receiving non-scalar values depends on pos_recorder
 				if (!unicode::is_scalar_value(c))
 				{
 					auto msg = ::std::format("0x{:x}", static_cast<::std::uint32_t>(c));
-					post_err(pos_recorder.position(),
+					post_err(func_pkg->position(),
 						lex_ec::not_unicode_scalar_value,
 						reinterpret_to_err_msg_str(msg));
-					pos_recorder.update(c);
 					++begin;
 					continue;
 				}
@@ -106,7 +102,7 @@ namespace pdn::experimental
 						auto next = new_dfa_state.state_code;
 						if (is_non_token_state(prev) && is_token_state(next))
 						{
-							position = pos_recorder.position();
+							position = func_pkg->position();
 						}
 					};
 
@@ -126,7 +122,7 @@ namespace pdn::experimental
 				{
 					new_dfa_state = dfa_state_objects::start_state();
 					auto cp = unicode::code_point_t(c);
-					post_err(pos_recorder.position(),
+					post_err(func_pkg->position(),
 						lex_ec::unacceptable_character,
 						code_convert<err_ms>(unicode::code_point_string_view{ &cp, 1 }));
 				}
@@ -184,7 +180,6 @@ namespace pdn::experimental
 					text += c;
 					break;
 				case identifier_string_escape:
-					pos_recorder.update(c);
 					++begin;
 					new_dfa_state = dfa_state_objects::identifier_string;
 					if (get_escape(c, begin, end, true) == lex_ec::success)
@@ -193,7 +188,6 @@ namespace pdn::experimental
 					}
 					goto label_update_dfa_state;
 				case string_escape:
-					pos_recorder.update(c);
 					++begin;
 					new_dfa_state = dfa_state_objects::string;
 					if (get_escape(c, begin, end) == lex_ec::success)
@@ -202,7 +196,6 @@ namespace pdn::experimental
 					}
 					goto label_update_dfa_state;
 				case character_escape:
-					pos_recorder.update(c);
 					++begin;
 					new_dfa_state = dfa_state_objects::character;
 					if (get_escape(c, begin, end) == lex_ec::success)
@@ -211,7 +204,6 @@ namespace pdn::experimental
 					}
 					goto label_update_dfa_state;
 				case raw_string_d_seq_opened:
-					pos_recorder.update(c);
 					++begin;
 					// @"d_seq()d_seq"
 					//  ^ -> to first d sequence character or '('
@@ -219,7 +211,6 @@ namespace pdn::experimental
 					new_dfa_state = dfa_state_objects::raw_string;
 					goto label_update_dfa_state;
 				case raw_string_received_CR:
-					pos_recorder.update(c);
 					++begin;
 					if (begin == end)
 					{
@@ -238,7 +229,6 @@ namespace pdn::experimental
 				case raw_string_received_right_parentheses:
 				{
 					unicode::code_point_string close_d_seq{};
-					pos_recorder.update(c);
 					++begin;
 					if (get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'"'))
 					{
@@ -253,7 +243,6 @@ namespace pdn::experimental
 					goto label_update_dfa_state;
 				}
 				case identifier_raw_string_d_seq_opened:
-					pos_recorder.update(c);
 					++begin;
 					// @`d_seq()d_seq`
 					//  ^ -> to first d sequence character or '('
@@ -261,7 +250,6 @@ namespace pdn::experimental
 					new_dfa_state = dfa_state_objects::identifier_raw_string;
 					goto label_update_dfa_state;
 				case identifier_raw_string_received_CR:
-					pos_recorder.update(c);
 					++begin;
 					if (begin == end)
 					{
@@ -280,7 +268,6 @@ namespace pdn::experimental
 				case identifier_raw_string_received_right_parentheses:
 				{
 					unicode::code_point_string close_d_seq{};
-					pos_recorder.update(c);
 					++begin;
 					if (get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'`'))
 					{
@@ -343,14 +330,13 @@ namespace pdn::experimental
 					{
 						msg.push_back(u8'\'');
 					}
-					post_err(pos_recorder.position(), lex_ec::more_than_one_separators_may_between_numbers, ::std::move(msg));
+					post_err(func_pkg->position(), lex_ec::more_than_one_separators_may_between_numbers, ::std::move(msg));
 				}
 				break;
 				default:
 					break;
 				}
 			label_update_pos_recoder:
-				pos_recorder.update(c);
 				++begin;
 			label_update_dfa_state:
 				dfa_state = new_dfa_state;
@@ -443,9 +429,11 @@ namespace pdn::experimental
 				// ERROR STATES ^^^
 			case at_identifier:
 			{
-				constant_variant<char_t> value = 0;
-				if (constants_gen(text_code_convert<unicode::utf_8_code_unit_t>(text, position), value))
+				::std::optional<constant_variant<char_t>> value_opt = func_pkg->generate_constant(
+					text_code_convert<unicode::utf_8_code_unit_t>(text, position));
+				if (value_opt.has_value())
 				{
+					constant_variant<char_t>& value = *value_opt;
 					::std::visit([&]<typename arg_t>(arg_t && arg)
 					{
 						using decay_arg_t = ::std::decay_t<arg_t>;
@@ -522,7 +510,7 @@ namespace pdn::experimental
 				case dec_seq_start_with_0_with_quotes:
 				case dec_seq_with_quote:
 				case dec_seq_with_quotes:
-					post_err(pos_recorder.position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
+					post_err(func_pkg->position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
 					break;
 				default:
 					break;
@@ -548,7 +536,7 @@ namespace pdn::experimental
 				{
 				case fp_exp_sign_or_first:
 				case fp_exp_first:
-					post_err(pos_recorder.position(), lex_ec::fp_dec_expect_exponent, num_seq_to_err_msg_str());
+					post_err(func_pkg->position(), lex_ec::fp_dec_expect_exponent, num_seq_to_err_msg_str());
 					number_sequence += '0'; // add 0 for exponent
 					break;
 				default:
@@ -560,7 +548,7 @@ namespace pdn::experimental
 				case fp_dec_part_with_quotes:
 				case fp_exp_with_quote:
 				case fp_exp_with_quotes:
-					post_err(pos_recorder.position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
+					post_err(func_pkg->position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
 					break;
 				default:
 					break;
@@ -579,7 +567,7 @@ namespace pdn::experimental
 			break;
 			case oct_seq_with_quote: // <<< ERROR STATE
 			case oct_seq_with_quotes: // <<< ERROR STATE
-				post_err(pos_recorder.position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
+				post_err(func_pkg->position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
 				[[fallthrough]];
 			case oct_seq:
 			{
@@ -602,7 +590,7 @@ namespace pdn::experimental
 				{
 				case bin_seq_with_quote:
 				case bin_seq_with_quotes:
-					post_err(pos_recorder.position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
+					post_err(func_pkg->position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
 					break;
 				default:
 					break;
@@ -635,7 +623,7 @@ namespace pdn::experimental
 				{
 				case hex_seq_with_quote:
 				case hex_seq_with_quotes:
-					post_err(pos_recorder.position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
+					post_err(func_pkg->position(), lex_ec::number_separator_cannot_be_appear_here, num_seq_to_err_msg_str() + u8"'"_em);
 					break;
 				default:
 					break;
@@ -802,7 +790,7 @@ namespace pdn::experimental
 			static_assert(sizeof(::std::uint32_t) == sizeof(unicode::code_point_t));
 			using escape_value_t = ::std::uint32_t;
 
-			source_position position{ pos_recorder.position() };
+			source_position position{ func_pkg->position() };
 
 			using enum lexical_error_code;
 			if (begin == end)
@@ -918,13 +906,11 @@ namespace pdn::experimental
 				goto simple_escape;
 
 			simple_escape:
-				pos_recorder.update(c);
 				++begin;
 				return success;
 
 			case U'o': // \o{n...}
 			{
-				pos_recorder.update(c);
 				++begin; // -> {
 
 				if (begin == end || *begin != U'{')
@@ -932,7 +918,7 @@ namespace pdn::experimental
 					post_err(position, escape_error_o_not_followed_by_left_brackets, u8"\\o"_em);
 					return escape_error_o_not_followed_by_left_brackets;
 				}
-				pos_recorder.update(c = *begin);
+				c = *begin;
 				++begin; // -> n (oct)
 
 				get_numeric_escape_sequence(sequence, begin, end, lexer_utility::is_oct);
@@ -942,7 +928,7 @@ namespace pdn::experimental
 					post_err(position, escape_error_o_not_terminated_with_right_brackets, u8"\\o{"_em + seq_to_err_msg_str());
 					return escape_error_o_not_terminated_with_right_brackets;
 				}
-				pos_recorder.update(c = *begin);
+				c = *begin;
 				++begin;
 
 				if (sequence.size() == 0)
@@ -968,7 +954,6 @@ namespace pdn::experimental
 			case U'x': // \xn... \x{n...}
 			{
 				bool is_with_curly_brackets{ false };
-				pos_recorder.update(c);
 				++begin; // -> { or n (hex/)
 
 				if (begin == end)
@@ -980,7 +965,6 @@ namespace pdn::experimental
 				if (c == U'{')
 				{
 					is_with_curly_brackets = true;
-					pos_recorder.update(c);
 					++begin; // -> n (hex)
 					// No need to update the value of c here
 				}
@@ -994,7 +978,7 @@ namespace pdn::experimental
 						post_err(position, escape_error_x_not_terminated_with_right_brackets, u8"\\x{"_em + seq_to_err_msg_str());
 						return escape_error_x_not_terminated_with_right_brackets;
 					}
-					pos_recorder.update(c = *begin);
+					c = *begin;
 					++begin;
 				}
 
@@ -1024,7 +1008,6 @@ namespace pdn::experimental
 			case U'u': // \unnnn \u{n...} Universal character names
 			{
 				bool is_with_curly_brackets{ false };
-				pos_recorder.update(c);
 				++begin; // -> { or n (hex/)
 				if (begin == end)
 				{
@@ -1035,7 +1018,6 @@ namespace pdn::experimental
 				if (c == U'{')
 				{
 					is_with_curly_brackets = true;
-					pos_recorder.update(c);
 					++begin; // -> n (hex)
 					// No need to update the value of c here
 				}
@@ -1056,7 +1038,7 @@ namespace pdn::experimental
 						post_err(position, escape_error_u_not_terminated_with_right_brackets, u8"\\u{"_em + seq_to_err_msg_str());
 						return escape_error_u_not_terminated_with_right_brackets;
 					}
-					pos_recorder.update(c = *begin);
+					c = *begin;
 					++begin;
 
 					if (sequence.size() == 0)
@@ -1091,7 +1073,6 @@ namespace pdn::experimental
 			case U'U':
 				// \Unnnnnnnn Universal character names
 			{
-				pos_recorder.update(c);
 				++begin; // -> n (hex/)
 
 				if (begin == end)
@@ -1171,7 +1152,6 @@ namespace pdn::experimental
 					break;
 				}
 				sequence += static_cast<char>(c);
-				pos_recorder.update(c);
 			}
 		}
 
@@ -1189,7 +1169,6 @@ namespace pdn::experimental
 					return read_count;
 				}
 				sequence += static_cast<char>(c);
-				pos_recorder.update(c);
 			}
 			return 0;
 		}
@@ -1216,7 +1195,7 @@ namespace pdn::experimental
 			using err_ms = error_msg_string;
 			using unicode::code_convert;
 
-			source_position position{ pos_recorder.position() };
+			source_position position{ func_pkg->position() };
 			bool invalid_character_in_raw_string_delimiter{ false };
 
 			using enum lexical_error_code;
@@ -1226,7 +1205,6 @@ namespace pdn::experimental
 				auto c = *begin;
 				if (c == U'(')
 				{
-					pos_recorder.update(c);
 					++begin;
 					bool is_success{ true };
 					if (invalid_character_in_raw_string_delimiter)
@@ -1248,7 +1226,6 @@ namespace pdn::experimental
 						invalid_character_in_raw_string_delimiter = true;
 					}
 					out_sequence += c;
-					pos_recorder.update(c);
 					++begin;
 				}
 			}
@@ -1281,7 +1258,6 @@ namespace pdn::experimental
 					// because if there is a difference, the function will be exited early.
 					if (out_sequence.length() == in_sequence.length())
 					{
-						pos_recorder.update(c);
 						++begin; // skip the double quotation marks that are read
 						return true;
 					}
@@ -1306,7 +1282,6 @@ namespace pdn::experimental
 					}
 					out_sequence += c;
 				}
-				pos_recorder.update(c);
 				++begin;
 				++index;
 			}
@@ -1378,7 +1353,7 @@ namespace pdn::experimental
 			{
 			case hex_fp_dec_part_with_quote: // <<< ERROR STATE
 			case hex_fp_dec_part_with_quotes: // <<< ERROR STATE
-				post_err(pos_recorder.position(),
+				post_err(func_pkg->position(),
 					lex_ec::number_separator_cannot_be_appear_here,
 					reinterpret_to_err_msg_str(num_seq) + u8"'"_em);
 				[[fallthrough]];
@@ -1386,7 +1361,7 @@ namespace pdn::experimental
 			case hex_fp_dec_part: // <<< ERROR STATE
 			case hex_fp_exp_sign_or_first: // <<< ERROR STATE
 			case hex_fp_exp_first: // <<< ERROR STATE
-				post_err(pos_recorder.position(),
+				post_err(func_pkg->position(),
 					lex_ec::fp_hex_expect_exponent,
 					reinterpret_to_err_msg_str(num_seq));
 				switch (c)
@@ -1405,15 +1380,15 @@ namespace pdn::experimental
 				break;
 			case hex_fp_exp_with_quote: // <<< ERROR STATE
 			case hex_fp_exp_with_quotes: // <<< ERROR STATE
-				post_err(pos_recorder.position(),
+				post_err(func_pkg->position(),
 					lex_ec::number_separator_cannot_be_appear_here,
 					reinterpret_to_err_msg_str(num_seq) + u8"'"_em);
 				break;
 			case hex_fp_seq_start_with_0x_dot: // <<< ERROR STATE
-				post_err(pos_recorder.position(),
+				post_err(func_pkg->position(),
 					lex_ec::fp_hex_expect_decimal_part,
 					reinterpret_to_err_msg_str(num_seq));
-				post_err(pos_recorder.position(),
+				post_err(func_pkg->position(),
 					lex_ec::fp_hex_expect_exponent,
 					reinterpret_to_err_msg_str(num_seq));
 				num_seq += "0P0"s;
