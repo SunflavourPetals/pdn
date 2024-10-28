@@ -44,7 +44,7 @@ namespace pdn::dev_util
 {
 	template <typename type>
 	concept function_package_for_code_point_iterator
-		 = concepts::source_position_getter<type>
+		 = concepts::source_position_recorder<type>
 		&& concepts::error_handler<type>
 		&& concepts::error_message_generator<type>;
 }
@@ -71,6 +71,7 @@ namespace pdn
 		}
 		void to_next()
 		{
+			func_pkg->update(get());
 			to_next_impl();
 		}
 		const char_type& operator*() const noexcept
@@ -121,10 +122,8 @@ namespace pdn
 						hex_s = "EOF"s;
 					}
 					auto hex_em_s = reinterpret_to_err_msg_str(hex_s);
-					func_pkg->handle_error(error_message{
-						func_pkg->position(),
-						result.error(),
-						func_pkg->generate_error_message(result.error(), hex_em_s) });
+					auto err_msg = func_pkg->generate_error_message(result.error(), hex_em_s);
+					func_pkg->handle_error(error_message{ func_pkg->position(), result.error(), ::std::move(err_msg) });
 					if (result.distance() == 0) ++begin;
 				}
 			}
@@ -132,8 +131,8 @@ namespace pdn
 	public:
 		code_point_iterator(begin_it_t begin_it, end_it_t end_it, function_package& func_package) :
 			func_pkg{ &func_package },
-			begin{ ::std::move(begin_it) },
-			end{ ::std::move(end_it) }
+			begin   { ::std::move(begin_it) },
+			end     { ::std::move(end_it) }
 		{
 			to_next_impl<true>();
 		}

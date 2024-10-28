@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_source_position_recorder_concept
 
 #include <concepts>
+#include <utility>
 
 #include "pdn_unicode_base.h"
 #include "pdn_source_position.h"
@@ -18,6 +19,7 @@ namespace pdn::concepts
 	concept source_position_updater = requires(type pos_recorder, unicode::code_point_t c)
 	{
 		pos_recorder.update(c);
+		pos_recorder.update(::std::move(c));
 	};
 
 	template <typename type>

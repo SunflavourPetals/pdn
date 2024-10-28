@@ -147,10 +147,10 @@
     <ClInclude Include="pdn_dfa_state_code.h">
       <Filter>pdn_dfa</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_constants_std.h">
+    <ClInclude Include="pdn_constants_generator_std.h">
       <Filter>pdn_constants</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_constants.h">
+    <ClInclude Include="pdn_constants_generator.h">
       <Filter>pdn_constants</Filter>
     </ClInclude>
     <ClInclude Include="pdn_proxy.h">
@@ -251,6 +251,12 @@
     </ClInclude>
     <ClInclude Include="pdn_eof_checker_concept.h">
       <Filter>pdn_filestream_adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_constants_generator_concept.h">
+      <Filter>pdn_constants</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_constants_variant.h">
+      <Filter>pdn_constants</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

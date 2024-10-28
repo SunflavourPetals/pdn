@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_constants_std
-#define PDN_Header_pdn_constants_std
+#ifndef PDN_Header_pdn_constants_generator_std
+#define PDN_Header_pdn_constants_generator_std
 
 #include <variant>
 #include <numbers>
@@ -10,7 +10,7 @@
 #include "pdn_code_convert.h"
 #include "pdn_types.h"
 #include "pdn_token_value_variant.h"
-#include "pdn_constants.h"
+#include "pdn_constants_generator.h"
 
 namespace pdn
 {

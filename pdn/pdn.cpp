@@ -418,11 +418,16 @@ namespace pdn_test
 			struct my_handler_test : public pdn::default_error_message_generator
 			{
 				my_lex_t* my_lex_p;
+				pdn::source_position_and_newline_recorder my_rec_r{};
 				error_handler_t my_err_h;
 				my_handler_test(my_lex_t* l, error_handler_t h) : my_lex_p{ l }, my_err_h{ h } {}
 				pdn::source_position position()
 				{
 					return my_lex_p->position();
+				}
+				void update(char32_t c)
+				{
+					my_rec_r.update(c);
 				}
 				void handle_error(const pdn::error_message& msg)
 				{
