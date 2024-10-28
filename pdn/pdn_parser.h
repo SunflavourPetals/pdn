@@ -40,7 +40,6 @@
 
 #include "pdn_source_position_recorder.h"
 
-/*
 namespace pdn::experimental
 {
 	template <unicode::concepts::unicode_code_unit char_t = unicode::utf_8_code_unit_t>
@@ -821,9 +820,9 @@ namespace pdn::experimental
 	};
 }
 
-*/
 
-namespace pdn
+
+namespace pdn::inline legacy
 {
 	template <unicode::concepts::unicode_code_unit char_t = unicode::utf_8_code_unit_t,
 	          concepts::source_position_recorder source_position_recorder_t = source_position_recorder>

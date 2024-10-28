@@ -152,30 +152,21 @@ namespace pdn::experimental
 	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_lexer<char_t> function_package>
 	class lexer
 	{
-	private:
-		function_package* func_pkg{};
 	public:
 		source_position position() const
 		{
 			return func_pkg->position();
 		}
-	private:
-		
-	public:
-		lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
-
 		token<char_t> get_token(auto&& begin, auto end)
 		{
-			token<char_t> result{};
-			unicode::code_point_string text{}; // source test
-			unicode::code_point_string open_d_seq{}; // delimiter-sequence for raw string
-			::std::string number_sequence{}; // Unicode[U+0-U+7f] -> ASCII -> form_chars
-			::std::size_t nested_block_comment_layer{};
-			::std::size_t number_delimiter_count{};
-
-			source_position position = func_pkg->position();
-
-			auto dfa_state = dfa_state_objects::start_state();
+			token<char_t>              result{};
+			unicode::code_point_string text{};            // source text
+			unicode::code_point_string open_d_seq{};      // delimiter-sequence for raw string
+			::std::string              number_sequence{}; // Unicode[U+0-U+7f] -> ASCII -> form_chars
+			::std::size_t              nested_block_comment_layer{};
+			::std::size_t              number_delimiter_count{};
+			source_position            position{ func_pkg->position() };
+			auto                       dfa_state = dfa_state_objects::start_state();
 
 			using unicode::code_convert;
 			using lex_ec = lexical_error_code;
@@ -188,9 +179,7 @@ namespace pdn::experimental
 				if (!unicode::is_scalar_value(c))
 				{
 					auto msg = ::std::format("0x{:x}", static_cast<::std::uint32_t>(c));
-					post_err(func_pkg->position(),
-						lex_ec::not_unicode_scalar_value,
-						reinterpret_to_err_msg_str(msg));
+					post_err(func_pkg->position(), lex_ec::not_unicode_scalar_value, reinterpret_to_err_msg_str(msg));
 					++begin;
 					continue;
 				}
@@ -198,14 +187,14 @@ namespace pdn::experimental
 				auto new_dfa_state = dfa_state.transformer(c);
 
 				auto update_token_pos = [&]()
+				{
+					auto prev = dfa_state.state_code;
+					auto next = new_dfa_state.state_code;
+					if (is_non_token_state(prev) && is_token_state(next))
 					{
-						auto prev = dfa_state.state_code;
-						auto next = new_dfa_state.state_code;
-						if (is_non_token_state(prev) && is_token_state(next))
-						{
-							position = func_pkg->position();
-						}
-					};
+						position = func_pkg->position();
+					}
+				};
 
 				update_token_pos();
 
@@ -226,15 +215,15 @@ namespace pdn::experimental
 					post_err(func_pkg->position(),
 						lex_ec::unacceptable_character,
 						code_convert<err_ms>(unicode::code_point_string_view{ &cp, 1 }));
+					break;
 				}
-				break;
 				case infinity:
 				{
 					using namespace unicode_literals;
 					text = U"infinity"_us;
 					new_dfa_state.state_code = dfa_state_objects::at_identifier.state_code;
+					break;
 				}
-				break;
 				case identifier_string_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::identifier_string_closed;
@@ -326,7 +315,7 @@ namespace pdn::experimental
 					}
 					text += c;
 					new_dfa_state = dfa_state_objects::raw_string;
-					goto label_update_pos_recoder;
+					goto label_move_iterator;
 				case raw_string_received_right_parentheses:
 				{
 					unicode::code_point_string close_d_seq{};
@@ -365,7 +354,7 @@ namespace pdn::experimental
 					}
 					text += c;
 					new_dfa_state = dfa_state_objects::identifier_raw_string;
-					goto label_update_pos_recoder;
+					goto label_move_iterator;
 				case identifier_raw_string_received_right_parentheses:
 				{
 					unicode::code_point_string close_d_seq{};
@@ -432,12 +421,12 @@ namespace pdn::experimental
 						msg.push_back(u8'\'');
 					}
 					post_err(func_pkg->position(), lex_ec::more_than_one_separators_may_between_numbers, ::std::move(msg));
+					break;
 				}
-				break;
 				default:
 					break;
 				}
-			label_update_pos_recoder:
+			label_move_iterator:
 				++begin;
 			label_update_dfa_state:
 				dfa_state = new_dfa_state;
@@ -448,45 +437,45 @@ namespace pdn::experimental
 			auto num_seq_to_err_msg_str = [&]() { return reinterpret_to_err_msg_str(number_sequence); };
 
 			auto from_chars_result_check = [&](::std::from_chars_result from_chars_r, err_ms extra)
+			{
+				auto [unresolved_char_ptr, err_code] = from_chars_r;
+
+				using enum lexical_error_code;
+				if (err_code == ::std::errc{})
 				{
-					auto [unresolved_char_ptr, err_code] = from_chars_r;
-
-					using enum lexical_error_code;
-					if (err_code == ::std::errc{})
+					if (unresolved_char_ptr != number_sequence.data() + number_sequence.size())
 					{
-						if (unresolved_char_ptr != number_sequence.data() + number_sequence.size())
-						{
-							using namespace error_message_literals;
-							auto msg =
-								num_seq_to_err_msg_str() +
-								u8" ("_em + extra + u8") o: '"_em +
-								reinterpret_to_err_msg_str(number_sequence.data(), unresolved_char_ptr) +
-								u8"', x: '"_em +
-								reinterpret_to_err_msg_str(unresolved_char_ptr, number_sequence.data() + number_sequence.size()) +
-								u8"'"_em;
-							post_err(position, number_from_chars_parsing_incomplete, ::std::move(msg));
-							return number_from_chars_parsing_incomplete;
-						}
+						using namespace error_message_literals;
+						auto msg =
+							num_seq_to_err_msg_str() +
+							u8" ("_em + extra + u8") o: '"_em +
+							reinterpret_to_err_msg_str(number_sequence.data(), unresolved_char_ptr) +
+							u8"', x: '"_em +
+							reinterpret_to_err_msg_str(unresolved_char_ptr, number_sequence.data() + number_sequence.size()) +
+							u8"'"_em;
+						post_err(position, number_from_chars_parsing_incomplete, ::std::move(msg));
+						return number_from_chars_parsing_incomplete;
 					}
-					else
+				}
+				else
+				{
+					auto msg = num_seq_to_err_msg_str();
+					switch (err_code)
 					{
-						auto msg = num_seq_to_err_msg_str();
-						switch (err_code)
-						{
-						case ::std::errc::result_out_of_range:
-							post_err(position, number_from_chars_errc_result_out_of_range, ::std::move(msg));
-							return number_from_chars_errc_result_out_of_range;
-						case ::std::errc::invalid_argument:
-							post_err(position, number_from_chars_errc_invalid_argument, ::std::move(msg));
-							return number_from_chars_errc_invalid_argument;
-						default:
-							post_err(position, number_from_chars_errc_other, ::std::move(msg));
-							return number_from_chars_errc_other;
-						}
+					case ::std::errc::result_out_of_range:
+						post_err(position, number_from_chars_errc_result_out_of_range, ::std::move(msg));
+						return number_from_chars_errc_result_out_of_range;
+					case ::std::errc::invalid_argument:
+						post_err(position, number_from_chars_errc_invalid_argument, ::std::move(msg));
+						return number_from_chars_errc_invalid_argument;
+					default:
+						post_err(position, number_from_chars_errc_other, ::std::move(msg));
+						return number_from_chars_errc_other;
 					}
+				}
 
-					return success;
-				};
+				return success;
+			};
 
 			// Make token now.
 			// The processing of text needs to be done in a non-default case,
@@ -782,6 +771,8 @@ namespace pdn::experimental
 
 			return result;
 		}
+
+		lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
 		static void to_appropriate_int_type(token_value_variant<char_t>& target, types::u64 val)
 		{
@@ -852,41 +843,41 @@ namespace pdn::experimental
 		static void set_token_code_by_value(token<char_t>& r)
 		{
 			r.code = ::std::visit([](auto&& arg)
-				{
-					using type = ::std::decay_t<decltype(arg)>;
-					using types::concepts::pdn_bool;
-					using types::concepts::pdn_fp;
-					using types::concepts::pdn_integral;
-					using enum pdn_token_code;
+			{
+				using type = ::std::decay_t<decltype(arg)>;
+				using types::concepts::pdn_bool;
+				using types::concepts::pdn_fp;
+				using types::concepts::pdn_integral;
+				using enum pdn_token_code;
 
-					if constexpr (pdn_bool<type>)
-					{
-						return literal_boolean;
-					}
-					else if constexpr (pdn_fp<type>)
-					{
-						return literal_floating_point;
-					}
-					else if constexpr (pdn_integral<type>)
-					{
-						return literal_integer;
-					}
-					else if constexpr (::std::same_as<type, types::character<char_t>>)
-					{
-						return literal_character;
-					}
-					else if constexpr (::std::same_as<type, proxy<types::string<char_t>>>)
-					{
-						return literal_character;
-					}
-					return invalid;
-				}, r.value);
+				if constexpr (pdn_bool<type>)
+				{
+					return literal_boolean;
+				}
+				else if constexpr (pdn_fp<type>)
+				{
+					return literal_floating_point;
+				}
+				else if constexpr (pdn_integral<type>)
+				{
+					return literal_integer;
+				}
+				else if constexpr (::std::same_as<type, types::character<char_t>>)
+				{
+					return literal_character;
+				}
+				else if constexpr (::std::same_as<type, proxy<types::string<char_t>>>)
+				{
+					return literal_character;
+				}
+				return invalid;
+			}, r.value);
 		}
 
 		lexical_error_code get_escape(auto& oc,    // out param, the result of get escape
-			auto& begin, // pointing first char witch after '\'
-			auto end,
-			bool enable_escape_back_quote = false) // is enable escape sequence \`
+		                              auto& begin, // pointing first char witch after '\'
+		                              auto end,
+		                              bool enable_escape_back_quote = false) // is enable escape sequence \`
 		{
 			static_assert(sizeof(::std::uint32_t) == sizeof(unicode::code_point_t));
 			using escape_value_t = ::std::uint32_t;
@@ -909,56 +900,56 @@ namespace pdn::experimental
 				error_msg_string escape_sign, // u -> \u x -> \x 
 				escape_value_t parse_val,
 				bool is_with_curly_brackets) -> lexical_error_code
+			{
+				auto [unresolved_char_ptr, errc] = from_chars_r;
+				auto l_bracket = is_with_curly_brackets ? u8"{"_em : u8""_em;
+				auto r_bracket = is_with_curly_brackets ? u8"}"_em : u8""_em;
+				if (errc == ::std::errc{})
 				{
-					auto [unresolved_char_ptr, errc] = from_chars_r;
-					auto l_bracket = is_with_curly_brackets ? u8"{"_em : u8""_em;
-					auto r_bracket = is_with_curly_brackets ? u8"}"_em : u8""_em;
-					if (errc == ::std::errc{})
+					if (unresolved_char_ptr != sequence.data() + sequence.size())
 					{
-						if (unresolved_char_ptr != sequence.data() + sequence.size())
-						{
-							auto msg = u8"\\"_em
-								.append(::std::move(escape_sign))
-								.append(l_bracket)
-								.append(seq_to_err_msg_str())
-								.append(r_bracket)
-								.append(u8" o: '"_em)
-								.append(reinterpret_to_err_msg_str(sequence.data(), unresolved_char_ptr))
-								.append(u8"', x: '"_em)
-								.append(reinterpret_to_err_msg_str(unresolved_char_ptr, sequence.data() + sequence.size()))
-								.append(u8"'"_em);
-							post_err(position, escape_error_from_chars_parsing_incomplete, ::std::move(msg));
-							return escape_error_from_chars_parsing_incomplete;
-						}
+						auto msg = u8"\\"_em
+							.append(::std::move(escape_sign))
+							.append(l_bracket)
+							.append(seq_to_err_msg_str())
+							.append(r_bracket)
+							.append(u8" o: '"_em)
+							.append(reinterpret_to_err_msg_str(sequence.data(), unresolved_char_ptr))
+							.append(u8"', x: '"_em)
+							.append(reinterpret_to_err_msg_str(unresolved_char_ptr, sequence.data() + sequence.size()))
+							.append(u8"'"_em);
+						post_err(position, escape_error_from_chars_parsing_incomplete, ::std::move(msg));
+						return escape_error_from_chars_parsing_incomplete;
 					}
-					else
+				}
+				else
+				{
+					// If parsed correctly, the sequence contains only the numbers 0-7 and 0-f,
+					// but there may be result_out_of_range
+					auto msg = u8"\\"_em + escape_sign + l_bracket + seq_to_err_msg_str() + r_bracket;
+					switch (errc)
 					{
-						// If parsed correctly, the sequence contains only the numbers 0-7 and 0-f,
-						// but there may be result_out_of_range
-						auto msg = u8"\\"_em + escape_sign + l_bracket + seq_to_err_msg_str() + r_bracket;
-						switch (errc)
-						{
-						case ::std::errc::result_out_of_range:
-							post_err(position, escape_error_from_chars_errc_result_out_of_range, ::std::move(msg));
-							return escape_error_from_chars_errc_result_out_of_range;
-						case ::std::errc::invalid_argument:
-							post_err(position, escape_error_from_chars_errc_invalid_argument, ::std::move(msg));
-							return escape_error_from_chars_errc_invalid_argument;
-						default:
-							post_err(position, escape_error_from_chars_errc_other, ::std::move(msg));
-							return escape_error_from_chars_errc_other;
-						}
+					case ::std::errc::result_out_of_range:
+						post_err(position, escape_error_from_chars_errc_result_out_of_range, ::std::move(msg));
+						return escape_error_from_chars_errc_result_out_of_range;
+					case ::std::errc::invalid_argument:
+						post_err(position, escape_error_from_chars_errc_invalid_argument, ::std::move(msg));
+						return escape_error_from_chars_errc_invalid_argument;
+					default:
+						post_err(position, escape_error_from_chars_errc_other, ::std::move(msg));
+						return escape_error_from_chars_errc_other;
 					}
-					if (!unicode::is_scalar_value(static_cast<unicode::code_point_t>(parse_val)))
-					{
-						// Not a Unicode scalar will result in a decoding/encoding error
-						post_err(position,
-							escape_error_not_unicode_scalar_value,
-							u8"\\"_em + escape_sign + l_bracket + seq_to_err_msg_str() + r_bracket);
-						return escape_error_not_unicode_scalar_value;
-					}
-					return success;
-				};
+				}
+				if (!unicode::is_scalar_value(static_cast<unicode::code_point_t>(parse_val)))
+				{
+					// Not a Unicode scalar will result in a decoding/encoding error
+					post_err(position,
+						escape_error_not_unicode_scalar_value,
+						u8"\\"_em + escape_sign + l_bracket + seq_to_err_msg_str() + r_bracket);
+					return escape_error_not_unicode_scalar_value;
+				}
+				return success;
+			};
 
 			auto c = *begin;
 
@@ -1051,7 +1042,6 @@ namespace pdn::experimental
 				oc = parse_val;
 				return success;
 			}
-			break;
 			case U'x': // \xn... \x{n...}
 			{
 				bool is_with_curly_brackets{ false };
@@ -1105,7 +1095,6 @@ namespace pdn::experimental
 				oc = parse_val;
 				return success;
 			}
-			break;
 			case U'u': // \unnnn \u{n...} Universal character names
 			{
 				bool is_with_curly_brackets{ false };
@@ -1170,7 +1159,6 @@ namespace pdn::experimental
 				oc = parse_val;
 				return success;
 			}
-			break;
 			case U'U':
 				// \Unnnnnnnn Universal character names
 			{
@@ -1204,7 +1192,6 @@ namespace pdn::experimental
 				oc = parse_val;
 				return success;
 			}
-			break;
 			default:
 				if (lexer_utility::is_oct(c))
 				{
@@ -1234,16 +1221,12 @@ namespace pdn::experimental
 				break;
 			}
 			auto cp = unicode::code_point_t(c);
-			post_err(position,
-				escape_error_unknown_escape_sequence,
-				u8"\\"_em + unicode::code_convert<error_msg_string>(unicode::code_point_string_view{ &cp, 1 }));
+			auto err_msg = u8"\\"_em + unicode::code_convert<error_msg_string>(unicode::code_point_string_view{ &cp, 1 });
+			post_err(position, escape_error_unknown_escape_sequence, ::std::move(err_msg));
 			return escape_error_unknown_escape_sequence;
 		}
 
-		void get_numeric_escape_sequence(::std::string& sequence,
-			auto& begin,
-			auto end,
-			bool(*is_valid_char)(unicode::code_point_t))
+		void get_numeric_escape_sequence(::std::string& sequence, auto& begin, auto end, bool(*is_valid_char)(unicode::code_point_t))
 		{
 			for (; begin != end; ++begin)
 			{
@@ -1256,11 +1239,7 @@ namespace pdn::experimental
 			}
 		}
 
-		::std::size_t get_numeric_escape_sequence(::std::size_t count,
-			::std::string& sequence,
-			auto& begin,
-			auto end,
-			bool(*is_valid_char)(unicode::code_point_t))
+		::std::size_t get_numeric_escape_sequence(::std::size_t count, ::std::string& sequence, auto& begin, auto end, bool(*is_valid_char)(unicode::code_point_t))
 		{
 			for (::std::size_t read_count{ 0 }; read_count < count && begin != end; ++read_count, ++begin)
 			{
@@ -1279,9 +1258,7 @@ namespace pdn::experimental
 		// or to ')' if it is an empty string.
 		// Returns false when the d_seq is longer than 16 or contains illegal characters,
 		// but '(' will be handled by the function just as normal
-		bool get_raw_string_opening_d_seq(unicode::code_point_string& out_sequence,
-			auto& begin,
-			auto end)
+		bool get_raw_string_opening_d_seq(unicode::code_point_string& out_sequence, auto& begin, auto end)
 		{
 			// begin pointing:
 			// 
@@ -1344,10 +1321,10 @@ namespace pdn::experimental
 		// On success, the double/back quote is read in and it is skipped,
 		//     so that begin points to the first character after the double/back quote.
 		bool get_raw_string_closing_d_seq(const unicode::code_point_string_view in_sequence, // delimiter sequence for reference
-			unicode::code_point_string& out_sequence, // closing delimiter sequence we are reading
-			auto& begin,
-			auto end,
-			unicode::code_point_t end_quote)
+		                                  unicode::code_point_string& out_sequence, // closing delimiter sequence we are reading
+		                                  auto& begin,
+		                                  auto end,
+		                                  unicode::code_point_t end_quote)
 		{
 			::std::size_t index{};
 			while (begin != end)
@@ -1502,6 +1479,8 @@ namespace pdn::experimental
 		{
 			func_pkg->handle_error(error_message{ pos, error_code, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
 		}
+	private:
+		function_package* func_pkg{};
 	};
 }
 
