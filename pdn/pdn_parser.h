@@ -8,7 +8,7 @@
 #include <type_traits>
 #include <concepts>
 #include <format>
-#include <codecvt>
+
 #include <fstream>
 
 #include "pdn_type_code.h"
@@ -83,13 +83,12 @@ namespace pdn::dev_util
 {
 	template <typename type, typename char_t>
 	concept function_package_for_parser
-		 = concepts::source_position_getter<type>
-		&& concepts::error_handler<type>
+		 = concepts::error_handler<type>
 		&& concepts::error_message_generator<type>
 		&& concepts::constants_generator<type, char_t>;
 }
 
-namespace pdn::experimental
+namespace pdn::inline experimental
 {
 	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_parser<char_t> function_package>
 	class parser
@@ -136,7 +135,6 @@ namespace pdn::experimental
 			parse(begin, end, o);
 			return make_proxy<obj>(::std::move(o));
 		}
-	public:
 		parser(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
 		void parse_start(auto& begin, auto end, obj& o)
@@ -145,7 +143,7 @@ namespace pdn::experimental
 			using err_ms = error_msg_string;
 			using unicode::code_convert;
 
-			for (tk = get_token(begin, end); tk.code != eof; )
+			for (update_token(begin, end); tk.code != eof; )
 			{
 				if (tk.code == identifier)
 				{
@@ -167,7 +165,7 @@ namespace pdn::experimental
 					using namespace error_message_literals;
 					if (tk.code == semicolon)
 					{
-						tk = get_token(begin, end);
+						update_token(begin, end);
 					}
 					else if (is_expr_first(tk.code))
 					{
@@ -178,7 +176,7 @@ namespace pdn::experimental
 					else
 					{
 						post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
-						tk = get_token(begin, end);
+						update_token(begin, end);
 					}
 				}
 			}
@@ -194,10 +192,10 @@ namespace pdn::experimental
 			type_code type_c = type_code::unknown;
 			auto type_pos = tk.position;
 
-			tk = get_token(begin, end);
+			update_token(begin, end);
 			if (tk.code == colon)
 			{
-				tk = get_token(begin, end);
+				update_token(begin, end);
 				type_pos = tk.position;
 
 				if (tk.code == identifier)
@@ -244,7 +242,7 @@ namespace pdn::experimental
 				{
 					post_err(tk.position, syn_ec::unknown_type, code_convert<err_ms>(*::std::get<str_pr>(tk.value)));
 				}
-				tk = get_token(begin, end);
+				update_token(begin, end);
 				return type_c;
 			}
 
@@ -273,7 +271,7 @@ namespace pdn::experimental
 			auto sign_code = tk.code;
 			bool negative_sign{ false };
 
-			for (; tk.code == minus || tk.code == plus; tk = get_token(begin, end))
+			for (; tk.code == minus || tk.code == plus; update_token(begin, end))
 			{
 				sign_pos = tk.position;
 				sign_code = tk.code;
@@ -336,7 +334,7 @@ namespace pdn::experimental
 				while (tk.code == literal_string) // concatenation
 				{
 					cat_string += *::std::get<str_pr>(tk.value);
-					tk = get_token(begin, end);
+					update_token(begin, end);
 				}
 				return token_value_to_entity(make_proxy<str>(::std::move(cat_string)), negative_sign);
 			}
@@ -346,19 +344,19 @@ namespace pdn::experimental
 			case literal_integer:
 			{
 				auto result = token_value_to_entity(::std::move(tk.value), negative_sign); // check is operator- illegal, for unsigned integral types
-				tk = get_token(begin, end);
+				update_token(begin, end);
 				return result;
 			}
 			case left_brackets:
 			{
 				auto left_brackets_pos = tk.position;
-				tk = get_token(begin, end);
+				update_token(begin, end);
 				return parse_list_expr(begin, end, left_brackets_pos);
 			}
 			case left_curly_brackets:
 			{
 				auto left_curly_brackets_pos = tk.position;
-				tk = get_token(begin, end);
+				update_token(begin, end);
 				return parse_object_expr(begin, end, left_curly_brackets_pos);
 			}
 			default:
@@ -386,12 +384,12 @@ namespace pdn::experimental
 				if (!with_comma && tk.code != pdn_token_code::right_brackets)
 				{
 					post_err(tk.position, syn_ec::expect_comma, token_code_to_error_msg_string(tk.code));
-					tk = get_token(begin, end);
+					update_token(begin, end);
 				}
 			}
 
 			// to ... [ ... ] CURRPOS
-			tk = get_token(begin, end);
+			update_token(begin, end);
 
 			return make_proxy<lst>(::std::move(result));
 		}
@@ -408,7 +406,7 @@ namespace pdn::experimental
 				type_c = parse_type_spec(begin, end);
 				if (tk.code == pdn_token_code::colon)
 				{
-					tk = get_token(begin, end);
+					update_token(begin, end);
 				}
 				else
 				{
@@ -421,7 +419,7 @@ namespace pdn::experimental
 
 			if (tk.code == pdn_token_code::comma)
 			{
-				tk = get_token(begin, end);
+				update_token(begin, end);
 				with_comma = true;
 			}
 			else
@@ -464,7 +462,7 @@ namespace pdn::experimental
 				{
 					if (tk.code == pdn_token_code::semicolon)
 					{
-						tk = get_token(begin, end);
+						update_token(begin, end);
 					}
 					else if (is_expr_first(tk.code))
 					{
@@ -480,13 +478,13 @@ namespace pdn::experimental
 					else
 					{
 						post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
-						tk = get_token(begin, end);
+						update_token(begin, end);
 					}
 				}
 			}
 
 			// to ... { ... } CURRPOS
-			tk = get_token(begin, end);
+			update_token(begin, end);
 
 			return make_proxy<obj>(::std::move(result));
 		}
@@ -767,18 +765,19 @@ namespace pdn::experimental
 				return 0;
 			}, ::std::move(v));
 		}
-
 	private:
 		template <typename iter_t>
-		auto get_token(iter_t&& begin, auto end)
+		void update_token(iter_t&& begin, auto end)
 		{
 			if (begin != end)
 			{
-				auto my_tk = *begin;
+				tk = *begin;
 				++begin;
-				return my_tk;
 			}
-			return token<char_t>{ .position = {}, .code = pdn_token_code::eof, .value = {} };
+			else
+			{
+				tk = token<char_t>{ .position = {}, .code = pdn_token_code::eof, .value = {} };
+			}
 		}
 		type_code type_gen(const str& iden)
 		{
@@ -811,14 +810,9 @@ namespace pdn::experimental
 	};
 }
 
-namespace pdn
-{
-	
-}
 
 
-
-namespace pdn::inline legacy
+namespace pdn::legacy
 {
 	template <unicode::concepts::unicode_code_unit char_t = unicode::utf_8_code_unit_t,
 	          concepts::source_position_recorder source_position_recorder_t = source_position_recorder>

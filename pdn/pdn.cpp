@@ -23,6 +23,9 @@
 #include "pdn_make_slashes_string.h"
 #include "pdn_error_code_variant_to_error_msg_string.h"
 
+#include "pdn_dom.h"
+#include "pdn_parse.h"
+
 namespace parser_utf_config
 {
 	using my_char = pdn::unicode::utf_8::code_unit_t;
@@ -399,20 +402,18 @@ namespace pdn_test
 	}
 
 	template <typename char_t>
-	struct my_handler_test
+	struct my_function_package
 	{
-		pdn::default_error_message_generator err_msg_gen{};
-		pdn::default_constants_generator<char_t> const_gen{};
-		pdn::source_position_and_newline_recorder my_rec_r{};
+		pdn::default_function_package<char_t> fp{};
 		error_handler_t my_err_h;
-		my_handler_test(error_handler_t h) : my_err_h{ h } {}
+		my_function_package(error_handler_t h) : my_err_h{ h } {}
 		pdn::source_position position()
 		{
-			return my_rec_r.position();
+			return fp.position();
 		}
 		void update(char32_t c)
 		{
-			my_rec_r.update(c);
+			fp.update(c);
 		}
 		void handle_error(const pdn::error_message& msg)
 		{
@@ -420,11 +421,15 @@ namespace pdn_test
 		}
 		pdn::error_msg_string generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str)
 		{
-			return err_msg_gen.generate_error_message(std::move(errc_variant), std::move(err_msg_str));
+			return fp.generate_error_message(std::move(errc_variant), std::move(err_msg_str));
 		}
 		::std::optional<pdn::constant_variant<char_t>> generate_constant(pdn::unicode::utf_8_code_unit_string iden)
 		{
-			return const_gen.generate_constant(std::move(iden));
+			return fp.generate_constant(std::move(iden));
+		}
+		pdn::type_code generate_type(const pdn::types::string<char_t>& iden)
+		{
+			return fp.generate_type(iden);
 		}
 	};
 
@@ -443,9 +448,9 @@ namespace pdn_test
 			std::getline(std::cin, cmd);
 			auto cmd_v = reinterpret_to_u8sv(cmd);
 
-			my_handler_test<char_t> my_hd_test{ error_handler_t{ out } };
-			auto lex = get_lex<char_t>(my_hd_test);
-			auto cp_it = pdn::make_code_point_iterator(cmd_v.begin(), cmd_v.end(), my_hd_test);
+			my_function_package<char_t> my_fp{ error_handler_t{ out } };
+			auto lex = get_lex<char_t>(my_fp);
+			auto cp_it = pdn::make_code_point_iterator(cmd_v.begin(), cmd_v.end(), my_fp);
 
 			auto tk = lex.get_token(cp_it, cmd_v.end());
 
@@ -814,10 +819,12 @@ namespace pdn_test
 	}
 
 	template <typename char_t>
-	void test(pdn::parser<char_t>& parser, const std::string& filename, std::ostream& out, bool to_play = false)
+	void test(const std::string& filename, std::ostream& out, std::ostream& log, bool to_play = false)
 	{
+		pdn_test::error_handler_t err_handler{ log };
+		my_function_package<char_t> my_fp{ err_handler };
 		auto prev_parse = std::chrono::high_resolution_clock::now();
-		auto dom = parser.parse(filename);
+		auto dom = pdn::parse<char_t>(filename, my_fp, my_fp, my_fp);
 		auto after_parse = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<double> time_cost = after_parse - prev_parse;
@@ -864,18 +871,21 @@ int main(int argc, const char* argv[])
 			
 			pdn::default_function_package<char8_t> my_hd_test{};
 			pdn::experimental::lexer<char8_t, pdn::default_function_package<char8_t>> lex{ my_hd_test };
-			std::u32string_view source =
-				UR"xxxyyyzzz(sdjfnalsfn {}
+			std::u8string_view source =
+				u8R"xxxyyyzzz(sdjfnalsfn {}
 kajshdkjasd [ 1, 2, 3 ]; aksjdn:f 1; njvjsek[ f:1, int:2, ]
 x "s"
 )xxxyyyzzz";
+			auto& h = my_hd_test;
+			auto dom = pdn::parse(source.cbegin(), source.cend(), h, h, h, pdn::to_utf_8);
 
-			auto cp_it = pdn::make_code_point_iterator(source.begin(), source.end(), my_hd_test);
-			auto it = pdn::experimental::make_token_iterator(lex, cp_it, source.end());
-			auto end = pdn::experimental::make_end_token_iterator(it);
+		//	auto cp_it = pdn::make_code_point_iterator(source.begin(), source.end(), my_hd_test);
+		//	auto it = pdn::experimental::make_token_iterator(lex, cp_it, source.end());
+		//	auto end = pdn::experimental::make_end_token_iterator(it);
 
-			pdn::experimental::parser<char8_t, pdn::default_function_package<char8_t>> par{ my_hd_test };
-			par.parse(it, end);
+		//	auto dom = pdn::parse(it, end, my_hd_test, pdn::to_utf_8);
+		//	pdn::experimental::parser<char8_t, pdn::default_function_package<char8_t>> par{ my_hd_test };
+		//	par.parse(it, end);
 		}
 	}
 
@@ -995,13 +1005,9 @@ x "s"
 	std::ostream& out = (is_using_stdout || to_play) ? std::cout : out_file;
 	std::ostream& log = (is_using_stdout || to_play) ? std::cout : log_file;
 
-	pdn_test::error_handler_t err_handler{ log };
-
-	pdn::parser<parser_utf_config::my_char> parser(err_handler);
-
 	try
 	{
-		pdn_test::test(parser, filename, out, to_play);
+		pdn_test::test<parser_utf_config::my_char>(filename, out, log, to_play);
 	}
 	catch (const pdn::runtime_error& e)
 	{

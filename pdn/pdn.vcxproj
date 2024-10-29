@@ -143,6 +143,7 @@
     <ClInclude Include="pdn_dfa_state_objects.h" />
     <ClInclude Include="pdn_dfa_state_code.h" />
     <ClInclude Include="pdn_dfa_state_object.h" />
+    <ClInclude Include="pdn_dom.h" />
     <ClInclude Include="pdn_eof_checker_concept.h" />
     <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h" />
     <ClInclude Include="pdn_error_handler_concept.h" />
@@ -157,6 +158,7 @@
     <ClInclude Include="pdn_exception.h" />
     <ClInclude Include="pdn_lexer.h" />
     <ClInclude Include="pdn_make_slashes_string.h" />
+    <ClInclude Include="pdn_parse.h" />
     <ClInclude Include="pdn_parser.h" />
     <ClInclude Include="pdn_proxy.h" />
     <ClInclude Include="pdn_source_position_recorder_concept.h" />

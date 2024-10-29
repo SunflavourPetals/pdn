@@ -55,6 +55,9 @@
     <Filter Include="pdn_exception">
       <UniqueIdentifier>{726b4cb4-a95f-41de-8b72-27d5173b8880}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pdn_include">
+      <UniqueIdentifier>{0eeb7d28-79c0-4a68-8e90-d72961154027}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pdn_unicode_base.h">
@@ -260,6 +263,12 @@
     </ClInclude>
     <ClInclude Include="pdn_type_generator_concept.h">
       <Filter>pdn_type_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_dom.h">
+      <Filter>pdn_include</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_parse.h">
+      <Filter>pdn_include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

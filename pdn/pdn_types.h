@@ -700,13 +700,4 @@ namespace pdn::types
 	};
 }
 
-namespace pdn
-{
-	template <typename char_t>
-	using document_object_model = types::entity<char_t>;
-
-	template <typename char_t>
-	using dom = types::entity<char_t>;
-}
-
 #endif

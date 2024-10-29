@@ -43,13 +43,13 @@ namespace pdn::dev_util
 		&& concepts::constants_generator<type, char_t>;
 }
 
-namespace pdn::experimental
+namespace pdn::inline experimental
 {
 	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_lexer<char_t> function_package>
 	class lexer;
 }
 
-namespace pdn::experimental
+namespace pdn::inline experimental
 {
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
 	struct token_iterator_ctrlblk_from_lexer
@@ -146,7 +146,7 @@ namespace pdn::experimental
 	}
 }
 
-namespace pdn::experimental
+namespace pdn::inline experimental
 {
 	
 	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_lexer<char_t> function_package>
@@ -1484,7 +1484,7 @@ namespace pdn::experimental
 	};
 }
 
-namespace pdn::inline legacy
+namespace pdn::legacy
 {
 	template <unicode::concepts::unicode_code_unit char_t = unicode::utf_8_code_unit_t,
 	          concepts::source_position_recorder source_position_recorder_t = source_position_recorder>
