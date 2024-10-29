@@ -57,8 +57,8 @@ namespace pdn
 	// for token iterator
 	template <unicode::concepts::unicode_code_unit          char_t,
 	          dev_util::token_iterator<char_t>              it_t,
-	          dev_util::function_package_for_parser<char_t> fn_pkg>
-	auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> dom<char_t>
+	          concepts::function_package_for_parser<char_t> fn_pkg>
+	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> dom<char_t>
 	{
 		parser<char_t, fn_pkg> par{ fp };
 		return par.parse(begin, end);
@@ -66,7 +66,7 @@ namespace pdn
 	// for token iterator
 	template <unicode::concepts::unicode_code_unit char_t,
 	          dev_util::token_iterator<char_t>     it_t>
-	auto parse(it_t begin, auto end, char_t target_char_v = {}) -> dom<char_t>
+	[[nodiscard]] auto parse(it_t begin, auto end, char_t target_char_v = {}) -> dom<char_t>
 	{
 		using fn_pkg = default_function_package<char_t>;
 		fn_pkg fp{};
@@ -75,15 +75,15 @@ namespace pdn
 	// for code_unit iterator
 	template <unicode::concepts::unicode_code_unit               char_t,
 	          dev_util::utf_code_unit_iterator                   it_t,
-	          dev_util::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          dev_util::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
-	          dev_util::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	auto parse(it_t               begin,
-	           auto               end,
-	           fn_pkg_for_cp_it&  cp_it_fp,
-	           fn_pkg_for_lexer&  lex_fp,
-	           fn_pkg_for_parser& par_fp,
-	           char_t             target_char_v = {}) -> dom<char_t>
+	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(it_t               begin,
+	                         auto               end,
+	                         fn_pkg_for_cp_it&  cp_it_fp,
+	                         fn_pkg_for_lexer&  lex_fp,
+	                         fn_pkg_for_parser& par_fp,
+	                         char_t             target_char_v = {}) -> dom<char_t>
 	{
 		lexer<char_t, fn_pkg_for_lexer>   lex{ lex_fp };
 		auto cp_it     = make_code_point_iterator(begin, end, cp_it_fp);
@@ -94,7 +94,7 @@ namespace pdn
 	// for code_unit iterator
 	template <unicode::concepts::unicode_code_unit char_t,
 	          dev_util::utf_code_unit_iterator     it_t>
-	auto parse(it_t begin, auto end, char_t target_char_v = {}) -> dom<char_t>
+	[[nodiscard]] auto parse(it_t begin, auto end, char_t target_char_v = {}) -> dom<char_t>
 	{
 		using fn_pkg = default_function_package<char_t>;
 		fn_pkg fp{};
@@ -102,15 +102,15 @@ namespace pdn
 	}
 	// for file stream
 	template <unicode::concepts::unicode_code_unit               char_t,
-	          dev_util::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          dev_util::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
-	          dev_util::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	auto parse(::std::ifstream&   source_file,
-	           fn_pkg_for_cp_it&  cp_it_fp,
-	           fn_pkg_for_lexer&  lex_fp,
-	           fn_pkg_for_parser& par_fp,
-	           char_t             target_char_v = {},
-	           ::std::size_t      buffer_size = 1024) -> dom<char_t>
+	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(::std::ifstream&   source_file,
+	                         fn_pkg_for_cp_it&  cp_it_fp,
+	                         fn_pkg_for_lexer&  lex_fp,
+	                         fn_pkg_for_parser& par_fp,
+	                         char_t             target_char_v = {},
+	                         ::std::size_t      buffer_size = 1024) -> dom<char_t>
 	{
 		auto bom_type           = unicode::read_bom(source_file);
 		auto source_encode_type = unicode::utility::to_encode_type(bom_type);
@@ -131,7 +131,7 @@ namespace pdn
 	}
 	// for file stream
 	template <unicode::concepts::unicode_code_unit char_t>
-	auto parse(::std::ifstream& source_file, char_t target_char_v = {}, ::std::size_t buffer_size = 1024) -> dom<char_t>
+	[[nodiscard]] auto parse(::std::ifstream& source_file, char_t target_char_v = {}, ::std::size_t buffer_size = 1024) -> dom<char_t>
 	{
 		using fn_pkg = default_function_package<char_t>;
 		fn_pkg fp{};
@@ -139,15 +139,15 @@ namespace pdn
 	}
 	// for filename
 	template <unicode::concepts::unicode_code_unit               char_t,
-	          dev_util::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          dev_util::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
-	          dev_util::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	auto parse(const ::std::string& filename,
-               fn_pkg_for_cp_it&    cp_it_fp,
-	           fn_pkg_for_lexer&    lex_fp,
-	           fn_pkg_for_parser&   par_fp,
-	           char_t               target_char_v = {},
-	           ::std::size_t        buffer_size = 1024) -> dom<char_t>
+	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(const ::std::string& filename,
+                             fn_pkg_for_cp_it&    cp_it_fp,
+	                         fn_pkg_for_lexer&    lex_fp,
+	                         fn_pkg_for_parser&   par_fp,
+	                         char_t               target_char_v = {},
+	                         ::std::size_t        buffer_size = 1024) -> dom<char_t>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		if (!source_file.is_open())
@@ -159,7 +159,7 @@ namespace pdn
 	}
 	// for filename
 	template <unicode::concepts::unicode_code_unit char_t>
-	auto parse(const ::std::string& filename, char_t target_char_v = {}, ::std::size_t buffer_size = 1024) -> dom<char_t>
+	[[nodiscard]] auto parse(const ::std::string& filename, char_t target_char_v = {}, ::std::size_t buffer_size = 1024) -> dom<char_t>
 	{
 		using fn_pkg = default_function_package<char_t>;
 		fn_pkg fp{};
@@ -167,15 +167,15 @@ namespace pdn
 	}
 	// for filename
 	template <unicode::concepts::unicode_code_unit               char_t,
-	          dev_util::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          dev_util::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
-	          dev_util::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	auto parse(const ::std::wstring& filename,
-               fn_pkg_for_cp_it&     cp_it_fp,
-	           fn_pkg_for_lexer&     lex_fp,
-	           fn_pkg_for_parser&    par_fp,
-	           char_t                target_char_v = {},
-	           ::std::size_t         buffer_size = 1024) -> dom<char_t>
+	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(const ::std::wstring& filename,
+                       fn_pkg_for_cp_it&     cp_it_fp,
+	                   fn_pkg_for_lexer&     lex_fp,
+	                   fn_pkg_for_parser&    par_fp,
+	                   char_t                target_char_v = {},
+	                   ::std::size_t         buffer_size = 1024) -> dom<char_t>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		if (!source_file.is_open())
@@ -201,7 +201,7 @@ namespace pdn
 	}
 	// for filename
 	template <unicode::concepts::unicode_code_unit char_t>
-	auto parse(const ::std::wstring& filename, char_t target_char_v = {}, ::std::size_t buffer_size = 1024) -> dom<char_t>
+	[[nodiscard]] auto parse(const ::std::wstring& filename, char_t target_char_v = {}, ::std::size_t buffer_size = 1024) -> dom<char_t>
 	{
 		using fn_pkg = default_function_package<char_t>;
 		fn_pkg fp{};

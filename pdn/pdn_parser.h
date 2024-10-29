@@ -26,14 +26,17 @@
 #include "pdn_error_message_generator_concept.h"
 #include "pdn_type_generator_concept.h"
 
-namespace pdn::dev_util
+namespace pdn::concepts
 {
 	template <typename type, typename char_t>
 	concept function_package_for_parser
 		 = concepts::error_handler<type>
 		&& concepts::error_message_generator<type>
 		&& concepts::type_generator<type, char_t>;
+}
 
+namespace pdn::dev_util
+{
 	template <typename type, typename char_t>
 	concept token_iterator = requires (type it)
 	{
@@ -44,7 +47,7 @@ namespace pdn::dev_util
 
 namespace pdn
 {
-	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_parser<char_t> function_package>
+	template <unicode::concepts::unicode_code_unit char_t, concepts::function_package_for_parser<char_t> function_package>
 	class parser
 	{
 	public:

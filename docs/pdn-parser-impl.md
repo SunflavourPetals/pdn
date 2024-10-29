@@ -1,20 +1,28 @@
 # 本仓库实现的 PDN 解析器
 
-## parser
+## parse
 
 使用方法：  
 
-创建 `pdn::parser<char_t>` 对象(其 `char_t` 只能为 `char8_t`、`char16_t`、`char32_t` 之一)，构造方法有四个参数，分别是：  
+`pdn::parse` 方法有对 `token` 迭代器、Unicode 码元迭代器、文件流、文件名的重载版本，根据其需求，用户最多需要提供 `function_package_for_parser`、`function_package_for_lexer`、`function_package_for_code_point_iterator` 给 `pdn::parse` 函数。  
+`pdn::parse` 方法对用户提供 `function_package` 和使用默认配置有重载，一般使用默认配置已足够。  
+`pdn::parse` 方法需要用户指定编码方式，推荐使用 `pdn::to_utf_8`、`pdn::to_utf_16`、`pdn::to_utf_32` 作为 `pdn::parse` 的 `char_t` 参数来提供。  
 
-1. `err_handler` 发生错误时将通过此参数通知用户，用户可以选择处理它们，如打印错误信息到日志文件，或是抛出异常以停止解析。  
-2. `err_msg_gen` 根据错误码和其他信息生成错误信息，默认参数为错误信息生成器en，用户可以参照默认参数的内容为解析器提供其他语言的错误信息生成器。  
-3. `constants_gen` 常量表，对应 PDN At 标识符的相关内容，用户可以提供其他常量表。  
-4. `type_gen` 类型生成器，根据标识符生成类型枚举码，对应 PDN 数据类型，用户可以提供其他类型生成器。  
+``` C++
+#include "pdn_parse"
 
-创建好 parser 后使用成员函数 `parse` 解析 pdn 文件：  
+void parse_something()
+{
+    auto dom_1_using_utf_8  = pdn::parse("./example_1.pdn", pdn::to_utf_8);
+    auto dom_2_using_utf_16 = pdn::parse("./example_2.pdn", pdn::to_utf_16);
+    auto dom_3_using_utf_32 = pdn::parse("./example_3.pdn", pdn::to_utf_32);
+}
+```
 
-1. `parser(auto&& begin, auto end)` 解析 begin 至 end 范围内的内容，begin 必须是 `unicode_code_unit` 类型(`char8_t`、`char16_t`、`char32_t`)的迭代器，且重复对该迭代器解引用得到的代码单元值必须相同。  
-2. `parser(const string& | const char* | const wstring& | const wchar_t* filename)` 解析文件中的内容，如果打开失败，将抛出异常。  
+用户提供 `function_package`，可参考 `pdn::concepts::function_package_for...` 等概念实现(分别定义于 `pdn_parser`、`pdn_lexer`、`pdn_code_point_iterator`)。  
+记录行列位置信息的功能由 `function_package_for_code_point_iterator` 提供，`pdn` 的 `@val` 常量由 `function_package_for_lexer` 提供，此外它还需要获得解析点行列位置。`pdn` 中的类型名由 `function_package_for_parser` 提供。  
+此外，以上三者都需要错误处理和错误信息生成功能，默认的错误处理为打印错误信息到标准输出，默认的错误信息生成方法生成英文错误信息。  
+最佳实践是组合 `pdn_function_package.h` 内的 `pdn::default_function_package` 和用户需要自定义的内容，使它满足以上三者的需求，然后为它们三个提供同一个`function_package` 对象(将按引用传递)。
 
 ## dom
 
@@ -27,5 +35,5 @@
 5. `operator[size_t]`：获得 List 的元素数据，如果当前实体不是 List 或 out of range，将抛出异常；  
 6. `ref` `cref`：获得 `refer` 或 `const_refer` 类。  
 
-`refer` 和 `const_refer` 类提供不抛出的 `operator[]`，当查询失败时，返回一个空引用，对空引用的任何成员查询操作都只能得到空引用，获取值时只能获得 nullptr、nullopt 或是无意义的值。  
+`refer` 和 `const_refer` 类提供不抛出的 `operator[]`，当查询失败时，返回一个空 `refer|const_refer`，对空 `refer|const_refer` 的任何成员查询操作都只能得到空 `refer|const_refer`，获取值时只能获得 `nullptr`、`nullopt` 或是无效的值。  
 `refer` 和 `const_refer` 类不提供 `get_xxx` 系列的函数。  

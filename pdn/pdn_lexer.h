@@ -22,7 +22,7 @@
 #include "pdn_code_convert.h"
 #include "pdn_lexical_error_code.h"
 
-namespace pdn::dev_util
+namespace pdn::concepts
 {
 	template <typename type, typename char_t>
 	concept function_package_for_lexer
@@ -34,7 +34,7 @@ namespace pdn::dev_util
 
 namespace pdn
 {
-	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_lexer<char_t> function_package>
+	template <unicode::concepts::unicode_code_unit char_t, concepts::function_package_for_lexer<char_t> function_package>
 	class lexer;
 }
 
@@ -137,7 +137,7 @@ namespace pdn
 
 namespace pdn
 {
-	template <unicode::concepts::unicode_code_unit char_t, dev_util::function_package_for_lexer<char_t> function_package>
+	template <unicode::concepts::unicode_code_unit char_t, concepts::function_package_for_lexer<char_t> function_package>
 	class lexer
 	{
 	public:

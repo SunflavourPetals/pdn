@@ -40,7 +40,7 @@
 //     v
 //    parser (provide: parse) ----> pdn document object model
 
-namespace pdn::dev_util
+namespace pdn::concepts
 {
 	template <typename type>
 	concept function_package_for_code_point_iterator
@@ -51,7 +51,7 @@ namespace pdn::dev_util
 
 namespace pdn
 {
-	template <typename begin_it_t, typename end_it_t, dev_util::function_package_for_code_point_iterator function_package>
+	template <typename begin_it_t, typename end_it_t, concepts::function_package_for_code_point_iterator function_package>
 	class code_point_iterator
 	{
 	public:
@@ -143,7 +143,7 @@ namespace pdn
 		unicode::code_point_t curr_value{};
 	};
 
-	template <typename begin_it_t, typename end_it_t, dev_util::function_package_for_code_point_iterator function_package>
+	template <typename begin_it_t, typename end_it_t, concepts::function_package_for_code_point_iterator function_package>
 	inline auto make_code_point_iterator(begin_it_t begin_it, end_it_t end_it, function_package& func_package)
 	{
 		return code_point_iterator{ ::std::move(begin_it), ::std::move(end_it), func_package };
