@@ -107,13 +107,13 @@ namespace pdn
 		source_position_and_newline_recorder() = default;
 	private:
 		source_position pos{};
-		::std::size_t CRLF_count{};
-		::std::size_t LF_count{};
-		::std::size_t CR_count{};
-		::std::size_t NEL_count{};
-		::std::size_t LS_count{};
-		::std::size_t PS_count{};
-		bool is_last_CR{};
+		::std::size_t   CRLF_count{};
+		::std::size_t   LF_count{};
+		::std::size_t   CR_count{};
+		::std::size_t   NEL_count{};
+		::std::size_t   LS_count{};
+		::std::size_t   PS_count{};
+		bool            is_last_CR{};
 	};
 	static_assert(concepts::source_position_recorder<source_position_and_newline_recorder>);
 }

@@ -62,8 +62,8 @@ namespace pdn::dev_util
 			return u8"expect hexadecimal decimal part: \""_em + src + u8"\""_em;
 		case more_than_one_separators_may_between_numbers:
 			return u8"more than one separators may between numbers: \""_em + src + u8"\""_em;
-		case number_separator_cannot_be_appear_here:
-			return u8"number separator ' cannot be appear here: \""_em + src + u8"\""_em;
+		case number_cannot_end_with_separator:
+			return u8"number cannot end with separator: \""_em + src + u8"\""_em;
 
 			// ESCAPE ERROR
 			// escape \o{...}

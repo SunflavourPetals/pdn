@@ -58,6 +58,9 @@
     <Filter Include="pdn_include">
       <UniqueIdentifier>{0eeb7d28-79c0-4a68-8e90-d72961154027}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pdn_function_package">
+      <UniqueIdentifier>{e592a64c-1aba-41fc-80bf-bd3d237670d4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pdn_unicode_base.h">
@@ -269,6 +272,9 @@
     </ClInclude>
     <ClInclude Include="pdn_parse.h">
       <Filter>pdn_include</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_function_package.h">
+      <Filter>pdn_function_package</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -8,21 +8,6 @@
 #include <variant>
 #include <chrono>
 
-#include "pdn_unicode.h"
-#include "pdn_code_convert.h"
-
-#include "pdn_bom_reader.h"
-#include "pdn_swap_chain.h"
-#include "pdn_code_unit_iterator.h"
-#include "pdn_code_point_iterator.h"
-
-#include "pdn_source_position_and_newline_recorder.h"
-#include "pdn_source_position_recorder.h"
-
-#include "pdn_parser.h"
-#include "pdn_make_slashes_string.h"
-#include "pdn_error_code_variant_to_error_msg_string.h"
-
 #include "pdn_dom.h"
 #include "pdn_parse.h"
 
@@ -226,24 +211,6 @@ namespace pdn_test
 		print<char_t>(out, element, max_layer, 1);
 	}
 
-	struct error_handler_t
-	{
-		std::size_t err_count = 0;
-		std::ostream& log;
-		error_handler_t(std::ostream& l) : log{ l } {}
-		void operator()(const pdn::error_message& e)
-		{
-			++err_count;
-			g_err_count = err_count;
-			auto error_type_s = pdn::error_code_variant_to_error_msg_string(e.error_code);
-			log << std::format("{}({}:{}) {}\n",
-			                   (const char*)error_type_s.c_str(),
-			                   e.position.line,
-			                   e.position.column,
-			                   (const char*)e.error_message.c_str());
-		}
-	};
-
 	using namespace pdn::unicode_literals;
 	template <typename char_t>
 	struct cmd_table
@@ -265,9 +232,9 @@ namespace pdn_test
 	namespace
 	{
 		template <typename char_t, typename func_pkg>
-		pdn::experimental::lexer<char_t, func_pkg> get_lex(func_pkg& fp)
+		pdn::lexer<char_t, func_pkg> get_lex(func_pkg& fp)
 		{
-			pdn::experimental::lexer<char_t, func_pkg> lex{ fp };
+			pdn::lexer<char_t, func_pkg> lex{ fp };
 			return lex;
 		}
 		void print_prompt(std::ostream& out)
@@ -405,9 +372,10 @@ namespace pdn_test
 	struct my_function_package
 	{
 		pdn::default_function_package<char_t> fp{};
-		error_handler_t my_err_h;
-		my_function_package(error_handler_t h) : my_err_h{ h } {}
-		pdn::source_position position()
+		std::size_t     err_count = 0;
+		std::ostream&   log;
+		explicit my_function_package(std::ostream& l) : log{ l } {}
+		auto position() -> pdn::source_position
 		{
 			return fp.position();
 		}
@@ -417,17 +385,19 @@ namespace pdn_test
 		}
 		void handle_error(const pdn::error_message& msg)
 		{
-			my_err_h(msg);
+			++err_count;
+			g_err_count = err_count;
+			fp.handle_error(msg, log);
 		}
-		pdn::error_msg_string generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str)
+		auto generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str) -> pdn::error_msg_string
 		{
 			return fp.generate_error_message(std::move(errc_variant), std::move(err_msg_str));
 		}
-		::std::optional<pdn::constant_variant<char_t>> generate_constant(pdn::unicode::utf_8_code_unit_string iden)
+		auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) -> ::std::optional<pdn::constant_variant<char_t>>
 		{
-			return fp.generate_constant(std::move(iden));
+			return fp.generate_constant(iden);
 		}
-		pdn::type_code generate_type(const pdn::types::string<char_t>& iden)
+		auto generate_type(const pdn::types::string<char_t>& iden) -> pdn::type_code
 		{
 			return fp.generate_type(iden);
 		}
@@ -448,7 +418,7 @@ namespace pdn_test
 			std::getline(std::cin, cmd);
 			auto cmd_v = reinterpret_to_u8sv(cmd);
 
-			my_function_package<char_t> my_fp{ error_handler_t{ out } };
+			my_function_package<char_t> my_fp{ out };
 			auto lex = get_lex<char_t>(my_fp);
 			auto cp_it = pdn::make_code_point_iterator(cmd_v.begin(), cmd_v.end(), my_fp);
 
@@ -821,8 +791,7 @@ namespace pdn_test
 	template <typename char_t>
 	void test(const std::string& filename, std::ostream& out, std::ostream& log, bool to_play = false)
 	{
-		pdn_test::error_handler_t err_handler{ log };
-		my_function_package<char_t> my_fp{ err_handler };
+		my_function_package<char_t> my_fp{ log };
 		auto prev_parse = std::chrono::high_resolution_clock::now();
 		auto dom = pdn::parse<char_t>(filename, my_fp, my_fp, my_fp);
 		auto after_parse = std::chrono::high_resolution_clock::now();
@@ -852,9 +821,9 @@ int main(int argc, const char* argv[])
 	std::string log_filename{};
 	
 	bool is_using_stdout = false;
-	bool to_play = true;
-
-	const char* my_argv[]{ "./pdn", "-p", R"(D:\Works\VisualStudio2022\ProjectsUsingGit\Maze\Maze\assets\pdn\level_1.pdn)" };
+	bool to_play = false;
+	/*
+	const char* my_argv[]{ "./pdn", "-p", R"(test path)" };
 	{
 		std::string answer{};
 		std::cout << "do debug test[yes/y = yes, else = no]: ";
@@ -868,27 +837,9 @@ int main(int argc, const char* argv[])
 		{
 			argc = 3;
 			argv = my_argv;
-			
-			pdn::default_function_package<char8_t> my_hd_test{};
-			pdn::experimental::lexer<char8_t, pdn::default_function_package<char8_t>> lex{ my_hd_test };
-			std::u8string_view source =
-				u8R"xxxyyyzzz(sdjfnalsfn {}
-kajshdkjasd [ 1, 2, 3 ]; aksjdn:f 1; njvjsek[ f:1, int:2, ]
-x "s"
-)xxxyyyzzz";
-			auto& h = my_hd_test;
-			auto dom = pdn::parse(source.cbegin(), source.cend(), h, h, h, pdn::to_utf_8);
-
-		//	auto cp_it = pdn::make_code_point_iterator(source.begin(), source.end(), my_hd_test);
-		//	auto it = pdn::experimental::make_token_iterator(lex, cp_it, source.end());
-		//	auto end = pdn::experimental::make_end_token_iterator(it);
-
-		//	auto dom = pdn::parse(it, end, my_hd_test, pdn::to_utf_8);
-		//	pdn::experimental::parser<char8_t, pdn::default_function_package<char8_t>> par{ my_hd_test };
-		//	par.parse(it, end);
 		}
 	}
-
+	*/
 	if (argc <= 1)
 	{
 		std::cout << "no arguments.\n" << "using \"./pdn -help\" for help.";
@@ -949,8 +900,8 @@ x "s"
 			{
 				if (!showed_ver)
 				{
-					std::cout << "Pdn Parser Lib Version:  Beta   1.0\n";
-					std::cout << "PdnShell Version:        Alpha  0.3\n";
+					std::cout << "Pdn Lib Version:     Beta   1.1\n";
+					std::cout << "PdnShell Version:    Alpha  0.5\n";
 					showed_ver = true;
 				}
 			}

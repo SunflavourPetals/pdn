@@ -46,8 +46,7 @@ namespace pdn
 		}
 	private:
 		source_position pos{};
-
-		bool is_last_CR{};
+		bool            is_last_CR{};
 	};
 	static_assert(concepts::source_position_recorder<source_position_recorder>);
 }

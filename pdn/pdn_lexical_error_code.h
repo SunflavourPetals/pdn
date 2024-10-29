@@ -41,7 +41,7 @@ namespace pdn
 		bin_prefix_expect_bin_number_sequence,
 		hex_prefix_expect_hex_number_sequence,
 		more_than_one_separators_may_between_numbers,
-		number_separator_cannot_be_appear_here,
+		number_cannot_end_with_separator,
 
 		// number from chars error
 		number_from_chars_errc_result_out_of_range,
