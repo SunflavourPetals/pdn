@@ -70,6 +70,8 @@ namespace pdn::dev_util
 namespace pdn
 {
 #define PDN_Macro_Temp_make_map_for_typename_to_typecode(prefix) \
+	constexpr auto pl_int  = dev_util::cppint_to_type_code_v<types::cppint>;   \
+	constexpr auto pl_uint = dev_util::cppuint_to_type_code_v<types::cppuint>; \
 	self[prefix##"i8"_ucus]        = i8;        \
 	self[prefix##"i16"_ucus]       = i16;       \
 	self[prefix##"i32"_ucus]       = i32;       \
@@ -94,12 +96,12 @@ namespace pdn
 	self[prefix##"list"_ucus]      = list;      \
 	self[prefix##"object"_ucus]    = object;    \
 	self[prefix##"obj"_ucus]       = object;    \
-	self[prefix##"cppint"_ucus]    = dev_util::cppint_to_type_code_v<types::cppint>;   \
-	self[prefix##"int"_ucus]       = dev_util::cppint_to_type_code_v<types::cppint>;   \
-	self[prefix##"i"_ucus]         = dev_util::cppint_to_type_code_v<types::cppint>;   \
-	self[prefix##"cppuint"_ucus]   = dev_util::cppuint_to_type_code_v<types::cppuint>; \
-	self[prefix##"uint"_ucus]      = dev_util::cppuint_to_type_code_v<types::cppuint>; \
-	self[prefix##"u"_ucus]         = dev_util::cppuint_to_type_code_v<types::cppuint>;
+	self[prefix##"cppint"_ucus]    = pl_int;    \
+	self[prefix##"int"_ucus]       = pl_int;    \
+	self[prefix##"i"_ucus]         = pl_int;    \
+	self[prefix##"cppuint"_ucus]   = pl_uint;   \
+	self[prefix##"uint"_ucus]      = pl_uint;   \
+	self[prefix##"u"_ucus]         = pl_uint;
 
 	template <typename char_t>
 	class type_table

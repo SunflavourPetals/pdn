@@ -12,9 +12,9 @@ namespace pdn
 		using base_type = ::std::unique_ptr<t>;
 	public:
 		using base_type::base_type;
-		proxy(const proxy& o) : proxy(static_cast<const base_type&>(o)) {}
-		proxy(proxy&& o) noexcept : proxy(static_cast<base_type&&>(o)) {}
-		proxy(const base_type& o) : base_type(o ? ::std::make_unique<t>(*o) : base_type{}) {}
+		proxy(const proxy& o)         : proxy(static_cast<const base_type&>(o)) {}
+		proxy(proxy&& o) noexcept     : proxy(static_cast<base_type&&>(o)) {}
+		proxy(const base_type& o)     : base_type(o ? ::std::make_unique<t>(*o) : base_type{}) {}
 		proxy(base_type&& o) noexcept : base_type(::std::move(o)) {}
 		proxy& operator=(const proxy& o)
 		{

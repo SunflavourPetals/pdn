@@ -267,24 +267,6 @@ namespace pdn
 				fill_to(current_buffer);
 			}
 		}
-		swap_chain(const swap_chain&) = delete;
-		swap_chain(swap_chain&& o) noexcept
-		{
-			*this = std::move(o);
-		}
-		swap_chain& operator=(const swap_chain&) = delete;
-		swap_chain& operator=(swap_chain&& rhs) noexcept
-		{
-			::std::swap(current_buffer, rhs.current_buffer);
-			::std::swap(current_pos,    rhs.current_pos);
-			::std::swap(current_end,    rhs.current_end);
-			::std::swap(eof_pos,        rhs.eof_pos);
-			::std::swap(identification, rhs.identification);
-			::std::swap(buffer_size,    rhs.buffer_size);
-			::std::swap(istream_ptr,    rhs.istream_ptr);
-			::std::swap(buffers_mng,    rhs.buffers_mng);
-			return *this;
-		}
 	private:
 		value_type*       current_buffer{}; // current buffer
 		value_type*       current_pos{};    // current position

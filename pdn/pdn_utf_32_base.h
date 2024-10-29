@@ -10,18 +10,13 @@
 
 namespace pdn::unicode::utf_32
 {
-	using code_unit_t = utf_32_code_unit_t;
-
-	template <typename traits = ::std::char_traits<code_unit_t>, typename alloc = ::std::allocator<code_unit_t>>
-	using basic_code_unit_string = ::std::basic_string<code_unit_t, traits, alloc>;
-
-	template <typename traits = ::std::char_traits<code_unit_t>>
+	using code_unit_t                 = utf_32_code_unit_t;
+	template <typename traits         = ::std::char_traits<code_unit_t>, typename alloc = ::std::allocator<code_unit_t>>
+	using basic_code_unit_string      = ::std::basic_string<code_unit_t, traits, alloc>;
+	using code_unit_string            = basic_code_unit_string<>;
+	template <typename traits         = ::std::char_traits<code_unit_t>>
 	using basic_code_unit_string_view = ::std::basic_string_view<code_unit_t, traits>;
-
-	using code_unit_string = basic_code_unit_string<>;
-
-	using code_unit_string_view = basic_code_unit_string_view<>;
-
+	using code_unit_string_view       = basic_code_unit_string_view<>;
 
 	inline constexpr ::std::array<::std::uint8_t, 4> to_le_bytes(code_unit_t code_unit) noexcept
 	{

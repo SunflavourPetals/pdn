@@ -10,8 +10,8 @@ namespace pdn
 	template <typename char_t>
 	struct token
 	{
-		source_position position{};
-		pdn_token_code code{};
+		source_position             position{};
+		pdn_token_code              code{};
 		token_value_variant<char_t> value{};
 	};
 }

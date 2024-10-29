@@ -55,8 +55,8 @@ namespace pdn::unicode
 	bom_type read_bom(istream_t&& input)
 	{
 		using istream_type = ::std::remove_reference_t<istream_t>;
-		using char_type = typename istream_type::char_type;
-		using byte_type = ::std::uint8_t;
+		using char_type    = typename istream_type::char_type;
+		using byte_type    = ::std::uint8_t;
 
 		if (!input)
 		{
@@ -77,7 +77,7 @@ namespace pdn::unicode
 		static ::std::array<byte_type, 2> utf_16_be{ 0xFE, 0xFF };
 		static ::std::array<byte_type, 4> utf_32_le{ 0xFF, 0xFE, 0x00, 0x00 };
 		static ::std::array<byte_type, 4> utf_32_be{ 0x00, 0x00, 0xFE, 0xFF };
-		static ::std::array<byte_type, 3> utf_8{ 0xEF, 0xBB, 0xBF };
+		static ::std::array<byte_type, 3> utf_8    { 0xEF, 0xBB, 0xBF };
 
 		bom_type result{};
 

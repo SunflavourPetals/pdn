@@ -142,8 +142,8 @@ namespace pdn::unicode::utility
 namespace pdn::unicode::concepts
 {
 	template <typename char_t>
-	concept unicode_code_unit =
-		   ::std::is_same_v<::std::remove_cv_t<char_t>, utf_8_code_unit_t>
+	concept unicode_code_unit
+		 = ::std::is_same_v<::std::remove_cv_t<char_t>, utf_8_code_unit_t>
 		|| ::std::is_same_v<::std::remove_cv_t<char_t>, utf_16_code_unit_t>
 		|| ::std::is_same_v<::std::remove_cv_t<char_t>, utf_32_code_unit_t>;
 }
@@ -201,8 +201,8 @@ namespace pdn::unicode::type_traits
 namespace pdn::unicode::dev_util
 {
 	template <typename char_t>
-	concept code_unit_type_without_cv =
-		    type_traits::is_unicode_code_unit_v<char_t>
+	concept code_unit_type_without_cv
+		 = type_traits::is_unicode_code_unit_v<char_t>
 		&& !::std::is_const_v<char_t>
 		&& !::std::is_volatile_v<char_t>;
 }

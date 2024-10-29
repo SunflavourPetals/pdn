@@ -16,12 +16,7 @@ namespace pdn
 	public:
 		auto generate_constant(const unicode::utf_8_code_unit_string& iden) const -> ::std::optional<constant_variant<char_t>>
 		{
-			constant_variant<char_t> r = 0;
-			if (constants_generator_std_function(iden, r))
-			{
-				return r;
-			}
-			return ::std::nullopt;
+			return constants_generator_std_function<char_t>(iden);
 		}
 	};
 }

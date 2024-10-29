@@ -20,14 +20,14 @@ namespace pdn
 		case U'\'': s.push_back(char_t('\\')); s.push_back(char_t('\'')); break;
 		case U'\"': s.push_back(char_t('\\')); s.push_back(char_t('\"')); break;
 		case U'\\': s.push_back(char_t('\\')); s.push_back(char_t('\\')); break;
-		case U'\a': s.push_back(char_t('\\')); s.push_back(char_t('a')); break;
-		case U'\b': s.push_back(char_t('\\')); s.push_back(char_t('b')); break;
-		case U'\f': s.push_back(char_t('\\')); s.push_back(char_t('f')); break;
-		case U'\n': s.push_back(char_t('\\')); s.push_back(char_t('n')); break;
-		case U'\r': s.push_back(char_t('\\')); s.push_back(char_t('r')); break;
-		case U'\t': s.push_back(char_t('\\')); s.push_back(char_t('t')); break;
-		case U'\v': s.push_back(char_t('\\')); s.push_back(char_t('v')); break;
-		case U'\0': s.push_back(char_t('\\')); s.push_back(char_t('0')); break;
+		case U'\a': s.push_back(char_t('\\')); s.push_back(char_t('a'));  break;
+		case U'\b': s.push_back(char_t('\\')); s.push_back(char_t('b'));  break;
+		case U'\f': s.push_back(char_t('\\')); s.push_back(char_t('f'));  break;
+		case U'\n': s.push_back(char_t('\\')); s.push_back(char_t('n'));  break;
+		case U'\r': s.push_back(char_t('\\')); s.push_back(char_t('r'));  break;
+		case U'\t': s.push_back(char_t('\\')); s.push_back(char_t('t'));  break;
+		case U'\v': s.push_back(char_t('\\')); s.push_back(char_t('v'));  break;
+		case U'\0': s.push_back(char_t('\\')); s.push_back(char_t('0'));  break;
 		case U'\u0085': // NEL | NEXT LINE
 			s.push_back(char_t('\\'));
 			s.push_back(char_t('u'));

@@ -4,12 +4,14 @@
 #include <variant>
 #include <numbers>
 #include <limits>
+#include <optional>
 #include <unordered_map>
 
 #include "pdn_unicode_base.h"
 #include "pdn_code_convert.h"
 #include "pdn_types.h"
 #include "pdn_token_value_variant.h"
+#include "pdn_constants_variant.h"
 
 namespace pdn
 {
@@ -22,6 +24,10 @@ namespace pdn
 			using namespace ::std::numbers;
 
 			auto& self = *this;
+
+			constexpr auto f64_inf  = ::std::numeric_limits<types::f64>::infinity();
+			constexpr auto f64_qNaN = ::std::numeric_limits<types::f64>::quiet_NaN();
+			constexpr auto f64_sNaN = ::std::numeric_limits<types::f64>::signaling_NaN();
 
 			self[u8"true"_ucus]          = true;
 			self[u8"false"_ucus]         = false;
@@ -38,19 +44,19 @@ namespace pdn
 			self[u8"inv_sqrt3"_ucus]     = inv_sqrt3;
 			self[u8"egamma"_ucus]        = egamma;
 			self[u8"phi"_ucus]           = phi;
-			self[u8"\u03C0"_ucus]        = pi; // Greek Small Letter Pi
+			self[u8"\u03C0"_ucus]        = pi;     // Greek Small Letter Pi
 			self[u8"\u03B3"_ucus]        = egamma; // Greek Small Letter Gamma
-			self[u8"\u03A6"_ucus]        = phi; // Greek Capital Letter Phi
-			self[u8"infinity"_ucus]      = ::std::numeric_limits<types::f64>::infinity();
-			self[u8"inf"_ucus]           = ::std::numeric_limits<types::f64>::infinity();
-			self[u8"quiet_NaN"_ucus]     = ::std::numeric_limits<types::f64>::quiet_NaN();
-			self[u8"qNaN"_ucus]          = ::std::numeric_limits<types::f64>::quiet_NaN();
-			self[u8"qnan"_ucus]          = ::std::numeric_limits<types::f64>::quiet_NaN();
-			self[u8"NaN"_ucus]           = ::std::numeric_limits<types::f64>::quiet_NaN();
-			self[u8"nan"_ucus]           = ::std::numeric_limits<types::f64>::quiet_NaN();
-			self[u8"signaling_NaN"_ucus] = ::std::numeric_limits<types::f64>::signaling_NaN();
-			self[u8"sNaN"_ucus]          = ::std::numeric_limits<types::f64>::signaling_NaN();
-			self[u8"snan"_ucus]          = ::std::numeric_limits<types::f64>::signaling_NaN();
+			self[u8"\u03A6"_ucus]        = phi;    // Greek Capital Letter Phi
+			self[u8"infinity"_ucus]      = f64_inf;
+			self[u8"inf"_ucus]           = f64_inf;
+			self[u8"quiet_NaN"_ucus]     = f64_qNaN;
+			self[u8"qNaN"_ucus]          = f64_qNaN;
+			self[u8"qnan"_ucus]          = f64_qNaN;
+			self[u8"NaN"_ucus]           = f64_qNaN;
+			self[u8"nan"_ucus]           = f64_qNaN;
+			self[u8"signaling_NaN"_ucus] = f64_sNaN;
+			self[u8"sNaN"_ucus]          = f64_sNaN;
+			self[u8"snan"_ucus]          = f64_sNaN;
 			self[u8"hello"_ucus]         = u8"Hello, world!"_ucus;
 		}
 		static constants_table& instance()
@@ -61,17 +67,17 @@ namespace pdn
 	};
 
 	template <typename char_t>
-	inline bool constants_generator_std_function(const unicode::utf_8_code_unit_string& s, constant_variant<char_t>& r)
+	inline auto constants_generator_std_function(const unicode::utf_8_code_unit_string& s) -> ::std::optional<constant_variant<char_t>>
 	{
 		if (auto result = constants_table::instance().find(s); result != constants_table::instance().end())
 		{
-			::std::visit([&](const auto& arg)
+			return ::std::visit([&](const auto& arg) -> ::std::optional<constant_variant<char_t>>
 			{
 				using arg_t = ::std::decay_t<decltype(arg)>;
 				if constexpr (::std::same_as<arg_t, types::string<unicode::utf_8_code_unit_t>>)
 				{
 					using str = types::string<char_t>;
-					r = unicode::code_convert<str>(arg);
+					return unicode::code_convert<str>(arg);
 				}
 				else if constexpr (::std::same_as<arg_t, types::character<unicode::utf_8_code_unit_t>>)
 				{
@@ -80,17 +86,16 @@ namespace pdn
 					using u8_sv = ::std::basic_string_view<unicode::utf_8_code_unit_t>;
 
 					auto cha_str = unicode::code_convert<str>(u8_sv{ arg.data(), arg.size() });
-					r = cha{ cha_str.begin(), cha_str.size() };
+					return cha{ cha_str.begin(), cha_str.size() };
 				}
 				else
 				{
-					r = arg;
+					return arg;
 				}
+				return ::std::nullopt;
 			}, result->second);
-			return true;
 		}
-
-		return false;
+		return ::std::nullopt;
 	}
 }
 

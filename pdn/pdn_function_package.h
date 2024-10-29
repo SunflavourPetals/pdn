@@ -15,11 +15,11 @@ namespace pdn
 	class default_function_package
 	{
 	private:
-		pdn::source_position_recorder pos_recorder{};
-		pdn::default_error_handler err_handler{};
-		pdn::default_error_message_generator err_msg_gen{};
+		pdn::source_position_recorder            pos_recorder{};
+		pdn::default_error_handler               err_handler{};
+		pdn::default_error_message_generator     err_msg_gen{};
 		pdn::default_constants_generator<char_t> const_gen{};
-		pdn::default_type_generator<char_t> type_gen{};
+		pdn::default_type_generator<char_t>      type_gen{};
 	public:
 		auto position() const -> pdn::source_position
 		{
