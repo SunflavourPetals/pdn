@@ -20,8 +20,6 @@ namespace pdn::dev_util
 			return u8"UTF-32 decode error not scalar value: \""_em + src + u8"\""_em;
 		case eof_when_read_code_unit:
 			return u8"UTF-32 decode error eof when read code unit: \""_em + src + u8"\""_em;
-		case unknown:
-			return u8"UTF-32 decode unknown error: \""_em + src + u8"\""_em;
 		default:
 			break;
 		}

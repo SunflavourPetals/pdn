@@ -3,27 +3,26 @@
 
 #include <array>
 #include <utility>
+#include <cstdint>
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf_16_base.h"
 
 namespace pdn::unicode::utf_16
 {
-	enum class encode_error_code
+	enum class encode_error_code : ::std::uint16_t
 	{
 		success,
-
 		not_scalar_value,
-
-		unknown,
 	};
 
+	class encoder;
 	class encode_result final
 	{
 	public:
 		using code_unit_sequence_type = ::std::array<code_unit_t, 2>;
-		using size_type = unsigned;
-		using error_type = encode_error_code;
+		using size_type               = ::std::uint16_t;
+		using error_type              = encode_error_code;
 	public:
 		constexpr auto size() const noexcept
 		{
@@ -61,37 +60,49 @@ namespace pdn::unicode::utf_16
 		{
 			return error() == error_type::success;
 		}
-		friend encode_result encode(code_point_t) noexcept;
+		friend class encoder;
 	private:
 		code_unit_sequence_type sequence{}; // code point sequence
-		size_type sequence_size{}; // size of code point sequence
-		error_type error_code{ error_type::success };
+		size_type               sequence_size{}; // size of code point sequence
+		error_type              error_code{ error_type::success };
 	};
 
-	inline encode_result encode(code_point_t character) noexcept
+	class encoder // not final for ebo
 	{
-		encode_result result{};
-
-		if (is_scalar_value(character))
+	public:
+		static auto encode(code_point_t character) noexcept -> encode_result
 		{
-			if (in_BMP(character))
+			using cp_t = code_point_t;
+			using cu_t = code_unit_t;
+
+			encode_result result{};
+
+			if (is_scalar_value(character))
 			{
-				result.sequence[0] = static_cast<code_unit_t>(character);
-				result.sequence_size = 1;
+				if (in_BMP(character))
+				{
+					result.sequence[0] = static_cast<cu_t>(character);
+					result.sequence_size = 1;
+				}
+				else
+				{
+					character -= cp_t(0x10000u);
+					result.sequence[1] = static_cast<cu_t>((character & cp_t(0x03FFu)) | min_trailing_surrogate);
+					result.sequence[0] = static_cast<cu_t>((character >> 10u)          | min_leading_surrogate);
+					result.sequence_size = 2;
+				}
 			}
 			else
 			{
-				character -= code_point_t(0x10000);
-				result.sequence[1] = static_cast<code_unit_t>((character & code_point_t(0x03FF)) | min_trailing_surrogate);
-				result.sequence[0] = static_cast<code_unit_t>((character >> 10) | min_leading_surrogate);
-				result.sequence_size = 2;
+				result.error_code = encode_error_code::not_scalar_value;
 			}
+			return result;
 		}
-		else
-		{
-			result.error_code = encode_error_code::not_scalar_value;
-		}
-		return result;
+	};
+
+	inline auto encode(code_point_t character) noexcept -> encode_result
+	{
+		return encoder::encode(character);
 	}
 }
 

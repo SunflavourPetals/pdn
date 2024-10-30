@@ -90,7 +90,7 @@ namespace pdn
 			return lhs.ctrl_opt.has_value() == rhs.ctrl_opt.has_value();
 		}
 		// construct end iter
-		token_iterator_from_lexer() {}
+		token_iterator_from_lexer() = default;
 		token_iterator_from_lexer(lexer_t lex, it_begin_t begin, it_end_t end) :
 			ctrl_opt{ ::std::make_optional<ctrlblk_t>(::std::move(lex), ::std::move(begin), ::std::move(end)) }
 		{
@@ -109,8 +109,8 @@ namespace pdn
 				ctrl_opt = ::std::nullopt;
 			}
 		}
-		::std::optional<ctrlblk_t> ctrl_opt{ ::std::nullopt };
 		token_t                    stored_token{ .position = {}, .code = pdn_token_code::eof, .value = {} };
+		::std::optional<ctrlblk_t> ctrl_opt{ ::std::nullopt };
 	};
 
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
@@ -119,7 +119,7 @@ namespace pdn
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{ ::std::move(lex), ::std::move(begin), ::std::move(end) };
 	}
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
-	auto make_end_token_iterator(lexer<char_t, func_pkg> lex, it_begin_t begin, it_end_t end)
+	auto make_end_token_iterator(const lexer<char_t, func_pkg>&, const it_begin_t&, const it_end_t&)
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
 	}

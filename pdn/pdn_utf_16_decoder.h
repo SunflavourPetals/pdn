@@ -11,20 +11,14 @@ namespace pdn::unicode::utf_16
 	enum class decode_error_code : ::std::uint16_t
 	{
 		success,
-
 		not_scalar_value, // decode result is not Unicode scalar value, But utf-16 will never make this error
-
-		eof_when_read_code_unit, // eof when read first code unit
-		alone_trailing_surrogate, // trailing surrogate is first code unit by reading
+		eof_when_read_code_unit,          // eof when read first code unit
+		alone_trailing_surrogate,         // trailing surrogate is first code unit by reading
 		eof_when_read_trailing_surrogate, // case: leading surrogate + EOF
-		requires_trailing_surrogate, // case: leading surrogate + non trailing surrogate
-
-		unknown,
+		requires_trailing_surrogate,      // case: leading surrogate + non trailing surrogate
 	};
 
-	class decode_result;
-	template <bool force_to_next = false>
-	inline decode_result decode(auto&& begin, auto end);
+	class decoder;
 
 	class decode_result final
 	{
@@ -49,76 +43,83 @@ namespace pdn::unicode::utf_16
 		{
 			return error() == error_type::success;
 		}
-		template <bool>
-		friend decode_result decode(auto&&, auto);
+		friend class decoder;
 	private:
 		value_type code_point{};
 		error_type error_code{ error_type::success };
 		count_type distance_count{};
 	};
 
-	template <bool reach_next_code_point>
-	inline decode_result decode(auto&& begin, auto end)
+	class decoder // not final for ebo
 	{
-		using value_type = decode_result::value_type;
-		using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
-		using ucu_t = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
-		using enum decode_error_code;
-
-		decode_result result{};
-
-		if (begin == end)
+	public:
+		template <bool reach_next_code_point>
+		static auto decode(auto&& begin, auto end) -> decode_result
 		{
-			result.error_code = eof_when_read_code_unit;
-			return result;
-		}
+			using enum decode_error_code;
 
-		result.code_point = ucu_t(*begin);
+			using value_type     = decode_result::value_type;
+			using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
+			using ucu_t          = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
 
-		if (is_non_surrogate(result.code_point))
-		{
-			// result.code_point must be unicode scalar value
-			if constexpr (reach_next_code_point)
-			{
-				++begin;
-				++result.distance_count;
-			}
-			return result;
-		}
-		else if (is_leading_surrogate(result.code_point))
-		{
-			result.code_point = ((result.code_point & value_type(0x03FF)) << 10) + value_type(0x10000U);
-			++begin;
-			++result.distance_count;
+			decode_result result{};
+
 			if (begin == end)
 			{
-				result.error_code = eof_when_read_trailing_surrogate;
+				result.error_code = eof_when_read_code_unit;
 				return result;
 			}
-			auto trailing = ucu_t(*begin);
-			if (!is_trailing_surrogate(trailing))
-			{
-				result.error_code = requires_trailing_surrogate;
-				return result;
-			}
-			result.code_point |= (value_type(trailing) & value_type(0x03FF));
-			if (!is_scalar_value(result.value()))
-			{
-				result.error_code = not_scalar_value;
-			}
-		}
-		else // must be trailing surrogate
-		{
-			result.error_code = alone_trailing_surrogate;
-		}
 
-		if constexpr (reach_next_code_point)
+			result.code_point = ucu_t(*begin);
+
+			if (is_non_surrogate(result.code_point))
+			{
+				// result.code_point must be unicode scalar value
+				if constexpr (reach_next_code_point) { to_next(begin, result); }
+				return result;
+			}
+			else if (is_leading_surrogate(result.code_point))
+			{
+				result.code_point = ((result.code_point & value_type(0x03FF)) << 10) + value_type(0x10000U);
+				to_next(begin, result);
+				if (begin == end)
+				{
+					result.error_code = eof_when_read_trailing_surrogate;
+					return result;
+				}
+				auto trailing = ucu_t(*begin);
+				if (!is_trailing_surrogate(trailing))
+				{
+					result.error_code = requires_trailing_surrogate;
+					return result;
+				}
+				result.code_point |= (value_type(trailing) & value_type(0x03FF));
+				if (!is_scalar_value(result.value()))
+				{
+					result.error_code = not_scalar_value;
+				}
+			}
+			else // must be trailing surrogate
+			{
+				result.error_code = alone_trailing_surrogate;
+			}
+
+			if constexpr (reach_next_code_point) { to_next(begin, result); }
+
+			return result;
+		}
+	private:
+		static void to_next(auto& begin, decode_result& result)
 		{
 			++begin;
 			++result.distance_count;
 		}
+	};
 
-		return result;
+	template <bool reach_next_code_point>
+	inline auto decode(auto&& begin, auto end) -> decode_result
+	{
+		return decoder::decode<reach_next_code_point>(begin, ::std::move(end));
 	}
 }
 

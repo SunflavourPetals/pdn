@@ -3,27 +3,27 @@
 
 #include <array>
 #include <utility>
+#include <cstdint>
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf_8_base.h"
 
 namespace pdn::unicode::utf_8
 {
-	enum class encode_error_code
+	enum class encode_error_code : ::std::uint16_t
 	{
 		success,
-
 		not_scalar_value,
-
-		unknown,
 	};
+
+	class encoder;
 
 	class encode_result final
 	{
 	public:
 		using code_unit_sequence_type = ::std::array<code_unit_t, 4>;
-		using size_type = unsigned;
-		using error_type = encode_error_code;
+		using size_type               = ::std::uint16_t;
+		using error_type              = encode_error_code;
 	public:
 		constexpr auto size() const noexcept
 		{
@@ -61,54 +61,63 @@ namespace pdn::unicode::utf_8
 		{
 			return error() == error_type::success;
 		}
-		friend encode_result encode(code_point_t character) noexcept;
+		friend class encoder;
 	private:
 		code_unit_sequence_type sequence{}; // code point sequence
-		size_type sequence_size{}; // size of code point sequence
-		error_type error_code{ error_type::success };
+		size_type               sequence_size{}; // size of code point sequence
+		error_type              error_code{ error_type::success };
 	};
-}
 
-namespace pdn::unicode::utf_8
-{
-	inline encode_result encode(code_point_t character) noexcept
+	class encoder // not final for ebo
 	{
-		encode_result result{};
-
-		if (!is_scalar_value(character))
+	public:
+		static auto encode(code_point_t character) noexcept -> encode_result
 		{
-			result.error_code = encode_error_code::not_scalar_value;
+			encode_result result{};
+
+			if (!is_scalar_value(character))
+			{
+				result.error_code = encode_error_code::not_scalar_value;
+				return result;
+			}
+
+			using cp_t = code_point_t;
+			using cu_t = code_unit_t;
+
+			if (character < cp_t(0x80u)) // U+0000..U+007F | 1 code unit
+			{
+				result.sequence[0] = static_cast<cu_t>(character);
+				result.sequence_size = 1;
+			}
+			else if (character < cp_t(0x0800u)) // U+0080..U+07FF | 2 code units
+			{
+				result.sequence[1] = static_cast<cu_t>(cp_t(0x80u) | ( character         & cp_t(0x3Fu))); // low  6 bits
+				result.sequence[0] = static_cast<cu_t>(cp_t(0xC0u) |  (character >> 6u)                ); // high 5 bits
+				result.sequence_size = 2;
+			}
+			else if (in_BMP(character)) // U+0800..U+FFFF | 3 code units
+			{
+				result.sequence[2] = static_cast<cu_t>(cp_t(0x80u) | ( character         & cp_t(0x3Fu))); // low  6 bits
+				result.sequence[1] = static_cast<cu_t>(cp_t(0x80u) | ((character >> 6u)  & cp_t(0x3Fu))); // low  7..12 bits
+				result.sequence[0] = static_cast<cu_t>(cp_t(0xE0u) |  (character >> 12u)               ); // high 4 bits
+				result.sequence_size = 3;
+			}
+			else // passed is_scalar_value -> this branch means U+10000..U+10FFFF | 4 code units
+			{
+				result.sequence[3] = static_cast<cu_t>(cp_t(0x80u) | ( character         & cp_t(0x3Fu))); // low  6 bits
+				result.sequence[2] = static_cast<cu_t>(cp_t(0x80u) | ((character >> 6u)  & cp_t(0x3Fu))); // low  7..12 bits
+				result.sequence[1] = static_cast<cu_t>(cp_t(0x80u) | ((character >> 12u) & cp_t(0x3Fu))); // low  13..18 bits
+				result.sequence[0] = static_cast<cu_t>(cp_t(0xF0u) |  (character >> 18u)               ); // high 3 bits
+				result.sequence_size = 4;
+			}
+
 			return result;
 		}
+	};
 
-		if (character < code_point_t(0x80)) // U+0000..U+007F | 1 code unit
-		{
-			result.sequence[0] = static_cast<code_unit_t>(character);
-			result.sequence_size = 1;
-		}
-		else if (character < code_point_t(0x0800)) // U+0080..U+07FF | 2 code units
-		{
-			result.sequence[1] = (code_unit_t(0x80) | (character & code_unit_t(0x3F))); // low 6 bits
-			result.sequence[0] = (code_unit_t(0xC0) | (character >> 6)); // high 5 bits
-			result.sequence_size = 2;
-		}
-		else if (in_BMP(character)) // U+0800..U+FFFF | 3 code units
-		{
-			result.sequence[2] = (code_unit_t(0x80) | (character & code_unit_t(0x3F))); // low 6 bits
-			result.sequence[1] = (code_unit_t(0x80) | ((character >> 6) & code_unit_t(0x3F))); // low 7..12 bits
-			result.sequence[0] = (code_unit_t(0xE0) | (character >> 12)); // high 4 bits
-			result.sequence_size = 3;
-		}
-		else // passed is_scalar_value -> this branch means U+10000..U+10FFFF | 4 code units
-		{
-			result.sequence[3] = (code_unit_t(0x80) | (character & code_unit_t(0x3F))); // low 6 bits
-			result.sequence[2] = (code_unit_t(0x80) | ((character >> 6) & code_unit_t(0x3F))); // low 7..12 bits
-			result.sequence[1] = (code_unit_t(0x80) | ((character >> 12) & code_unit_t(0x3F))); // low 13..18 bits
-			result.sequence[0] = (code_unit_t(0xF0) | (character >> 18)); // high 3 bits
-			result.sequence_size = 4;
-		}
-
-		return result;
+	inline auto encode(code_point_t character) noexcept -> encode_result
+	{
+		return encoder::encode(character);
 	}
 }
 

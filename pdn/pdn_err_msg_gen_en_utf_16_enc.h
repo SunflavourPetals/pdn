@@ -18,8 +18,6 @@ namespace pdn::dev_util
 			return u8"unicode::utf_16::encode_error == success: \""_em + src + u8"\""_em;
 		case not_scalar_value:
 			return u8"UTF-16 encode error not scalar value: \""_em + src + u8"\""_em;
-		case unknown:
-			return u8"UTF-16 encode unknown error: \""_em + src + u8"\""_em;
 		default:
 			break;
 		}

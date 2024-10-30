@@ -2,27 +2,27 @@
 #define PDN_Header_pdn_utf_32_encoder
 
 #include <array>
+#include <cstdint>
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf_32_base.h"
 
 namespace pdn::unicode::utf_32
 {
-	enum class encode_error_code
+	enum class encode_error_code : ::std::uint16_t
 	{
 		success,
-
 		not_scalar_value,
-
-		unknown,
 	};
+
+	class encoder;
 
 	class encode_result final
 	{
 	public:
 		using code_unit_sequence_type = ::std::array<code_unit_t, 1>;
-		using size_type = unsigned;
-		using error_type = encode_error_code;
+		using size_type               = ::std::uint16_t;
+		using error_type              = encode_error_code;
 	public:
 		constexpr auto size() const noexcept
 		{
@@ -60,26 +60,35 @@ namespace pdn::unicode::utf_32
 		{
 			return error() == error_type::success;
 		}
-		friend encode_result encode(code_point_t) noexcept;
+		friend encoder;
 	private:
 		code_unit_sequence_type sequence{}; // code point sequence
-		size_type sequence_size{}; // size of code point sequence
-		error_type error_code{ error_type::success };
+		size_type               sequence_size{}; // size of code point sequence
+		error_type              error_code{ error_type::success };
 	};
 
-	inline encode_result encode(code_point_t character) noexcept
+	class encoder // not final for ebo
 	{
-		encode_result result{};
-		if (is_scalar_value(character))
+	public:
+		static auto encode(code_point_t character) noexcept -> encode_result
 		{
-			result.sequence[0] = character;
-			result.sequence_size = 1;
+			encode_result result{};
+			if (is_scalar_value(character))
+			{
+				result.sequence[0] = character;
+				result.sequence_size = 1;
+			}
+			else
+			{
+				result.error_code = encode_error_code::not_scalar_value;
+			}
+			return result;
 		}
-		else
-		{
-			result.error_code = encode_error_code::not_scalar_value;
-		}
-		return result;
+	};
+
+	inline auto encode(code_point_t character) noexcept -> encode_result
+	{
+		return encoder::encode(character);
 	}
 }
 

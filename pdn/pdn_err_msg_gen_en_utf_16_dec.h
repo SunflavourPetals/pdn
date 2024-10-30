@@ -26,8 +26,6 @@ namespace pdn::dev_util
 			return u8"UTF-16 decode error eof when read trailing surrogate: \""_em + src + u8"\""_em;
 		case requires_trailing_surrogate:
 			return u8"UTF-16 decode error requires trailing surrogate: \""_em + src + u8"\""_em;
-		case unknown:
-			return u8"UTF-16 decode unknown error: \""_em + src + u8"\""_em;
 		default:
 			break;
 		}

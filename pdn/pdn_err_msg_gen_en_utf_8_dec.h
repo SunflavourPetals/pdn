@@ -36,8 +36,6 @@ namespace pdn::dev_util
 			return u8"UTF-8 decode error requires leading and read one which not leading: \""_em + src + u8"\""_em;
 		case unsupported_utf_8_leading:
 			return u8"UTF-8 decode unsupported utf-8 leading: \""_em + src + u8"\""_em;
-		case unknown:
-			return u8"UTF-8 decode unknown error: \""_em + src + u8"\""_em;
 		default:
 			break;
 		}
