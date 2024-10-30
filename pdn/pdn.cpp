@@ -816,6 +816,7 @@ namespace pdn_test
 
 int main(int argc, const char* argv[])
 {
+	pdn::unicode::test();
 	std::string filename{};
 	std::string out_filename{};
 	std::string log_filename{};
