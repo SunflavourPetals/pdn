@@ -35,7 +35,7 @@ namespace pdn::concepts
 
 namespace pdn
 {
-	template <unicode::concepts::unicode_code_unit char_t, concepts::function_package_for_lexer<char_t> function_package>
+	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer<char_t> function_package>
 	class lexer;
 }
 
@@ -137,7 +137,7 @@ namespace pdn
 
 namespace pdn
 {
-	template <unicode::concepts::unicode_code_unit char_t, concepts::function_package_for_lexer<char_t> function_package>
+	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer<char_t> function_package>
 	class lexer
 	{
 	public:

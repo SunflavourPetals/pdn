@@ -55,7 +55,7 @@ namespace pdn
 	inline constexpr unicode::utf_32_code_unit_t to_utf_32{};
 
 	// for token iterator
-	template <unicode::concepts::unicode_code_unit          char_t,
+	template <unicode::concepts::code_unit                  char_t,
 	          dev_util::token_iterator<char_t>              it_t,
 	          concepts::function_package_for_parser<char_t> fn_pkg>
 	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> dom<char_t>
@@ -64,7 +64,7 @@ namespace pdn
 		return par.parse(begin, end);
 	}
 	// for token iterator
-	template <unicode::concepts::unicode_code_unit char_t,
+	template <unicode::concepts::code_unit         char_t,
 	          dev_util::token_iterator<char_t>     it_t>
 	[[nodiscard]] auto parse(it_t begin, auto end, char_t target_char_v = {}) -> dom<char_t>
 	{
@@ -73,7 +73,7 @@ namespace pdn
 		return parse(::std::move(begin), ::std::move(end), fp, target_char_v);
 	}
 	// for code_unit iterator
-	template <unicode::concepts::unicode_code_unit               char_t,
+	template <unicode::concepts::code_unit                       char_t,
 	          dev_util::utf_code_unit_iterator                   it_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
 	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
@@ -92,7 +92,7 @@ namespace pdn
 		return parse(::std::move(token_it), ::std::move(token_end), par_fp, target_char_v);
 	}
 	// for code_unit iterator
-	template <unicode::concepts::unicode_code_unit char_t,
+	template <unicode::concepts::code_unit         char_t,
 	          dev_util::utf_code_unit_iterator     it_t>
 	[[nodiscard]] auto parse(it_t begin, auto end, char_t target_char_v = {}) -> dom<char_t>
 	{
@@ -101,7 +101,7 @@ namespace pdn
 		return parse(::std::move(begin), ::std::move(end), fp, fp, fp, target_char_v);
 	}
 	// for file stream
-	template <unicode::concepts::unicode_code_unit               char_t,
+	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
 	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
@@ -130,7 +130,7 @@ namespace pdn
 		return 0;
 	}
 	// for file stream
-	template <unicode::concepts::unicode_code_unit char_t>
+	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(::std::ifstream& source_file, char_t target_char_v = {}, ::std::size_t buffer_size = 1024) -> dom<char_t>
 	{
 		using fn_pkg = default_function_package<char_t>;
@@ -138,7 +138,7 @@ namespace pdn
 		return parse(source_file, fp, fp, fp, target_char_v, buffer_size);
 	}
 	// for filename
-	template <unicode::concepts::unicode_code_unit               char_t,
+	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
 	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
@@ -158,7 +158,7 @@ namespace pdn
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, target_char_v, buffer_size);
 	}
 	// for filename
-	template <unicode::concepts::unicode_code_unit char_t>
+	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const ::std::string& filename, char_t target_char_v = {}, ::std::size_t buffer_size = 1024) -> dom<char_t>
 	{
 		using fn_pkg = default_function_package<char_t>;
@@ -166,7 +166,7 @@ namespace pdn
 		return parse(filename, fp, fp, fp, target_char_v, buffer_size);
 	}
 	// for filename
-	template <unicode::concepts::unicode_code_unit               char_t,
+	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
 	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
@@ -200,7 +200,7 @@ namespace pdn
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, target_char_v, buffer_size);
 	}
 	// for filename
-	template <unicode::concepts::unicode_code_unit char_t>
+	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const ::std::wstring& filename, char_t target_char_v = {}, ::std::size_t buffer_size = 1024) -> dom<char_t>
 	{
 		using fn_pkg = default_function_package<char_t>;

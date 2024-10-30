@@ -47,7 +47,7 @@ namespace pdn::dev_util
 
 namespace pdn
 {
-	template <unicode::concepts::unicode_code_unit char_t, concepts::function_package_for_parser<char_t> function_package>
+	template <unicode::concepts::code_unit char_t, concepts::function_package_for_parser<char_t> function_package>
 	class parser
 	{
 	public:
