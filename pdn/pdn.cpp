@@ -842,7 +842,7 @@ int main(int argc, const char* argv[])
 	*/
 	if (argc <= 1)
 	{
-		std::cout << "no arguments.\n" << "using \"./pdn -help\" for help.";
+		std::cout << "no arguments.\n" << "using \"./pdn -help\" for help.\n";
 		return 0;
 		std::cout << "please input filename [default=\"source.pdn\"]: ";
 		std::getline(std::cin, filename);
