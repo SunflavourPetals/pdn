@@ -7,6 +7,7 @@
 #include <format>
 #include <limits>
 #include <utility>
+#include <optional>
 #include <concepts>
 #include <type_traits>
 
@@ -48,28 +49,28 @@ namespace pdn
 		lexer_t    lex;
 		it_begin_t begin;
 		it_end_t   end;
-		token_t get()
+		token_t get_token()
 		{
 			return lex.get_token(begin, end); // if begin == end then return eof
 		}
 	};
-
+	
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
 	class token_iterator_from_lexer
 	{
 	private:
 		using ctrlblk_t = token_iterator_ctrlblk_from_lexer<char_t, function_package, it_begin_t, it_end_t>;
-		using lexer_t = lexer<char_t, function_package>;
-		using token_t = token<char_t>;
+		using lexer_t   = lexer<char_t, function_package>;
+		using token_t   = token<char_t>;
 	public:
-		using iterator_concept = void;
+		using iterator_concept  = void;
 		using iterator_category = void;
-		using size_type = ::std::size_t;
-		using value_type = token_t;
+		using size_type         = ::std::size_t;
+		using value_type        = token_t;
 	public:
 		bool eof() const noexcept
 		{
-			return static_cast<bool>(ctrl_p);
+			return ctrl_opt.has_value();
 		}
 		void to_next()
 		{
@@ -86,31 +87,30 @@ namespace pdn
 		}
 		friend bool operator==(const token_iterator_from_lexer& lhs, const token_iterator_from_lexer& rhs)
 		{
-			return lhs.ctrl_p == rhs.ctrl_p;
+			return lhs.ctrl_opt.has_value() == rhs.ctrl_opt.has_value();
 		}
 		// construct end iter
 		token_iterator_from_lexer() {}
 		token_iterator_from_lexer(lexer_t lex, it_begin_t begin, it_end_t end) :
-			ctrl_p{ ::std::make_shared<ctrlblk_t>(::std::move(lex), ::std::move(begin), ::std::move(end)) }
+			ctrl_opt{ ::std::make_optional<ctrlblk_t>(::std::move(lex), ::std::move(begin), ::std::move(end)) }
 		{
-			to_next_impl<true>();
+			to_next();
 		}
 	private:
-		template <bool no_nullptr_check = false>
+		token_t get_token()
+		{
+			return ctrl_opt->get_token();
+		}
 		void to_next_impl()
 		{
-			if constexpr (!no_nullptr_check)
-			{
-				if (!ctrl_p) return;
-			}
-			stored_token = ctrl_p->get();
+			stored_token = get_token();
 			if (stored_token.code == pdn_token_code::eof)
 			{
-				ctrl_p.reset();
+				ctrl_opt = ::std::nullopt;
 			}
 		}
-		::std::shared_ptr<ctrlblk_t> ctrl_p{ nullptr };
-		token_t                      stored_token{ .position = {}, .code = pdn_token_code::eof, .value = {} };
+		::std::optional<ctrlblk_t> ctrl_opt{ ::std::nullopt };
+		token_t                    stored_token{ .position = {}, .code = pdn_token_code::eof, .value = {} };
 	};
 
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
