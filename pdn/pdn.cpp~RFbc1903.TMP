@@ -901,9 +901,8 @@ int main(int argc, const char* argv[])
 				if (!showed_ver)
 				{
 					std::cout
-						<< "Version:\n"
 						<< "----------------------------------------------------------------------------\n"
-						<< "Pdn Lib Version:     Beta   1.2\n"
+						<< "Pdn Lib Version:     Beta   1.1\n"
 						<< "PdnShell Version:    Alpha  0.5\n"
 						<< "----------------------------------------------------------------------------\n";
 					showed_ver = true;
@@ -918,7 +917,8 @@ int main(int argc, const char* argv[])
 				if (!showed_help)
 				{
 					std::cout
-						<< "Help:\n"
+						<< "----------------------------------------------------------------------------\n"
+						<< "Help\n"
 						<< "----------------------------------------------------------------------------\n"
 						<< "-o <filename> : parse <filename> and output to <filename>.pdn-parser-out.txt\n"
 						<< "-p <filename> : parse <filename> and play\n"

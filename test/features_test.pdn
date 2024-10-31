@@ -15,8 +15,6 @@
 </ block comment </ nested block comment /> block comment />
 </</</</</nested</block/>comment/>/>/>/>/>
 
-// 
-
 test_block {
 	integer_literals_test {
 		dec [ 1, 2, 3, 99, 1'1'1'1, 123'456'789, 2'147'483'647, ]
@@ -27,6 +25,10 @@ test_block {
 	floating_points_test {
 		dec [
 			.0,
+			0010.05,        // 10.05
+			01.,            // 1.0
+			010.05e0'0'0'1, // 100.5
+			0'01.E-00'1,    // 0.1
 			0.,
 			0.0,
 			.1E3,
@@ -51,10 +53,43 @@ test_block {
 			0x2.p-1, // 2.0 * 2^-1 = 1
 		]
 	}
+	character_test [
+		'A',
+		'a',
+		'あ',
+		'Δ',
+		'我',
+		'♥',
+		'U',
+		'🍌',
+	]
+	string_test {
+		string [
+			"",
+			"I'm string",
+			"我是字符串",
+			"🍌🥑🍓",
+		]
+		raw_string [
+			@"()",
+			@"ABCD("(.\test\features_test.pdn)")ABCD",
+		]
+		raw_string_delimiter [
+			@"()",
+			@"0123456789(🍓num)0123456789",
+			@"!"#%&'*+,-./:;<=(signs 1🍓)!"#%&'*+,-./:;<=",
+			@">?[]^_{|}~$@`(signs🍓2)>?[]^_{|}~$@`",
+			@"ABCDEFGHIJKLMNOP(uppercase🍓letters 1)ABCDEFGHIJKLMNOP",
+			@"abcdefghijklmnop(lowercase letters🍓1)abcdefghijklmnop",
+			@"QRSTUVWXYZ(uppercase letters🍓2)QRSTUVWXYZ",
+			@"qrstuvwxyz(lowercase🍓letters 2)qrstuvwxyz",
+			// 16 + 10 + 13 + 26 + 26 = 91 = 99 - 5 - 2 - 1; space 5, () 2, \ 1.
+		]
+	}
 	sign_test [
-		+1, ++1, +++1, ++++1, ++++++++++++++++1, // 16 +
-		-1, --1, ---1, ----1, ----------------1, // 16 -
-		+-1, -+1, +-+-1, -+-+1, --+--+-++-++-+1, // 7 - and 7 +
+		+ 1, ++ 1, +++1, ++++1, ++++++++++++++++1, // 16 +
+		- 1, - -1, ---1, ----1, ----------------1, // 16 -
+		+-1,  -+1, +-+-1, -+-+1, --+--+-++-++-+1, // 7 - and 7 +
 		+1., ++1., +++1., ++++1., ++++++++++++++++1., // 16 +
 		-.1, --.1, ---.1, ----.1, ----------------.1, // 16 -
 		+-0.0, -+.0, +-+-0., -+-+0.0, --+--+-++-++-+.0, // 7 - and 7 +

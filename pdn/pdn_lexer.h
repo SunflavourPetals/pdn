@@ -1298,27 +1298,24 @@ namespace pdn
 			return false;
 		}
 
-		// When ')' is detected, ++begin and calling this function after ++begin.
+		// When ')' is detected, ++begin and then call this function.
 		// Returns true when the sequence we read matches the referenced delimiter sequence.
 		// When it fails (does not successfully match in_sequence),
 		//     begin points to the first character that is not processed
 		// On success, the double/back quote is read in and it is skipped,
 		//     so that begin points to the first character after the double/back quote.
 		bool get_raw_string_closing_d_seq(const unicode::code_point_string_view in_sequence, // delimiter sequence for reference
-		                                  unicode::code_point_string& out_sequence, // closing delimiter sequence we are reading
-		                                  auto& begin,
-		                                  auto end,
-		                                  unicode::code_point_t end_quote)
+		                                  unicode::code_point_string&           out_sequence, // closing delimiter sequence we are reading
+		                                  auto&                                 begin,
+		                                  auto                                  end,
+		                                  unicode::code_point_t                 end_quote)
 		{
-			::std::size_t index{};
-			while (begin != end)
+			for (::std::size_t index{}; begin != end; ++begin, ++index)
 			{
 				auto c = *begin;
-				if (c == end_quote)
+				if (out_sequence.length() == in_sequence.length())
 				{
-					// There is no need to judge whether the content is the same,
-					// because if there is a difference, the function will be exited early.
-					if (out_sequence.length() == in_sequence.length())
+					if (c == end_quote)
 					{
 						++begin; // skip the double quotation marks that are read
 						return true;
@@ -1328,24 +1325,11 @@ namespace pdn
 						return false;
 					}
 				}
-				else if (c == U')')
+				if (c != in_sequence[index])
 				{
 					return false;
 				}
-				else
-				{
-					if (out_sequence.length() >= in_sequence.length())
-					{
-						return false;
-					}
-					if (c != in_sequence[index])
-					{
-						return false;
-					}
-					out_sequence += c;
-				}
-				++begin;
-				++index;
+				out_sequence += c;
 			}
 			return false;
 		}
