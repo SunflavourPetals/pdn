@@ -132,7 +132,7 @@ test_block {
 		id_5 0xff'ff'ff'ff'ff'ff'ff'ff; // u64(win-x86_64)
 		// todo
 	}
-	other {
+	others {
 		o { a 123b 456c:789d:10; };
 		x { a:123; b:456; c:789; d:10; }
 	}
