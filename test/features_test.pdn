@@ -79,9 +79,7 @@ test_block {
 			@"()",
 			@"ABCD("(.\test\features_test.pdn)")ABCD",
 			@"(\0\a\b\f\r\n)",
-			@"ABCD("(.\test\features_test.pdn)
-new line!
-new line 2!")ABCD",
+			@"ABCD("(.\test\features_test.pdn)")ABCD",
 		]
 		raw_string_delimiter [
 			@"()",
@@ -98,6 +96,18 @@ new line 2!")ABCD",
 			// todo
 		]
 	}
+	bool_test {
+		// todo
+	}
+	list_test {
+		// todo
+	}
+	object_test {
+		// todo
+	}
+	at_value_test [
+		// todo
+	]
 	sign_test [
 		+ 1, ++ 1, +++1, ++++1, ++++++++++++++++1, // 16 +
 		- 1, - -1, ---1, ----1, ----------------1, // 16 -
@@ -106,12 +116,24 @@ new line 2!")ABCD",
 		-.1, --.1, ---.1, ----.1, ----------------.1, // 16 -
 		+-0.0, -+.0, +-+-0., -+-+0.0, --+--+-++-++-+.0, // 7 - and 7 +
 	]
+	type_assignment_test {
+		object {
+			// todo iden:type expr
+		}
+		list [
+			// todo type:expr
+		]
+	}
 	type_deducing_test {
 		id_1 0x7f'ff'ff'ff; // i32(win-x86_64)
 		id_2 0x80'00'00'00; // i64(win-x86_64)
 		id_3 0x7f'ff'ff'ff'ff'ff'ff'ff; // i64(win-x86_64)
 		id_4 0x80'00'00'00'00'00'00'00; // u64(win-x86_64)
 		id_5 0xff'ff'ff'ff'ff'ff'ff'ff; // u64(win-x86_64)
-		// ...
+		// todo
+	}
+	other {
+		o { a 123b 456c:789d:10; };
+		x { a:123; b:456; c:789; d:10; }
 	}
 }
