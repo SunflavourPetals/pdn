@@ -12,9 +12,13 @@ namespace pdn
 	template <typename string_t>
 	constexpr string_t make_slashes_string(unicode::code_point_t c)
 	{
-		string_t s{};
-		using char_t = ::std::decay_t<decltype(s[0])>;
+		using char_t = ::std::remove_cv_t<typename string_t::value_type>;
 		
+		string_t s{};
+		if (!unicode::is_scalar_value(c))
+		{
+			return s;
+		}
 		switch (c)
 		{
 		case U'\'': s.push_back(char_t('\\')); s.push_back(char_t('\'')); break;

@@ -329,15 +329,14 @@ namespace pdn
 
 			lst result{};
 
-			for (bool with_comma{}; tk.code != pdn_token_code::right_brackets; )
+			for (bool with_comma{ true }; tk.code != pdn_token_code::right_brackets; )
 			{
 				if (tk.code == pdn_token_code::eof)
 				{
 					post_err(left_brackets_pos, syn_ec::missing_right_brackets, {});
 					return make_proxy<lst>(::std::move(result));
 				}
-				result.push_back(parse_list_element(begin, end, with_comma));
-				if (!with_comma && tk.code != pdn_token_code::right_brackets)
+				if (!with_comma)
 				{
 					if (is_list_element_first(tk.code))
 					{
@@ -349,6 +348,7 @@ namespace pdn
 						update_token(begin, end);
 					}
 				}
+				result.push_back(parse_list_element(begin, end, with_comma));
 			}
 
 			// to ... [ ... ] CURRPOS
@@ -421,28 +421,25 @@ namespace pdn
 						post_err(pos, syn_ec::entity_redefine, ::std::move(msg));
 					}
 				}
+				else if (tk.code == pdn_token_code::semicolon)
+				{
+					update_token(begin, end);
+				}
+				else if (is_expr_first(tk.code))
+				{
+					auto pos = tk.position;
+					parse_expr(begin, end);
+					post_err(pos, syn_ec::expect_entity_name, {});
+				}
+				else if (tk.code == pdn_token_code::eof)
+				{
+					post_err(left_curly_brackets_pos, syn_ec::missing_right_curly_brackets, {});
+					return make_proxy<obj>(::std::move(result));
+				}
 				else
 				{
-					if (tk.code == pdn_token_code::semicolon)
-					{
-						update_token(begin, end);
-					}
-					else if (is_expr_first(tk.code))
-					{
-						auto pos = tk.position;
-						parse_expr(begin, end);
-						post_err(pos, syn_ec::expect_entity_name, {});
-					}
-					else if (tk.code == pdn_token_code::eof)
-					{
-						post_err(left_curly_brackets_pos, syn_ec::missing_right_curly_brackets, {});
-						return make_proxy<obj>(::std::move(result));
-					}
-					else
-					{
-						post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
-						update_token(begin, end);
-					}
+					post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
+					update_token(begin, end);
 				}
 			}
 

@@ -11,6 +11,9 @@ namespace pdn
 	private:
 		using base_type = ::std::unique_ptr<t>;
 	public:
+		using typename base_type::element_type;
+		using typename base_type::pointer;
+		using typename base_type::deleter_type;
 		using base_type::base_type;
 		proxy(const proxy& o)         : proxy(static_cast<const base_type&>(o)) {}
 		proxy(proxy&& o) noexcept     : proxy(static_cast<base_type&&>(o)) {}
@@ -18,18 +21,12 @@ namespace pdn
 		proxy(base_type&& o) noexcept : base_type(::std::move(o)) {}
 		proxy& operator=(const proxy& o)
 		{
-			if (o)
-			{
-				*this = proxy{ o };
-			}
+			*this = proxy{ o };
 			return *this;
 		}
 		proxy& operator=(const base_type& o)
 		{
-			if (o)
-			{
-				*this = proxy{ o };
-			}
+			*this = proxy{ o };
 			return *this;
 		}
 		proxy& operator=(proxy&& o) noexcept

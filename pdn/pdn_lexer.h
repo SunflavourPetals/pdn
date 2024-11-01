@@ -146,7 +146,7 @@ namespace pdn
 			token<char_t>              result{};
 			unicode::code_point_string text{};            // source text
 			unicode::code_point_string open_d_seq{};      // delimiter-sequence for raw string
-			::std::string              number_sequence{}; // Unicode[U+0-U+7f] -> ASCII -> form_chars
+			::std::string              number_sequence{}; // Unicode[U+0000, U+007f] -> ASCII -> form_chars
 			::std::size_t              nested_block_comment_layer{};
 			::std::size_t              number_delimiter_count{};
 			source_position            position{ func_pkg->position() };
@@ -196,9 +196,7 @@ namespace pdn
 				{
 					new_dfa_state = dfa_state_objects::start_state();
 					auto cp = unicode::code_point_t(c);
-					post_err(func_pkg->position(),
-						lex_ec::unacceptable_character,
-						code_convert<err_ms>(unicode::code_point_string_view{ &cp, 1 }));
+					post_err(func_pkg->position(), lex_ec::unacceptable_character, code_convert<err_ms>(unicode::code_point_string_view{ &cp, 1 }));
 					break;
 				}
 				case infinity:
@@ -538,7 +536,7 @@ namespace pdn
 				result.value = make_proxy<types::string<char_t>>(text_code_convert<char_t>(text, position));
 				break;
 			case character_opened: // <<< ERROR STATE
-			case character: // <<< ERROR STATE
+			case character:        // <<< ERROR STATE
 				post_err(position, lex_ec::character_missing_terminating_character, code_convert<err_ms>(text));
 				[[fallthrough]];
 			case character_closed:
@@ -563,11 +561,11 @@ namespace pdn
 				result.value = types::character<char_t>(processed_text.data(), processed_text.size());
 				break;
 			}
-			case dec_seq_start_with_0: // <<< ERROR STATE
-			case dec_seq_start_with_0_with_quote: // <<< ERROR STATE
+			case dec_seq_start_with_0:             // <<< ERROR STATE
+			case dec_seq_start_with_0_with_quote:  // <<< ERROR STATE
 			case dec_seq_start_with_0_with_quotes: // <<< ERROR STATE
-			case dec_seq_with_quote: // <<< ERROR STATE
-			case dec_seq_with_quotes: // <<< ERROR STATE
+			case dec_seq_with_quote:               // <<< ERROR STATE
+			case dec_seq_with_quotes:              // <<< ERROR STATE
 				switch (dfa_state.state_code)
 				{
 				case dec_seq_start_with_0:
@@ -591,7 +589,6 @@ namespace pdn
 				}
 				[[fallthrough]];
 			case dec_seq:
-			case zero:
 			{
 				::std::uint64_t integer_value{};
 				const auto& n_seq = number_sequence;
@@ -600,12 +597,12 @@ namespace pdn
 				from_chars_result_check(from_chars_r, u8"decimal integer"_em);
 			}
 			break;
-			case fp_exp_sign_or_first: // <<< ERROR STATE
-			case fp_exp_first: // <<< ERROR STATE
-			case fp_dec_part_with_quote: // <<< ERROR STATE
+			case fp_exp_sign_or_first:    // <<< ERROR STATE
+			case fp_exp_first:            // <<< ERROR STATE
+			case fp_dec_part_with_quote:  // <<< ERROR STATE
 			case fp_dec_part_with_quotes: // <<< ERROR STATE
-			case fp_exp_with_quote: // <<< ERROR STATE
-			case fp_exp_with_quotes: // <<< ERROR STATE
+			case fp_exp_with_quote:       // <<< ERROR STATE
+			case fp_exp_with_quotes:      // <<< ERROR STATE
 				switch (dfa_state.state_code)
 				{
 				case fp_exp_sign_or_first:
@@ -639,10 +636,11 @@ namespace pdn
 				from_chars_result_check(from_chars_r, u8"decimal floating point"_em);
 			}
 			break;
-			case oct_seq_with_quote: // <<< ERROR STATE
+			case oct_seq_with_quote:  // <<< ERROR STATE
 			case oct_seq_with_quotes: // <<< ERROR STATE
 				post_err(position, lex_ec::number_cannot_end_with_separator, num_seq_to_err_msg_str() + u8"'"_em);
 				[[fallthrough]];
+			case zero:
 			case oct_seq:
 			{
 				::std::uint64_t integer_value{};
@@ -652,8 +650,8 @@ namespace pdn
 				from_chars_result_check(from_chars_r, u8"octal integer"_em);
 			}
 			break;
-			case bin_seq_first: // <<< ERROR STATE
-			case bin_seq_with_quote: // <<< ERROR STATE
+			case bin_seq_first:       // <<< ERROR STATE
+			case bin_seq_with_quote:  // <<< ERROR STATE
 			case bin_seq_with_quotes: // <<< ERROR STATE
 				if (dfa_state.state_code == bin_seq_first)
 				{
@@ -685,8 +683,8 @@ namespace pdn
 					from_chars_result_check(from_chars_r, u8"binary integer"_em);
 				}
 				break;
-			case hex_seq_first: // <<< ERROR STATE
-			case hex_seq_with_quote: // <<< ERROR STATE
+			case hex_seq_first:       // <<< ERROR STATE
+			case hex_seq_with_quote:  // <<< ERROR STATE
 			case hex_seq_with_quotes: // <<< ERROR STATE
 				if (dfa_state.state_code == hex_seq_first)
 				{
@@ -718,15 +716,15 @@ namespace pdn
 					from_chars_result_check(from_chars_r, u8"hexadecimal integer"_em);
 				}
 				break;
-			case hex_fp_dec_part_with_quote: // <<< ERROR STATE
-			case hex_fp_dec_part_with_quotes: // <<< ERROR STATE
+			case hex_fp_dec_part_with_quote:               // <<< ERROR STATE
+			case hex_fp_dec_part_with_quotes:              // <<< ERROR STATE
 			case hex_fp_dec_part_first_after_hex_with_dot: // <<< ERROR STATE
-			case hex_fp_dec_part: // <<< ERROR STATE
-			case hex_fp_exp_sign_or_first: // <<< ERROR STATE
-			case hex_fp_exp_first: // <<< ERROR STATE
-			case hex_fp_exp_with_quote: // <<< ERROR STATE
-			case hex_fp_exp_with_quotes: // <<< ERROR STATE
-			case hex_fp_seq_start_with_0x_dot: // <<< ERROR STATE
+			case hex_fp_dec_part:                          // <<< ERROR STATE
+			case hex_fp_exp_sign_or_first:                 // <<< ERROR STATE
+			case hex_fp_exp_first:                         // <<< ERROR STATE
+			case hex_fp_exp_with_quote:                    // <<< ERROR STATE
+			case hex_fp_exp_with_quotes:                   // <<< ERROR STATE
+			case hex_fp_seq_start_with_0x_dot:             // <<< ERROR STATE
 				process_hex_fp_errors(dfa_state.state_code, number_sequence, position);
 				[[fallthrough]];
 			case hex_fp_exp:
@@ -758,6 +756,32 @@ namespace pdn
 
 		lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
+		static constexpr bool is_non_token_state(dfa_state_code c) noexcept
+		{
+			using enum dfa_state_code;
+			switch (c)
+			{
+				// these states mean that the delimiter is currently being processed, not the token
+			case start:
+			case line_comment:
+			case block_comment:
+			case block_comment_closing:
+			case nested_block_comment:
+			case nested_block_comment_nesting:
+			case nested_block_comment_closing:
+			case nested_block_comment_nested:
+			case nested_block_comment_closed:
+			case unacceptable_character:
+				return true;
+			default:
+				break;
+			}
+			return false;
+		}
+		static constexpr bool is_token_state(dfa_state_code c) noexcept
+		{
+			return !is_non_token_state(c);
+		}
 		static void to_appropriate_int_type(token_value_variant<char_t>& target, types::u64 val)
 		{
 			constexpr auto cppint_max = static_cast<types::u64>(::std::numeric_limits<types::cppint>::max());
@@ -789,32 +813,6 @@ namespace pdn
 			{
 				target = val;
 			}
-		}
-		static constexpr bool is_non_token_state(dfa_state_code c) noexcept
-		{
-			using enum dfa_state_code;
-			switch (c)
-			{
-				// these states mean that the delimiter is currently being processed, not the token
-			case start:
-			case line_comment:
-			case block_comment:
-			case block_comment_closing:
-			case nested_block_comment:
-			case nested_block_comment_nesting:
-			case nested_block_comment_closing:
-			case nested_block_comment_nested:
-			case nested_block_comment_closed:
-			case unacceptable_character:
-				return true;
-			default:
-				break;
-			}
-			return false;
-		}
-		static constexpr bool is_token_state(dfa_state_code c) noexcept
-		{
-			return !is_non_token_state(c);
 		}
 		static bool check_no_0b_prefix(const ::std::string& seq)
 		{
@@ -860,8 +858,8 @@ namespace pdn
 
 		lexical_error_code get_escape(auto& oc,    // out param, the result of get escape
 		                              auto& begin, // pointing first char witch after '\'
-		                              auto end,
-		                              bool enable_escape_back_quote = false) // is enable escape sequence \`
+		                              auto  end,
+		                              bool  enable_escape_back_quote = false) // is enable escape sequence \`
 		{
 			static_assert(sizeof(::std::uint32_t) == sizeof(unicode::code_point_t));
 			using escape_value_t = ::std::uint32_t;
@@ -1210,7 +1208,10 @@ namespace pdn
 			return escape_error_unknown_escape_sequence;
 		}
 
-		void get_numeric_escape_sequence(::std::string& sequence, auto& begin, auto end, bool(*is_valid_char)(unicode::code_point_t))
+		void get_numeric_escape_sequence(::std::string& sequence,
+		                                          auto& begin,
+		                                          auto  end,
+		  ::std::predicate<unicode::code_point_t> auto  is_valid_char)
 		{
 			for (; begin != end; ++begin)
 			{
@@ -1223,7 +1224,11 @@ namespace pdn
 			}
 		}
 
-		::std::size_t get_numeric_escape_sequence(::std::size_t count, ::std::string& sequence, auto& begin, auto end, bool(*is_valid_char)(unicode::code_point_t))
+		auto get_numeric_escape_sequence(::std::size_t  count,
+		                                 ::std::string& sequence,
+		                                          auto& begin,
+		                                          auto  end,
+		  ::std::predicate<unicode::code_point_t> auto  is_valid_char) -> ::std::size_t
 		{
 			for (::std::size_t read_count{ 0 }; read_count < count && begin != end; ++read_count, ++begin)
 			{
@@ -1335,7 +1340,7 @@ namespace pdn
 		}
 
 		template <typename target_char_t>
-		types::string<target_char_t> text_code_convert(const unicode::code_point_string& text, source_position position)
+		auto text_code_convert(const unicode::code_point_string& text, source_position position) -> types::string<target_char_t>
 		{
 			using decision = unicode::convert_decision<unicode::code_point_string, types::string<target_char_t>>;
 			using encode_error_type = typename decision::encode_result::error_type;
@@ -1397,16 +1402,16 @@ namespace pdn
 
 			switch (c)
 			{
-			case hex_fp_dec_part_with_quote: // <<< ERROR STATE
+			case hex_fp_dec_part_with_quote:  // <<< ERROR STATE
 			case hex_fp_dec_part_with_quotes: // <<< ERROR STATE
 				post_err(pos,
 					lex_ec::number_cannot_end_with_separator,
 					reinterpret_to_err_msg_str(num_seq) + u8"'"_em);
 				[[fallthrough]];
 			case hex_fp_dec_part_first_after_hex_with_dot: // <<< ERROR STATE
-			case hex_fp_dec_part: // <<< ERROR STATE
+			case hex_fp_dec_part:          // <<< ERROR STATE
 			case hex_fp_exp_sign_or_first: // <<< ERROR STATE
-			case hex_fp_exp_first: // <<< ERROR STATE
+			case hex_fp_exp_first:         // <<< ERROR STATE
 				post_err(pos,
 					lex_ec::fp_hex_expect_exponent,
 					reinterpret_to_err_msg_str(num_seq));
@@ -1424,7 +1429,7 @@ namespace pdn
 					break;
 				}
 				break;
-			case hex_fp_exp_with_quote: // <<< ERROR STATE
+			case hex_fp_exp_with_quote:  // <<< ERROR STATE
 			case hex_fp_exp_with_quotes: // <<< ERROR STATE
 				post_err(pos,
 					lex_ec::number_cannot_end_with_separator,

@@ -53,16 +53,21 @@ test_block {
 			0x2.p-1, // 2.0 * 2^-1 = 1
 		]
 	}
-	character_test [
-		'A',
-		'a',
-		'あ',
-		'Δ',
-		'我',
-		'♥',
-		'U',
-		'🍌',
-	]
+	character_test {
+		character [
+			'A',
+			'a',
+			'あ',
+			'Δ',
+			'我',
+			'♥',
+			'U',
+			'🍌',
+		]
+		escape [
+			// todo
+		]
+	}
 	string_test {
 		string [
 			"",
@@ -73,6 +78,10 @@ test_block {
 		raw_string [
 			@"()",
 			@"ABCD("(.\test\features_test.pdn)")ABCD",
+			@"(\0\a\b\f\r\n)",
+			@"ABCD("(.\test\features_test.pdn)
+new line!
+new line 2!")ABCD",
 		]
 		raw_string_delimiter [
 			@"()",
@@ -84,6 +93,9 @@ test_block {
 			@"QRSTUVWXYZ(uppercase letters🍓2)QRSTUVWXYZ",
 			@"qrstuvwxyz(lowercase🍓letters 2)qrstuvwxyz",
 			// 16 + 10 + 13 + 26 + 26 = 91 = 99 - 5 - 2 - 1; space 5, () 2, \ 1.
+		]
+		escape [
+			// todo
 		]
 	}
 	sign_test [
