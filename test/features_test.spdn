@@ -283,9 +283,33 @@ test_block {
 			@"qrstuvwxyz(lowercase🍓letters 2)qrstuvwxyz",
 			// 16 + 10 + 13 + 26 + 26 = 91 = 99 - 5 - 2 - 1; space 5, () 2, \ 1.
 		]
-		escape [
-			// todo
-		]
+		escape {
+			sample [
+				"\'\"\?\\\a\b\f\n\r\t\v"
+			]
+			oct [
+				"\0\101\60\060\243\777", // NUL; A; 0; 0; U+00A3 Pound sign; U+01FF Latin small letter o with stroke and acute;
+				"\0007\1017\608\0607\2437\777777", // NUL; 7; A; 7; 0; 8; 0; 7; U+00A3 Pound sign; 7; U+01FF Latin small letter o with stroke and acute; 7; 7; 7;
+			]
+			oct_with_curly_brackets [
+				// todo
+			]
+			hex [
+				// todo
+			]
+			hex_with_curly_brackets [
+				// todo
+			]
+			universal_u [
+				// todo
+			]
+			universal_u_with_curly_brackets [
+				// todo
+			]
+			universal_U [
+				// todo
+			]
+		}
 	}
 	bool_test {
 		true@true
@@ -354,13 +378,82 @@ test_block {
 			// todo type:expr
 		]
 	}
+	cast_test {
+		object {
+			// todo
+		}
+		list [
+			// todo
+		]
+	}
 	type_deducing_test {
-		id_1 0x7f'ff'ff'ff; // i32(win-x86_64)
-		id_2 0x80'00'00'00; // i64(win-x86_64)
-		id_3 0x7f'ff'ff'ff'ff'ff'ff'ff; // i64(win-x86_64)
-		id_4 0x80'00'00'00'00'00'00'00; // u64(win-x86_64)
-		id_5 0xff'ff'ff'ff'ff'ff'ff'ff; // u64(win-x86_64)
-		// todo
+		int_uint {
+			id_1 0x7f'ff'ff'ff;             // i32(win-x86_64)
+			id_2 0x80'00'00'00;             // i64(win-x86_64)
+			id_3 0x7f'ff'ff'ff'ff'ff'ff'ff; // i64(win-x86_64)
+			id_4 0x80'00'00'00'00'00'00'00; // u64(win-x86_64)
+			id_5 0xff'ff'ff'ff'ff'ff'ff'ff; // u64(win-x86_64)
+			id_6:0x7f'ff'ff'ff;             // i32(win-x86_64)
+			id_7:0x80'00'00'00;             // i64(win-x86_64)
+			id_8:0x7f'ff'ff'ff'ff'ff'ff'ff; // i64(win-x86_64)
+			id_9:0x80'00'00'00'00'00'00'00; // u64(win-x86_64)
+			id_A:0xff'ff'ff'ff'ff'ff'ff'ff; // u64(win-x86_64)
+		}
+		floating_point {
+			fp1 .0;
+			fp2 0.;
+			fp3:.0;
+			fp4:0.;
+			fp5 321.123
+			fp6 1e0;
+			fp7 0E1;
+			fp8 .0e2000
+			fp9:.1e10
+			fpa 0.e0;
+			fpb:1.1e-1;
+			fpc 0xFfP15
+			fpd 0x5.8P+1
+			fpe 0x.Ep-1;
+			fpf:0x.8p1;
+		}
+		string {
+			s1 "string"
+			s2 "string\n"
+			s3:"s"
+			s4:""
+			s5 @"R(raw string \\ RAW STRING)R";
+			s6:@"()"
+			s7""
+			s8@"()"
+		}
+		character {
+			c1 '\0'
+			c2:'\0'
+			c3'C'
+			c4:'c'
+			c5 '\0'
+			c6:'\0'
+			c7'😶'
+			c8:'😊'
+		}
+		boolean {
+			bool_1@true;
+			bool_2@false;
+			bool_3:@true;
+			bool_4:@false;
+		}
+		list {
+			list1 [];
+			list2:[];
+			list3[[]]
+			list4[1,2,3,4,5,1.,.2,.3e1,0x4p+0,0XA.P-1,"",@"()",' ',@true,@false,@inf,@NaN,[],{},list:[],obj:{}];
+		}
+		object {
+			obj1 {};
+			obj2:{};
+			obj3{}
+			obj4:{ a 1; b 2e0; c:'C'; d "string"; };
+		}
 	}
 	others {
 		o { a 123b 456c:789d:10; };

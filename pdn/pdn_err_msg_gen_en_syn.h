@@ -26,15 +26,15 @@ namespace pdn::dev_util
 			return u8"illegal cast: \""_em + src + u8"\""_em;
 			
 		case expect_entity_name:
-			return u8"expect name(identifier) before entity";
+			return u8"expect name(identifier) but receiving \""_em + src + u8"\" before entity"_em;
 		case expect_type_name:
-			return u8"expect type-name(identifier): \""_em + src + u8"\""_em;
+			return u8"expect type-name(identifier) but receiving \""_em + src + u8"\""_em;
 		case expect_expression:
-			return u8"expect expression: \""_em + src + u8"\""_em;
+			return u8"expect expression but receiving \""_em + src + u8"\""_em;
 		case expect_comma:
-			return u8"expect comma: \""_em + src + u8"\""_em;
+			return u8"expect comma but receiving \""_em + src + u8"\""_em;
 		case expect_colon:
-			return u8"expect colon([type-name: val, ...]): \""_em + src + u8"\""_em;
+			return u8"expect colon([type-name: val, ...]) but receiving \""_em + src + u8"\""_em;
 
 		case invalid_operation:
 			return u8"invalid operation: \""_em + src + u8"\""_em;

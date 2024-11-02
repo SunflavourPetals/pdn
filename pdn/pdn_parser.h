@@ -126,8 +126,9 @@ namespace pdn
 					else if (is_expr_first(tk.code))
 					{
 						auto pos = tk.position;
+						auto tk_code = tk.code;
 						parse_expr(begin, end);
-						post_err(pos, syn_ec::expect_entity_name, {});
+						post_err(pos, syn_ec::expect_entity_name, token_code_to_error_msg_string(tk_code));
 					}
 					else
 					{
@@ -428,8 +429,9 @@ namespace pdn
 				else if (is_expr_first(tk.code))
 				{
 					auto pos = tk.position;
+					auto tk_code = tk.code;
 					parse_expr(begin, end);
-					post_err(pos, syn_ec::expect_entity_name, {});
+					post_err(pos, syn_ec::expect_entity_name, token_code_to_error_msg_string(tk_code));
 				}
 				else if (tk.code == pdn_token_code::eof)
 				{
