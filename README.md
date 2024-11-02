@@ -12,7 +12,7 @@ My data notation.
 
 [参考 MSDN](https://learn.microsoft.com/zh-cn/cpp/build/walkthrough-compiling-a-native-cpp-program-on-the-command-line)  
 
-## 使用本项目的 pdn::parse 方法解析 pdn 文件
+## 使用本项目的 pdn::parse 方法解析 .spdn(Petals Data Notation) 文件
 
 将 `./pdn` 内的所有头文件 `.h` 引入项目文件夹，在使用 `pdn::parse` 的程序中使用 `#include` 预处理指令引入 `pdn_parse.h`，解析结果的类型为模板 `pdn::dom` 的实例。  
 如果只使用 `pdn::dom`，仅引入 `pdn_dom.h` 即可。  
