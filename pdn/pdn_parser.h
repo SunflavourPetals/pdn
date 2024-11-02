@@ -223,18 +223,20 @@ namespace pdn
 			using err_ms = error_msg_string;
 			using unicode::code_convert;
 
-			::std::size_t sign_count{ 0 };
-			auto sign_pos = tk.position;
-			auto sign_code = tk.code;
-			bool negative_sign{ false };
+			::std::size_t   sign_count{ 0 };
+			source_position last_sign_pos{};
+			source_position last_negative_sign_pos{};
+			pdn_token_code  sign_code{};
+			bool            negative_sign{ false };
 
 			for (; tk.code == minus || tk.code == plus; update_token(begin, end))
 			{
-				sign_pos = tk.position;
-				sign_code = tk.code;
+				last_sign_pos = tk.position;
+				sign_code     = tk.code;
 				if (tk.code == minus)
 				{
-					negative_sign = !negative_sign;
+					last_negative_sign_pos = tk.position;
+					negative_sign          = !negative_sign;
 				}
 				++sign_count;
 			}
@@ -257,8 +259,8 @@ namespace pdn
 						.append(u8"\'"_em)
 						.append(make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(str_view{ c.data(), c.size() })))
 						.append(u8"\'"_em);
+					break;
 				}
-				break;
 				case literal_string:
 				{
 					auto sp = ::std::get<str_pr>(tk.value);
@@ -266,8 +268,8 @@ namespace pdn
 						.append(u8"\""_em)
 						.append(make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(*sp)))
 						.append(u8"\""_em);
+					break;
 				}
-				break;
 				case left_brackets:
 					invalid_op_msg_str = token_code_to_error_msg_string(sign_code).append(u8"[...]"_em);
 					break;
@@ -279,7 +281,7 @@ namespace pdn
 				}
 				if (!invalid_op_msg_str.empty())
 				{
-					post_err(sign_pos, syn_ec::invalid_operation, ::std::move(invalid_op_msg_str));
+					post_err(last_sign_pos, syn_ec::invalid_operation, ::std::move(invalid_op_msg_str));
 				}
 			}
 
@@ -293,14 +295,14 @@ namespace pdn
 					cat_string += *::std::get<str_pr>(tk.value);
 					update_token(begin, end);
 				}
-				return token_value_to_entity(make_proxy<str>(::std::move(cat_string)), negative_sign);
+				return token_value_to_entity(make_proxy<str>(::std::move(cat_string)), negative_sign, last_negative_sign_pos);
 			}
 			case literal_boolean:
 			case literal_character:
 			case literal_floating_point:
 			case literal_integer:
 			{
-				auto result = token_value_to_entity(::std::move(tk.value), negative_sign); // check is operator- illegal, for unsigned integral types
+				auto result = token_value_to_entity(::std::move(tk.value), negative_sign, last_negative_sign_pos); // check is operator- illegal, for unsigned integral types
 				update_token(begin, end);
 				return result;
 			}
@@ -664,7 +666,7 @@ namespace pdn
 			}, src);
 		}
 
-		entity token_value_to_entity(token_value_variant<char_t> v, bool neg)
+		entity token_value_to_entity(token_value_variant<char_t> v, bool neg, source_position last_negative_sign_pos)
 		{
 			return std::visit([&]<typename arg_fwd_t>(arg_fwd_t && arg) -> entity
 			{
@@ -691,7 +693,7 @@ namespace pdn
 							.append(reinterpret_to_err_msg_str(::std::to_string(arg)))
 							.append(u8" : "_em)
 							.append(type_code_to_error_msg_string(type_c));
-						post_err(tk.position, syn_ec::invalid_operation, ::std::move(msg));
+						post_err(last_negative_sign_pos, syn_ec::invalid_operation, ::std::move(msg));
 					}
 					return ::std::forward<arg_fwd_t>(arg);
 				}
@@ -699,7 +701,6 @@ namespace pdn
 				{
 					return ::std::forward<arg_fwd_t>(arg);
 				}
-				return 0;
 			}, ::std::move(v));
 		}
 

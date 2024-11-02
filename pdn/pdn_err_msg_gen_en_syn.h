@@ -12,7 +12,6 @@ namespace pdn::dev_util
 	{
 		using namespace error_message_literals;
 		using enum syntax_error_code;
-
 		switch (errc)
 		{
 		case success:
