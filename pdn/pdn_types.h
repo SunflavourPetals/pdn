@@ -38,15 +38,15 @@ namespace pdn::types
 namespace pdn::types::concepts
 {
 	template <typename int_t>
-	concept pdn_sint =
-		   ::std::same_as<int_t, i8>
+	concept pdn_sint
+		 = ::std::same_as<int_t, i8>
 		|| ::std::same_as<int_t, i16>
 		|| ::std::same_as<int_t, i32>
 		|| ::std::same_as<int_t, i64>;
 
 	template <typename int_t>
-	concept pdn_uint =
-		   ::std::same_as<int_t, u8>
+	concept pdn_uint
+		 = ::std::same_as<int_t, u8>
 		|| ::std::same_as<int_t, u16>
 		|| ::std::same_as<int_t, u32>
 		|| ::std::same_as<int_t, u64>;
@@ -55,8 +55,8 @@ namespace pdn::types::concepts
 	concept pdn_integral = pdn_sint<t> || pdn_uint<t>;
 
 	template <typename fp_t>
-	concept pdn_fp =
-		   ::std::same_as<fp_t, f32>
+	concept pdn_fp
+		 = ::std::same_as<fp_t, f32>
 		|| ::std::same_as<fp_t, f64>;
 
 	template <typename bool_t>
@@ -172,8 +172,8 @@ namespace pdn::types::dev_util
 namespace pdn::types::dev_util
 {
 	template <typename t, typename char_t>
-	concept basic_types =
-		   concepts::pdn_integral<t>
+	concept basic_types
+		 = concepts::pdn_integral<t>
 		|| concepts::pdn_fp<t>
 		|| concepts::pdn_bool<t>
 		|| ::std::same_as<t, character<char_t>>;
@@ -261,12 +261,12 @@ namespace pdn
 		using typename base_type::list;
 		using typename base_type::object;
 	public:
-		auto string_ptr() -> string* { return ptr() ? ptr()->string_ptr() : nullptr; }
-		auto list_ptr  () -> list*   { return ptr() ? ptr()->list_ptr  () : nullptr; }
-		auto object_ptr() -> object* { return ptr() ? ptr()->object_ptr() : nullptr; }
+		auto string_ptr() -> string* { return get() ? get()->string_ptr() : nullptr; }
+		auto list_ptr  () -> list*   { return get() ? get()->list_ptr  () : nullptr; }
+		auto object_ptr() -> object* { return get() ? get()->object_ptr() : nullptr; }
 
-		auto i(size_type index)   -> refer { return ptr() ? refer{ ptr()->i(index) } : refer{}; }
-		auto m(const string& key) -> refer { return ptr() ? refer{ ptr()->m(key) }   : refer{}; }
+		auto i(size_type index)   -> refer { return get() ? refer{ get()->i(index) } : refer{}; }
+		auto m(const string& key) -> refer { return get() ? refer{ get()->m(key) }   : refer{}; }
 
 		auto operator[](size_type index)   -> refer { return i(index); }
 		auto operator[](const string& key) -> refer { return m(key); }

@@ -22,12 +22,6 @@ namespace pdn
 	public:
 		using runtime_error::runtime_error;
 	};
-
-	class failed_in_open_file_error : public runtime_error
-	{
-	public:
-		using runtime_error::runtime_error;
-	};
 }
 
 #endif

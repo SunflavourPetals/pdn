@@ -793,8 +793,16 @@ namespace pdn_test
 	{
 		my_function_package<char_t> my_fp{ log };
 		auto prev_parse = std::chrono::high_resolution_clock::now();
-		auto dom = pdn::parse<char_t>(filename, my_fp, my_fp, my_fp);
+		auto dom_opt = pdn::parse<char_t>(filename, my_fp, my_fp, my_fp);
 		auto after_parse = std::chrono::high_resolution_clock::now();
+
+		if (!dom_opt)
+		{
+			std::cout << "failed in open file: \"" << filename << "\"\n";
+			return;
+		}
+
+		auto& dom = *dom_opt;
 
 		std::chrono::duration<double> time_cost = after_parse - prev_parse;
 
