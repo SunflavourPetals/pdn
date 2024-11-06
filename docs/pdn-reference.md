@@ -2,7 +2,7 @@
 
 ## 概要
 
-PDN（全称 Petals Data Notation）是 SunflavourPetals（github 用户名）设计的基于 Unicode 的数据交换格式。  
+PDN（全称 Petals' Data Notation）是 SunflavourPetals（github 用户名）设计的基于 Unicode 的数据交换格式。  
 
 PDN 的特点是：  
 
@@ -233,7 +233,7 @@ PDN 对标识符的定义参考了 MSVC 的 C++ 标识符文档。
 @`d_seq(r_seq)d_seq`
 ```
 
-`d_seq` 为一个或多个[基本字符集(C++26)](https://zh.cppreference.com/w/cpp/language/charset#.E5.9F.BA.E6.9C.AC.E5.AD.97.E7.AC.A6.E9.9B.86)中的字符，不包括括号、反斜杠和空格，最多十六个。  
+`d_seq` 为一个或多个[基本字符集(C++26)](https://zh.cppreference.com/w/cpp/language/charset#.E5.9F.BA.E6.9C.AC.E5.AD.97.E7.AC.A6.E9.9B.86)中的字符，不包括括号、反斜杠和空白字符，最多十六个。  
 
 `r_seq` 为一个或多个[翻译字符集](https://zh.cppreference.com/w/cpp/language/charset)中的字符，不得包含闭序列 `` )d_seq` ``。  
 
@@ -247,7 +247,7 @@ PDN 对标识符的定义参考了 MSVC 的 C++ 标识符文档。
 @`(C:\Users\)` // 等价于 `C:\\Users\\`
 ```
 
-特殊情况：当使用 CRLF 作为换行符时，即若 CRLF 出现在原始字符串或原始字符串标识符的内容中时，它被转换成 LF。  
+特殊情况：当使用 CRLF 作为换行符时，即若 CRLF 出现在原始字符串或原始字符串标识符的内容中时，它被转换成 LF，这是由于 C++ [翻译阶段一](https://en.cppreference.com/w/cpp/language/translation_phases#Phase_1)，PDN 继承了这一行为。  
 
 ### 字面量
 
@@ -333,6 +333,16 @@ PDN 的字符串无任何前缀如 `u8`、`u`、`U`、`L`，pdn 解析器使用�
 "123\n\t456\0xyz"
 ```
 
+特殊案例：  
+
+```pdn
+`123
+456`
+// 当使用 CR 作为换行符时，它合法，等价于 `123\r456`，
+// 使用 LS(U+2028) 或 PS(U+2029) 作为换行符时，它同样合法，
+// 当使用 CRLF 或 LF 作为换行符时，它非法，因为字符串中含有换行符 LF。
+```
+
 [参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/string_literal)  
 
 ##### 原始字符串
@@ -346,6 +356,8 @@ PDN 使用 `@` 代替了 C++ 原始字符串的前缀 `R`，其余与 C++ 的原
 @"RawStrDS(你好，世界！)RawStrDS"
 @"(C:\Users\)" // 等价于 "C:\\Users\\"
 ```
+
+特殊情况：当使用 CRLF 作为换行符时，即若 CRLF 出现在原始字符串或原始字符串标识符的内容中时，它被转换成 LF，这是由于 C++ [翻译阶段一](https://en.cppreference.com/w/cpp/language/translation_phases#Phase_1)，PDN 继承了这一行为。  
 
 [参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/string_literal)  
 
