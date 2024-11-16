@@ -116,7 +116,7 @@ namespace pdn::unicode
 			auto encode_result = decision::encode(decode_result.value());
 			if (!encode_result)
 			{
-				if (decode_error_handler(decode_result, curr - source.cbegin()))
+				if (encode_error_handler(encode_result, curr - source.cbegin()))
 				{
 					break;
 				}
