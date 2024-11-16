@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -148,6 +148,7 @@
     <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h" />
     <ClInclude Include="pdn_error_handler_concept.h" />
     <ClInclude Include="pdn_error_message_generator_concept.h" />
+    <ClInclude Include="pdn_raw_error_message.h" />
     <ClInclude Include="pdn_error_string.h" />
     <ClInclude Include="pdn_error_code_variant.h" />
     <ClInclude Include="pdn_error_handler.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="pdn_parse.h" />
     <ClInclude Include="pdn_parser.h" />
     <ClInclude Include="pdn_proxy.h" />
+    <ClInclude Include="pdn_raw_error_message_variant.h" />
     <ClInclude Include="pdn_source_position_recorder_concept.h" />
     <ClInclude Include="pdn_token_code.h" />
     <ClInclude Include="pdn_token_code_to_error_msg_string.h" />

@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_code_convert
 #define PDN_Header_pdn_code_convert
 
+#include <string>
 #include <concepts>
 #include <functional>
 #include <type_traits>
@@ -88,26 +89,24 @@ namespace pdn::unicode
 
 	template <typename target_string,
 	          typename source_string_view,
-	          ::std::predicate<typename convert_decision<source_string_view, target_string>::decode_result, ::std::size_t>
-	              decode_error_handler_t = decltype(&utility::default_decode_error_handler<source_string_view, target_string>),
-	          ::std::predicate<typename convert_decision<source_string_view, target_string>::encode_result, ::std::size_t>
-	              encode_error_handler_t = decltype(&utility::default_encode_error_handler<source_string_view, target_string>)>
-	inline target_string code_convert(source_string_view source,
-	                                  decode_error_handler_t&& decode_error_handler
-	                                      = &utility::default_decode_error_handler<source_string_view, target_string>,
-	                                  encode_error_handler_t&& encode_error_handler
-	                                      = &utility::default_encode_error_handler<source_string_view, target_string>)
+	          typename decode_error_handler_t,
+	          typename encode_error_handler_t>
+		requires ::std::predicate<decode_error_handler_t, typename convert_decision<source_string_view, target_string>::decode_result, ::std::size_t>
+		      && ::std::predicate<encode_error_handler_t, typename convert_decision<source_string_view, target_string>::encode_result, ::std::size_t>
+	inline target_string code_convert(source_string_view       source,
+	                                  decode_error_handler_t&& decode_error_handler,
+	                                  encode_error_handler_t&& encode_error_handler)
 	{
 		using decision = convert_decision<source_string_view, target_string>;
 		target_string convert_result{};
-		auto begin = source.cbegin();
-		while (begin != source.cend())
+		auto begin = ::std::cbegin(source);
+		while (begin != ::std::cend(source))
 		{
 			auto curr = begin;
-			auto decode_result = decision::template decode<true>(begin, source.cend());
+			auto decode_result = decision::template decode<true>(begin, ::std::cend(source));
 			if (!decode_result)
 			{
-				if (decode_error_handler(decode_result, curr - source.cbegin()))
+				if (decode_error_handler(decode_result, curr - ::std::cbegin(source)))
 				{
 					break;
 				}
@@ -116,7 +115,7 @@ namespace pdn::unicode
 			auto encode_result = decision::encode(decode_result.value());
 			if (!encode_result)
 			{
-				if (encode_error_handler(encode_result, curr - source.cbegin()))
+				if (encode_error_handler(encode_result, curr - ::std::cbegin(source)))
 				{
 					break;
 				}
@@ -125,6 +124,14 @@ namespace pdn::unicode
 			convert_result.append(encode_result.cbegin(), encode_result.cend());
 		}
 		return convert_result;
+	}
+	template <typename target_string, typename source_string_view>
+	inline target_string code_convert(source_string_view source)
+	{
+		return code_convert<target_string>(
+			source,
+			&utility::default_decode_error_handler<source_string_view, target_string>,
+			&utility::default_encode_error_handler<source_string_view, target_string>);
 	}
 }
 

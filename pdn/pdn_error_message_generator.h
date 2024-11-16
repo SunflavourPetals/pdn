@@ -14,6 +14,7 @@ namespace pdn
 	class default_error_message_generator
 	{
 	public:
+		// todo add extra parameter source_position and raw_error_message
 		auto generate_error_message(error_code_variant errc, error_msg_string src) const -> error_msg_string
 		{
 			return error_message_generator_en_function(::std::move(errc), ::std::move(src));

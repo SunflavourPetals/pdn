@@ -276,6 +276,12 @@
     <ClInclude Include="pdn_function_package.h">
       <Filter>pdn_function_package</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_raw_error_message.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_raw_error_message_variant.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp">

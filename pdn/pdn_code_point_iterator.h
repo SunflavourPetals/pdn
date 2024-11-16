@@ -123,7 +123,7 @@ namespace pdn
 					}
 					auto hex_em_s = reinterpret_to_err_msg_str(hex_s);
 					auto err_msg = func_pkg->generate_error_message(result.error(), hex_em_s);
-					func_pkg->handle_error(error_message{ func_pkg->position(), result.error(), ::std::move(err_msg) });
+					func_pkg->handle_error(error_message{ result.error(), func_pkg->position(), ::std::move(err_msg) });
 					if (result.distance() == 0) ++begin;
 				}
 			}
@@ -138,6 +138,7 @@ namespace pdn
 		}
 	private:
 		function_package*     func_pkg{};
+		// todo offset attribute for this
 		begin_it_t            begin;
 		end_it_t              end;
 		unicode::code_point_t curr_value{};

@@ -113,6 +113,7 @@ namespace pdn
 						auto pos = tk.position;
 						auto msg = make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(*iden_p));
 						parse_decl(begin, end);
+						// flag 1
 						post_err(pos, syn_ec::entity_redefine, ::std::move(msg));
 					}
 				}
@@ -128,10 +129,12 @@ namespace pdn
 						auto pos = tk.position;
 						auto tk_code = tk.code;
 						parse_expr(begin, end);
+						// flag 2
 						post_err(pos, syn_ec::expect_entity_name, token_code_to_error_msg_string(tk_code));
 					}
 					else
 					{
+						// flag 2
 						post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
 						update_token(begin, end);
 					}
@@ -725,7 +728,7 @@ namespace pdn
 
 		void post_err(source_position pos, auto error_code, error_msg_string&& str_for_msg_gen)
 		{
-			func_pkg->handle_error(error_message{ pos, error_code, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
+			func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
 		}
 
 		static constexpr bool is_expr_first(pdn_token_code c) noexcept

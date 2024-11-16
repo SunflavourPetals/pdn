@@ -1361,7 +1361,7 @@ namespace pdn
 			// Lexer doesn't allow accepting non-Unicode scalar values,
 			// so if code_convert is implemented correctly, no errors will be reported here
 			// (Unicode scalar values can be converted between UTF-8 UTF-16 UTF-32 without conversion failure)
-			// If a non-unicode scalar value is received, the error should be reported when lexer receives it,
+			// If a non-Unicode scalar value is received, the error should be reported when lexer receives it,
 			// not when calling cond_convert.
 			// But the following error handling is still useful for this system
 
@@ -1450,7 +1450,7 @@ namespace pdn
 		}
 		void post_err(source_position pos, auto error_code, error_msg_string&& str_for_msg_gen)
 		{
-			func_pkg->handle_error(error_message{ pos, error_code, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
+			func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
 		}
 	private:
 		function_package* func_pkg{};
