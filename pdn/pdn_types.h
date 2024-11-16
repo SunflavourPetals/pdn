@@ -89,7 +89,7 @@ namespace pdn::types
 	class character
 	{
 	private:
-		static_assert(sizeof(char_t) >= 1 && sizeof(char_t) <= 4);
+		static_assert(sizeof(char_t) == 1 || sizeof(char_t) == 2 || sizeof(char_t) == 4);
 		static constexpr auto max_size = 4 / sizeof(char_t);
 		using data_type = ::std::array<char_t, max_size>;
 	public:
