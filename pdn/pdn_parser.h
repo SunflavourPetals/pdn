@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_parser
 
 #include <utility>
+#include <variant>
 #include <limits>
 #include <concepts>
 #include <type_traits>
@@ -16,6 +17,7 @@
 #include "pdn_syntax_error_code.h"
 #include "pdn_token_code_to_error_msg_string.h"
 #include "pdn_make_slashes_string.h"
+#include "pdn_raw_error_message_variant.h"
 
 #include "pdn_type_code.h"
 #include "pdn_type_code_to_type.h"
@@ -111,10 +113,11 @@ namespace pdn
 					else
 					{
 						auto pos = tk.position;
-						auto msg = make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(*iden_p));
 						parse_decl(begin, end);
+						auto slashes = make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(*iden_p));
+						auto raw_msg = raw_error_message_type::redefined_identifier{ ::std::move(slashes) };
 						// flag 1
-						post_err(pos, syn_ec::entity_redefine, ::std::move(msg));
+						post_err(pos, syn_ec::entity_redefine, ::std::move(raw_msg));
 					}
 				}
 				else
@@ -124,19 +127,22 @@ namespace pdn
 					{
 						update_token(begin, end);
 					}
-					else if (is_expr_first(tk.code))
-					{
-						auto pos = tk.position;
-						auto tk_code = tk.code;
-						parse_expr(begin, end);
-						// flag 2
-						post_err(pos, syn_ec::expect_entity_name, token_code_to_error_msg_string(tk_code));
-					}
 					else
 					{
-						// flag 2
-						post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
-						update_token(begin, end);
+						auto pos = tk.position;
+						raw_error_message_type::error_token raw_msg{ to_raw_error_token(tk) };
+						if (is_expr_first(tk.code))
+						{
+							parse_expr(begin, end);
+							// flag 2
+							post_err(pos, syn_ec::expect_entity_name, ::std::move(raw_msg));
+						}
+						else
+						{
+							update_token(begin, end);
+							// flag 2
+							post_err(pos, syn_ec::unexpected_token, ::std::move(raw_msg));
+						}
 					}
 				}
 			}
@@ -408,6 +414,9 @@ namespace pdn
 		{
 			// ... { CURRPOS ...
 
+			using err_ms = error_msg_string;
+			using unicode::code_convert;
+
 			obj result{};
 
 			while (tk.code != pdn_token_code::right_curly_brackets)
@@ -422,9 +431,11 @@ namespace pdn
 					else
 					{
 						auto pos = tk.position;
-						auto msg = make_slashes_string<error_msg_string>(unicode::code_convert<unicode::code_point_string>(*iden_p));
 						parse_decl(begin, end);
-						post_err(pos, syn_ec::entity_redefine, ::std::move(msg));
+						auto slashes = make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(*iden_p));
+						auto raw_msg = raw_error_message_type::redefined_identifier{ ::std::move(slashes) };
+						// flag 1
+						post_err(pos, syn_ec::entity_redefine, ::std::move(raw_msg));
 					}
 				}
 				else if (tk.code == pdn_token_code::semicolon)
@@ -726,9 +737,9 @@ namespace pdn
 			return func_pkg->generate_type(iden);
 		}
 
-		void post_err(source_position pos, auto error_code, error_msg_string&& str_for_msg_gen)
+		void post_err(source_position pos, auto error_code, raw_error_message_variant&& raw_msg)
 		{
-			func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
+			func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(raw_msg)) });
 		}
 
 		static constexpr bool is_expr_first(pdn_token_code c) noexcept
@@ -780,6 +791,37 @@ namespace pdn
 			default:        break;
 			}
 			return 0;
+		}
+
+		static constexpr token<error_msg_char> to_raw_error_token(token<char_t> src)
+		{
+			if constexpr (::std::same_as<::std::remove_cv_t<char_t>, error_msg_char>)
+			{
+				return src;
+			}
+			else
+			{
+				auto converted_value = ::std::visit([](auto&& arg) -> token_value_variant<error_msg_char>
+				{
+					using unicode::code_convert;
+					using arg_t = ::std::decay_t<decltype(arg)>;
+					if constexpr (::std::same_as<arg_t, cha>)
+					{
+						auto converted = code_convert<error_msg_string>(arg.to_string_view());
+						return types::character<error_msg_char>{ converted.cbegin(), converted.size() };
+					}
+					else if constexpr (::std::same_as<arg_t, str_pr>)
+					{
+						auto converted = code_convert<error_msg_string>(*arg);
+						return types::character<error_msg_char>{ converted.cbegin(), converted.size() };
+					}
+					else
+					{
+						return arg;
+					}
+				}, ::std::move(src.value));
+				return { src.position, src.code, ::std::move(converted_value) };
+			}
 		}
 	private:
 		function_package* func_pkg{};

@@ -47,10 +47,9 @@ namespace pdn::raw_error_message_type
 	{
 		error_msg_string identifier;
 	};
-	struct unexpected_token final // for flag 2
+	struct error_token final // for flag 2
 	{
-		pdn_token_code                      code;
-		token_value_variant<error_msg_char> value;
+		token<error_msg_char> value;
 	};
 }
 
@@ -64,7 +63,11 @@ namespace pdn::dev_util::raw_error_message
 		utf_16_decode_error,
 		utf_16_encode_error,
 		utf_32_decode_error,
-		utf_32_encode_error>;
+		utf_32_encode_error,
+		redefined_identifier,
+		error_token,
+
+		error_msg_string>; // remove it
 }
 
 namespace pdn

@@ -7,12 +7,12 @@ namespace pdn
 	{
 		success,
 
-		entity_redefine,
+		entity_redefine, // extra(redefined_identifier)
 
 		casting_domain_error,
 		illegal_cast,
 
-		expect_entity_name,
+		expect_entity_name, // extra(error_token)
 		expect_type_name,
 		expect_expression,
 		expect_comma,

@@ -7,7 +7,7 @@
 #include "pdn_types.h"
 #include "pdn_proxy.h"
 
-namespace pdn::dev_util
+namespace pdn
 {
 	template <typename char_t>
 	using token_value_variant = ::std::variant<
@@ -18,12 +18,6 @@ namespace pdn::dev_util
 		types::boolean,
 		types::character<char_t>,
 		proxy<types::string<char_t>>>;
-}
-
-namespace pdn
-{
-	template <typename char_t>
-	using token_value_variant = dev_util::token_value_variant<char_t>;
 }
 
 #endif

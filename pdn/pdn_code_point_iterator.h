@@ -97,12 +97,14 @@ namespace pdn
 				if (begin != end)
 				{
 					++begin;
+					++offset;
 				}
 			}
 			while (begin != end)
 			{
 				using decision = unicode::convert_decision<::std::basic_string_view<code_unit_type>, unicode::code_point_string>;
 				auto result = decision::template decode<false>(begin, end);
+				offset += result.distance();
 				if (result)
 				{
 					curr_value = result.value();
@@ -124,7 +126,11 @@ namespace pdn
 					auto hex_em_s = reinterpret_to_err_msg_str(hex_s);
 					auto err_msg = func_pkg->generate_error_message(result.error(), hex_em_s);
 					func_pkg->handle_error(error_message{ result.error(), func_pkg->position(), ::std::move(err_msg) });
-					if (result.distance() == 0) ++begin;
+					if (result.distance() == 0)
+					{
+						++begin;
+						++offset;
+					}
 				}
 			}
 		}
@@ -138,7 +144,7 @@ namespace pdn
 		}
 	private:
 		function_package*     func_pkg{};
-		// todo offset attribute for this
+		size_type             offset{};
 		begin_it_t            begin;
 		end_it_t              end;
 		unicode::code_point_t curr_value{};

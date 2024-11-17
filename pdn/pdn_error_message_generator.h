@@ -4,6 +4,7 @@
 #include <concepts>
 #include <utility>
 
+#include "pdn_raw_error_message_variant.h"
 #include "pdn_error_code_variant.h"
 #include "pdn_error_string.h"
 #include "pdn_error_message_generator_concept.h"
@@ -15,7 +16,7 @@ namespace pdn
 	{
 	public:
 		// todo add extra parameter source_position and raw_error_message
-		auto generate_error_message(error_code_variant errc, error_msg_string src) const -> error_msg_string
+		auto generate_error_message(error_code_variant errc, raw_error_message_variant src) const -> error_msg_string
 		{
 			return error_message_generator_en_function(::std::move(errc), ::std::move(src));
 		}

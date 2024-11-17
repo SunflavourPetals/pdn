@@ -37,9 +37,9 @@ namespace pdn
 		{
 			err_handler.handle_error(msg, out);
 		}
-		auto generate_error_message(pdn::error_code_variant errc_variant, pdn::error_msg_string err_msg_str) const -> pdn::error_msg_string
+		auto generate_error_message(pdn::error_code_variant errc_variant, pdn::raw_error_message_variant raw) const -> pdn::error_msg_string
 		{
-			return err_msg_gen.generate_error_message(std::move(errc_variant), std::move(err_msg_str));
+			return err_msg_gen.generate_error_message(std::move(errc_variant), std::move(raw));
 		}
 		auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) const -> ::std::optional<pdn::constant_variant<char_t>>
 		{

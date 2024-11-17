@@ -5,6 +5,7 @@
 
 #include "pdn_error_string.h"
 #include "pdn_error_code_variant.h"
+#include "pdn_raw_error_message_variant.h"
 #include "pdn_err_msg_gen_en_lex.h"
 #include "pdn_err_msg_gen_en_syn.h"
 #include "pdn_err_msg_gen_en_utf_8_enc.h"
@@ -16,17 +17,17 @@
 
 namespace pdn
 {
-	inline constexpr error_msg_string error_message_generator_en_function(error_code_variant errc, error_msg_string src)
+	inline constexpr error_msg_string error_message_generator_en_function(error_code_variant errc, raw_error_message_variant src)
 	{
 		using namespace literals::error_message_literals;
 
 		return ::std::visit([&](auto code) -> error_msg_string
 		{
-			if constexpr (requires { dev_util::err_msg_gen_en(code, src); })
+			if constexpr (requires { dev_util::err_msg_gen_en(code, error_msg_string{}); }) // todo
 			{
-				return dev_util::err_msg_gen_en(code, src);
+				return dev_util::err_msg_gen_en(code, error_msg_string{});
 			}
-			return u8"unknown error type, error_message_generator_en unresolved: \""_em + src + u8"\""_em;
+			return u8"unknown error type, error_message_generator_en unresolved"_em;
 		}, errc);
 	}
 }
