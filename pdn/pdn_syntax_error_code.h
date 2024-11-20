@@ -15,8 +15,8 @@ namespace pdn
 		expect_entity_name, // extra(error_token)
 		expect_type_name, // extra(error_token)
 		expect_expression, // extra(error_token)
-		expect_comma,
-		expect_colon,
+		expect_comma, // extra(error_token)
+		expect_colon, // extra(error_token)
 
 		invalid_operation,
 
@@ -24,8 +24,8 @@ namespace pdn
 
 		unknown_type, // extra(identifier)
 
-		missing_right_brackets,
-		missing_right_curly_brackets,
+		missing_right_brackets, // extra(monostate)
+		missing_right_curly_brackets, // extra(monostate)
 
 		inner_error_token_have_no_value,
 		inner_error_parse_terminated, // extra(monostate)

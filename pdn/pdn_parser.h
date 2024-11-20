@@ -341,7 +341,7 @@ namespace pdn
 				{
 					if (is_list_element_first(tk.code))
 					{
-						post_err(tk.position, syn_ec::expect_comma, token_code_to_error_msg_string(tk.code));
+						post_err(tk.position, syn_ec::expect_comma, to_raw_error_token(tk));
 					}
 					else
 					{
@@ -374,7 +374,7 @@ namespace pdn
 				}
 				else
 				{
-					post_err(tk.position, syn_ec::expect_colon, token_code_to_error_msg_string(tk.code));
+					post_err(tk.position, syn_ec::expect_colon, to_raw_error_token(tk));
 				}
 			}
 
@@ -492,7 +492,7 @@ namespace pdn
 			}
 			return 0;
 		}
-
+		// --------------------------------------------------------------------------------------------------------------------
 		template <type_code target_type_c>
 		entity entity_cast(entity src, source_position type_pos)
 		{
