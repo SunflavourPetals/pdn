@@ -112,12 +112,8 @@ namespace pdn
 					}
 					else
 					{
-						auto pos = tk.position;
+						post_err(tk.position, syn_ec::entity_redefine, raw_error_message_type::identifier{ code_convert<err_ms>(*iden_p) });
 						parse_decl(begin, end);
-						auto slashes = make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(*iden_p));
-						auto raw_msg = raw_error_message_type::redefined_identifier{ ::std::move(slashes) };
-						// flag 1
-						post_err(pos, syn_ec::entity_redefine, ::std::move(raw_msg));
 					}
 				}
 				else
@@ -127,22 +123,15 @@ namespace pdn
 					{
 						update_token(begin, end);
 					}
+					else if (is_expr_first(tk.code))
+					{
+						post_err(tk.position, syn_ec::expect_entity_name, to_raw_error_token(tk));
+						parse_expr(begin, end);
+					}
 					else
 					{
-						auto pos = tk.position;
-						raw_error_message_type::error_token raw_msg{ to_raw_error_token(tk) };
-						if (is_expr_first(tk.code))
-						{
-							parse_expr(begin, end);
-							// flag 2
-							post_err(pos, syn_ec::expect_entity_name, ::std::move(raw_msg));
-						}
-						else
-						{
-							update_token(begin, end);
-							// flag 2
-							post_err(pos, syn_ec::unexpected_token, ::std::move(raw_msg));
-						}
+						post_err(tk.position, syn_ec::unexpected_token, to_raw_error_token(tk));
+						update_token(begin, end);
 					}
 				}
 			}
@@ -174,7 +163,7 @@ namespace pdn
 
 			if (!is_expr_first(tk.code))
 			{
-				post_err(tk.position, syn_ec::expect_expression, token_code_to_error_msg_string(tk.code));
+				post_err(tk.position, syn_ec::expect_expression, to_raw_error_token(tk));
 				return default_entity_value(type_c);
 			}
 
@@ -206,17 +195,17 @@ namespace pdn
 				auto type_c = type_gen(*::std::get<str_pr>(tk.value));
 				if (type_c == type_code::unknown)
 				{
-					post_err(tk.position, syn_ec::unknown_type, code_convert<err_ms>(*::std::get<str_pr>(tk.value)));
+					post_err(tk.position, syn_ec::unknown_type, raw_error_message_type::identifier{ code_convert<err_ms>(*::std::get<str_pr>(tk.value)) });
 				}
 				update_token(begin, end);
 				return type_c;
 			}
 
-			post_err(tk.position, syn_ec::expect_type_name, token_code_to_error_msg_string(tk.code));
+			post_err(tk.position, syn_ec::expect_type_name, to_raw_error_token(tk));
 
 			return type_code::unknown;
 		}
-
+		// --------------------------------------------------------------------------------------------------------------------
 		entity parse_expr(auto& begin, auto end)
 		{
 			// expect
@@ -328,7 +317,7 @@ namespace pdn
 				return parse_object_expr(begin, end, left_curly_brackets_pos);
 			}
 			default:
-				post_err(tk.position, syn_ec::expect_expression, token_code_to_error_msg_string(tk.code));
+				post_err(tk.position, syn_ec::expect_expression, to_raw_error_token(tk));
 				break;
 			}
 
@@ -356,7 +345,7 @@ namespace pdn
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
+						post_err(tk.position, syn_ec::unexpected_token, to_raw_error_token(tk));
 						update_token(begin, end);
 					}
 				}
@@ -430,12 +419,8 @@ namespace pdn
 					}
 					else
 					{
-						auto pos = tk.position;
+						post_err(tk.position, syn_ec::entity_redefine, raw_error_message_type::identifier{ code_convert<err_ms>(*iden_p) });
 						parse_decl(begin, end);
-						auto slashes = make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(*iden_p));
-						auto raw_msg = raw_error_message_type::redefined_identifier{ ::std::move(slashes) };
-						// flag 1
-						post_err(pos, syn_ec::entity_redefine, ::std::move(raw_msg));
 					}
 				}
 				else if (tk.code == pdn_token_code::semicolon)
@@ -444,10 +429,8 @@ namespace pdn
 				}
 				else if (is_expr_first(tk.code))
 				{
-					auto pos = tk.position;
-					auto tk_code = tk.code;
+					post_err(tk.position, syn_ec::expect_entity_name, to_raw_error_token(tk));
 					parse_expr(begin, end);
-					post_err(pos, syn_ec::expect_entity_name, token_code_to_error_msg_string(tk_code));
 				}
 				else if (tk.code == pdn_token_code::eof)
 				{
@@ -456,7 +439,7 @@ namespace pdn
 				}
 				else
 				{
-					post_err(tk.position, syn_ec::unexpected_token, token_code_to_error_msg_string(tk.code));
+					post_err(tk.position, syn_ec::unexpected_token, to_raw_error_token(tk));
 					update_token(begin, end);
 				}
 			}
@@ -793,11 +776,11 @@ namespace pdn
 			return 0;
 		}
 
-		static constexpr token<error_msg_char> to_raw_error_token(token<char_t> src)
+		static constexpr auto to_raw_error_token(token<char_t> src) -> raw_error_message_type::error_token
 		{
 			if constexpr (::std::same_as<::std::remove_cv_t<char_t>, error_msg_char>)
 			{
-				return src;
+				return raw_error_message_type::error_token{ src };
 			}
 			else
 			{
@@ -820,7 +803,7 @@ namespace pdn
 						return arg;
 					}
 				}, ::std::move(src.value));
-				return { src.position, src.code, ::std::move(converted_value) };
+				return raw_error_message_type::error_token{ token<error_msg_char>{ src.position, src.code, ::std::move(converted_value) } };
 			}
 		}
 	private:

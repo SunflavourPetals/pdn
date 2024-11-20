@@ -43,9 +43,9 @@ namespace pdn::raw_error_message_type
 		unicode::utf_32::encode_result result;
 		unicode::code_point_t          source;
 	};
-	struct redefined_identifier final // for flag 1
+	struct identifier final // for flag 1
 	{
-		error_msg_string identifier;
+		error_msg_string value;
 	};
 	struct error_token final // for flag 2
 	{
@@ -64,7 +64,7 @@ namespace pdn::dev_util::raw_error_message
 		utf_16_encode_error,
 		utf_32_decode_error,
 		utf_32_encode_error,
-		redefined_identifier,
+		identifier,
 		error_token,
 
 		error_msg_string>; // remove it
