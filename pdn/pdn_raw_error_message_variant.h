@@ -7,6 +7,7 @@
 #include "pdn_unicode.h"
 #include "pdn_error_string.h"
 #include "pdn_token.h"
+#include "pdn_type_code.h"
 
 namespace pdn::raw_error_message_type
 {
@@ -43,6 +44,10 @@ namespace pdn::raw_error_message_type
 		unicode::utf_32::encode_result result;
 		unicode::code_point_t          source;
 	};
+}
+
+namespace pdn::raw_error_message_type 
+{
 	struct identifier final // for flag 1
 	{
 		error_msg_string value;
@@ -50,6 +55,12 @@ namespace pdn::raw_error_message_type
 	struct error_token final // for flag 2
 	{
 		token<error_msg_char> value;
+	};
+	struct unary_operation final
+	{
+		token<error_msg_char> operand;
+		type_code             operand_type;
+		bool                  negative;
 	};
 }
 
@@ -66,6 +77,7 @@ namespace pdn::dev_util::raw_error_message
 		utf_32_encode_error,
 		identifier,
 		error_token,
+		unary_operation,
 
 		error_msg_string>; // remove it
 }

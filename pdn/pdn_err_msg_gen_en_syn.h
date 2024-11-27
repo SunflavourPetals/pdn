@@ -35,8 +35,8 @@ namespace pdn::dev_util
 		case expect_colon:
 			return u8"expect colon([type-name: val, ...]) but receiving \""_em + src + u8"\""_em;
 
-		case invalid_operation:
-			return u8"invalid operation: \""_em + src + u8"\""_em;
+		case invalid_unary_operation:
+			return u8"invalid unary operation: \""_em + src + u8"\""_em;
 
 		case unexpected_token:
 			return u8"unexpected token: \""_em + src + u8"\""_em;

@@ -5,7 +5,7 @@ namespace pdn
 {
 	enum class syntax_error_code
 	{
-		success,
+		success, // extra(monostate)
 
 		entity_redefine, // extra(identifier)
 
@@ -18,7 +18,7 @@ namespace pdn
 		expect_comma, // extra(error_token)
 		expect_colon, // extra(error_token)
 
-		invalid_operation,
+		invalid_unary_operation, // extra(unary_operation)
 
 		unexpected_token, // extra(error_token)
 
@@ -27,7 +27,7 @@ namespace pdn
 		missing_right_brackets, // extra(monostate)
 		missing_right_curly_brackets, // extra(monostate)
 
-		inner_error_token_have_no_value,
+		inner_error_token_have_no_value, // extra(error_token)
 		inner_error_parse_terminated, // extra(monostate)
 	};
 }

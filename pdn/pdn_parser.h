@@ -205,7 +205,7 @@ namespace pdn
 
 			return type_code::unknown;
 		}
-		// --------------------------------------------------------------------------------------------------------------------
+
 		entity parse_expr(auto& begin, auto end)
 		{
 			// expect
@@ -218,89 +218,105 @@ namespace pdn
 			//     [ ... ]
 
 			using enum pdn_token_code;
-			using err_ms = error_msg_string;
 			using unicode::code_convert;
 
-			::std::size_t   sign_count{ 0 };
-			source_position last_sign_pos{};
-			source_position last_negative_sign_pos{};
-			pdn_token_code  sign_code{};
-			bool            negative_sign{ false };
+			auto is_unary_operator = [](pdn_token_code code) { return code == minus || code == plus; };
+			auto is_negative_sign  = [](pdn_token_code code) { return code == minus; };
 
-			for (; tk.code == minus || tk.code == plus; update_token(begin, end))
+			if (is_unary_operator(tk.code))
 			{
-				last_sign_pos = tk.position;
-				sign_code     = tk.code;
-				if (tk.code == minus)
-				{
-					last_negative_sign_pos = tk.position;
-					negative_sign          = !negative_sign;
-				}
-				++sign_count;
-			}
+				using raw_error_message_type::unary_operation;
 
-			// check is operator + | - illegal, except unsigned integral types
-			if (sign_count > 0)
-			{
-				using str_view = ::std::basic_string_view<char_t>;
-				err_ms invalid_op_msg_str{};
-				switch (tk.code)
+				source_position last_positive_sign_pos{}; // P
+				source_position last_negative_sign_pos{}; // N
+				bool            is_last_sign_negative{}; // true => N is valid, false => P is valis
+				bool            is_result_negative{}; // true => N is valid
+
+				for (; is_unary_operator(tk.code); update_token(begin, end))
 				{
-				case literal_boolean:
-					invalid_op_msg_str = token_code_to_error_msg_string(sign_code)
-						.append(::std::get<bln>(tk.value) ? u8"@true"_em : u8"@false"_em);
-					break;
-				case literal_character:
+					is_last_sign_negative = is_negative_sign(tk.code);
+					if (is_last_sign_negative)
+					{
+						last_negative_sign_pos = tk.position;
+						is_result_negative = !is_result_negative;
+					}
+					else
+					{
+						last_positive_sign_pos = tk.position;
+					}
+				}
+
+				auto operand_type = [](pdn_token_code code)
 				{
-					auto c = ::std::get<cha>(tk.value);
-					invalid_op_msg_str = token_code_to_error_msg_string(sign_code)
-						.append(u8"\'"_em)
-						.append(make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(str_view{ c.data(), c.size() })))
-						.append(u8"\'"_em);
-					break;
-				}
-				case literal_string:
+					switch (code)
+					{
+					case literal_boolean:     return type_code::boolean;
+					case literal_character:   return type_code::character;
+					case literal_string:      return type_code::string;
+					case left_brackets:       return type_code::list;
+					case left_curly_brackets: return type_code::object;
+					default:                  break;
+					}
+					return type_code::unknown;
+				}(tk.code);
+				
+				auto is_invalid_operand = [](type_code code) { return code != type_code::unknown; };
+
+				auto last_sign_pos = [&]() { return is_last_sign_negative ? last_negative_sign_pos : last_positive_sign_pos; };
+
+				if (is_invalid_operand(operand_type))
 				{
-					auto sp = ::std::get<str_pr>(tk.value);
-					invalid_op_msg_str = token_code_to_error_msg_string(sign_code)
-						.append(u8"\""_em)
-						.append(make_slashes_string<err_ms>(code_convert<unicode::code_point_string>(*sp)))
-						.append(u8"\""_em);
-					break;
+					post_err(last_sign_pos(),
+					         syn_ec::invalid_unary_operation,
+					         unary_operation{ to_token<error_msg_char>(tk), operand_type, is_last_sign_negative});
 				}
-				case left_brackets:
-					invalid_op_msg_str = token_code_to_error_msg_string(sign_code).append(u8"[...]"_em);
-					break;
-				case left_curly_brackets:
-					invalid_op_msg_str = token_code_to_error_msg_string(sign_code).append(u8"{...}"_em);
-					break;
-				default:
-					break;
-				}
-				if (!invalid_op_msg_str.empty())
+				
+				::std::visit([&](auto& arg)
 				{
-					post_err(last_sign_pos, syn_ec::invalid_operation, ::std::move(invalid_op_msg_str));
-				}
+					using arg_t = ::std::decay_t<decltype(arg)>;
+					using types::concepts::pdn_sint;
+					using types::concepts::pdn_uint;
+					using types::concepts::pdn_fp;
+					if constexpr (pdn_fp<arg_t> || pdn_sint<arg_t>)
+					{
+						arg = -arg;
+					}
+					else if constexpr (pdn_uint<arg_t>) // check is operator- illegal, for unsigned integral types
+					{
+						if (is_result_negative)
+						{
+							constexpr auto operand_type = type_to_type_code_v<arg_t, char_t>;
+							post_err(last_negative_sign_pos,
+							         syn_ec::invalid_unary_operation,
+							         unary_operation{ to_token<error_msg_char>(tk), operand_type, is_result_negative});
+						}
+					}
+					else if constexpr (::std::same_as<arg_t, ::std::monostate>)
+					{
+						post_err(tk.position, syn_ec::inner_error_token_have_no_value, to_raw_error_token(tk));
+					}
+				}, tk.value);
 			}
 
 			switch (tk.code)
 			{
 			case literal_string:
 			{
-				str cat_string{};
+				auto start_pos = tk.position;
+				auto cat_string = str{};
 				while (tk.code == literal_string) // concatenation
 				{
 					cat_string += *::std::get<str_pr>(tk.value);
 					update_token(begin, end);
 				}
-				return token_value_to_entity(make_proxy<str>(::std::move(cat_string)), negative_sign, last_negative_sign_pos);
+				return token_value_to_entity(token<char_t>{ start_pos, literal_string, make_proxy<str>(::std::move(cat_string)) });
 			}
 			case literal_boolean:
 			case literal_character:
 			case literal_floating_point:
 			case literal_integer:
 			{
-				auto result = token_value_to_entity(::std::move(tk.value), negative_sign, last_negative_sign_pos); // check is operator- illegal, for unsigned integral types
+				auto result = token_value_to_entity(::std::move(tk));
 				update_token(begin, end);
 				return result;
 			}
@@ -321,7 +337,7 @@ namespace pdn
 				break;
 			}
 
-			return 0;
+			return types::cppint{};
 		}
 
 		entity parse_list_expr(auto& begin, auto end, source_position left_brackets_pos)
@@ -490,7 +506,7 @@ namespace pdn
 			default:
 				break;
 			}
-			return 0;
+			return types::cppint{};
 		}
 		// --------------------------------------------------------------------------------------------------------------------
 		template <type_code target_type_c>
@@ -663,46 +679,25 @@ namespace pdn
 			}, src);
 		}
 
-		entity token_value_to_entity(token_value_variant<char_t> v, bool neg, source_position last_negative_sign_pos)
+		entity token_value_to_entity(token<char_t> target)
 		{
-			return std::visit([&]<typename arg_fwd_t>(arg_fwd_t && arg) -> entity
+			return ::std::visit([&]<typename arg_fwd_t>(arg_fwd_t&& arg) -> entity
 			{
-				using decay_arg_t = ::std::decay_t<decltype(arg)>;
-				using types::concepts::pdn_sint;
-				using types::concepts::pdn_uint;
-				using types::concepts::pdn_fp;
-				if constexpr (pdn_fp<decay_arg_t> || pdn_sint<decay_arg_t>)
+				using arg_t = ::std::decay_t<decltype(arg)>;
+				if constexpr (::std::same_as<arg_t, ::std::monostate>)
 				{
-					return neg ? entity{ -::std::forward<arg_fwd_t>(arg) } : entity{ ::std::forward<arg_fwd_t>(arg) };
-				}
-				else if constexpr (::std::same_as<decay_arg_t, ::std::monostate>)
-				{
-					post_err(tk.position, syn_ec::inner_error_token_have_no_value, {});
-					return 0;
-				}
-				else if constexpr (pdn_uint<decay_arg_t>) // check is operator- illegal, for unsigned integral types
-				{
-					if (neg)
-					{
-						using namespace error_message_literals;
-						constexpr auto type_c = type_to_type_code_v<decay_arg_t, char_t>;
-						auto msg = u8"-"_em
-							.append(reinterpret_to_err_msg_str(::std::to_string(arg)))
-							.append(u8" : "_em)
-							.append(type_code_to_error_msg_string(type_c));
-						post_err(last_negative_sign_pos, syn_ec::invalid_operation, ::std::move(msg));
-					}
-					return ::std::forward<arg_fwd_t>(arg);
+					post_err(target.position, syn_ec::inner_error_token_have_no_value, to_raw_error_token(target));
+					return types::cppint{};
 				}
 				else
 				{
 					return ::std::forward<arg_fwd_t>(arg);
 				}
-			}, ::std::move(v));
+			}, ::std::move(target.value));
 		}
 
 		template <typename iter_t>
-		void update_token(iter_t&& begin, auto end)
+		void update_token(iter_t& begin, auto end)
 		{
 			if (begin != end)
 			{
@@ -773,37 +768,61 @@ namespace pdn
 			case object:    return obj_pr{ make_proxy<obj>() };
 			default:        break;
 			}
-			return 0;
+			return types::cppint{};
 		}
 
-		static constexpr auto to_raw_error_token(token<char_t> src) -> raw_error_message_type::error_token
+		template <typename target_char_t>
+		static constexpr auto to_token_value_variant(token_value_variant<char_t> src) -> token_value_variant<target_char_t>
 		{
-			if constexpr (::std::same_as<::std::remove_cv_t<char_t>, error_msg_char>)
+			if constexpr (::std::same_as<char_t, target_char_t>)
 			{
-				return raw_error_message_type::error_token{ src };
+				return src;
 			}
 			else
 			{
-				auto converted_value = ::std::visit([](auto&& arg) -> token_value_variant<error_msg_char>
+				return ::std::visit([](auto&& arg) -> token_value_variant<target_char_t>
 				{
 					using unicode::code_convert;
 					using arg_t = ::std::decay_t<decltype(arg)>;
 					if constexpr (::std::same_as<arg_t, cha>)
 					{
-						auto converted = code_convert<error_msg_string>(arg.to_string_view());
-						return types::character<error_msg_char>{ converted.cbegin(), converted.size() };
+						auto converted = code_convert<types::string<target_char_t>>(arg.to_string_view());
+						return types::character<target_char_t>{ converted.cbegin(), converted.size() };
 					}
 					else if constexpr (::std::same_as<arg_t, str_pr>)
 					{
-						auto converted = code_convert<error_msg_string>(*arg);
-						return types::character<error_msg_char>{ converted.cbegin(), converted.size() };
+						return code_convert<types::string<target_char_t>>(*arg);
 					}
 					else
 					{
 						return arg;
 					}
-				}, ::std::move(src.value));
-				return raw_error_message_type::error_token{ token<error_msg_char>{ src.position, src.code, ::std::move(converted_value) } };
+				}, ::std::move(src));
+			}
+		}
+
+		template <typename target_char_t>
+		static constexpr auto to_token(token<char_t> src) -> token<target_char_t>
+		{
+			if constexpr (::std::same_as<char_t, target_char_t>)
+			{
+				return src;
+			}
+			else
+			{
+				return { src.position, src.code, to_token_value_variant<target_char_t>(::std::move(src.value)) };
+			}
+		}
+
+		static constexpr auto to_raw_error_token(token<char_t> src) -> raw_error_message_type::error_token
+		{
+			if constexpr (::std::same_as<char_t, error_msg_char>)
+			{
+				return raw_error_message_type::error_token{ src };
+			}
+			else
+			{
+				return raw_error_message_type::error_token{ to_token<error_msg_char>(::std::move(src)) };
 			}
 		}
 	private:
