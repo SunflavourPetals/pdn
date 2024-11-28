@@ -13,45 +13,45 @@ namespace pdn::lexer_utility
 {
 	using unicode::code_point_t;
 	// is c in [first, last]
-	inline constexpr bool in_range(code_point_t c, code_point_t first, code_point_t last) noexcept
+	constexpr bool in_range(code_point_t c, code_point_t first, code_point_t last) noexcept
 	{
 		return c >= first && c <= last;
 	}
-	inline constexpr bool is_uppercase(code_point_t c) noexcept
+	constexpr bool is_uppercase(code_point_t c) noexcept
 	{
 		return in_range(c, U'A', U'Z');
 	}
-	inline constexpr bool is_lowercase(code_point_t c) noexcept
+	constexpr bool is_lowercase(code_point_t c) noexcept
 	{
 		return in_range(c, U'a', U'z');
 	}
-	inline constexpr bool is_alpha(code_point_t c) noexcept
+	constexpr bool is_alpha(code_point_t c) noexcept
 	{
 		return is_lowercase(c) || is_uppercase(c);
 	}
-	inline constexpr bool is_digit(code_point_t c) noexcept
+	constexpr bool is_digit(code_point_t c) noexcept
 	{
 		return in_range(c, U'0', U'9');
 	}
-	inline constexpr bool is_oct(code_point_t c) noexcept
+	constexpr bool is_oct(code_point_t c) noexcept
 	{
 		return in_range(c, U'0', U'7');
 	}
-	inline constexpr bool is_hex_uppercase(code_point_t c) noexcept
+	constexpr bool is_hex_uppercase(code_point_t c) noexcept
 	{
 		return is_digit(c) || in_range(c, U'A', U'F');
 	}
-	inline constexpr bool is_hex_lowercase(code_point_t c) noexcept
+	constexpr bool is_hex_lowercase(code_point_t c) noexcept
 	{
 		return is_digit(c) || in_range(c, U'a', U'f');
 	}
-	inline constexpr bool is_hex(code_point_t c) noexcept
+	constexpr bool is_hex(code_point_t c) noexcept
 	{
 		return is_hex_lowercase(c) || is_hex_uppercase(c);
 	}
 	// is whitespace
 	// https://www.unicode.org/charts/collation/chart_Whitespace.html
-	inline constexpr bool is_whitespace(code_point_t c) noexcept
+	constexpr bool is_whitespace(code_point_t c) noexcept
 	{
 		switch (c)
 		{
@@ -82,18 +82,17 @@ namespace pdn::lexer_utility
 		case U'\u3000': // ideographic space
 			return true;
 		default:
-			break;
+			return false;
 		}
-		return false;
 	}
 	// is c token separator, except comments (whitespace)
-	inline constexpr bool is_token_separator(code_point_t c) noexcept
+	constexpr bool is_token_separator(code_point_t c) noexcept
 	{
 		return is_whitespace(c);
 	}
 	// is c allowed as first character of identifier
 	// https://learn.microsoft.com/en-us/cpp/cpp/identifiers-cpp
-	inline constexpr bool is_allowed_as_first_char_of_identifier(code_point_t c) noexcept
+	constexpr bool is_allowed_as_first_char_of_identifier(code_point_t c) noexcept
 	{
 		if (is_alpha(c) || c == U'_')
 		{
@@ -125,20 +124,13 @@ namespace pdn::lexer_utility
 			//	C0000-CFFFD,
 			//	D0000-DFFFD,
 			//	E0000-EFFFD
-			if ((c & U'\uFFFE') == U'\uFFFE') return false;
-			return true;
+			return (c & U'\uFFFE') == U'\uFFFE' ? false : true;
 		}
 		if (c >= U'\u3000')
 		{
-			if (in_range(c, U'\u3004', U'\u3007')) // 3004-3007,
-			{
-				return true;
-			}
-			if (in_range(c, U'\u3021', U'\u302F')) // 3021-302F,
-			{
-				return true;
-			}
-			if (in_range(c, U'\u3031', U'\uD7FF')) // 3031-303F, 3040-D7FF,
+			if (in_range(c, U'\u3004', U'\u3007')  // 3004-3007,
+			 || in_range(c, U'\u3021', U'\u302F')  // 3021-302F,
+			 || in_range(c, U'\u3031', U'\uD7FF')) // 3031-303F, 3040-D7FF,
 			{
 				return true;
 			}
@@ -157,9 +149,7 @@ namespace pdn::lexer_utility
 				case U'\uFE46':
 					return false;
 				default:
-					if (in_range(c, U'\uFDD0', U'\uFDEF')) return false;
-					if (in_range(c, U'\uFD20', U'\uFD2F')) return false;
-					return true;
+					return in_range(c, U'\uFDD0', U'\uFDEF') || in_range(c, U'\uFD20', U'\uFD2F') ? false : true;
 				}
 			}
 			return false;
@@ -185,27 +175,12 @@ namespace pdn::lexer_utility
 			default:
 				break;
 			}
-			if (in_range(c, U'\u2060', U'\u20CF')) // 2060-206F, 2070 - 20CF,
-			{
-				return true;
-			}
-			if (in_range(c, U'\u2100', U'\u218F')) // 2100-218F,
-			{
-				return true;
-			}
-			if (in_range(c, U'\u2460', U'\u24FF')) // 2460-24FF,
-			{
-				return true;
-			}
-			if (in_range(c, U'\u2776', U'\u2793')) // 2776-2793,
-			{
-				return true;
-			}
-			if (in_range(c, U'\u2C00', U'\u2DFF')) // 2C00-2DFF,
-			{
-				return true;
-			}
-			if (in_range(c, U'\u2E80', U'\u2FFF')) // 2E80-2FFF,
+			if (in_range(c, U'\u2060', U'\u20CF')  // 2060-206F, 2070 - 20CF,
+			 || in_range(c, U'\u2100', U'\u218F')  // 2100-218F,
+			 || in_range(c, U'\u2460', U'\u24FF')  // 2460-24FF,
+			 || in_range(c, U'\u2776', U'\u2793')  // 2776-2793,
+			 || in_range(c, U'\u2C00', U'\u2DFF')  // 2C00-2DFF,
+			 || in_range(c, U'\u2E80', U'\u2FFF')) // 2E80-2FFF,
 			{
 				return true;
 			}
@@ -254,7 +229,7 @@ namespace pdn::lexer_utility
 	}
 	// is c allowed in identifier
 	// https://learn.microsoft.com/en-us/cpp/cpp/identifiers-cpp
-	inline constexpr bool is_allowed_in_identifier(code_point_t c) noexcept
+	constexpr bool is_allowed_in_identifier(code_point_t c) noexcept
 	{
 		//   is_allowed_in_identifier_first
 		// | '0'-'9'
@@ -272,15 +247,13 @@ namespace pdn::lexer_utility
 	}
 	// is c in basic character set (ref c++26)
 	// https://en.cppreference.com/w/cpp/language/charset#Basic_character_set
-	inline constexpr bool is_in_basic_character_set(code_point_t c) noexcept
+	constexpr bool is_in_basic_character_set(code_point_t c) noexcept
 	{
-		if (in_range(c, U'\u0020', U'\u007E')) return true;
-		if (in_range(c, U'\u0009', U'\u000C')) return true;
-		return false;
+		return in_range(c, U'\u0020', U'\u007E') || in_range(c, U'\u0009', U'\u000C') ? true : false;
 	}
 	// is c in basic literal character set (ref c++26)
 	// https://en.cppreference.com/w/cpp/language/charset#Basic_literal_character_set
-	inline constexpr bool is_in_basic_literal_character_set(code_point_t c) noexcept
+	constexpr bool is_in_basic_literal_character_set(code_point_t c) noexcept
 	{
 		if (is_in_basic_character_set(c)) return true;
 		switch (c)
@@ -291,18 +264,17 @@ namespace pdn::lexer_utility
 		case U'\u000D': // CR
 			return true;
 		default:
-			break;
+			return false;
 		}
-		return false;
 	}
 	// is c in translation character set (ref c++23)
 	// https://en.cppreference.com/w/cpp/language/charset#Translation_character_set
-	inline constexpr bool is_in_translation_character_set(code_point_t c) noexcept
+	constexpr bool is_in_translation_character_set(code_point_t c) noexcept
 	{
 		return unicode::is_scalar_value(c);
 	}
 	// is new-line, such as LF, CR, LS etc.
-	inline constexpr bool is_new_line(code_point_t c) noexcept
+	constexpr bool is_new_line(code_point_t c) noexcept
 	{
 		switch (c)
 		{
@@ -313,13 +285,12 @@ namespace pdn::lexer_utility
 		case U'\u2029': // PARAGRAPH SEPARATOR | PS
 			return true;
 		default:
-			break;
+			return false;
 		}
-		return false;
 	}
 	// is c allowed in delimiter sequence for raw string
 	// https://en.cppreference.com/w/cpp/language/string_literal
-	inline constexpr bool is_allowed_in_raw_string_d_sequence(code_point_t c) noexcept
+	constexpr bool is_allowed_in_raw_string_d_sequence(code_point_t c) noexcept
 	{
 		switch (c)
 		{
@@ -328,10 +299,8 @@ namespace pdn::lexer_utility
 		case U')':
 			return false;
 		default:
-			if (is_whitespace(c)) return false;
-			break;
+			return is_whitespace(c) ? false : is_in_basic_character_set(c);
 		}
-		return is_in_basic_character_set(c);
 	}
 }
 

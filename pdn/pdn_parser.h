@@ -248,16 +248,17 @@ namespace pdn
 
 				auto operand_type = [](pdn_token_code code)
 				{
+					using enum type_code;
 					switch (code)
 					{
-					case literal_boolean:     return type_code::boolean;
-					case literal_character:   return type_code::character;
-					case literal_string:      return type_code::string;
-					case left_brackets:       return type_code::list;
-					case left_curly_brackets: return type_code::object;
+					case literal_boolean:     return boolean;
+					case literal_character:   return character;
+					case literal_string:      return string;
+					case left_brackets:       return list;
+					case left_curly_brackets: return object;
 					default:                  break;
 					}
-					return type_code::unknown;
+					return unknown;
 				}(tk.code);
 				
 				auto is_invalid_operand = [](type_code code) { return code != type_code::unknown; };
