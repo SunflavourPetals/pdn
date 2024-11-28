@@ -282,6 +282,9 @@
     <ClInclude Include="pdn_raw_error_message_variant.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_parser_utility.h">
+      <Filter>pdn_parser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp">

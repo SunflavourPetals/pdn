@@ -28,6 +28,8 @@
 #include "pdn_error_message_generator_concept.h"
 #include "pdn_type_generator_concept.h"
 
+#include "pdn_parser_utility.h"
+
 namespace pdn::concepts
 {
 	template <typename type, typename char_t>
@@ -93,7 +95,7 @@ namespace pdn
 			parse(begin, end, o);
 			return make_proxy<obj>(::std::move(o));
 		}
-		parser(function_package& function_pkg) : func_pkg{ &function_pkg } {}
+		explicit parser(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
 		void parse_start(auto& begin, auto end, obj& o)
 		{
@@ -195,7 +197,9 @@ namespace pdn
 				auto type_c = type_gen(*::std::get<str_pr>(tk.value));
 				if (type_c == type_code::unknown)
 				{
-					post_err(tk.position, syn_ec::unknown_type, raw_error_message_type::identifier{ code_convert<err_ms>(*::std::get<str_pr>(tk.value)) });
+					post_err(tk.position,
+					         syn_ec::unknown_type,
+					         raw_error_message_type::identifier{ code_convert<err_ms>(*::std::get<str_pr>(tk.value)) });
 				}
 				update_token(begin, end);
 				return type_c;
@@ -219,84 +223,12 @@ namespace pdn
 
 			using enum pdn_token_code;
 			using unicode::code_convert;
-
-			auto is_unary_operator = [](pdn_token_code code) { return code == minus || code == plus; };
-			auto is_negative_sign  = [](pdn_token_code code) { return code == minus; };
+			using parser_utility::is_unary_operator;
+			using parser_utility::is_negative_sign;
 
 			if (is_unary_operator(tk.code))
 			{
-				using raw_error_message_type::unary_operation;
-
-				source_position last_positive_sign_pos{}; // P
-				source_position last_negative_sign_pos{}; // N
-				bool            is_last_sign_negative{}; // true => N is valid, false => P is valis
-				bool            is_result_negative{}; // true => N is valid
-
-				for (; is_unary_operator(tk.code); update_token(begin, end))
-				{
-					is_last_sign_negative = is_negative_sign(tk.code);
-					if (is_last_sign_negative)
-					{
-						last_negative_sign_pos = tk.position;
-						is_result_negative = !is_result_negative;
-					}
-					else
-					{
-						last_positive_sign_pos = tk.position;
-					}
-				}
-
-				auto operand_type = [](pdn_token_code code)
-				{
-					using enum type_code;
-					switch (code)
-					{
-					case literal_boolean:     return boolean;
-					case literal_character:   return character;
-					case literal_string:      return string;
-					case left_brackets:       return list;
-					case left_curly_brackets: return object;
-					default:                  break;
-					}
-					return unknown;
-				}(tk.code);
-				
-				auto is_invalid_operand = [](type_code code) { return code != type_code::unknown; };
-
-				auto last_sign_pos = [&]() { return is_last_sign_negative ? last_negative_sign_pos : last_positive_sign_pos; };
-
-				if (is_invalid_operand(operand_type))
-				{
-					post_err(last_sign_pos(),
-					         syn_ec::invalid_unary_operation,
-					         unary_operation{ to_token<error_msg_char>(tk), operand_type, is_last_sign_negative});
-				}
-				
-				::std::visit([&](auto& arg)
-				{
-					using arg_t = ::std::decay_t<decltype(arg)>;
-					using types::concepts::pdn_sint;
-					using types::concepts::pdn_uint;
-					using types::concepts::pdn_fp;
-					if constexpr (pdn_fp<arg_t> || pdn_sint<arg_t>)
-					{
-						arg = -arg;
-					}
-					else if constexpr (pdn_uint<arg_t>) // check is operator- illegal, for unsigned integral types
-					{
-						if (is_result_negative)
-						{
-							constexpr auto operand_type = type_to_type_code_v<arg_t, char_t>;
-							post_err(last_negative_sign_pos,
-							         syn_ec::invalid_unary_operation,
-							         unary_operation{ to_token<error_msg_char>(tk), operand_type, is_result_negative});
-						}
-					}
-					else if constexpr (::std::same_as<arg_t, ::std::monostate>)
-					{
-						post_err(tk.position, syn_ec::inner_error_token_have_no_value, to_raw_error_token(tk));
-					}
-				}, tk.value);
+				process_unary_operation(begin, end);
 			}
 
 			switch (tk.code)
@@ -339,6 +271,71 @@ namespace pdn
 			}
 
 			return types::cppint{};
+		}
+
+		void process_unary_operation(auto& begin, auto end)
+		{
+			using raw_error_message_type::unary_operation;
+			using parser_utility::is_unary_operator;
+			using parser_utility::is_negative_sign;
+			using parser_utility::operand_type;
+
+			source_position last_positive_sign_pos{}; // P
+			source_position last_negative_sign_pos{}; // N
+			bool            is_last_sign_negative{};  // true => N is valid, false => P is valis
+			bool            is_result_negative{};     // true => N is valid
+
+			for (; is_unary_operator(tk.code); update_token(begin, end))
+			{
+				is_last_sign_negative = is_negative_sign(tk.code);
+				if (is_last_sign_negative)
+				{
+					last_negative_sign_pos = tk.position;
+					is_result_negative = !is_result_negative;
+				}
+				else
+				{
+					last_positive_sign_pos = tk.position;
+				}
+			}
+
+			// boolean, character, string, list, object have no operation "+operand" and "-operand"
+			if (auto operand_type_c = operand_type(tk.code); operand_type_c != type_code::unknown)
+			{
+				post_err(is_last_sign_negative ? last_negative_sign_pos : last_positive_sign_pos,
+				         syn_ec::invalid_unary_operation,
+				         unary_operation{ to_token<error_msg_char>(tk), operand_type_c, is_last_sign_negative });
+				return;
+			}
+
+			::std::visit([&](auto& arg)
+			{
+				using arg_t = ::std::decay_t<decltype(arg)>;
+				using types::concepts::pdn_sint;
+				using types::concepts::pdn_uint;
+				using types::concepts::pdn_fp;
+				if constexpr (pdn_fp<arg_t> || pdn_sint<arg_t>)
+				{
+					if (is_result_negative)
+					{
+						arg = -arg;
+					}
+				}
+				else if constexpr (pdn_uint<arg_t>) // check is operator- illegal, for unsigned integral types
+				{
+					if (is_result_negative)
+					{
+						constexpr auto operand_type_c = type_to_type_code_v<arg_t, char_t>;
+						post_err(last_negative_sign_pos,
+						         syn_ec::invalid_unary_operation,
+						         unary_operation{ to_token<error_msg_char>(tk), operand_type_c, is_result_negative });
+					}
+				}
+				else if constexpr (::std::same_as<arg_t, ::std::monostate>)
+				{
+					post_err(tk.position, syn_ec::inner_error_token_have_no_value, to_raw_error_token(tk));
+				}
+			}, tk.value);
 		}
 
 		entity parse_list_expr(auto& begin, auto end, source_position left_brackets_pos)
@@ -472,42 +469,24 @@ namespace pdn
 			using enum type_code;
 			switch (target_type_c)
 			{
-			case i8:
-				return entity_cast<i8>(::std::move(src), type_pos);
-			case i16:
-				return entity_cast<i16>(::std::move(src), type_pos);
-			case i32:
-				return entity_cast<i32>(::std::move(src), type_pos);
-			case i64:
-				return entity_cast<i64>(::std::move(src), type_pos);
-			case u8:
-				return entity_cast<u8>(::std::move(src), type_pos);
-			case u16:
-				return entity_cast<u16>(::std::move(src), type_pos);
-			case u32:
-				return entity_cast<u32>(::std::move(src), type_pos);
-			case u64:
-				return entity_cast<u64>(::std::move(src), type_pos);
-			case boolean:
-				return entity_cast<boolean>(::std::move(src), type_pos);
-			case f32:
-				return entity_cast<f32>(::std::move(src), type_pos);
-			case f64:
-				return entity_cast<f64>(::std::move(src), type_pos);
-			case character:
-				return entity_cast<character>(::std::move(src), type_pos);
-			case string:
-				return entity_cast<string>(::std::move(src), type_pos);
-			case list:
-				return entity_cast<list>(::std::move(src), type_pos);
-			case object:
-				return entity_cast<object>(::std::move(src), type_pos);
-			case unknown:
-				return entity_cast<unknown>(::std::move(src), type_pos);
-			default:
-				break;
+			case i8:        return entity_cast<i8>       (::std::move(src), type_pos);
+			case i16:       return entity_cast<i16>      (::std::move(src), type_pos);
+			case i32:       return entity_cast<i32>      (::std::move(src), type_pos);
+			case i64:       return entity_cast<i64>      (::std::move(src), type_pos);
+			case u8:        return entity_cast<u8>       (::std::move(src), type_pos);
+			case u16:       return entity_cast<u16>      (::std::move(src), type_pos);
+			case u32:       return entity_cast<u32>      (::std::move(src), type_pos);
+			case u64:       return entity_cast<u64>      (::std::move(src), type_pos);
+			case boolean:   return entity_cast<boolean>  (::std::move(src), type_pos);
+			case f32:       return entity_cast<f32>      (::std::move(src), type_pos);
+			case f64:       return entity_cast<f64>      (::std::move(src), type_pos);
+			case character: return entity_cast<character>(::std::move(src), type_pos);
+			case string:    return entity_cast<string>   (::std::move(src), type_pos);
+			case list:      return entity_cast<list>     (::std::move(src), type_pos);
+			case object:    return entity_cast<object>   (::std::move(src), type_pos);
+			case unknown:   return entity_cast<unknown>  (::std::move(src), type_pos);
+			default:        return types::cppint{};
 			}
-			return types::cppint{};
 		}
 		// --------------------------------------------------------------------------------------------------------------------
 		template <type_code target_type_c>

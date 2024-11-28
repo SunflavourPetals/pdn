@@ -62,6 +62,12 @@ namespace pdn::raw_error_message_type
 		type_code             operand_type;
 		bool                  negative;
 	};
+	struct casting_msg final
+	{
+		token<error_msg_char> operand;
+		type_code             source_type;
+		type_code             target_type;
+	};
 }
 
 namespace pdn::dev_util::raw_error_message
@@ -78,6 +84,7 @@ namespace pdn::dev_util::raw_error_message
 		identifier,
 		error_token,
 		unary_operation,
+		casting_msg,
 
 		error_msg_string>; // remove it
 }
