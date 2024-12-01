@@ -503,7 +503,7 @@ namespace pdn
 			{
 				::std::optional<constant_variant<char_t>> value_opt = func_pkg->generate_constant(
 					text_code_convert<unicode::utf_8_code_unit_t>(text, position));
-				if (value_opt.has_value())
+				if (value_opt)
 				{
 					constant_variant<char_t>& value = *value_opt;
 					::std::visit([&]<typename arg_t>(arg_t && arg)

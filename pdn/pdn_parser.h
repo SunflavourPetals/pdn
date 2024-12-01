@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_parser
 
 #include <utility>
+#include <cstdint>
 #include <variant>
 #include <limits>
 #include <concepts>
@@ -95,14 +96,15 @@ namespace pdn
 			{
 				if (tk.code == identifier)
 				{
-					const auto& iden = *::std::get<str_pr>(::std::move(tk.value));
-					if (auto it = o.find(iden); it == o.end())
+					const auto& iden_ref = *::std::get<str_pr>(::std::move(tk.value));
+					if (auto it = o.find(iden_ref); it == o.end())
 					{
-						o[iden] = parse_decl(begin, end);
+						auto iden_copy = iden_ref;
+						o[::std::move(iden_copy)] = parse_decl(begin, end);
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::entity_redefine, raw_error_message_type::identifier{ code_convert<err_ms>(iden) });
+						post_err(tk.position, syn_ec::entity_redefine, raw_error_message_type::identifier{ code_convert<err_ms>(iden_ref) });
 						parse_decl(begin, end);
 					}
 				}
@@ -262,15 +264,16 @@ namespace pdn
 
 		void process_unary_operation(auto& begin, auto end)
 		{
+			using ::std::uint_fast32_t;
 			using raw_error_message_type::unary_operation;
 			using parser_utility::is_unary_operator;
 			using parser_utility::is_negative_sign;
-			using parser_utility::operand_type;
 
-			source_position last_positive_sign_pos{}; // P
-			source_position last_negative_sign_pos{}; // N
-			bool            is_last_sign_negative{};  // true => N is valid, false => P is valis
-			bool            is_result_negative{};     // true => N is valid
+			source_position last_positive_sign_pos{}; // P-pos
+			source_position last_negative_sign_pos{}; // N-pos
+			uint_fast32_t   negative_sign_count{};
+			bool            is_last_sign_negative{};  // true => N-pos is valid, false => P-pos is valis
+			
 
 			for (; is_unary_operator(tk.code); update_token(begin, end))
 			{
@@ -278,21 +281,12 @@ namespace pdn
 				if (is_last_sign_negative)
 				{
 					last_negative_sign_pos = tk.position;
-					is_result_negative = !is_result_negative;
+					++negative_sign_count;
 				}
 				else
 				{
 					last_positive_sign_pos = tk.position;
 				}
-			}
-
-			// boolean, character, string, list, object have no operation "+operand" and "-operand"
-			if (auto operand_type_c = operand_type(tk.code); operand_type_c != type_code::unknown)
-			{
-				post_err(is_last_sign_negative ? last_negative_sign_pos : last_positive_sign_pos,
-				         syn_ec::invalid_unary_operation,
-				         unary_operation{ to_token<error_msg_char>(tk), operand_type_c, is_last_sign_negative });
-				return;
 			}
 
 			::std::visit([&](auto& arg)
@@ -301,26 +295,33 @@ namespace pdn
 				using types::concepts::pdn_sint;
 				using types::concepts::pdn_uint;
 				using types::concepts::pdn_fp;
-				if constexpr (pdn_fp<arg_t> || pdn_sint<arg_t>)
+				if constexpr (pdn_fp<arg_t> || pdn_sint<arg_t>) // f32, f64, i8, i16, i32, i64
 				{
-					if (is_result_negative)
+					if (negative_sign_count % 2)
 					{
 						arg = -arg;
 					}
 				}
-				else if constexpr (pdn_uint<arg_t>) // check is operator- illegal, for unsigned integral types
+				else if constexpr (pdn_uint<arg_t>) // unary operator- on u8, u16, u32, u64 is illegal
 				{
-					if (is_result_negative)
+					if (negative_sign_count)
 					{
-						constexpr auto operand_type_c = type_to_type_code_v<arg_t, char_t>;
+						constexpr auto operand_type = type_to_type_code_v<arg_t, char_t>;
 						post_err(last_negative_sign_pos,
 						         syn_ec::invalid_unary_operation,
-						         unary_operation{ to_token<error_msg_char>(tk), operand_type_c, is_result_negative });
+						         unary_operation{ to_token<error_msg_char>(tk), operand_type, false });
 					}
 				}
 				else if constexpr (::std::same_as<arg_t, ::std::monostate>)
 				{
 					post_err(tk.position, syn_ec::inner_error_token_have_no_value, to_raw_error_token(tk));
+				}
+				else // boolean, character, string, list, object
+				{
+					constexpr auto operand_type = type_to_type_code_v<type_traits::remove_proxy_t<arg_t>, char_t>;
+					post_err(is_last_sign_negative ? last_negative_sign_pos : last_positive_sign_pos,
+					         syn_ec::invalid_unary_operation,
+					         unary_operation{ to_token<error_msg_char>(tk), operand_type, is_last_sign_negative });
 				}
 			}, tk.value);
 		}
@@ -451,6 +452,7 @@ namespace pdn
 			return make_proxy<obj>(::std::move(result));
 		}
 
+		// todo move to utility
 		entity entity_cast(entity src, type_code target_type_c, source_position type_pos)
 		{
 			using enum type_code;
@@ -476,6 +478,7 @@ namespace pdn
 			}
 		}
 		// --------------------------------------------------------------------------------------------------------------------
+		// todo move to utility
 		template <type_code target_type_c>
 		entity entity_cast(entity src, source_position type_pos)
 		{
@@ -519,7 +522,7 @@ namespace pdn
 							.append(type_code_to_error_msg_string(tar_tc));
 					};
 
-				// It does not work for msvc and clang (YMD:2024-09-02)
+				// It does not work for msvc and clang-cl (YMD:2024-09-02)
 				// ```
 				//     if constexpr (pdn_integral<src_t> && pdn_integral<tar_t>)
 				//     {
@@ -645,7 +648,7 @@ namespace pdn
 				return arg;
 			}, src);
 		}
-
+		// todo move to utility
 		entity token_value_to_entity(token<char_t> target)
 		{
 			return ::std::visit([&]<typename arg_fwd_t>(arg_fwd_t&& arg) -> entity
@@ -668,12 +671,12 @@ namespace pdn
 		{
 			if (begin != end)
 			{
-				tk = *begin;
+				tk = ::std::move(*begin);
 				++begin;
 			}
 			else
 			{
-				tk = token<char_t>{ .position = {}, .code = pdn_token_code::eof, .value = {} };
+				tk = token<char_t>{ .position = tk.position, .code = pdn_token_code::eof, .value = {} };
 			}
 		}
 
@@ -686,7 +689,7 @@ namespace pdn
 		{
 			func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(raw_msg)) });
 		}
-
+		// todo move to utility
 		static constexpr bool is_expr_first(pdn_token_code c) noexcept
 		{
 			using enum pdn_token_code;
@@ -707,12 +710,12 @@ namespace pdn
 			}
 			return false;
 		}
-
+		// todo move to utility
 		static constexpr bool is_list_element_first(pdn_token_code c) noexcept
 		{
 			return is_expr_first(c) || c == pdn_token_code::identifier;
 		}
-
+		// todo move to utility
 		static constexpr entity default_entity_value(type_code type_c)
 		{
 			using enum type_code;
@@ -730,14 +733,13 @@ namespace pdn
 			case f64:       return fp64{};
 			case boolean:   return bln{};
 			case character: return cha{};
-			case string:    return str_pr{ make_proxy<str>() };
-			case list:      return lst_pr{ make_proxy<lst>() };
-			case object:    return obj_pr{ make_proxy<obj>() };
-			default:        break;
+			case string:    return make_proxy<str>();
+			case list:      return make_proxy<lst>();
+			case object:    return make_proxy<obj>();
+			default:        return types::cppint{};
 			}
-			return types::cppint{};
 		}
-
+		// todo move to token_value_variant.h
 		template <typename target_char_t>
 		static constexpr auto to_token_value_variant(token_value_variant<char_t> src) -> token_value_variant<target_char_t>
 		{
@@ -767,7 +769,7 @@ namespace pdn
 				}, ::std::move(src));
 			}
 		}
-
+		// todo move to token.h
 		template <typename target_char_t>
 		static constexpr auto to_token(token<char_t> src) -> token<target_char_t>
 		{
@@ -780,7 +782,7 @@ namespace pdn
 				return { src.position, src.code, to_token_value_variant<target_char_t>(::std::move(src.value)) };
 			}
 		}
-
+		// todo move to utility
 		static constexpr auto to_raw_error_token(token<char_t> src) -> raw_error_message_type::error_token
 		{
 			if constexpr (::std::same_as<char_t, error_msg_char>)
