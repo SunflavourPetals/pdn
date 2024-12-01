@@ -1,56 +1,66 @@
 #ifndef PDN_Header_pdn_proxy
 #define PDN_Header_pdn_proxy
 
+#include <type_traits>
+#include <utility>
 #include <memory>
 
 namespace pdn
 {
 	template <typename t>
-	class proxy : public ::std::unique_ptr<t>
+	class proxy
 	{
 	private:
-		using base_type = ::std::unique_ptr<t>;
+		using handle_type = ::std::unique_ptr<t>;
 	public:
-		using typename base_type::element_type;
-		using typename base_type::pointer;
-		using typename base_type::deleter_type;
-		using base_type::base_type;
-		proxy(const proxy& o)         : proxy(static_cast<const base_type&>(o)) {}
-		proxy(proxy&& o) noexcept     : proxy(static_cast<base_type&&>(o)) {}
-		proxy(const base_type& o)     : base_type(o ? ::std::make_unique<t>(*o) : base_type{}) {}
-		proxy(base_type&& o) noexcept : base_type(::std::move(o)) {}
-		proxy& operator=(const proxy& o)
+		using element_type = typename handle_type::element_type;
+		using pointer      = typename handle_type::pointer;
+		using deleter_type = typename handle_type::deleter_type;
+		explicit operator bool() const noexcept
 		{
-			*this = proxy{ o };
-			return *this;
+			return static_cast<bool>(handle);
 		}
-		proxy& operator=(const base_type& o)
+		auto operator*() const noexcept -> ::std::add_lvalue_reference_t<t>
+		{
+			return *handle;
+		}
+		auto operator->() const noexcept -> pointer
+		{
+			return handle.get();
+		}
+		proxy() = default;
+		proxy(const proxy& o) : handle{ ::std::make_unique<t>(*o) } {}
+		proxy(proxy&& o) noexcept
+		{
+			*this = ::std::move(o);
+		}
+		proxy& operator=(const proxy& o)
 		{
 			*this = proxy{ o };
 			return *this;
 		}
 		proxy& operator=(proxy&& o) noexcept
 		{
-			this->base_type::operator=(::std::move(o));
+			::std::swap(handle, o.handle);
 			return *this;
 		}
-		proxy& operator=(base_type&& o) noexcept
-		{
-			this->base_type::operator=(::std::move(o));
-			return *this;
-		}
+		template <typename type, typename... args_t>
+		friend auto make_proxy(args_t&&... args) -> proxy<type>;
+	private:
+		explicit proxy(handle_type h) : handle{ ::std::move(h) } {}
+		handle_type handle{};
 	};
 
-	template <typename t>
-	class proxy<t[]>
+	template <typename type>
+	class proxy<type[]>
 	{
 		static_assert(false, "[pdn] cannot create proxy class for array");
 	};
 
-	template <typename t, typename... args_t>
-	proxy<t> make_proxy(args_t&&... args)
+	template <typename type, typename... args_t>
+	auto make_proxy(args_t&&... args) -> proxy<type>
 	{
-		return ::std::make_unique<t>(::std::forward<args_t>(args)...);
+		return proxy<type>{ ::std::make_unique<type>(::std::forward<args_t>(args)...) };
 	}
 }
 

@@ -70,9 +70,8 @@ namespace pdn::raw_error_message_type
 	};
 }
 
-namespace pdn::dev_util::raw_error_message
+namespace pdn::raw_error_message_type::dev_util
 {
-	using namespace raw_error_message_type;
 	using raw_error_message_variant = ::std::variant<
 		::std::monostate,
 		utf_8_decode_error,
@@ -91,7 +90,7 @@ namespace pdn::dev_util::raw_error_message
 
 namespace pdn
 {
-	using dev_util::raw_error_message::raw_error_message_variant;
+	using raw_error_message_type::dev_util::raw_error_message_variant;
 }
 
 #endif

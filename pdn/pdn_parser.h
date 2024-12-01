@@ -39,16 +39,6 @@ namespace pdn::concepts
 		&& concepts::type_generator<type, char_t>;
 }
 
-namespace pdn::dev_util
-{
-	template <typename type, typename char_t>
-	concept token_iterator = requires (type it)
-	{
-		{ *it } -> ::std::convertible_to<token<char_t>>;
-		++it;
-	};
-}
-
 namespace pdn
 {
 	template <unicode::concepts::code_unit char_t, concepts::function_package_for_parser<char_t> function_package>
@@ -78,8 +68,7 @@ namespace pdn
 		using obj_pr = proxy<obj>;
 		using syn_ec = syntax_error_code;
 	public:
-		template <dev_util::token_iterator<char_t> it_t>
-		void parse(it_t&& begin, auto end, obj& o)
+		void parse(concepts::token_iterator<char_t> auto begin, auto end, obj& o)
 		{
 			using enum pdn_token_code;
 			parse_start(begin, end, o);
@@ -88,10 +77,9 @@ namespace pdn
 				post_err(tk.position, syn_ec::inner_error_parse_terminated, {});
 			}
 		}
-		template <dev_util::token_iterator<char_t> it_t>
-		entity parse(it_t&& begin, auto end)
+		entity parse(concepts::token_iterator<char_t> auto begin, auto end)
 		{
-			obj o;
+			obj o{};
 			parse(begin, end, o);
 			return make_proxy<obj>(::std::move(o));
 		}
@@ -107,20 +95,19 @@ namespace pdn
 			{
 				if (tk.code == identifier)
 				{
-					auto iden_p = ::std::get<str_pr>(::std::move(tk.value));
-					if (auto it = o.find(*iden_p); it == o.end())
+					const auto& iden = *::std::get<str_pr>(::std::move(tk.value));
+					if (auto it = o.find(iden); it == o.end())
 					{
-						o[::std::move(*iden_p)] = parse_decl(begin, end);
+						o[iden] = parse_decl(begin, end);
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::entity_redefine, raw_error_message_type::identifier{ code_convert<err_ms>(*iden_p) });
+						post_err(tk.position, syn_ec::entity_redefine, raw_error_message_type::identifier{ code_convert<err_ms>(iden) });
 						parse_decl(begin, end);
 					}
 				}
 				else
 				{
-					using namespace error_message_literals;
 					if (tk.code == semicolon)
 					{
 						update_token(begin, end);
