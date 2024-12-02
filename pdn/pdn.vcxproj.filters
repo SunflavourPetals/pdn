@@ -285,6 +285,15 @@
     <ClInclude Include="pdn_parser_utility.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_token_value_variant_convert.h">
+      <Filter>pdn_token</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_token_convert.h">
+      <Filter>pdn_token</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_raw_error_message_type.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp">

@@ -164,10 +164,12 @@
     <ClInclude Include="pdn_parse.h" />
     <ClInclude Include="pdn_parser.h" />
     <ClInclude Include="pdn_proxy.h" />
+    <ClInclude Include="pdn_raw_error_message_type.h" />
     <ClInclude Include="pdn_raw_error_message_variant.h" />
     <ClInclude Include="pdn_source_position_recorder_concept.h" />
     <ClInclude Include="pdn_token_code.h" />
     <ClInclude Include="pdn_token_code_to_error_msg_string.h" />
+    <ClInclude Include="pdn_token_convert.h" />
     <ClInclude Include="pdn_token_value_variant.h" />
     <ClInclude Include="pdn_lexical_error_code.h" />
     <ClInclude Include="pdn_lexer_utility.h" />
@@ -206,6 +208,7 @@
     <ClInclude Include="pdn_err_msg_gen_en_syn.h" />
     <ClInclude Include="pdn_type_code_to_error_msg_string.h" />
     <ClInclude Include="pdn_syntax_error_code.h" />
+    <ClInclude Include="pdn_token_value_variant_convert.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp" />

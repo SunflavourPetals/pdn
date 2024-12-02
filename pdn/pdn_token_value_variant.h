@@ -2,7 +2,6 @@
 #define PDN_Header_pdn_token_value_variant
 
 #include <variant>
-#include <optional>
 
 #include "pdn_types.h"
 #include "pdn_proxy.h"

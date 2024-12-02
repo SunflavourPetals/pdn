@@ -801,7 +801,7 @@ namespace pdn_test
 			std::cout << "failed in open file: \"" << filename << "\"\n";
 			return;
 		}
-
+		
 		auto& dom = *dom_opt;
 
 		std::chrono::duration<double> time_cost = after_parse - prev_parse;
@@ -824,6 +824,7 @@ namespace pdn_test
 
 int main(int argc, const char* argv[])
 {
+	std::system("chcp 65001");
 	std::string filename{};
 	std::string out_filename{};
 	std::string log_filename{};

@@ -12,12 +12,14 @@
 #include "pdn_code_convert.h"
 
 #include "pdn_types.h"
-#include "pdn_token.h"
+
 #include "pdn_token_code.h"
+#include "pdn_token.h"
+#include "pdn_token_convert.h"
+#include "pdn_token_code_to_error_msg_string.h"
+
 #include "pdn_error_string.h"
 #include "pdn_syntax_error_code.h"
-#include "pdn_token_code_to_error_msg_string.h"
-#include "pdn_make_slashes_string.h"
 #include "pdn_raw_error_message_variant.h"
 
 #include "pdn_type_code.h"
@@ -29,7 +31,10 @@
 #include "pdn_error_message_generator_concept.h"
 #include "pdn_type_generator_concept.h"
 
+#include "pdn_make_slashes_string.h"
 #include "pdn_parser_utility.h"
+
+#include "pdn_exception.h"
 
 namespace pdn::concepts
 {
@@ -49,67 +54,52 @@ namespace pdn
 		using char_type = char_t;
 		using entity = types::entity<char_type>;
 	private:
-		using si8    = types::i8;
-		using si16   = types::i16;
-		using si32   = types::i32;
-		using si64   = types::i64;
-		using ui8    = types::u8;
-		using ui16   = types::u16;
-		using ui32   = types::u32;
-		using ui64   = types::u64;
-		using fp32   = types::f32;
-		using fp64   = types::f64;
-		using bln    = types::boolean;
-		using cha    = types::character<char_type>;
-		using str    = types::string<char_type>;
-		using lst    = types::list<char_type>;
-		using obj    = types::object<char_type>;
-		using str_pr = proxy<str>;
-		using lst_pr = proxy<lst>;
-		using obj_pr = proxy<obj>;
 		using syn_ec = syntax_error_code;
 	public:
-		void parse(concepts::token_iterator<char_t> auto begin, auto end, obj& o)
+		void parse(concepts::token_iterator<char_t> auto begin, auto end, types::object<char_t>& o)
 		{
 			using enum pdn_token_code;
 			parse_start(begin, end, o);
 			if (tk.code != eof)
 			{
-				post_err(tk.position, syn_ec::inner_error_parse_terminated, {});
+				throw inner_error{ "parse terminated" };
 			}
 		}
 		entity parse(concepts::token_iterator<char_t> auto begin, auto end)
 		{
-			obj o{};
+			auto o = types::object<char_t>{};
 			parse(begin, end, o);
-			return make_proxy<obj>(::std::move(o));
+			return make_proxy<types::object<char_t>>(::std::move(o));
 		}
 		explicit parser(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
-		void parse_start(auto& begin, auto end, obj& o)
+		void parse_start(auto& begin, auto end, types::object<char_t>& o)
 		{
 			using enum pdn_token_code;
 			using err_ms = error_msg_string;
 			using unicode::code_convert;
+			using parser_utility::is_expr_first;
 
 			for (update_token(begin, end); tk.code != eof; )
 			{
 				if (tk.code == identifier)
 				{
-					const auto& iden_ref = *::std::get<str_pr>(::std::move(tk.value));
-					if (auto it = o.find(iden_ref); it == o.end())
+					using string_pr = proxy<types::string<char_t>>;
+					auto iden_p = ::std::get<string_pr>(::std::move(tk.value));
+					if (auto it = o.find(*iden_p); it == o.end())
 					{
-						auto iden_copy = iden_ref;
-						o[::std::move(iden_copy)] = parse_decl(begin, end);
+						o[::std::move(*iden_p)] = parse_decl(begin, end);
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::entity_redefine, raw_error_message_type::identifier{ code_convert<err_ms>(iden_ref) });
+						using raw_err_iden = raw_error_message_type::identifier;
+						post_err(tk.position, syn_ec::entity_redefine, raw_err_iden{ code_convert<err_ms>(*iden_p) });
 						parse_decl(begin, end);
 					}
 				}
 				else
 				{
+					using parser_utility::to_raw_error_token;
 					if (tk.code == semicolon)
 					{
 						update_token(begin, end);
@@ -134,6 +124,8 @@ namespace pdn
 			// expect : | expr
 
 			using enum pdn_token_code;
+			using parser_utility::is_expr_first;
+			using parser_utility::default_entity_value;
 
 			type_code type_c = type_code::unknown;
 			auto type_pos = tk.position;
@@ -154,8 +146,8 @@ namespace pdn
 
 			if (!is_expr_first(tk.code))
 			{
-				post_err(tk.position, syn_ec::expect_expression, to_raw_error_token(tk));
-				return default_entity_value(type_c);
+				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
+				return default_entity_value<char_t>(type_c);
 			}
 
 			auto e = parse_expr(begin, end);
@@ -183,18 +175,18 @@ namespace pdn
 
 			if (tk.code == identifier)
 			{
-				auto type_c = type_gen(*::std::get<str_pr>(tk.value));
+				using string_pr = proxy<types::string<char_t>>;
+				auto type_c = type_gen(*::std::get<string_pr>(tk.value));
 				if (type_c == type_code::unknown)
 				{
-					post_err(tk.position,
-					         syn_ec::unknown_type,
-					         raw_error_message_type::identifier{ code_convert<err_ms>(*::std::get<str_pr>(tk.value)) });
+					using raw_err_iden = raw_error_message_type::identifier;
+					post_err(tk.position, syn_ec::unknown_type, raw_err_iden{ code_convert<err_ms>(*::std::get<string_pr>(tk.value)) });
 				}
 				update_token(begin, end);
 				return type_c;
 			}
 
-			post_err(tk.position, syn_ec::expect_type_name, to_raw_error_token(tk));
+			post_err(tk.position, syn_ec::expect_type_name, parser_utility::to_raw_error_token(tk));
 
 			return type_code::unknown;
 		}
@@ -214,6 +206,7 @@ namespace pdn
 			using unicode::code_convert;
 			using parser_utility::is_unary_operator;
 			using parser_utility::is_negative_sign;
+			using parser_utility::token_value_to_entity;
 
 			if (is_unary_operator(tk.code))
 			{
@@ -224,14 +217,16 @@ namespace pdn
 			{
 			case literal_string:
 			{
+				using string_t = types::string<char_t>;
+				using string_pr = proxy<string_t>;
 				auto start_pos = tk.position;
-				auto cat_string = str{};
+				auto concat_s = string_t{};
 				while (tk.code == literal_string) // concatenation
 				{
-					cat_string += *::std::get<str_pr>(tk.value);
+					concat_s += *::std::get<string_pr>(tk.value);
 					update_token(begin, end);
 				}
-				return token_value_to_entity(token<char_t>{ start_pos, literal_string, make_proxy<str>(::std::move(cat_string)) });
+				return token_value_to_entity(token<char_t>{ start_pos, literal_string, make_proxy<string_t>(::std::move(concat_s)) });
 			}
 			case literal_boolean:
 			case literal_character:
@@ -255,7 +250,7 @@ namespace pdn
 				return parse_object_expr(begin, end, left_curly_brackets_pos);
 			}
 			default:
-				post_err(tk.position, syn_ec::expect_expression, to_raw_error_token(tk));
+				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
 				break;
 			}
 
@@ -265,7 +260,6 @@ namespace pdn
 		void process_unary_operation(auto& begin, auto end)
 		{
 			using ::std::uint_fast32_t;
-			using raw_error_message_type::unary_operation;
 			using parser_utility::is_unary_operator;
 			using parser_utility::is_negative_sign;
 
@@ -291,6 +285,7 @@ namespace pdn
 
 			::std::visit([&](auto& arg)
 			{
+				using raw_err_unary_op = raw_error_message_type::unary_operation;
 				using arg_t = ::std::decay_t<decltype(arg)>;
 				using types::concepts::pdn_sint;
 				using types::concepts::pdn_uint;
@@ -309,19 +304,19 @@ namespace pdn
 						constexpr auto operand_type = type_to_type_code_v<arg_t, char_t>;
 						post_err(last_negative_sign_pos,
 						         syn_ec::invalid_unary_operation,
-						         unary_operation{ to_token<error_msg_char>(tk), operand_type, false });
+						         raw_err_unary_op{ token_convert<error_msg_char>(tk), operand_type, false });
 					}
 				}
 				else if constexpr (::std::same_as<arg_t, ::std::monostate>)
 				{
-					post_err(tk.position, syn_ec::inner_error_token_have_no_value, to_raw_error_token(tk));
+					throw inner_error{ "token have no value" };
 				}
 				else // boolean, character, string, list, object
 				{
 					constexpr auto operand_type = type_to_type_code_v<type_traits::remove_proxy_t<arg_t>, char_t>;
 					post_err(is_last_sign_negative ? last_negative_sign_pos : last_positive_sign_pos,
 					         syn_ec::invalid_unary_operation,
-					         unary_operation{ to_token<error_msg_char>(tk), operand_type, is_last_sign_negative });
+					         raw_err_unary_op{ token_convert<error_msg_char>(tk), operand_type, is_last_sign_negative });
 				}
 			}, tk.value);
 		}
@@ -330,17 +325,20 @@ namespace pdn
 		{
 			// ... [ CURRPOS ...
 
-			lst result{};
+			using parser_utility::is_list_element_first;
+
+			auto result = types::list<char_t>{};
 
 			for (bool with_comma{ true }; tk.code != pdn_token_code::right_brackets; )
 			{
 				if (tk.code == pdn_token_code::eof)
 				{
 					post_err(left_brackets_pos, syn_ec::missing_right_brackets, {});
-					return make_proxy<lst>(::std::move(result));
+					return make_proxy<types::list<char_t>>(::std::move(result));
 				}
 				if (!with_comma)
 				{
+					using parser_utility::to_raw_error_token;
 					if (is_list_element_first(tk.code))
 					{
 						post_err(tk.position, syn_ec::expect_comma, to_raw_error_token(tk));
@@ -357,7 +355,7 @@ namespace pdn
 			// to ... [ ... ] CURRPOS
 			update_token(begin, end);
 
-			return make_proxy<lst>(::std::move(result));
+			return make_proxy<types::list<char_t>>(::std::move(result));
 		}
 
 		entity parse_list_element(auto& begin, auto end, bool& with_comma)
@@ -376,7 +374,7 @@ namespace pdn
 				}
 				else
 				{
-					post_err(tk.position, syn_ec::expect_colon, to_raw_error_token(tk));
+					post_err(tk.position, syn_ec::expect_colon, parser_utility::to_raw_error_token(tk));
 				}
 			}
 
@@ -407,21 +405,25 @@ namespace pdn
 
 			using err_ms = error_msg_string;
 			using unicode::code_convert;
+			using parser_utility::is_expr_first;
 
-			obj result{};
+			auto result = types::object<char_t>{};
 
 			while (tk.code != pdn_token_code::right_curly_brackets)
 			{
+				using parser_utility::to_raw_error_token;
 				if (tk.code == pdn_token_code::identifier)
 				{
-					auto iden_p = ::std::get<str_pr>(::std::move(tk.value));
+					using string_pr = proxy<types::string<char_t>>;
+					auto iden_p = ::std::get<string_pr>(::std::move(tk.value));
 					if (auto it = result.find(*iden_p); it == result.end())
 					{
 						result[::std::move(*iden_p)] = parse_decl(begin, end);
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::entity_redefine, raw_error_message_type::identifier{ code_convert<err_ms>(*iden_p) });
+						using raw_err_iden = raw_error_message_type::identifier;
+						post_err(tk.position, syn_ec::entity_redefine, raw_err_iden{ code_convert<err_ms>(*iden_p) });
 						parse_decl(begin, end);
 					}
 				}
@@ -437,7 +439,7 @@ namespace pdn
 				else if (tk.code == pdn_token_code::eof)
 				{
 					post_err(left_curly_brackets_pos, syn_ec::missing_right_curly_brackets, {});
-					return make_proxy<obj>(::std::move(result));
+					return make_proxy<types::object<char_t>>(::std::move(result));
 				}
 				else
 				{
@@ -449,10 +451,9 @@ namespace pdn
 			// to ... { ... } CURRPOS
 			update_token(begin, end);
 
-			return make_proxy<obj>(::std::move(result));
+			return make_proxy<types::object<char_t>>(::std::move(result));
 		}
 
-		// todo move to utility
 		entity entity_cast(entity src, type_code target_type_c, source_position type_pos)
 		{
 			using enum type_code;
@@ -473,201 +474,144 @@ namespace pdn
 			case string:    return entity_cast<string>   (::std::move(src), type_pos);
 			case list:      return entity_cast<list>     (::std::move(src), type_pos);
 			case object:    return entity_cast<object>   (::std::move(src), type_pos);
-			case unknown:   return entity_cast<unknown>  (::std::move(src), type_pos);
+			case unknown:   throw  inner_error{ "cast to unknown type" };
 			default:        return types::cppint{};
 			}
 		}
-		// --------------------------------------------------------------------------------------------------------------------
-		// todo move to utility
+
 		template <type_code target_type_c>
 		entity entity_cast(entity src, source_position type_pos)
 		{
-			using target_t_outer = type_code_to_type_t<target_type_c, char_t>; // unknown -> void
+			static_assert(target_type_c != type_code::unknown, "[pdn] cast to unknown type");
 
-			return ::std::visit([&]<typename arg_t>(arg_t && arg) -> entity
+			using parser_utility::default_entity_value;
+
+			return ::std::visit([&](auto& arg) -> entity
 			{
 				using src_t = type_traits::remove_proxy_t<::std::decay_t<decltype(arg)>>;
-				using tar_t = target_t_outer;
+				using tar_t = type_code_to_type_t<target_type_c, char_t>; // unknown -> void
+
+				constexpr auto src_c = type_to_type_code_v<src_t, char_t>;
+				constexpr auto tar_c = type_to_type_code_v<tar_t, char_t>;
 
 				using namespace error_message_literals;
 				using namespace types::concepts;
 				using enum syntax_error_code;
 
-				auto domain_err_msg_gen = [&](const auto& arg, auto min, auto max)
-					{
-						constexpr auto src_tc = type_to_type_code_v<src_t, char_t>;
-						constexpr auto tar_tc = type_to_type_code_v<tar_t, char_t>;
-
-						using namespace error_message_literals;
-
-						return type_code_to_error_msg_string(src_tc)
-							.append(u8": "_em)
-							.append(reinterpret_to_err_msg_str(::std::to_string(arg)))
-							.append(u8" -> "_em)
-							.append(type_code_to_error_msg_string(tar_tc))
-							.append(u8": ["_em)
-							.append(reinterpret_to_err_msg_str(::std::to_string(min)))
-							.append(u8", "_em)
-							.append(reinterpret_to_err_msg_str(::std::to_string(max)))
-							.append(u8"]"_em);
-					};
-
-				auto bad_cast_err_msg_gen = []()
-					{
-						constexpr auto src_tc = type_to_type_code_v<src_t, char_t>;
-						constexpr auto tar_tc = type_to_type_code_v<tar_t, char_t>;
-						using namespace error_message_literals;
-						return type_code_to_error_msg_string(src_tc)
-							.append(u8" -> "_em)
-							.append(type_code_to_error_msg_string(tar_tc));
-					};
-
-				// It does not work for msvc and clang-cl (YMD:2024-09-02)
-				// ```
-				//     if constexpr (pdn_integral<src_t> && pdn_integral<tar_t>)
-				//     {
-				//         using u_src_t = ::std::make_unsigned_t<src_t>;
-				//         using s_tar_t = ::std::make_signed_t<tar_t>;
-				//         std::cout << u_src_t{} << s_tar_t{} << "\n"; // test
-				//     }
-				// ```
+				using raw_err_casting = raw_error_message_type::casting_msg;
 
 				if constexpr (::std::same_as<src_t, tar_t>)
 				{
-					return arg;
-				}
-				else if constexpr (target_type_c == type_code::unknown)
-				{
-					post_err(type_pos, illegal_cast, bad_cast_err_msg_gen());
-					return arg;
+					return entity{ ::std::move(arg) };
 				}
 				else if constexpr (pdn_sint<src_t>)
 				{
 					if constexpr (pdn_sint<tar_t>)
 					{
-						constexpr auto max = ::std::numeric_limits<tar_t>::max();
-						constexpr auto min = ::std::numeric_limits<tar_t>::min();
-						if (arg > max || arg < min)
+						if (arg > ::std::numeric_limits<tar_t>::max() || arg < ::std::numeric_limits<tar_t>::min())
 						{
-							post_err(type_pos, casting_domain_error, domain_err_msg_gen(arg, min, max));
+							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
 						}
-						return tar_t(::std::forward<arg_t>(arg));
+						return static_cast<tar_t>(arg);
 					}
 					else if constexpr (pdn_uint<tar_t>)
 					{
-						constexpr auto max = ::std::numeric_limits<tar_t>::max();
-						constexpr auto min = ::std::numeric_limits<tar_t>::min();
 						using u_src_t = ::std::make_unsigned_t<src_t>;
 						using s_tar_t = ::std::make_signed_t<tar_t>;
-						if (arg < s_tar_t(min) || u_src_t(arg) > max)
+						if (arg < s_tar_t(::std::numeric_limits<tar_t>::min()) || u_src_t(arg) > ::std::numeric_limits<tar_t>::max())
 						{
-							post_err(type_pos, casting_domain_error, domain_err_msg_gen(arg, min, max));
+							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
 						}
-						return tar_t(::std::forward<arg_t>(arg));
+						return static_cast<tar_t>(arg);
 					}
 					else if constexpr (pdn_fp<tar_t> || pdn_bool<tar_t>)
 					{
-						return tar_t(::std::forward<arg_t>(arg));
+						return static_cast<tar_t>(arg);
 					}
-					else
+					else // sint -> character|string|list|object
 					{
-						post_err(type_pos, illegal_cast, bad_cast_err_msg_gen());
-						return default_entity_value(target_type_c);
+						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
+						return default_entity_value<char_t>(target_type_c);
 					}
 				}
 				else if constexpr (pdn_uint<src_t>)
 				{
 					if constexpr (pdn_uint<tar_t>)
 					{
-						constexpr auto max = ::std::numeric_limits<tar_t>::max();
-						constexpr auto min = ::std::numeric_limits<tar_t>::min();
-						if (arg > max || arg < min)
+						if (arg > ::std::numeric_limits<tar_t>::max() || arg < ::std::numeric_limits<tar_t>::min())
 						{
-							post_err(type_pos, casting_domain_error, domain_err_msg_gen(arg, min, max));
+							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
 						}
-						return tar_t(::std::forward<arg_t>(arg));
+						return static_cast<tar_t>(arg);
 					}
 					else if constexpr (pdn_sint<tar_t>)
 					{
-						constexpr auto max = ::std::numeric_limits<tar_t>::max();
-						constexpr auto min = ::std::numeric_limits<tar_t>::min();
 						using u_tar_t = ::std::make_unsigned_t<tar_t>;
 						// system error, uint::min < 0 or sint::min >= 0 is impossible,
-						// if pdn::types::concept::pdn_uint|pdn_sint works
+						// if pdn::types::concept::pdn_uint and pdn_sint work.
 						static_assert(::std::numeric_limits<src_t>::min() >= 0, "[pdn] system error");
-						static_assert(::std::numeric_limits<tar_t>::min() < 0, "[pdn] system error");
-						if (arg > u_tar_t(max))
+						static_assert(::std::numeric_limits<tar_t>::min() < 0,  "[pdn] system error");
+						if (arg > u_tar_t(::std::numeric_limits<tar_t>::max()))
 						{
-							post_err(type_pos, casting_domain_error, domain_err_msg_gen(arg, min, max));
+							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
 						}
+						return static_cast<tar_t>(arg);
 					}
 					else if constexpr (pdn_fp<tar_t> || pdn_bool<tar_t>)
 					{
-						return tar_t(::std::forward<arg_t>(arg));
+						return static_cast<tar_t>(arg);
 					}
-					else
+					else // uint -> character|string|list|object
 					{
-						post_err(type_pos, illegal_cast, bad_cast_err_msg_gen());
-						return default_entity_value(target_type_c);
+						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
+						return default_entity_value<char_t>(target_type_c);
 					}
 				}
 				else if constexpr (pdn_fp<src_t>)
 				{
 					if constexpr (pdn_fp<tar_t> || pdn_bool<tar_t>)
 					{
-						return tar_t(::std::forward<arg_t>(arg));
+						return static_cast<tar_t>(arg);
 					}
 					else if constexpr (pdn_integral<tar_t>)
 					{
-						post_err(type_pos, illegal_cast, bad_cast_err_msg_gen());
-						return tar_t(::std::forward<arg_t>(arg));
+						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
+						return static_cast<tar_t>(arg);
 					}
-					else
+					else // fp -> character|string|list|object
 					{
-						post_err(type_pos, illegal_cast, bad_cast_err_msg_gen());
-						return default_entity_value(target_type_c);
+						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
+						return default_entity_value<char_t>(target_type_c);
 					}
 				}
 				else if constexpr (pdn_bool<src_t>)
 				{
 					if constexpr (pdn_integral<tar_t> || pdn_fp<tar_t> || pdn_bool<tar_t>)
 					{
-						return tar_t(::std::forward<arg_t>(arg));
+						return static_cast<tar_t>(arg);
 					}
-					else
+					else // bool -> character|string|list|object
 					{
-						post_err(type_pos, illegal_cast, bad_cast_err_msg_gen());
-						return default_entity_value(target_type_c);
+						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
+						return default_entity_value<char_t>(target_type_c);
 					}
 				}
-				else
+				else // character|string|list|object
 				{
-					post_err(type_pos, illegal_cast, bad_cast_err_msg_gen());
-					return default_entity_value(target_type_c);
+					if constexpr (::std::same_as<src_t, types::character<char_t>> || ::std::same_as<src_t, types::string<char_t>>)
+					{
+						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
+					}
+					else // list|object
+					{
+						post_err(type_pos, illegal_cast, raw_err_casting{ {}, src_c, tar_c });
+					}
+					return default_entity_value<char_t>(target_type_c);
 				}
-				return arg;
 			}, src);
 		}
-		// todo move to utility
-		entity token_value_to_entity(token<char_t> target)
-		{
-			return ::std::visit([&]<typename arg_fwd_t>(arg_fwd_t&& arg) -> entity
-			{
-				using arg_t = ::std::decay_t<decltype(arg)>;
-				if constexpr (::std::same_as<arg_t, ::std::monostate>)
-				{
-					post_err(target.position, syn_ec::inner_error_token_have_no_value, to_raw_error_token(target));
-					return types::cppint{};
-				}
-				else
-				{
-					return ::std::forward<arg_fwd_t>(arg);
-				}
-			}, ::std::move(target.value));
-		}
 
-		template <typename iter_t>
-		void update_token(iter_t& begin, auto end)
+		void update_token(auto& begin, auto end)
 		{
 			if (begin != end)
 			{
@@ -680,7 +624,7 @@ namespace pdn
 			}
 		}
 
-		type_code type_gen(const str& iden)
+		auto type_gen(const types::string<char_t>& iden) -> type_code
 		{
 			return func_pkg->generate_type(iden);
 		}
@@ -688,111 +632,6 @@ namespace pdn
 		void post_err(source_position pos, auto error_code, raw_error_message_variant&& raw_msg)
 		{
 			func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(raw_msg)) });
-		}
-		// todo move to utility
-		static constexpr bool is_expr_first(pdn_token_code c) noexcept
-		{
-			using enum pdn_token_code;
-			switch (c)
-			{
-			case minus:
-			case plus:
-			case literal_boolean:
-			case literal_character:
-			case literal_string:
-			case literal_floating_point:
-			case literal_integer:
-			case left_brackets:
-			case left_curly_brackets:
-				return true;
-			default:
-				break;
-			}
-			return false;
-		}
-		// todo move to utility
-		static constexpr bool is_list_element_first(pdn_token_code c) noexcept
-		{
-			return is_expr_first(c) || c == pdn_token_code::identifier;
-		}
-		// todo move to utility
-		static constexpr entity default_entity_value(type_code type_c)
-		{
-			using enum type_code;
-			switch (type_c)
-			{
-			case i8:        return si8{};
-			case i16:       return si16{};
-			case i32:       return si32{};
-			case i64:       return si64{};
-			case u8:        return ui8{};
-			case u16:       return ui16{};
-			case u32:       return ui32{};
-			case u64:       return ui64{};
-			case f32:       return fp32{};
-			case f64:       return fp64{};
-			case boolean:   return bln{};
-			case character: return cha{};
-			case string:    return make_proxy<str>();
-			case list:      return make_proxy<lst>();
-			case object:    return make_proxy<obj>();
-			default:        return types::cppint{};
-			}
-		}
-		// todo move to token_value_variant.h
-		template <typename target_char_t>
-		static constexpr auto to_token_value_variant(token_value_variant<char_t> src) -> token_value_variant<target_char_t>
-		{
-			if constexpr (::std::same_as<char_t, target_char_t>)
-			{
-				return src;
-			}
-			else
-			{
-				return ::std::visit([](auto&& arg) -> token_value_variant<target_char_t>
-				{
-					using unicode::code_convert;
-					using arg_t = ::std::decay_t<decltype(arg)>;
-					if constexpr (::std::same_as<arg_t, cha>)
-					{
-						auto converted = code_convert<types::string<target_char_t>>(arg.to_string_view());
-						return types::character<target_char_t>{ converted.cbegin(), converted.size() };
-					}
-					else if constexpr (::std::same_as<arg_t, str_pr>)
-					{
-						return code_convert<types::string<target_char_t>>(*arg);
-					}
-					else
-					{
-						return arg;
-					}
-				}, ::std::move(src));
-			}
-		}
-		// todo move to token.h
-		template <typename target_char_t>
-		static constexpr auto to_token(token<char_t> src) -> token<target_char_t>
-		{
-			if constexpr (::std::same_as<char_t, target_char_t>)
-			{
-				return src;
-			}
-			else
-			{
-				return { src.position, src.code, to_token_value_variant<target_char_t>(::std::move(src.value)) };
-			}
-		}
-		// todo move to utility
-		static constexpr auto to_raw_error_token(token<char_t> src) -> raw_error_message_type::error_token
-		{
-			if constexpr (::std::same_as<char_t, error_msg_char>)
-			{
-				return raw_error_message_type::error_token{ src };
-			}
-			else
-			{
-				return raw_error_message_type::error_token{ to_token<error_msg_char>(::std::move(src)) };
-			}
 		}
 	private:
 		function_package* func_pkg{};

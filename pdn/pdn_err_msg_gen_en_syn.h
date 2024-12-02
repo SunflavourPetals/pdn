@@ -49,11 +49,6 @@ namespace pdn::dev_util
 		case missing_right_curly_brackets:
 			return u8"missing right curly brackets: \"}\""_em;
 
-		case inner_error_token_have_no_value:
-			return u8"inner parser error token have no value"_em;
-		case inner_error_parse_terminated:
-			return u8"inner parser error parse terminated by unknown reason"_em;
-
 		default:
 			break;
 		}

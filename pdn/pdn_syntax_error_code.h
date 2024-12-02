@@ -26,9 +26,6 @@ namespace pdn
 
 		missing_right_brackets, // extra(monostate)
 		missing_right_curly_brackets, // extra(monostate)
-
-		inner_error_token_have_no_value, // extra(error_token)
-		inner_error_parse_terminated, // extra(monostate)
 	};
 }
 
