@@ -1448,10 +1448,21 @@ namespace pdn
 				break;
 			}
 		}
-		void post_err(source_position pos, auto error_code, error_msg_string&& str_for_msg_gen)
+
+		auto err_msg_gen(source_position pos, auto err_c, raw_error_message_variant raw_msg) -> error_msg_string
 		{
-			func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
+			return func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
 		}
+
+		void post_err(source_position pos, auto err_c, raw_error_message_variant&& raw_msg)
+		{
+			func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
+		}
+
+	//	void post_err(source_position pos, auto error_code, error_msg_string&& str_for_msg_gen)
+	//	{
+	//		func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
+	//	}
 	private:
 		function_package* func_pkg{};
 	};

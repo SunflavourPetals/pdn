@@ -11,6 +11,7 @@
 
 #include "pdn_unicode.h"
 #include "pdn_code_convert.h"
+#include "pdn_raw_error_message.h"
 #include "pdn_error_message.h"
 #include "pdn_source_position_recorder_concept.h"
 #include "pdn_error_handler_concept.h"
@@ -124,7 +125,7 @@ namespace pdn
 						hex_s = "EOF"s;
 					}
 					auto hex_em_s = reinterpret_to_err_msg_str(hex_s);
-					auto err_msg = func_pkg->generate_error_message(result.error(), hex_em_s);
+					auto err_msg = func_pkg->generate_error_message(raw_error_message{ { result.error() }, func_pkg->position(), hex_em_s });
 					func_pkg->handle_error(error_message{ result.error(), func_pkg->position(), ::std::move(err_msg) });
 					if (result.distance() == 0)
 					{

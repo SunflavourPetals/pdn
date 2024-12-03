@@ -49,11 +49,11 @@ namespace pdn::raw_error_message_type
 
 namespace pdn::raw_error_message_type
 {
-	struct identifier final // for flag 1
+	struct identifier final
 	{
 		error_msg_string value;
 	};
-	struct error_token final // for flag 2
+	struct error_token final
 	{
 		token<error_msg_char> value;
 	};

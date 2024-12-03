@@ -5,12 +5,12 @@ namespace pdn
 {
 	enum class syntax_error_code
 	{
-		success, // extra(monostate)
+		success,
 
 		entity_redefine, // extra(identifier)
 
-		casting_domain_error,
-		illegal_cast,
+		casting_domain_error, // extra(casting_msg), source_type and target_type belong to { i8, i16, i32, i64, u8, u16, u32, u64 }
+		illegal_cast, // extra(casting_msg)
 
 		expect_entity_name, // extra(error_token)
 		expect_type_name, // extra(error_token)
@@ -24,8 +24,8 @@ namespace pdn
 
 		unknown_type, // extra(identifier)
 
-		missing_right_brackets, // extra(monostate)
-		missing_right_curly_brackets, // extra(monostate)
+		missing_right_brackets,
+		missing_right_curly_brackets,
 	};
 }
 

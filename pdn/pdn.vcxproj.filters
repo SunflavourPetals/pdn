@@ -294,6 +294,9 @@
     <ClInclude Include="pdn_raw_error_message_type.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_utility.h">
+      <Filter>pdn_error</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp">

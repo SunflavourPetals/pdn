@@ -1,6 +1,8 @@
 #ifndef PDN_Header_pdn_error_message_generator_en
 #define PDN_Header_pdn_error_message_generator_en
 
+#include <type_traits>
+#include <concepts>
 #include <variant>
 
 #include "pdn_error_string.h"
@@ -17,18 +19,21 @@
 
 namespace pdn
 {
-	inline constexpr error_msg_string error_message_generator_en_function(error_code_variant errc, raw_error_message_variant src)
+	inline auto error_message_generator_en_function(raw_error_message src) -> error_msg_string
 	{
-		using namespace literals::error_message_literals;
-
 		return ::std::visit([&](auto code) -> error_msg_string
 		{
-			if constexpr (requires { dev_util::err_msg_gen_en(code, error_msg_string{}); }) // todo
+			if constexpr (requires{dev_util::err_msg_gen_en(code, src.position, src.raw_error_message); })
+			{
+				return dev_util::err_msg_gen_en(code, src.position, ::std::move(src.raw_error_message));
+			}
+			else if constexpr (requires { dev_util::err_msg_gen_en(code, error_msg_string{}); }) // todo
 			{
 				return dev_util::err_msg_gen_en(code, error_msg_string{});
 			}
+			using namespace literals::error_message_literals;
 			return u8"unknown error type, error_message_generator_en unresolved"_em;
-		}, errc);
+		}, src.error_code);
 	}
 }
 

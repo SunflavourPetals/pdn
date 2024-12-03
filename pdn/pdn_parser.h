@@ -629,9 +629,14 @@ namespace pdn
 			return func_pkg->generate_type(iden);
 		}
 
-		void post_err(source_position pos, auto error_code, raw_error_message_variant&& raw_msg)
+		auto err_msg_gen(source_position pos, auto err_c, raw_error_message_variant raw_msg) -> error_msg_string
 		{
-			func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(raw_msg)) });
+			return func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
+		}
+
+		void post_err(source_position pos, auto err_c, raw_error_message_variant raw_msg)
+		{
+			func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
 		}
 	private:
 		function_package* func_pkg{};
