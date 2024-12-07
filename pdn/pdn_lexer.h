@@ -254,7 +254,7 @@ namespace pdn
 				case identifier_string_escape:
 					++begin;
 					new_dfa_state = dfa_state_objects::identifier_string;
-					if (get_escape(c, begin, end, true) == lex_ec::success)
+					if (get_escape(c, begin, end, true))
 					{
 						text += c;
 					}
@@ -262,7 +262,7 @@ namespace pdn
 				case string_escape:
 					++begin;
 					new_dfa_state = dfa_state_objects::string;
-					if (get_escape(c, begin, end) == lex_ec::success)
+					if (get_escape(c, begin, end))
 					{
 						text += c;
 					}
@@ -270,7 +270,7 @@ namespace pdn
 				case character_escape:
 					++begin;
 					new_dfa_state = dfa_state_objects::character;
-					if (get_escape(c, begin, end) == lex_ec::success)
+					if (get_escape(c, begin, end))
 					{
 						text += c;
 					}
@@ -418,7 +418,7 @@ namespace pdn
 
 			auto num_seq_to_err_msg_str = [&]() { return reinterpret_to_err_msg_str(number_sequence); };
 
-			auto from_chars_result_check = [&](::std::from_chars_result from_chars_r, err_ms extra)
+			auto from_chars_result_check = [&](::std::from_chars_result from_chars_r, err_ms extra) -> bool
 			{
 				auto [unresolved_char_ptr, err_code] = from_chars_r;
 
@@ -436,7 +436,7 @@ namespace pdn
 							reinterpret_to_err_msg_str(unresolved_char_ptr, number_sequence.data() + number_sequence.size()) +
 							u8"'"_em;
 						post_err(position, number_from_chars_parsing_incomplete, ::std::move(msg));
-						return number_from_chars_parsing_incomplete;
+						return false;
 					}
 				}
 				else
@@ -446,17 +446,15 @@ namespace pdn
 					{
 					case ::std::errc::result_out_of_range:
 						post_err(position, number_from_chars_errc_result_out_of_range, ::std::move(msg));
-						return number_from_chars_errc_result_out_of_range;
 					case ::std::errc::invalid_argument:
 						post_err(position, number_from_chars_errc_invalid_argument, ::std::move(msg));
-						return number_from_chars_errc_invalid_argument;
 					default:
 						post_err(position, number_from_chars_errc_other, ::std::move(msg));
-						return number_from_chars_errc_other;
 					}
+					return false;
 				}
 
-				return success;
+				return true;
 			};
 
 			// Make token now.
@@ -856,10 +854,10 @@ namespace pdn
 			}, r.value);
 		}
 
-		lexical_error_code get_escape(auto& oc,    // out param, the result of get escape
-		                              auto& begin, // pointing first char witch after '\'
-		                              auto  end,
-		                              bool  enable_escape_back_quote = false) // is enable escape sequence \`
+		bool get_escape(auto& oc,    // out param, the result of get escape
+		                auto& begin, // pointing first char witch after '\'
+		                auto  end,
+		                bool  enable_escape_back_quote = false) // is enable escape sequence \`
 		{
 			static_assert(sizeof(::std::uint32_t) == sizeof(unicode::code_point_t));
 			using escape_value_t = ::std::uint32_t;
@@ -870,7 +868,7 @@ namespace pdn
 			if (begin == end)
 			{
 				post_err(position, escape_error_unknown_escape_sequence, u8"\\"_em);
-				return escape_error_unknown_escape_sequence;
+				return false;
 			}
 
 			::std::string sequence{};
@@ -881,7 +879,7 @@ namespace pdn
 				::std::from_chars_result from_chars_r,
 				error_msg_string escape_sign, // u -> \u x -> \x 
 				escape_value_t parse_val,
-				bool is_with_curly_brackets) -> lexical_error_code
+				bool is_with_curly_brackets) -> bool
 			{
 				auto [unresolved_char_ptr, errc] = from_chars_r;
 				auto l_bracket = is_with_curly_brackets ? u8"{"_em : u8""_em;
@@ -901,7 +899,7 @@ namespace pdn
 							.append(reinterpret_to_err_msg_str(unresolved_char_ptr, sequence.data() + sequence.size()))
 							.append(u8"'"_em);
 						post_err(position, escape_error_from_chars_parsing_incomplete, ::std::move(msg));
-						return escape_error_from_chars_parsing_incomplete;
+						return false;
 					}
 				}
 				else
@@ -913,14 +911,12 @@ namespace pdn
 					{
 					case ::std::errc::result_out_of_range:
 						post_err(position, escape_error_from_chars_errc_result_out_of_range, ::std::move(msg));
-						return escape_error_from_chars_errc_result_out_of_range;
 					case ::std::errc::invalid_argument:
 						post_err(position, escape_error_from_chars_errc_invalid_argument, ::std::move(msg));
-						return escape_error_from_chars_errc_invalid_argument;
 					default:
 						post_err(position, escape_error_from_chars_errc_other, ::std::move(msg));
-						return escape_error_from_chars_errc_other;
 					}
+					return false;
 				}
 				if (!unicode::is_scalar_value(static_cast<unicode::code_point_t>(parse_val)))
 				{
@@ -928,9 +924,9 @@ namespace pdn
 					post_err(position,
 						escape_error_not_unicode_scalar_value,
 						u8"\\"_em + escape_sign + l_bracket + seq_to_err_msg_str() + r_bracket);
-					return escape_error_not_unicode_scalar_value;
+					return false;
 				}
-				return success;
+				return true;
 			};
 
 			auto c = *begin;
@@ -981,7 +977,7 @@ namespace pdn
 
 			simple_escape:
 				++begin;
-				return success;
+				return true;
 
 			case U'o': // \o{n...}
 			{
@@ -990,7 +986,7 @@ namespace pdn
 				if (begin == end || *begin != U'{')
 				{
 					post_err(position, escape_error_o_not_followed_by_left_brackets, u8"\\o"_em);
-					return escape_error_o_not_followed_by_left_brackets;
+					return false;
 				}
 				c = *begin;
 				++begin; // -> n (oct)
@@ -1000,7 +996,7 @@ namespace pdn
 				if (begin == end || *begin != U'}')
 				{
 					post_err(position, escape_error_o_not_terminated_with_right_brackets, u8"\\o{"_em + seq_to_err_msg_str());
-					return escape_error_o_not_terminated_with_right_brackets;
+					return false;
 				}
 				c = *begin;
 				++begin;
@@ -1009,20 +1005,19 @@ namespace pdn
 				{
 					// The contents of the curly braces cannot be empty
 					post_err(position, escape_error_o_empty_delimited_escape_sequence, u8"\\o{}"_em);
-					return escape_error_o_empty_delimited_escape_sequence;
+					return false;
 				}
 
 				escape_value_t parse_val{};
 				auto from_chars_r = ::std::from_chars(sequence.data(), sequence.data() + sequence.size(), parse_val, 8);
 
-				if (auto from_chars_err = from_chars_error_check(from_chars_r, u8"o"_em, parse_val, true);
-					from_chars_err != lexical_error_code::success)
+				if (!from_chars_error_check(from_chars_r, u8"o"_em, parse_val, true))
 				{
-					return from_chars_err;
+					return false;
 				}
 
 				oc = parse_val;
-				return success;
+				return true;
 			}
 			case U'x': // \xn... \x{n...}
 			{
@@ -1032,7 +1027,7 @@ namespace pdn
 				if (begin == end)
 				{
 					post_err(position, escape_error_x_used_with_no_following_hex_digits, u8"\\x"_em);
-					return escape_error_x_used_with_no_following_hex_digits;
+					return false;
 				}
 				c = *begin;
 				if (c == U'{')
@@ -1049,7 +1044,7 @@ namespace pdn
 					if (begin == end || *begin != U'}')
 					{
 						post_err(position, escape_error_x_not_terminated_with_right_brackets, u8"\\x{"_em + seq_to_err_msg_str());
-						return escape_error_x_not_terminated_with_right_brackets;
+						return false;
 					}
 					c = *begin;
 					++begin;
@@ -1064,18 +1059,17 @@ namespace pdn
 						msg += u8"{}"_em;
 					}
 					post_err(position, escape_error_x_empty_delimited_escape_sequence, ::std::move(msg));
-					return escape_error_x_empty_delimited_escape_sequence;
+					return false;
 				}
 
 				::std::uint32_t parse_val{};
 				auto from_chars_r = ::std::from_chars(sequence.data(), sequence.data() + sequence.size(), parse_val, 16);
-				if (auto from_chars_err = from_chars_error_check(from_chars_r, u8"x"_em, parse_val, is_with_curly_brackets);
-					from_chars_err != lexical_error_code::success)
+				if (!from_chars_error_check(from_chars_r, u8"x"_em, parse_val, is_with_curly_brackets))
 				{
-					return from_chars_err;
+					return false;
 				}
 				oc = parse_val;
-				return success;
+				return true;
 			}
 			case U'u': // \unnnn \u{n...} Universal character names
 			{
@@ -1084,7 +1078,7 @@ namespace pdn
 				if (begin == end)
 				{
 					post_err(position, escape_error_u_incomplete_universal_character_name, u8"\\u"_em);
-					return escape_error_u_incomplete_universal_character_name;
+					return false;
 				}
 				c = *begin;
 				if (c == U'{')
@@ -1108,7 +1102,7 @@ namespace pdn
 					if (begin == end || *begin != U'}')
 					{
 						post_err(position, escape_error_u_not_terminated_with_right_brackets, u8"\\u{"_em + seq_to_err_msg_str());
-						return escape_error_u_not_terminated_with_right_brackets;
+						return false;
 					}
 					c = *begin;
 					++begin;
@@ -1117,7 +1111,7 @@ namespace pdn
 					{
 						// length of hexadecimal number sequence cannot be 0 in \u{n...}
 						post_err(position, escape_error_u_empty_delimited_escape_sequence, u8"\\u{}"_em);
-						return escape_error_u_empty_delimited_escape_sequence;
+						return false;
 					}
 				}
 				else
@@ -1126,20 +1120,19 @@ namespace pdn
 					{
 						// length of hexadecimal number sequence cannot be number other than 4 in \unnnn
 						post_err(position, escape_error_u_incomplete_universal_character_name, u8"\\u"_em + seq_to_err_msg_str());
-						return escape_error_u_incomplete_universal_character_name;
+						return false;
 					}
 				}
 
 				::std::uint32_t parse_val{};
 				auto from_chars_r = ::std::from_chars(sequence.data(), sequence.data() + sequence.size(), parse_val, 16);
 
-				if (auto from_chars_err = from_chars_error_check(from_chars_r, u8"u"_em, parse_val, is_with_curly_brackets);
-					from_chars_err != lexical_error_code::success)
+				if (!from_chars_error_check(from_chars_r, u8"u"_em, parse_val, is_with_curly_brackets))
 				{
-					return from_chars_err;
+					return false;
 				}
 				oc = parse_val;
-				return success;
+				return true;
 			}
 			case U'U':
 				// \Unnnnnnnn Universal character names
@@ -1149,7 +1142,7 @@ namespace pdn
 				if (begin == end)
 				{
 					post_err(position, escape_error_U_incomplete_universal_character_name, u8"\\U"_em);
-					return escape_error_U_incomplete_universal_character_name;
+					return false;
 				}
 
 				c = *begin;
@@ -1160,19 +1153,18 @@ namespace pdn
 				{
 					// length of hexadecimal number sequence cannot be number other than 8 in \Unnnnnnnn
 					post_err(position, escape_error_U_incomplete_universal_character_name, u8"\\U"_em + seq_to_err_msg_str());
-					return escape_error_U_incomplete_universal_character_name;
+					return false;
 				}
 
 				::std::uint32_t parse_val{};
 				auto from_chars_r = ::std::from_chars(sequence.data(), sequence.data() + sequence.size(), parse_val, 16);
 
-				if (auto from_chars_err = from_chars_error_check(from_chars_r, u8"U"_em, parse_val, false);
-					from_chars_err != lexical_error_code::success)
+				if (!from_chars_error_check(from_chars_r, u8"U"_em, parse_val, false))
 				{
-					return from_chars_err;
+					return false;
 				}
 				oc = parse_val;
-				return success;
+				return true;
 			}
 			default:
 				if (lexer_utility::is_oct(c))
@@ -1185,27 +1177,26 @@ namespace pdn
 					if (sequence.size() == 0) // sequence.size() == 0 never be true
 					{
 						post_err(position, escape_error_o_empty_delimited_escape_sequence, u8"\\"_em);
-						return escape_error_o_empty_delimited_escape_sequence;
+						return false;
 						// length of octal number sequence cannot be 0
 					}
 
 					::std::uint32_t parse_val{};
 					auto from_chars_r = ::std::from_chars(sequence.data(), sequence.data() + sequence.size(), parse_val, 8);
 
-					if (auto from_chars_err = from_chars_error_check(from_chars_r, u8""_em, parse_val, false);
-						from_chars_err != lexical_error_code::success)
+					if (!from_chars_error_check(from_chars_r, u8""_em, parse_val, false))
 					{
-						return from_chars_err;
+						return false;
 					}
 					oc = parse_val;
-					return success;
+					return true;
 				}
 				break;
 			}
 			auto cp = unicode::code_point_t(c);
 			auto err_msg = u8"\\"_em + unicode::code_convert<error_msg_string>(unicode::code_point_string_view{ &cp, 1 });
 			post_err(position, escape_error_unknown_escape_sequence, ::std::move(err_msg));
-			return escape_error_unknown_escape_sequence;
+			return false;
 		}
 
 		void get_numeric_escape_sequence(::std::string& sequence,
