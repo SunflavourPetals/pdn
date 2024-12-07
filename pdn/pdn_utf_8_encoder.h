@@ -10,9 +10,8 @@
 
 namespace pdn::unicode::utf_8
 {
-	enum class encode_error_code : ::std::uint16_t
+	enum class encode_error_code : ::std::uint8_t
 	{
-		success,
 		not_scalar_value,
 	};
 
@@ -23,6 +22,7 @@ namespace pdn::unicode::utf_8
 	public:
 		using code_unit_sequence_type = ::std::array<code_unit_t, 4>;
 		using size_type               = ::std::uint16_t;
+		using bool_type               = ::std::uint8_t;
 		using error_type              = encode_error_code;
 	public:
 		constexpr auto size() const noexcept
@@ -57,15 +57,26 @@ namespace pdn::unicode::utf_8
 		{
 			return cbegin() + size();
 		}
+		constexpr auto failed() const noexcept
+		{
+			return static_cast<bool>(is_failed);
+		}
 		constexpr explicit operator bool() const noexcept
 		{
-			return error() == error_type::success;
+			return !failed();
 		}
-		friend class encoder;
 	private:
 		code_unit_sequence_type sequence{}; // code point sequence
 		size_type               sequence_size{}; // size of code point sequence
-		error_type              error_code{ error_type::success };
+		bool_type               is_failed{};
+		error_type              error_code{}; // valid only on failure
+
+		constexpr void set_error(error_type code) noexcept
+		{
+			is_failed  = true;
+			error_code = code;
+		}
+		friend class encoder;
 	};
 
 	class encoder // not final for ebo
@@ -77,7 +88,7 @@ namespace pdn::unicode::utf_8
 
 			if (!is_scalar_value(character))
 			{
-				result.error_code = encode_error_code::not_scalar_value;
+				result.set_error(encode_error_code::not_scalar_value);
 				return result;
 			}
 

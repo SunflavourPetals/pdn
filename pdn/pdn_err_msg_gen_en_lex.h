@@ -13,8 +13,8 @@ namespace pdn::dev_util
 		using enum lexical_error_code;
 		switch (errc)
 		{
-		case success:
-			return u8"lexical_error_code == success: \""_em + src + u8"\""_em;
+	//	case success:
+	//		return u8"lexical_error_code == success: \""_em + src + u8"\""_em;
 		case not_unicode_scalar_value:
 			return u8"pdn lexer requires unicode scalar value: \""_em + src + u8"\""_em;
 		case unacceptable_character:

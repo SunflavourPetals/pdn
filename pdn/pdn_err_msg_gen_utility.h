@@ -29,7 +29,7 @@ namespace pdn::dev_util::err_msg_gen_util
 namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 {
 	// for identifier
-	inline auto get_slashes_id(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_slashes_iden(const raw_error_message_variant& raw) -> error_msg_string
 	{
 		return make_slashes(::std::get<raw_error_message_type::identifier>(raw).value);
 	}
@@ -93,7 +93,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	}
 
 	// for casting_msg from casting_domain_error
-	auto get_integer_min_value(type_code c) -> types::i64
+	inline auto get_integer_min_value(type_code c) -> types::i64
 	{
 		using char_t = error_msg_char;
 		using enum type_code;
@@ -112,13 +112,13 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	}
 
 	// for casting_msg from casting_domain_error
-	auto get_integer_min_value_s(type_code c) -> error_msg_string
+	inline auto get_integer_min_value_s(type_code c) -> error_msg_string
 	{
 		return reinterpret_to_err_msg_str(::std::to_string(get_integer_min_value(c)));
 	}
 
 	// for casting_msg from casting_domain_error
-	auto get_integer_max_value(type_code c) -> types::u64
+	inline auto get_integer_max_value(type_code c) -> types::u64
 	{
 		using char_t = error_msg_char;
 		using enum type_code;
@@ -137,22 +137,30 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	}
 
 	// for casting_msg from casting_domain_error
-	auto get_integer_max_value_s(type_code c) -> error_msg_string
+	inline auto get_integer_max_value_s(type_code c) -> error_msg_string
 	{
 		return reinterpret_to_err_msg_str(::std::to_string(get_integer_max_value(c)));
 	}
 
 	// for casting_msg from casting_domain_error
-	auto get_target_min_s(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_target_min_s(const raw_error_message_variant& raw) -> error_msg_string
 	{
 		return get_integer_min_value_s(::std::get<raw_error_message_type::casting_msg>(raw).target_type);
 	}
 
 	// for casting_msg from casting_domain_error
-	auto get_target_max_s(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_target_max_s(const raw_error_message_variant& raw) -> error_msg_string
 	{
 		return get_integer_max_value_s(::std::get<raw_error_message_type::casting_msg>(raw).target_type);
 	}
+
+	// for error_token
+	inline auto is_error_token_with_value(const raw_error_message_variant& raw) -> bool
+	{
+		return !::std::get_if<::std::monostate>(&::std::get<raw_error_message_type::error_token>(raw).value.value);
+	}
+
+
 }
 
 #endif

@@ -5,7 +5,7 @@ namespace pdn
 {
 	enum class lexical_error_code
 	{
-		success,
+	//	success,
 
 		not_unicode_scalar_value,
 

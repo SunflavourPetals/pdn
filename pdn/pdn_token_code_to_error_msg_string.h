@@ -14,7 +14,6 @@ namespace pdn
 		{
 		case eof:                    return u8"eof"_emv;
 		case identifier:             return u8"identifier"_emv;
-		case at_identifier:          return u8"at-identifier"_emv;
 		case literal_integer:        return u8"integer-val"_emv;
 		case literal_floating_point: return u8"floating-point-val"_emv;
 		case literal_string:         return u8"string-val"_emv;

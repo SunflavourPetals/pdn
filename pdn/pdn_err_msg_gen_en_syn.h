@@ -21,28 +21,23 @@ namespace pdn::dev_util
 		using enum syntax_error_code;
 		switch (errc)
 		{
-		case success:
-			throw inner_error{ "generate error message for syntax error code success" };
+	//	case success:
+	//		throw inner_error{ "generate error message for syntax error code: success" };
 
 		case entity_redefine:
-			return u8"entity redefine: \""_em + get_slashes_id(raw) + u8"\""_em;
+			return u8"entity \"" + get_slashes_iden(raw) + u8"\" redefine in this scope"_em;
 		case casting_domain_error:
 			return u8"domain error in casting: cast "_em + get_casting_operand(raw)
 				+ u8" with type "_em + get_source_type_name(raw)
-				+ u8" to type "_em + get_target_type_name(raw)
+				+ u8" to type "_em   + get_target_type_name(raw)
 				+ u8"["_em + get_target_min_s(raw) + u8", "_em + get_target_max_s(raw) + u8"]"_em;
 		case illegal_cast:
-			if (is_source_type_list_or_object(raw))
-			{
-				return u8"illegal cast: cast "_em + get_source_type_name(raw)
-					+ u8" to type "_em + get_target_type_name(raw);
-			}
-			else
-			{
-				return u8"illegal cast: cast "_em + get_casting_operand(raw)
-					+ u8" with type "_em + get_source_type_name(raw)
-					+ u8" to type "_em + get_target_type_name(raw);
-			}
+			return is_source_type_list_or_object(raw)
+				? u8"illegal cast: cast "_em + get_source_type_name(raw)
+				+ u8" to type "_em           + get_target_type_name(raw)
+				: u8"illegal cast: cast "_em + get_casting_operand(raw)
+				+ u8" with type "_em         + get_source_type_name(raw)
+				+ u8" to type "_em           + get_target_type_name(raw);
 		case expect_entity_name:
 		//	return u8"expect name(identifier) but receiving \""_em + src + u8"\" before entity"_em;
 		case expect_type_name:
@@ -53,12 +48,12 @@ namespace pdn::dev_util
 		//	return u8"expect comma but receiving \""_em + src + u8"\""_em;
 		case expect_colon:
 		//	return u8"expect colon([type-name: val, ...]) but receiving \""_em + src + u8"\""_em;
+		case expect_definition_of_named_entity:
+
+		case expect_definition_of_list_element:
 
 		case invalid_unary_operation:
 		//	return u8"invalid unary operation: \""_em + src + u8"\""_em;
-
-		case unexpected_token:
-		//	return u8"unexpected token: \""_em + src + u8"\""_em;
 
 		case unknown_type:
 		//	return u8"no type named \""_em + src + u8"\""_em;

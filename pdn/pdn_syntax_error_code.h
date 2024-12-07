@@ -5,8 +5,6 @@ namespace pdn
 {
 	enum class syntax_error_code
 	{
-		success,
-
 		entity_redefine, // extra(identifier)
 
 		casting_domain_error, // extra(casting_msg), source_type and target_type belong to { i8, i16, i32, i64, u8, u16, u32, u64 }
@@ -17,10 +15,10 @@ namespace pdn
 		expect_expression, // extra(error_token)
 		expect_comma, // extra(error_token)
 		expect_colon, // extra(error_token)
+		expect_definition_of_named_entity, // extra(error_token)
+		expect_definition_of_list_element, // extra(error_token)
 
 		invalid_unary_operation, // extra(unary_operation)
-
-		unexpected_token, // extra(error_token)
 
 		unknown_type, // extra(identifier)
 

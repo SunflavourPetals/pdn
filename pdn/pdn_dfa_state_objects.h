@@ -536,7 +536,7 @@ namespace pdn
 		};
 		inline cdfaso at_identifier{
 			dfa_state_code::at_identifier,
-			pdn_token_code::at_identifier,
+			pdn_token_code::invalid,
 			[](code_point_t c) noexcept -> dfa_state_object
 			{
 				if (lexer_utility::is_allowed_in_identifier(c))
@@ -1269,7 +1269,7 @@ namespace pdn
 		inline cdfaso greater_than        { dfa_state_code::greater_than,         pdn_token_code::greater_than,         to_unmatched };
 		inline cdfaso comma               { dfa_state_code::comma,                pdn_token_code::comma,                to_unmatched };
 		inline cdfaso question_mark       { dfa_state_code::question_mark,        pdn_token_code::question_mark,        to_unmatched };
-		inline cdfaso infinity            { dfa_state_code::infinity,             pdn_token_code::at_identifier,        to_unmatched };
+		inline cdfaso infinity            { dfa_state_code::infinity,             pdn_token_code::invalid,              to_unmatched };
 	}
 }
 

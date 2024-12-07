@@ -111,7 +111,7 @@ namespace pdn
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::unexpected_token, to_raw_error_token(tk));
+						post_err(tk.position, syn_ec::expect_definition_of_named_entity, to_raw_error_token(tk));
 						update_token(begin, end);
 					}
 				}
@@ -345,7 +345,7 @@ namespace pdn
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::unexpected_token, to_raw_error_token(tk));
+						post_err(tk.position, syn_ec::expect_definition_of_list_element, to_raw_error_token(tk));
 						update_token(begin, end);
 					}
 				}
@@ -443,7 +443,7 @@ namespace pdn
 				}
 				else
 				{
-					post_err(tk.position, syn_ec::unexpected_token, to_raw_error_token(tk));
+					post_err(tk.position, syn_ec::expect_definition_of_named_entity, to_raw_error_token(tk));
 					update_token(begin, end);
 				}
 			}
