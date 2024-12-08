@@ -13,8 +13,8 @@ namespace pdn::dev_util
 		using enum unicode::utf_32::decode_error_code;
 		switch (errc)
 		{
-		case success:
-			return u8"unicode::utf_32::decode_error == success: \""_em + src + u8"\""_em;
+	//	case success:
+	//		return u8"unicode::utf_32::decode_error == success: \""_em + src + u8"\""_em;
 		case not_scalar_value:
 			return u8"UTF-32 decode error not scalar value: \""_em + src + u8"\""_em;
 		case eof_when_read_code_unit:

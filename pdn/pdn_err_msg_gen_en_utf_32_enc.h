@@ -13,8 +13,8 @@ namespace pdn::dev_util
 		using enum unicode::utf_32::encode_error_code;
 		switch (errc)
 		{
-		case success:
-			return u8"unicode::utf_32::encode_error == success: \""_em + src + u8"\""_em;
+	//	case success:
+	//		return u8"unicode::utf_32::encode_error == success: \""_em + src + u8"\""_em;
 		case not_scalar_value:
 			return u8"UTF-32 encode error not scalar value: \""_em + src + u8"\""_em;
 		default:

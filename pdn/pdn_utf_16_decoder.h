@@ -8,10 +8,9 @@
 
 namespace pdn::unicode::utf_16
 {
-	enum class decode_error_code : ::std::uint16_t
+	enum class decode_error_code : ::std::uint8_t
 	{
-		success,
-		not_scalar_value, // decode result is not Unicode scalar value, But utf-16 will never make this error
+		not_scalar_value,                 // decode result is not Unicode scalar value, But utf-16 will never make this error
 		eof_when_read_code_unit,          // eof when read first code unit
 		alone_trailing_surrogate,         // trailing surrogate is first code unit by reading
 		eof_when_read_trailing_surrogate, // case: leading surrogate + EOF
@@ -26,6 +25,7 @@ namespace pdn::unicode::utf_16
 		using value_type = code_point_t;
 		using error_type = decode_error_code;
 		using count_type = ::std::uint16_t;
+		using bool_type  = ::std::uint8_t;
 	public:
 		constexpr auto value() const noexcept
 		{
@@ -39,18 +39,29 @@ namespace pdn::unicode::utf_16
 		{
 			return distance_count;
 		}
+		constexpr auto failed() const noexcept
+		{
+			return static_cast<bool>(is_failed);
+		}
 		constexpr explicit operator bool() const noexcept
 		{
-			return error() == error_type::success;
+			return !failed();
 		}
-		friend class decoder;
 	private:
 		value_type code_point{};
-		error_type error_code{ error_type::success };
 		count_type distance_count{};
+		bool_type  is_failed{};
+		error_type error_code{}; // valid only on failure
+
+		constexpr void set_error(error_type code) noexcept
+		{
+			is_failed  = true;
+			error_code = code;
+		}
+		friend class decoder;
 	};
 
-	class decoder // not final for ebo
+	class decoder
 	{
 	public:
 		template <bool reach_next_code_point>
@@ -66,7 +77,7 @@ namespace pdn::unicode::utf_16
 
 			if (begin == end)
 			{
-				result.error_code = eof_when_read_code_unit;
+				result.set_error(eof_when_read_code_unit);
 				return result;
 			}
 
@@ -84,24 +95,24 @@ namespace pdn::unicode::utf_16
 				to_next(begin, result);
 				if (begin == end)
 				{
-					result.error_code = eof_when_read_trailing_surrogate;
+					result.set_error(eof_when_read_trailing_surrogate);
 					return result;
 				}
 				auto trailing = ucu_t(*begin);
 				if (!is_trailing_surrogate(trailing))
 				{
-					result.error_code = requires_trailing_surrogate;
+					result.set_error(requires_trailing_surrogate);
 					return result;
 				}
 				result.code_point |= (value_type(trailing) & value_type(0x03FF));
 				if (!is_scalar_value(result.value()))
 				{
-					result.error_code = not_scalar_value;
+					result.set_error(not_scalar_value);
 				}
 			}
-			else // must be trailing surrogate
+			else // code unit must be trailing surrogate
 			{
-				result.error_code = alone_trailing_surrogate;
+				result.set_error(alone_trailing_surrogate);
 			}
 
 			if constexpr (reach_next_code_point) { to_next(begin, result); }

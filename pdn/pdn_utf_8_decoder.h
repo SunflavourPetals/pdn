@@ -163,7 +163,7 @@ namespace pdn::unicode::utf_8::impl_components
 
 namespace pdn::unicode::utf_8
 {
-	class decoder // not final for ebo
+	class decoder
 	{
 	public:
 		template <bool reach_next_code_point>

@@ -66,10 +66,10 @@ namespace pdn::unicode::utf_8
 			return !failed();
 		}
 	private:
-		code_unit_sequence_type sequence{}; // code point sequence
+		code_unit_sequence_type sequence{};      // code point sequence
 		size_type               sequence_size{}; // size of code point sequence
 		bool_type               is_failed{};
-		error_type              error_code{}; // valid only on failure
+		error_type              error_code{};    // valid only on failure
 
 		constexpr void set_error(error_type code) noexcept
 		{
@@ -79,7 +79,7 @@ namespace pdn::unicode::utf_8
 		friend class encoder;
 	};
 
-	class encoder // not final for ebo
+	class encoder
 	{
 	public:
 		static auto encode(code_point_t character) noexcept -> encode_result
