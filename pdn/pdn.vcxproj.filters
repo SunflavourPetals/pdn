@@ -61,6 +61,15 @@
     <Filter Include="pdn_function_package">
       <UniqueIdentifier>{e592a64c-1aba-41fc-80bf-bd3d237670d4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pdn_error_message_generator">
+      <UniqueIdentifier>{c07621be-b0e4-4846-9e68-22e3f0defba5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_error_handler">
+      <UniqueIdentifier>{012202e4-ee7b-454d-a6b9-fc5e5acc4bcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_error_message_generator\pdn_err_msg_gen_impl">
+      <UniqueIdentifier>{20490ef1-c2d0-49d2-814e-89125dadb6c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pdn_unicode_base.h">
@@ -105,16 +114,7 @@
     <ClInclude Include="pdn_code_point_iterator.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_message_generator.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
     <ClInclude Include="pdn_error_string.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_error_message_generator_en.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_error_handler.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
     <ClInclude Include="pdn_source_position.h">
@@ -177,12 +177,6 @@
     <ClInclude Include="pdn_type_code_to_type.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_lex.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf_8_enc.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
     <ClInclude Include="pdn_utf_8_decoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
@@ -207,24 +201,6 @@
     <ClInclude Include="pdn_unicode.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf_8_dec.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf_16_enc.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf_16_dec.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf_32_enc.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf_32_dec.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_syn.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
     <ClInclude Include="pdn_type_code_to_error_msg_string.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
@@ -247,12 +223,6 @@
       <Filter>pdn_exception</Filter>
     </ClInclude>
     <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_error_handler_concept.h">
-      <Filter>pdn_error</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_error_message_generator_concept.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
     <ClInclude Include="pdn_eof_checker_concept.h">
@@ -294,8 +264,47 @@
     <ClInclude Include="pdn_raw_error_message_type.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_error_handler.h">
+      <Filter>pdn_error_handler</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_handler_concept.h">
+      <Filter>pdn_error_handler</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_lex.h">
+      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_syn.h">
+      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_8_dec.h">
+      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_8_enc.h">
+      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_16_dec.h">
+      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_16_enc.h">
+      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_32_dec.h">
+      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_err_msg_gen_en_utf_32_enc.h">
+      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
+    </ClInclude>
     <ClInclude Include="pdn_err_msg_gen_utility.h">
-      <Filter>pdn_error</Filter>
+      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_message_generator.h">
+      <Filter>pdn_error_message_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_message_generator_concept.h">
+      <Filter>pdn_error_message_generator</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_error_message_generator_en.h">
+      <Filter>pdn_error_message_generator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

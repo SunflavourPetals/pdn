@@ -313,7 +313,7 @@ namespace pdn
 				}
 				else // boolean, character, string, list, object
 				{
-					constexpr auto operand_type = type_to_type_code_v<type_traits::remove_proxy_t<arg_t>, char_t>;
+					constexpr auto operand_type = type_to_type_code_v<remove_proxy_t<arg_t>, char_t>;
 					post_err(is_last_sign_negative ? last_negative_sign_pos : last_positive_sign_pos,
 					         syn_ec::invalid_unary_operation,
 					         raw_err_unary_op{ token_convert<error_msg_char>(tk), operand_type, is_last_sign_negative });
@@ -488,7 +488,7 @@ namespace pdn
 
 			return ::std::visit([&](auto& arg) -> entity
 			{
-				using src_t = type_traits::remove_proxy_t<::std::decay_t<decltype(arg)>>;
+				using src_t = remove_proxy_t<::std::decay_t<decltype(arg)>>;
 				using tar_t = type_code_to_type_t<target_type_c, char_t>; // unknown -> void
 
 				constexpr auto src_c = type_to_type_code_v<src_t, char_t>;

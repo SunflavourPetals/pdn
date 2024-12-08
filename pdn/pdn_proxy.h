@@ -60,10 +60,7 @@ namespace pdn
 	{
 		return proxy<type>{ ::std::make_unique<type>(::std::forward<args_t>(args)...) };
 	}
-}
 
-namespace pdn::type_traits
-{
 	template <typename t>
 	struct remove_proxy
 	{

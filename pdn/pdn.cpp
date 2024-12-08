@@ -91,7 +91,7 @@ namespace pdn_test
 				{
 					auto type_s = std::visit([](auto& e) {
 						using arg_t = std::decay_t<decltype(e)>;
-						using pdn_e_t = pdn::type_traits::remove_proxy_t<arg_t>;
+						using pdn_e_t = pdn::remove_proxy_t<arg_t>;
 						constexpr auto type_c = pdn::type_to_type_code_v<pdn_e_t, char_t>;
 						auto type_em_s = pdn::type_code_to_error_msg_string(type_c);
 						auto type_s = std::string((const char*)type_em_s.data(), type_em_s.size());
@@ -127,7 +127,7 @@ namespace pdn_test
 					auto type_s = std::visit([](auto& e)
 					{
 						using arg_t = std::decay_t<decltype(e)>;
-						using pdn_e_t = pdn::type_traits::remove_proxy_t<arg_t>;
+						using pdn_e_t = pdn::remove_proxy_t<arg_t>;
 						constexpr auto type_c = pdn::type_to_type_code_v<pdn_e_t, char_t>;
 						auto type_em_s = pdn::type_code_to_error_msg_string(type_c);
 						auto type_s = std::string((const char*)type_em_s.data(), type_em_s.size());
@@ -166,7 +166,7 @@ namespace pdn_test
 		auto type_s = std::visit([](auto& e)
 		{
 			using arg_t = std::decay_t<decltype(e)>;
-			using pdn_e_t = pdn::type_traits::remove_proxy_t<arg_t>;
+			using pdn_e_t = pdn::remove_proxy_t<arg_t>;
 			constexpr auto type_c = pdn::type_to_type_code_v<pdn_e_t, char_t>;
 			auto type_em_s = pdn::type_code_to_error_msg_string(type_c);
 			auto type_s = std::string((const char*)type_em_s.data(), type_em_s.size());
@@ -200,7 +200,7 @@ namespace pdn_test
 		auto type_s = std::visit([](auto& e)
 		{
 			using arg_t = std::decay_t<decltype(e)>;
-			using pdn_e_t = pdn::type_traits::remove_proxy_t<arg_t>;
+			using pdn_e_t = pdn::remove_proxy_t<arg_t>;
 			constexpr auto type_c = pdn::type_to_type_code_v<pdn_e_t, char_t>;
 			auto type_em_s = pdn::type_code_to_error_msg_string(type_c);
 			auto type_s = std::string((const char*)type_em_s.data(), type_em_s.size());
@@ -586,7 +586,7 @@ namespace pdn_test
 						bool is_object_or_list = std::visit([&](auto& e)
 						{
 							using arg_t = std::decay_t<decltype(e)>;
-							using pdn_e_t = pdn::type_traits::remove_proxy_t<arg_t>;
+							using pdn_e_t = pdn::remove_proxy_t<arg_t>;
 							if constexpr (std::same_as<pdn_e_t, pdn::types::object<char_t>>)
 							{
 								return true;
@@ -638,7 +638,7 @@ namespace pdn_test
 						bool is_object_or_list = std::visit([&](auto& e)
 						{
 							using arg_t = std::decay_t<decltype(e)>;
-							using pdn_e_t = pdn::type_traits::remove_proxy_t<arg_t>;
+							using pdn_e_t = pdn::remove_proxy_t<arg_t>;
 							if constexpr (std::same_as<pdn_e_t, pdn::types::object<char_t>>)
 							{
 								return true;

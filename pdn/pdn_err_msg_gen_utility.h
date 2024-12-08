@@ -17,12 +17,40 @@
 #include "pdn_raw_error_message_variant.h"
 #include "pdn_type_code_to_type.h"
 #include "pdn_type_code_to_error_msg_string.h"
+#include "pdn_token_code_to_error_msg_string.h"
 
 namespace pdn::dev_util::err_msg_gen_util
 {
 	inline auto make_slashes(error_msg_string_view view) -> error_msg_string
 	{
 		return make_slashes_string<error_msg_string>(unicode::code_convert<unicode::code_point_string>(view));
+	}
+	inline auto token_value_variant_to_s(const token_value_variant<error_msg_char>& variant) -> error_msg_string
+	{
+		return ::std::visit([](const auto& arg) -> error_msg_string
+		{
+			using arg_t = ::std::decay_t<decltype(arg)>;
+			if constexpr (::std::same_as<arg_t, types::character<error_msg_char>>)
+			{
+				return u8"\'"_em + error_msg_string{ arg.to_string_view() } + u8"\'"_em;
+			}
+			else if constexpr (::std::same_as<arg_t, proxy<types::string<error_msg_char>>>)
+			{
+				return u8"\""_em + make_slashes(*arg) + u8"\""_em;
+			}
+			else if constexpr (::std::same_as<arg_t, types::boolean>)
+			{
+				return arg ? u8"true"_em : u8"false"_em;
+			}
+			else if constexpr (::std::same_as<arg_t, ::std::monostate>)
+			{
+				return u8"monostate"_em;
+			}
+			else
+			{
+				return reinterpret_to_err_msg_str(::std::to_string(arg));
+			}
+		}, variant);
 	}
 }
 
@@ -56,40 +84,14 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	inline auto get_casting_operand(const raw_error_message_variant& raw) -> error_msg_string
 	{
 		using namespace literals::error_message_literals;
-		const auto src_type_c = ::std::get<raw_error_message_type::casting_msg>(raw).source_type;
-		if (src_type_c == type_code::list)
+		using raw_error_message_type::casting_msg;
+
+		switch (::std::get<raw_error_message_type::casting_msg>(raw).source_type)
 		{
-			return u8"list"_em;
+		case type_code::list:   return u8"list"_em;
+		case type_code::object: return u8"object"_em;
+		default:                return token_value_variant_to_s(::std::get<casting_msg>(raw).operand);
 		}
-		else if (src_type_c == type_code::object)
-		{
-			return u8"object"_em;
-		}
-		return ::std::visit([](const auto& arg) -> error_msg_string
-		{
-			using arg_t = ::std::decay_t<decltype(arg)>;
-			if constexpr (::std::same_as<arg_t, types::character<error_msg_char>>)
-			{
-				return u8"\'"_em + error_msg_string{ arg.to_string_view() } + u8"\'"_em;
-			}
-			else if constexpr (::std::same_as<arg_t, proxy<types::string<error_msg_char>>>)
-			{
-				return u8"\""_em + make_slashes(*arg) + u8"\""_em;
-			}
-			else if constexpr (::std::same_as<arg_t, types::boolean>)
-			{
-				return arg ? u8"true"_em : u8"false"_em;
-			}
-			else if constexpr (::std::same_as<arg_t, ::std::monostate>)
-			{
-				throw inner_error{ "get value from monostate" };
-				return u8"error"_em;
-			}
-			else
-			{
-				return reinterpret_to_err_msg_str(::std::to_string(arg));
-			}
-		}, ::std::get<raw_error_message_type::casting_msg>(raw).operand);
 	}
 
 	// for casting_msg from casting_domain_error
@@ -160,7 +162,17 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 		return !::std::get_if<::std::monostate>(&::std::get<raw_error_message_type::error_token>(raw).value.value);
 	}
 
-
+	// for error_token
+	inline auto get_description_for_error_token(const raw_error_message_variant& raw) -> error_msg_string
+	{
+		using namespace literals::error_message_literals;
+		auto& token_val = ::std::get<raw_error_message_type::error_token>(raw).value;
+		return is_error_token_with_value(raw)
+			? token_code_to_error_msg_string(token_val.code)
+			+ u8" with value "_em
+			+ token_value_variant_to_s(token_val.value)
+			: token_code_to_error_msg_string(token_val.code);
+	}
 }
 
 #endif

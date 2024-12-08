@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <iterator>
+#include <concepts>
 #include <utility>
 #include <string>
 #include <memory>
@@ -48,6 +49,29 @@ namespace pdn::concepts
 		 = concepts::source_position_recorder<type>
 		&& concepts::error_handler<type>
 		&& concepts::error_message_generator<type>;
+}
+
+namespace pdn::util
+{
+	template <typename type>
+	struct decode_result_to_raw_error {};
+	template <>
+	struct decode_result_to_raw_error<unicode::utf_8::decode_result>
+	{
+		using type = raw_error_message_type::utf_8_decode_error;
+	};
+	template <>
+	struct decode_result_to_raw_error<unicode::utf_16::decode_result>
+	{
+		using type = raw_error_message_type::utf_16_decode_error;
+	};
+	template <>
+	struct decode_result_to_raw_error<unicode::utf_32::decode_result>
+	{
+		using type = raw_error_message_type::utf_32_decode_error;
+	};
+	template <typename type>
+	using decode_result_to_raw_error_t = decode_result_to_raw_error<type>::type;
 }
 
 namespace pdn
@@ -113,20 +137,16 @@ namespace pdn
 				}
 				else
 				{
-					static_assert(sizeof(::std::uint32_t) >= sizeof(unicode::code_point_t));
-					::std::string hex_s;
-					if (begin != end)
-					{
-						hex_s = ::std::format("0x{:08X}", static_cast<::std::uint32_t>(*begin));
-					}
-					else
-					{
-						using namespace std::string_literals;
-						hex_s = "EOF"s;
-					}
-					auto hex_em_s = reinterpret_to_err_msg_str(hex_s);
-					auto err_msg = func_pkg->generate_error_message(raw_error_message{ { result.error() }, func_pkg->position(), hex_em_s });
-					func_pkg->handle_error(error_message{ result.error(), func_pkg->position(), ::std::move(err_msg) });
+					using result_type = decltype(result);
+					func_pkg->handle_error(error_message{
+						result.error(),
+						func_pkg->position(),
+						func_pkg->generate_error_message(raw_error_message{
+							result.error(),
+							func_pkg->position(),
+							util::decode_result_to_raw_error_t<result_type>{ result, *begin, offset }
+						})
+					});
 					if (result.distance() == 0)
 					{
 						++begin;

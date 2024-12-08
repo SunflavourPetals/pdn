@@ -39,36 +39,36 @@ namespace pdn::dev_util
 				+ u8" with type "_em         + get_source_type_name(raw)
 				+ u8" to type "_em           + get_target_type_name(raw);
 		case expect_entity_name:
-		//	return u8"expect name(identifier) but receiving \""_em + src + u8"\" before entity"_em;
+			return u8"expect entity-name(identifier) but receiving "_em
+				+ get_description_for_error_token(raw)
+				+ u8" before entity"_em;
 		case expect_type_name:
-		//	return u8"expect type-name(identifier) but receiving \""_em + src + u8"\""_em;
+			return u8"expect type-name(identifier) but receiving "_em + get_description_for_error_token(raw);
 		case expect_expression:
-		//	return u8"expect expression but receiving \""_em + src + u8"\""_em;
+			return u8"expect expression but receiving "_em + get_description_for_error_token(raw);
 		case expect_comma:
-		//	return u8"expect comma but receiving \""_em + src + u8"\""_em;
+			return u8"expect comma(,) but receiving "_em + get_description_for_error_token(raw);
 		case expect_colon:
-		//	return u8"expect colon([type-name: val, ...]) but receiving \""_em + src + u8"\""_em;
+			return u8"expect colon(:) but receiving "_em + get_description_for_error_token(raw);
 		case expect_definition_of_named_entity:
-
+			return u8"expect named entity but receiving "_em + get_description_for_error_token(raw);
 		case expect_definition_of_list_element:
-
+			return u8"expect element of list but receiving "_em + get_description_for_error_token(raw);
 		case invalid_unary_operation:
 		//	return u8"invalid unary operation: \""_em + src + u8"\""_em;
 
 		case unknown_type:
-		//	return u8"no type named \""_em + src + u8"\""_em;
+			return u8"identifier \""_em + get_slashes_iden(raw) + u8"\" is not a type"_em;
 
 		case missing_right_brackets:
-		//	return u8"missing right brackets: \"]\""_em;
+			return u8"missing right brackets: ]"_em;
 		case missing_right_curly_brackets:
-		//	return u8"missing right curly brackets: \"}\""_em;
+			return u8"missing right curly brackets: }"_em;
 
 		default:
-			// todo throw inner_error
-			return u8"NEW SYNTAX ERROR MESSAGE GENERATOR"_em;
+			throw inner_error{ "syntax error and error_message_generator_en unresolved" };
+			return u8"syntax error, error_message_generator_en unresolved"_em;
 		}
-
-	//	return u8"syntax error, error_message_generator_en unresolved: \""_em + src + u8"\""_em;
 	}
 }
 
