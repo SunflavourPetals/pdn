@@ -36,9 +36,8 @@ namespace pdn::dev_util
 		case unsupported_utf_8_leading:
 			return u8"UTF-8 decode unsupported utf-8 leading: \""_em + src + u8"\""_em;
 		default:
-			break;
+			return u8"UTF-8 decode error, error_message_generator_en unresolved"_em;
 		}
-		return u8"UTF-8 decode error, error_message_generator_en unresolved: \""_em + src + u8"\""_em;
 	}
 }
 

@@ -52,6 +52,19 @@ namespace pdn::dev_util::err_msg_gen_util
 			}
 		}, variant);
 	}
+	inline auto is_mono(const token_value_variant<error_msg_char>& variant) -> bool
+	{
+		return static_cast<bool>(::std::get_if<::std::monostate>(&variant));
+	}
+	inline auto description_of(const token<error_msg_char>& token_val) -> error_msg_string
+	{
+		using namespace literals::error_message_literals;
+		return is_mono(token_val.value)
+			? token_code_to_error_msg_string(token_val.code)
+			: token_code_to_error_msg_string(token_val.code)
+			+ u8" with value "_em
+			+ token_value_variant_to_s(token_val.value);
+	}
 }
 
 namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
@@ -157,21 +170,23 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	}
 
 	// for error_token
-	inline auto is_error_token_with_value(const raw_error_message_variant& raw) -> bool
-	{
-		return !::std::get_if<::std::monostate>(&::std::get<raw_error_message_type::error_token>(raw).value.value);
-	}
-
-	// for error_token
 	inline auto get_description_for_error_token(const raw_error_message_variant& raw) -> error_msg_string
 	{
+		return description_of(::std::get<raw_error_message_type::error_token>(raw).value);
+	}
+
+	// for unary_operation
+	inline auto get_unary_operator_s(const raw_error_message_variant& raw) -> error_msg_string
+	{
 		using namespace literals::error_message_literals;
-		auto& token_val = ::std::get<raw_error_message_type::error_token>(raw).value;
-		return is_error_token_with_value(raw)
-			? token_code_to_error_msg_string(token_val.code)
-			+ u8" with value "_em
-			+ token_value_variant_to_s(token_val.value)
-			: token_code_to_error_msg_string(token_val.code);
+		auto is_negative = ::std::get<raw_error_message_type::unary_operation>(raw).negative;
+		return is_negative ? u8"operator-"_em : u8"operator+"_em;
+	}
+
+	// for unary_operation
+	inline auto get_description_for_unary_operation(const raw_error_message_variant& raw) -> error_msg_string
+	{
+		return description_of(::std::get<raw_error_message_type::unary_operation>(raw).operand);
 	}
 }
 

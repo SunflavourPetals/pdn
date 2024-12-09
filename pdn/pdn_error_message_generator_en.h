@@ -7,7 +7,7 @@
 
 #include "pdn_error_string.h"
 #include "pdn_error_code_variant.h"
-#include "pdn_raw_error_message_variant.h"
+#include "pdn_raw_error_message.h"
 #include "pdn_err_msg_gen_en_lex.h"
 #include "pdn_err_msg_gen_en_syn.h"
 #include "pdn_err_msg_gen_en_utf_8_enc.h"
