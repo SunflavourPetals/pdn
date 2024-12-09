@@ -19,7 +19,7 @@
 
 namespace pdn
 {
-	inline auto error_message_generator_en_function(raw_error_message src) -> error_msg_string
+	inline auto error_message_generator_en(raw_error_message src) -> error_msg_string
 	{
 		return ::std::visit([&](auto code) -> error_msg_string
 		{

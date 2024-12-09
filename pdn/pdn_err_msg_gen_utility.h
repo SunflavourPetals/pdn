@@ -6,6 +6,8 @@
 #include <variant>
 #include <string>
 #include <limits>
+#include <cstddef>
+#include <charconv>
 
 #include "pdn_types.h"
 #include "pdn_proxy.h"
@@ -18,6 +20,8 @@
 #include "pdn_type_code_to_type.h"
 #include "pdn_type_code_to_error_msg_string.h"
 #include "pdn_token_code_to_error_msg_string.h"
+
+#include "pdn_unicode.h"
 
 namespace pdn::dev_util::err_msg_gen_util
 {
@@ -187,6 +191,42 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	inline auto get_description_for_unary_operation(const raw_error_message_variant& raw) -> error_msg_string
 	{
 		return description_of(::std::get<raw_error_message_type::unary_operation>(raw).operand);
+	}
+}
+
+namespace pdn::dev_util::err_msg_gen_util
+{
+	template <int base = 10, ::std::size_t width = 0, ::std::size_t buffer_size = 64>
+	inline auto to_s(::std::integral auto const val) -> error_msg_string
+	{
+		using namespace literals::error_message_literals;
+		char buffer[buffer_size]{};
+		auto to_chars_result = ::std::to_chars(buffer, buffer + buffer_size, val, base);
+		if (to_chars_result.ec != ::std::errc{})
+		{
+			if (to_chars_result.ec == ::std::errc::value_too_large)
+			{
+				throw inner_error{ "too large value" };
+			}
+			else
+			{
+				throw inner_error{ "unknown error" };
+			}
+		}
+		auto begin  = reinterpret_cast<error_msg_char*>(buffer);
+		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer);
+		auto result = error_msg_string{};
+		for (auto i = length; i <= width; ++i)
+		{
+			result += u8'0';
+		}
+		result.append(begin, length);
+		return result;
+	}
+	// for utf_8|16|32_decode_error
+	inline auto offset_of_leading(const auto& raw_error) -> error_msg_string
+	{
+		return u8"0x"_em.append(to_s<16, 4>(raw_error.last_code_unit_offset - raw_error.result.distance()));
 	}
 }
 

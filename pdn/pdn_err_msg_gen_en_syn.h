@@ -1,8 +1,6 @@
 #ifndef PDN_Header_pdn_err_msg_gen_en_syn
 #define PDN_Header_pdn_err_msg_gen_en_syn
 
-#include <variant>
-
 #include "pdn_exception.h"
 #include "pdn_error_string.h"
 #include "pdn_syntax_error_code.h"

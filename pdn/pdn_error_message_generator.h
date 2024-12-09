@@ -18,7 +18,7 @@ namespace pdn
 		// todo add extra parameter source_position and raw_error_message
 		auto generate_error_message(raw_error_message src) const -> error_msg_string
 		{
-			return error_message_generator_en_function(::std::move(src));
+			return error_message_generator_en(::std::move(src));
 		}
 	};
 	static_assert(concepts::error_message_generator<default_error_message_generator>);

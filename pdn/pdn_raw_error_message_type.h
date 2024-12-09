@@ -15,20 +15,20 @@ namespace pdn::raw_error_message_type
 	struct utf_8_decode_error final
 	{
 		unicode::utf_8::decode_result result;
-		unicode::utf_8::code_unit_t   point;
-		::std::size_t                 code_unit_offset;
+		unicode::utf_8::code_unit_t   last_code_unit;
+		::std::size_t                 last_code_unit_offset;
 	};
 	struct utf_16_decode_error final
 	{
 		unicode::utf_16::decode_result result;
-		unicode::utf_16::code_unit_t   point;
-		::std::size_t                  code_unit_offset;
+		unicode::utf_16::code_unit_t   last_code_unit;
+		::std::size_t                  last_code_unit_offset;
 	};
 	struct utf_32_decode_error final
 	{
 		unicode::utf_32::decode_result result;
-		unicode::utf_32::code_unit_t   point;
-		::std::size_t                  code_unit_offset;
+		unicode::utf_32::code_unit_t   last_code_unit;
+		::std::size_t                  last_code_unit_offset;
 	};
 	struct utf_8_encode_error final
 	{
