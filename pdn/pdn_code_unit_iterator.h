@@ -12,6 +12,8 @@
 #include "pdn_unicode_base.h"
 #include "pdn_eof_checker_concept.h"
 
+// requires 1 Byte = 8 bits
+
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
 //     +---> BOM reader (provide: get BOM)
@@ -38,6 +40,10 @@
 
 namespace pdn::dev_util
 {
+	static_assert(sizeof(char8_t)  == 1, "please rewrite code_unit_iterator for your platform");
+	static_assert(sizeof(char16_t) == 2, "please rewrite code_unit_iterator for your platform");
+	static_assert(sizeof(char32_t) == 4, "please rewrite code_unit_iterator for your platform");
+
 	template <unicode::encode_type encode_type, typename it_t>
 	class code_unit_iterator_helper final
 	{
@@ -45,9 +51,9 @@ namespace pdn::dev_util
 		using code_unit_type = unicode::type_traits::code_unit_t<encode_type>;
 		using char_type      = code_unit_type;
 		using size_type      = ::std::size_t;
-		static constexpr size_type bits_count_of_byte{ 8 };
+		static constexpr size_type bits_count_of_byte{ 8 }; // requires 1 Byte = 8 bits
 		static constexpr size_type bits_count_of_unit{ sizeof(char_type) * bits_count_of_byte };
-		static_assert(bits_count_of_unit >= bits_count_of_byte);
+		static_assert(bits_count_of_unit >= bits_count_of_byte); // e.g. sizeof(char16_t) = 1 Byte, 1 Byte >= 16 bits, connot use this impl, assert!
 		static constexpr ::std::endian source_endian() noexcept
 		{
 			return unicode::type_traits::endian_from_encode_type<encode_type>;

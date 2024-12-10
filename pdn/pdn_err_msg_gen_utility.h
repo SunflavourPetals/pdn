@@ -224,9 +224,9 @@ namespace pdn::dev_util::err_msg_gen_util
 		return result;
 	}
 	// for utf_8|16|32_decode_error
-	inline auto offset_of_leading(const auto& raw_error) -> error_msg_string
+	inline auto offset_of_leading(const auto& msg, const int multi = 1) -> error_msg_string
 	{
-		return u8"0x"_em.append(to_s<16, 4>(raw_error.last_code_unit_offset - raw_error.result.distance()));
+		return u8"0x"_em.append(to_s<16, 4>((msg.last_code_unit_offset - msg.result.distance()) * multi));
 	}
 }
 

@@ -1,34 +1,51 @@
 #ifndef PDN_Header_pdn_err_msg_gen_en_utf_16_dec
 #define PDN_Header_pdn_err_msg_gen_en_utf_16_dec
 
+#include <variant>
+
+#include "pdn_exception.h"
 #include "pdn_error_string.h"
-#include "pdn_error_message.h"
 #include "pdn_utf_16_decoder.h"
+#include "pdn_source_position.h"
+#include "pdn_raw_error_message_type.h"
+#include "pdn_raw_error_message_variant.h"
+
+#include "pdn_err_msg_gen_utility.h"
 
 namespace pdn::dev_util
 {
-	inline constexpr error_msg_string err_msg_gen_en(unicode::utf_16::decode_error_code errc, error_msg_string src)
+	using utf_16_decode_error_code = unicode::utf_16::decode_error_code;
+	inline auto err_msg_gen_en(utf_16_decode_error_code errc, source_position pos, raw_error_message_variant raw) -> error_msg_string
 	{
+		using namespace err_msg_gen_util;
 		using namespace error_message_literals;
-		using enum unicode::utf_16::decode_error_code;
+		using enum utf_16_decode_error_code;
+		auto& msg = ::std::get<raw_error_message_type::utf_16_decode_error>(raw);
 		switch (errc)
 		{
-	//	case success:
-	//		return u8"unicode::utf_16::decode_error == success: \""_em + src + u8"\""_em;
-		case not_scalar_value:
-			return u8"UTF-16 decode error not scalar value(UTF-16 should not make this error): \""_em + src + u8"\""_em;
+		case not_scalar_value: // UTF-16 should not make this error
+			return u8"not scalar value: 0x"_em + to_s<16, 4>(msg.result.value())
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8", "_em
+				+ to_s(msg.result.distance())
+				+ (msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
 		case eof_when_read_code_unit:
-			return u8"UTF-16 decode error eof when read code unit(or leading surrogate): \""_em + src + u8"\""_em;
+			return u8"eof when read code unit(or leading surrogate), sequence at offset "_em + offset_of_leading(msg, 2);
 		case alone_trailing_surrogate:
-			return u8"UTF-16 decode error alone trailing surrogate(trailing surrogate is first code unit by reading): \""_em + src + u8"\""_em;
+			return u8"alone trailing surrogate, code unit: "_em + to_s<16, 4>(msg.last_code_unit)
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8", "_em
+				+ to_s(msg.result.distance())
+				+ (msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
 		case eof_when_read_trailing_surrogate:
-			return u8"UTF-16 decode error eof when read trailing surrogate: \""_em + src + u8"\""_em;
+			return u8"eof when read trailing surrogate, sequence at offset "_em + offset_of_leading(msg, 2);
 		case requires_trailing_surrogate:
-			return u8"UTF-16 decode error requires trailing surrogate: \""_em + src + u8"\""_em;
+			return u8"requires trailing surrogate, code unit: "_em + to_s<16, 4>(msg.last_code_unit)
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8", "_em
+				+ to_s(msg.result.distance())
+				+ (msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
 		default:
-			break;
+			throw inner_error{ "UTF-16 decode error and error_message_generator_en unresolved" };
+			return u8"UTF-16 decode error, error_message_generator_en unresolved"_em;
 		}
-		return u8"UTF-16 decode error, error_message_generator_en unresolved: \""_em + src + u8"\""_em;
 	}
 }
 
