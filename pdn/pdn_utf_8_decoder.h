@@ -201,13 +201,10 @@ namespace pdn::unicode::utf_8
 				{
 				case cu_count::c5: (result = process_trailing<4>(begin, end)).code_point |= ((value_type(c) & 0x03) << (6 * 4)); break;
 				case cu_count::c6: (result = process_trailing<5>(begin, end)).code_point |= ((value_type(c) & 0x01) << (6 * 5)); break;
-				case cu_count::unknown:
-					result.set_error(unsupported_utf_8_leading);
-					if constexpr (reach_next_code_point) { to_next(begin, result); }
-					return result;
+				case cu_count::unknown: [[fallthrough]];
 				default:
-					// mark c1, c2, c3, c4, trail and unconfirm not in second table, this branch will never be executed.
-					result.set_error(requires_utf_8_leading);
+					// mark c1, c2, c3, c4, trail and unconfirm not in second table, this branch only for case unknown.
+					result.set_error(unsupported_utf_8_leading);
 					if constexpr (reach_next_code_point) { to_next(begin, result); }
 					return result;
 				}

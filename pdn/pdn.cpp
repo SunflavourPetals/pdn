@@ -824,7 +824,6 @@ namespace pdn_test
 
 int main(int argc, const char* argv[])
 {
-	std::system("chcp 65001");
 	std::string filename{};
 	std::string out_filename{};
 	std::string log_filename{};

@@ -25,23 +25,25 @@ namespace pdn::dev_util
 		{
 		case not_scalar_value: // UTF-16 should not make this error
 			return u8"not scalar value: 0x"_em + to_s<16, 4>(msg.result.value())
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8", "_em
-				+ to_s(msg.result.distance())
-				+ (msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +4), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case eof_when_read_code_unit:
-			return u8"eof when read code unit(or leading surrogate), sequence at offset "_em + offset_of_leading(msg, 2);
+			return u8"eof when read code unit(or leading surrogate), sequence at offset "_em
+				+ offset_of_leading(msg, 2) + u8"(if with BOM then +4)"_em;
 		case alone_trailing_surrogate:
 			return u8"alone trailing surrogate, code unit: "_em + to_s<16, 4>(msg.last_code_unit)
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8", "_em
-				+ to_s(msg.result.distance())
-				+ (msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +4), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case eof_when_read_trailing_surrogate:
-			return u8"eof when read trailing surrogate, sequence at offset "_em + offset_of_leading(msg, 2);
+			return u8"eof when read trailing surrogate, sequence at offset "_em
+				+ offset_of_leading(msg, 2) + u8"(if with BOM then +4)"_em;
 		case requires_trailing_surrogate:
 			return u8"requires trailing surrogate, code unit: "_em + to_s<16, 4>(msg.last_code_unit)
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8", "_em
-				+ to_s(msg.result.distance())
-				+ (msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +4), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		default:
 			throw inner_error{ "UTF-16 decode error and error_message_generator_en unresolved" };
 			return u8"UTF-16 decode error, error_message_generator_en unresolved"_em;

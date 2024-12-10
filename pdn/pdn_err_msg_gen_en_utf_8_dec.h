@@ -21,41 +21,41 @@ namespace pdn::dev_util
 		using namespace err_msg_gen_util;
 		using namespace error_message_literals;
 		using enum utf_8_decode_error_code;
-		auto& err_msg = ::std::get<raw_error_message_type::utf_8_decode_error>(raw);
+		auto& msg = ::std::get<raw_error_message_type::utf_8_decode_error>(raw);
 		switch (errc)
 		{
 		case not_scalar_value:
-			return u8"not scalar value: 0x"_em + to_s<16, 4>(err_msg.result.value())
-				+ u8", sequence at offset "_em + offset_of_leading(err_msg) + u8", "_em
-				+ to_s(err_msg.result.distance())
-				+ (err_msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
+			return u8"not scalar value: 0x"_em + to_s<16, 4>(msg.result.value())
+				+ u8", sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case eof_when_read_1st_code_unit:
-			return u8"eof when read 1st code unit, sequence at offset "_em + offset_of_leading(err_msg);
+			return u8"eof when read 1st code unit, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3)"_em;
 		case eof_when_read_2nd_code_unit:
-			return u8"eof when read 2nd code unit, sequence at offset "_em + offset_of_leading(err_msg);
+			return u8"eof when read 2nd code unit, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3)"_em;
 		case eof_when_read_3rd_code_unit:
-			return u8"eof when read 3rd code unit, sequence at offset "_em + offset_of_leading(err_msg);
+			return u8"eof when read 3rd code unit, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3)"_em;
 		case eof_when_read_4th_code_unit:
-			return u8"eof when read 4th code unit, sequence at offset "_em + offset_of_leading(err_msg);
+			return u8"eof when read 4th code unit, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3)"_em;
 		case eof_when_read_5th_code_unit:
-			return u8"eof when read 5th code unit, sequence at offset "_em + offset_of_leading(err_msg);
+			return u8"eof when read 5th code unit, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3)"_em;
 		case eof_when_read_6th_code_unit:
-			return u8"eof when read 6th code unit, sequence at offset "_em + offset_of_leading(err_msg);
+			return u8"eof when read 6th code unit, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3)"_em;
 		case requires_utf_8_trailing:
-			return u8"requires trailing and read one which not trailing, code unit: 0x"_em + to_s<16, 2>(err_msg.last_code_unit)
-				+ u8", sequence at offset "_em + offset_of_leading(err_msg) + u8", "_em
-				+ to_s(err_msg.result.distance())
-				+ (err_msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
+			return u8"requires utf-8 trailing, code unit: 0x"_em + to_s<16, 2>(msg.last_code_unit)
+				+ u8", sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case requires_utf_8_leading:
-			return u8"requires leading and read one which not leading, code unit: 0x"_em + to_s<16, 2>(err_msg.last_code_unit)
-				+ u8", sequence at offset "_em + offset_of_leading(err_msg) + u8", "_em
-				+ to_s(err_msg.result.distance())
-				+ (err_msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
+			return u8"requires utf-8 leading, code unit: 0x"_em + to_s<16, 2>(msg.last_code_unit)
+				+ u8", sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case unsupported_utf_8_leading:
-			return u8"unsupported utf-8 leading, code unit: 0x"_em + to_s<16, 2>(err_msg.last_code_unit)
-				+ u8", sequence at offset "_em + offset_of_leading(err_msg) + u8", "_em
-				+ to_s(err_msg.result.distance())
-				+ (err_msg.result.distance() == 1 ? u8" code unit was read"_em : u8" code units were read"_em);
+			return u8"unsupported utf-8 leading, code unit: 0x"_em + to_s<16, 2>(msg.last_code_unit)
+				+ u8", sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		default:
 			throw inner_error{ "UTF-8 decode error and error_message_generator_en unresolved" };
 			return u8"UTF-8 decode error, error_message_generator_en unresolved"_em;

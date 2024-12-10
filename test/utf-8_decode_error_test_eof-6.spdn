@@ -1,0 +1,5 @@
+// eof_when_read_6th_code_unit
+// .using CRLF
+// .FC80808080
+// offset.0x53
+// ü€€€€

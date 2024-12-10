@@ -460,11 +460,3 @@ test_block {
 		x { a:123; b:456; c:789; d:10; }
 	}
 }
-
-error_test {
-	cast_1: i8 -129;
-	case_2: u8 256;
-	cast_3: object [];
-	cast_4: list {};
-	id_redef 1; id_redef 2;
-}

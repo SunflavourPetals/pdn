@@ -213,10 +213,14 @@ namespace pdn::dev_util::err_msg_gen_util
 				throw inner_error{ "unknown error" };
 			}
 		}
+		if (to_chars_result.ptr - buffer < 0)
+		{
+			throw inner_error{ "to chars error: to_chars_result.ptr < begin(buffer)" };
+		}
 		auto begin  = reinterpret_cast<error_msg_char*>(buffer);
 		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer);
 		auto result = error_msg_string{};
-		for (auto i = length; i <= width; ++i)
+		for (auto i = length; i < width; ++i)
 		{
 			result += u8'0';
 		}

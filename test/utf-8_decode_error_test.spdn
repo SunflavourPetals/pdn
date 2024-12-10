@@ -1,0 +1,34 @@
+data//
+   @"(
+AAAABB
+AAAABB
+AÙêÄÄB
+AA˜øøø
+AAAAﬂB
+A˛AÄBˇ
+AAAABB
+......
+......)"
+// using CRLF
+// 0xxx xxxx // 0 - 127
+// 110x xxxx, 10xx xxxx // ~ 2047
+// 1110 xxxx, 10xx xxxx, 10xx xxxx // ~ 65535
+// 1111 0xxx, 10xx xxxx, 10xx xxxx, 10xx xxxx // ~0x10FFFF ~0x1F'FF'FF
+// 5:offset1(0x21) not_scalar_value XXXX = F4 90 80 80 = 0x110000
+// 6:offset2(0x2A) not_scalar_value XXXX = F7 BF BF BF = 0x1FFFFF
+// 7:offset4(0x34) requires_utf_8_trailing,   X = 110x'xxxx e.g. DF
+// 8:offset1(0x39) unsupported_utf_8_leading, X = 1111'1110 FE
+// 8:offset3(0x3B) requires_utf_8_leading,    X = 1000'0000 80
+// 8:offset5(0x3D) unsupported_utf_8_leading, X = 1111'1111 FF
+
+cmp///
+   @"(
+AAAABB
+AAAABB
+AXXXXB
+AAXXXX
+AAAAXB
+AXAXBX
+AAAABB
+......
+......)"
