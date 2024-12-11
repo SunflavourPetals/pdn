@@ -15,12 +15,12 @@
 namespace pdn::dev_util
 {
 	using utf_16_decode_error_code = unicode::utf_16::decode_error_code;
-	inline auto err_msg_gen_en(utf_16_decode_error_code errc, source_position pos, raw_error_message_variant raw) -> error_msg_string
+	inline auto err_msg_gen_en(utf_16_decode_error_code errc, source_position, raw_error_message_variant raw) -> error_msg_string
 	{
 		using namespace err_msg_gen_util;
 		using namespace error_message_literals;
 		using enum utf_16_decode_error_code;
-		auto& msg = ::std::get<raw_error_message_type::utf_16_decode_error>(raw);
+		const auto& msg = ::std::get<raw_error_message_type::utf_16_decode_error>(raw);
 		switch (errc)
 		{
 		case not_scalar_value: // UTF-16 should not make this error
