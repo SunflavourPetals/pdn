@@ -179,7 +179,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso start{
 		dfa_state_code::start,
 		pdn_token_code::eof,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -233,7 +233,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso identifier{
 		dfa_state_code::identifier,
 		pdn_token_code::identifier,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_allowed_in_identifier(c))
 				return identifier;
@@ -244,7 +244,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso identifier_string_opened{
 		dfa_state_code::identifier_string_opened,
 		pdn_token_code::identifier,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			return identifier_string.transformer(c);
 		}
@@ -252,7 +252,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso identifier_string{
 		dfa_state_code::identifier_string,
 		pdn_token_code::identifier,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -289,7 +289,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso slash{
 		dfa_state_code::slash,
 		pdn_token_code::slash,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -306,7 +306,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso line_comment{
 		dfa_state_code::line_comment,
 		pdn_token_code::eof,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_new_line(c))
 				return start;
@@ -316,7 +316,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso block_comment{
 		dfa_state_code::block_comment,
 		pdn_token_code::eof,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (c == U'*')
 				return block_comment_closing;
@@ -326,7 +326,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso block_comment_closing{
 		dfa_state_code::block_comment_closing,
 		pdn_token_code::eof,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -344,7 +344,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso less_than{
 		dfa_state_code::less_than,
 		pdn_token_code::less_than,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (c == U'/')
 				return nested_block_comment_nested;
@@ -354,7 +354,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso nested_block_comment{
 		dfa_state_code::nested_block_comment,
 		pdn_token_code::eof,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -371,7 +371,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso nested_block_comment_nesting{
 		dfa_state_code::nested_block_comment_nesting,
 		pdn_token_code::eof,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -388,7 +388,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso nested_block_comment_nested{
 		dfa_state_code::nested_block_comment_nested,
 		pdn_token_code::eof,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			return nested_block_comment.transformer(c);
 		}
@@ -396,7 +396,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso nested_block_comment_closing{
 		dfa_state_code::nested_block_comment_closing,
 		pdn_token_code::eof,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -415,7 +415,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso nested_block_comment_closed{
 		dfa_state_code::nested_block_comment_closed,
 		pdn_token_code::eof,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			return nested_block_comment.transformer(c);
 		}
@@ -424,7 +424,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso string_opened{
 		dfa_state_code::string_opened,
 		pdn_token_code::literal_string,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			return string.transformer(c);
 		}
@@ -432,7 +432,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso string{
 		dfa_state_code::string,
 		pdn_token_code::literal_string,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -469,7 +469,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso character_opened{
 		dfa_state_code::character_opened,
 		pdn_token_code::literal_character,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			return character.transformer(c);
 		}
@@ -477,7 +477,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso character{
 		dfa_state_code::character,
 		pdn_token_code::literal_character,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -514,7 +514,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso at_sign{
 		dfa_state_code::at_sign,
 		pdn_token_code::at_sign,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -535,7 +535,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso at_identifier{
 		dfa_state_code::at_identifier,
 		pdn_token_code::invalid,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_allowed_in_identifier(c))
 				return at_identifier;
@@ -550,7 +550,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso raw_string{
 		dfa_state_code::raw_string,
 		pdn_token_code::literal_string,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -586,7 +586,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso identifier_raw_string{
 		dfa_state_code::identifier_raw_string,
 		pdn_token_code::identifier,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -618,7 +618,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso dec_seq{
 		dfa_state_code::dec_seq,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -640,7 +640,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso dec_seq_with_quote{
 		dfa_state_code::dec_seq_with_quote,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return dec_seq;
@@ -652,7 +652,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso dec_seq_with_quotes{
 		dfa_state_code::dec_seq_with_quotes,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return dec_seq;
@@ -664,7 +664,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso fp_dec_part_first_after_dec_with_dot{
 		dfa_state_code::fp_dec_part_first_after_dec_with_dot,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -682,7 +682,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso fp_dec_part{
 		dfa_state_code::fp_dec_part,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -702,7 +702,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso fp_dec_part_with_quote{
 		dfa_state_code::fp_dec_part_with_quote,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return fp_dec_part;
@@ -714,7 +714,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso fp_dec_part_with_quotes{
 		dfa_state_code::fp_dec_part_with_quotes,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return fp_dec_part;
@@ -726,7 +726,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso fp_exp_sign_or_first{
 		dfa_state_code::fp_exp_sign_or_first,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -744,7 +744,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso fp_exp_first{
 		dfa_state_code::fp_exp_first,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return fp_exp;
@@ -754,7 +754,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso fp_exp{
 		dfa_state_code::fp_exp,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return fp_exp;
@@ -766,7 +766,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso fp_exp_with_quote{
 		dfa_state_code::fp_exp_with_quote,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return fp_exp;
@@ -778,7 +778,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso fp_exp_with_quotes{
 		dfa_state_code::fp_exp_with_quotes,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return fp_exp;
@@ -790,7 +790,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso zero{
 		dfa_state_code::zero,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -828,7 +828,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso oct_seq{
 		dfa_state_code::oct_seq,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -860,7 +860,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso oct_seq_with_quote{
 		dfa_state_code::oct_seq_with_quote,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -887,7 +887,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso oct_seq_with_quotes{
 		dfa_state_code::oct_seq_with_quotes,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -914,7 +914,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso dec_seq_start_with_0{
 		dfa_state_code::dec_seq_start_with_0,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -936,7 +936,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso dec_seq_start_with_0_with_quote{
 		dfa_state_code::dec_seq_start_with_0_with_quote,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return dec_seq_start_with_0;
@@ -948,7 +948,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso dec_seq_start_with_0_with_quotes{
 		dfa_state_code::dec_seq_start_with_0_with_quotes,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return dec_seq_start_with_0;
@@ -960,7 +960,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso bin_seq_first{
 		dfa_state_code::bin_seq_first,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -976,7 +976,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso bin_seq{
 		dfa_state_code::bin_seq,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -994,7 +994,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso bin_seq_with_quote{
 		dfa_state_code::bin_seq_with_quote,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -1012,7 +1012,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso bin_seq_with_quotes{
 		dfa_state_code::bin_seq_with_quotes,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -1030,7 +1030,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_seq_first{
 		dfa_state_code::hex_seq_first,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -1047,7 +1047,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_seq{
 		dfa_state_code::hex_seq,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -1069,7 +1069,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_seq_with_quote{
 		dfa_state_code::hex_seq_with_quote,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_hex(c))
 				return hex_seq;
@@ -1081,7 +1081,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_seq_with_quotes{
 		dfa_state_code::hex_seq_with_quotes,
 		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_hex(c))
 				return hex_seq;
@@ -1093,7 +1093,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_dec_part_first_after_hex_with_dot{
 		dfa_state_code::hex_fp_dec_part_first_after_hex_with_dot,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -1111,7 +1111,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_dec_part{
 		dfa_state_code::hex_fp_dec_part,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -1131,7 +1131,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_dec_part_with_quote{
 		dfa_state_code::hex_fp_dec_part_with_quote,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_hex(c))
 				return hex_fp_dec_part;
@@ -1143,7 +1143,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_dec_part_with_quotes{
 		dfa_state_code::hex_fp_dec_part_with_quotes,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_hex(c))
 				return hex_fp_dec_part;
@@ -1155,7 +1155,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_exp_sign_or_first{
 		dfa_state_code::hex_fp_exp_sign_or_first,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -1173,7 +1173,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_exp_first{
 		dfa_state_code::hex_fp_exp_first,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return hex_fp_exp;
@@ -1183,7 +1183,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_exp{
 		dfa_state_code::hex_fp_exp,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			switch (c)
 			{
@@ -1200,7 +1200,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_exp_with_quote{
 		dfa_state_code::hex_fp_exp_with_quote,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return hex_fp_exp;
@@ -1212,7 +1212,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_exp_with_quotes{
 		dfa_state_code::hex_fp_exp_with_quotes,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return hex_fp_exp;
@@ -1224,7 +1224,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso hex_fp_seq_start_with_0x_dot{
 		dfa_state_code::hex_fp_seq_start_with_0x_dot,
 		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_hex(c))
 				return hex_fp_dec_part;
@@ -1235,7 +1235,7 @@ namespace pdn::dfa_state_objects
 	inline cdfaso dot{
 		dfa_state_code::dot,
 		pdn_token_code::dot,
-		[](code_point_t c) noexcept -> dfa_state_object
+		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_digit(c))
 				return fp_dec_part;

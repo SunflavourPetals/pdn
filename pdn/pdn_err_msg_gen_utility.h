@@ -196,7 +196,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 
 namespace pdn::dev_util::err_msg_gen_util
 {
-	template <int base = 10, ::std::size_t width = 0, ::std::size_t buffer_size = 64>
+	template <int base = 10, ::std::size_t width = 1, ::std::size_t buffer_size = 64>
 	inline auto to_s(::std::integral auto const val) -> error_msg_string
 	{
 		using namespace literals::error_message_literals;

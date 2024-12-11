@@ -446,10 +446,13 @@ namespace pdn
 					{
 					case ::std::errc::result_out_of_range:
 						post_err(position, number_from_chars_errc_result_out_of_range, ::std::move(msg));
+						break;
 					case ::std::errc::invalid_argument:
 						post_err(position, number_from_chars_errc_invalid_argument, ::std::move(msg));
+						break;
 					default:
 						post_err(position, number_from_chars_errc_other, ::std::move(msg));
+						break;
 					}
 					return false;
 				}
@@ -911,10 +914,13 @@ namespace pdn
 					{
 					case ::std::errc::result_out_of_range:
 						post_err(position, escape_error_from_chars_errc_result_out_of_range, ::std::move(msg));
+						break;
 					case ::std::errc::invalid_argument:
 						post_err(position, escape_error_from_chars_errc_invalid_argument, ::std::move(msg));
+						break;
 					default:
 						post_err(position, escape_error_from_chars_errc_other, ::std::move(msg));
+						break;
 					}
 					return false;
 				}
