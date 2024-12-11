@@ -173,7 +173,7 @@ namespace pdn::unicode::type_traits
 
 namespace pdn::inline literals::inline unicode_literals
 {
-#define make_unicode_user_defined_literals(name, suffix_s, suffix_sv) \
+#define PDN_Macro_Temp_make_unicode_user_defined_literals(name, suffix_s, suffix_sv) \
 	[[nodiscard]] constexpr unicode::name##_string operator"" suffix_s(const unicode::name##_t* ptr, ::std::size_t length) \
 	{ \
 		return unicode::name##_string{ ptr, length }; \
@@ -183,12 +183,12 @@ namespace pdn::inline literals::inline unicode_literals
 		return unicode::name##_string_view{ ptr, length }; \
 	}
 
-	make_unicode_user_defined_literals(code_point,       _us,   _usv)
-	make_unicode_user_defined_literals(utf_8_code_unit,  _ucus, _ucusv)
-	make_unicode_user_defined_literals(utf_16_code_unit, _ucus, _ucusv)
-	make_unicode_user_defined_literals(utf_32_code_unit, _ucus, _ucusv)
+	PDN_Macro_Temp_make_unicode_user_defined_literals(code_point,       _us,   _usv)
+	PDN_Macro_Temp_make_unicode_user_defined_literals(utf_8_code_unit,  _ucus, _ucusv)
+	PDN_Macro_Temp_make_unicode_user_defined_literals(utf_16_code_unit, _ucus, _ucusv)
+	PDN_Macro_Temp_make_unicode_user_defined_literals(utf_32_code_unit, _ucus, _ucusv)
 
-#undef make_unicode_user_defined_literals
+#undef PDN_Macro_Temp_make_unicode_user_defined_literals
 }
 
 #endif
