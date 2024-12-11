@@ -1,10 +1,12 @@
 #ifndef PDN_Header_pdn_constants_generator_std
 #define PDN_Header_pdn_constants_generator_std
 
+#include <cstddef>
 #include <variant>
 #include <numbers>
 #include <limits>
 #include <optional>
+#include <functional>
 #include <unordered_map>
 
 #include "pdn_unicode_base.h"
@@ -13,9 +15,27 @@
 #include "pdn_token_value_variant.h"
 #include "pdn_constants_variant.h"
 
+namespace pdn::dev_util
+{
+	struct constants_table_key_hasher
+	{
+		using is_transparent = void; // Enables heterogeneous operations.
+		using string_view = unicode::utf_8_code_unit_string_view;
+		auto operator()(string_view sv) const -> ::std::size_t
+		{
+			return ::std::hash<string_view>{}(sv);
+		}
+	};
+	using constants_table_base = ::std::unordered_map<
+		unicode::utf_8_code_unit_string,
+		constant_variant<unicode::utf_8_code_unit_t>,
+		constants_table_key_hasher,
+		::std::equal_to<>>;
+}
+
 namespace pdn
 {
-	class constants_table : public ::std::unordered_map<unicode::utf_8_code_unit_string, constant_variant<unicode::utf_8_code_unit_t>>
+	class constants_table : public dev_util::constants_table_base
 	{
 	public:
 		constants_table()
@@ -59,7 +79,7 @@ namespace pdn
 			self[u8"snan"_ucus]          = f64_sNaN;
 			self[u8"hello"_ucus]         = u8"Hello, world!"_ucus;
 		}
-		static constants_table& instance()
+		static auto instance() -> const constants_table&
 		{
 			static constants_table obj{};
 			return obj;

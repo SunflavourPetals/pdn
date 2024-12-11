@@ -16,7 +16,7 @@ namespace pdn::unicode::utf_8
 	using basic_code_unit_string_view = ::std::basic_string_view<code_unit_t, traits>;
 	using code_unit_string_view       = basic_code_unit_string_view<>;
 
-	inline bool is_trailing(code_unit_t c) noexcept
+	constexpr bool is_trailing(code_unit_t c) noexcept
 	{
 		return (c & code_unit_t(0xC0)) == code_unit_t(0x80);
 	}

@@ -171,7 +171,7 @@ namespace pdn
 		question_mark,        // ? 
 	};
 	static_assert(dfa_state_code::FLAG_ERRER_STATE_END <= dfa_state_code::FLAG_FINAL_STATE_BEGIN,
-	              "pdn dfa_state_code error: FLAG_ERRER_STATE_END <= FLAG_FINAL_STATE_BEGIN is false");
+	              "[pdn] dfa_state_code error: FLAG_ERRER_STATE_END <= FLAG_FINAL_STATE_BEGIN is false");
 
 	constexpr bool is_final_dfa_state(dfa_state_code state) noexcept
 	{

@@ -18,7 +18,7 @@ namespace pdn::unicode::utf_32
 	using basic_code_unit_string_view = ::std::basic_string_view<code_unit_t, traits>;
 	using code_unit_string_view       = basic_code_unit_string_view<>;
 
-	inline constexpr ::std::array<::std::uint8_t, 4> to_le_bytes(code_unit_t code_unit) noexcept
+	constexpr ::std::array<::std::uint8_t, 4> to_le_bytes(code_unit_t code_unit) noexcept
 	{
 		return
 		{
@@ -29,7 +29,7 @@ namespace pdn::unicode::utf_32
 		};
 	}
 
-	inline constexpr ::std::array<::std::uint8_t, 4> to_be_bytes(code_unit_t code_unit) noexcept
+	constexpr ::std::array<::std::uint8_t, 4> to_be_bytes(code_unit_t code_unit) noexcept
 	{
 		return
 		{

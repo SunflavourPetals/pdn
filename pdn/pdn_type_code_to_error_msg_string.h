@@ -6,7 +6,7 @@
 
 namespace pdn
 {
-	inline constexpr error_msg_string type_code_to_error_msg_string(type_code type_c)
+	constexpr error_msg_string type_code_to_error_msg_string(type_code type_c)
 	{
 		using namespace error_message_literals;
 		using enum type_code;

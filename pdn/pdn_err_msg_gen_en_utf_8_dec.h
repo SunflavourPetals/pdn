@@ -29,7 +29,7 @@ namespace pdn::dev_util
 				+ u8", sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
-		case eof_when_read_1st_code_unit:
+		case eof_when_read_1st_code_unit: // unreachable
 			return u8"eof when read 1st code unit, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3)"_em;
 		case eof_when_read_2nd_code_unit:
 			return u8"eof when read 2nd code unit, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3)"_em;

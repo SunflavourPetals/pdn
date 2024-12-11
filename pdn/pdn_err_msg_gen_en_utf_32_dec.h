@@ -28,7 +28,7 @@ namespace pdn::dev_util
 				+ u8", sequence at offset "_em + offset_of_leading(msg, 4) + u8"(if with BOM then +4), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
-		case eof_when_read_code_unit:
+		case eof_when_read_code_unit: // unreachable
 			return u8"eof when read code unit, sequence at offset "_em + offset_of_leading(msg, 4) + u8"(if with BOM then +4)"_em;
 		default:
 			throw inner_error{ "UTF-32 decode error and error_message_generator_en unresolved" };

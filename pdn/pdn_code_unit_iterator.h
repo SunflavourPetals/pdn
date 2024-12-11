@@ -271,10 +271,9 @@ namespace pdn
 		template <typename it_t, typename t>
 		concept can_ret_ref =
 			   ::std::is_trivial_v<t>
-			&& ::std::is_reference_v<deref_t<it_t>>
+			&& ::std::is_lvalue_reference_v<deref_t<it_t>>
 			&& ::std::is_trivial_v<it_value_t<it_t>>
-			&& sizeof(it_value_t<it_t>) == sizeof(t)
-			&& requires(it_t it) { reinterpret_cast<::std::add_const_t<t>&>(*it); };
+			&& sizeof(it_value_t<it_t>) == sizeof(t);
 	}
 
 	template <typename it_t>

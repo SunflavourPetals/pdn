@@ -48,9 +48,8 @@ namespace pdn
 			case newline_modes::PS:
 				return true;
 			default:
-				break;
+				return false;
 			}
-			return false;
 		}
 		constexpr bool is_mixed_newline() const noexcept
 		{

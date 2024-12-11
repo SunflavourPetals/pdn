@@ -23,12 +23,12 @@ namespace pdn::dev_util
 		const auto& msg = ::std::get<raw_error_message_type::utf_16_decode_error>(raw);
 		switch (errc)
 		{
-		case not_scalar_value: // UTF-16 should not make this error
+		case not_scalar_value: // unreachable UTF-16 should not make this error
 			return u8"not scalar value: 0x"_em + to_s<16, 4>(msg.result.value())
 				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
-		case eof_when_read_code_unit:
+		case eof_when_read_code_unit: // unreachable
 			return u8"eof when read code unit(or leading surrogate), sequence at offset "_em
 				+ offset_of_leading(msg, 2) + u8"(if with BOM then +2)"_em;
 		case alone_trailing_surrogate:

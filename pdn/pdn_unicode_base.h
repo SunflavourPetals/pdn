@@ -49,37 +49,37 @@ namespace pdn::unicode
 	inline constexpr auto min_trailing_surrogate = code_point_t(0xDC00u);
 	inline constexpr auto max_trailing_surrogate = code_point_t(0xDFFFu);
 
-	inline constexpr bool is_code_point(code_point_t c) noexcept
+	constexpr bool is_code_point(code_point_t c) noexcept
 	{
 		return c < code_point_t(0x110000u);
 	}
 
-	inline constexpr bool is_leading_surrogate(code_point_t c) noexcept
+	constexpr bool is_leading_surrogate(code_point_t c) noexcept
 	{
 		return (c & code_point_t(0xFFFF'FC00u)) == code_point_t(0xD800u); // ignore the low 10 bits
 	}
 
-	inline constexpr bool is_trailing_surrogate(code_point_t c) noexcept
+	constexpr bool is_trailing_surrogate(code_point_t c) noexcept
 	{
 		return (c & code_point_t(0xFFFF'FC00u)) == code_point_t(0xDC00u); // ignore the low 10 bits
 	}
 
-	inline constexpr bool is_surrogate(code_point_t c) noexcept
+	constexpr bool is_surrogate(code_point_t c) noexcept
 	{
 		return (c & code_point_t(0xFFFF'F800u)) == code_point_t(0xD800u); // ignore the low 11 bits
 	}
 
-	inline constexpr bool is_non_surrogate(code_point_t c) noexcept(noexcept(is_surrogate({})))
+	constexpr bool is_non_surrogate(code_point_t c) noexcept(noexcept(is_surrogate({})))
 	{
 		return !is_surrogate(c);
 	}
 
-	inline constexpr bool is_scalar_value(code_point_t c) noexcept(noexcept(is_non_surrogate({})) && noexcept(is_code_point({})))
+	constexpr bool is_scalar_value(code_point_t c) noexcept(noexcept(is_non_surrogate({})) && noexcept(is_code_point({})))
 	{
 		return is_code_point(c) && is_non_surrogate(c);
 	}
 
-	inline constexpr bool in_BMP(code_point_t c) noexcept
+	constexpr bool in_BMP(code_point_t c) noexcept
 	{
 		return c < code_point_t(0x10000u);
 	}
@@ -87,28 +87,32 @@ namespace pdn::unicode
 
 namespace pdn::unicode::utility
 {
-	inline constexpr encode_type to_encode_type(bom_type bom_type) noexcept
+	constexpr encode_type to_encode_type(bom_type bom_type) noexcept
 	{
 		switch (bom_type)
 		{
-		case bom_type::no_bom:
+		case bom_type::no_bom:    [[fallthrough]];
 		case bom_type::utf_8:     return encode_type::utf_8;
 		case bom_type::utf_16_le: return encode_type::utf_16_le;
 		case bom_type::utf_16_be: return encode_type::utf_16_be;
 		case bom_type::utf_32_le: return encode_type::utf_32_le;
 		case bom_type::utf_32_be: return encode_type::utf_32_be;
-		default: break; }         return encode_type::unknown;
+		default:                  return encode_type::unknown;
+		}
 	}
 
-	inline constexpr ::std::endian to_endian(encode_type encode_type) noexcept
+	constexpr ::std::endian to_endian(encode_type encode_type) noexcept
 	{
+		using enum encode_type;
+		using enum ::std::endian;
 		switch (encode_type)
 		{
-		case encode_type::utf_16_le: return ::std::endian::little;
-		case encode_type::utf_16_be: return ::std::endian::big;
-		case encode_type::utf_32_le: return ::std::endian::little;
-		case encode_type::utf_32_be: return ::std::endian::big;
-		default: break; }            return ::std::endian::native; // case encode_type::unknown|utf_8
+		case utf_16_le: return little;
+		case utf_16_be: return big;
+		case utf_32_le: return little;
+		case utf_32_be: return big;
+		default:        return native; // case encode_type::unknown|utf_8
+		}
 	}
 }
 
@@ -168,30 +172,24 @@ namespace pdn::unicode::type_traits
 	template <encode_type e> using code_unit_t = typename code_unit<e>::type;
 }
 
-namespace pdn
+namespace pdn::inline literals::inline unicode_literals
 {
-	inline namespace literals
-	{
-		inline namespace unicode_literals
-		{
 #define make_unicode_user_defined_literals(name, suffix_s, suffix_sv) \
-			[[nodiscard]] constexpr unicode::name##_string operator"" suffix_s(const unicode::name##_t* ptr, ::std::size_t length) \
-			{ \
-				return unicode::name##_string{ ptr, length }; \
-			} \
-			[[nodiscard]] constexpr unicode::name##_string_view operator"" suffix_sv(const unicode::name##_t* ptr, ::std::size_t length) \
-			{ \
-				return unicode::name##_string_view{ ptr, length }; \
-			}
+	[[nodiscard]] constexpr unicode::name##_string operator"" suffix_s(const unicode::name##_t* ptr, ::std::size_t length) \
+	{ \
+		return unicode::name##_string{ ptr, length }; \
+	} \
+	[[nodiscard]] constexpr unicode::name##_string_view operator"" suffix_sv(const unicode::name##_t* ptr, ::std::size_t length) \
+	{ \
+		return unicode::name##_string_view{ ptr, length }; \
+	}
 
-			make_unicode_user_defined_literals(code_point,       _us,   _usv)
-			make_unicode_user_defined_literals(utf_8_code_unit,  _ucus, _ucusv)
-			make_unicode_user_defined_literals(utf_16_code_unit, _ucus, _ucusv)
-			make_unicode_user_defined_literals(utf_32_code_unit, _ucus, _ucusv)
+	make_unicode_user_defined_literals(code_point,       _us,   _usv)
+	make_unicode_user_defined_literals(utf_8_code_unit,  _ucus, _ucusv)
+	make_unicode_user_defined_literals(utf_16_code_unit, _ucus, _ucusv)
+	make_unicode_user_defined_literals(utf_32_code_unit, _ucus, _ucusv)
 
 #undef make_unicode_user_defined_literals
-		}
-	}
 }
 
 #endif

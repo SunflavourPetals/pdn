@@ -76,12 +76,12 @@ namespace pdn::unicode
 	namespace utility
 	{
 		template <typename convert_src, typename convert_des>
-		inline bool default_decode_error_handler(typename convert_decision<convert_src, convert_des>::decode_result, ::std::size_t pos)
+		inline bool default_decode_error_handler(typename convert_decision<convert_src, convert_des>::decode_result, ::std::size_t)
 		{
 			return false; // return true to finish converting, false to continue
 		}
 		template <typename convert_src, typename convert_des>
-		inline bool default_encode_error_handler(typename convert_decision<convert_src, convert_des>::encode_result, ::std::size_t pos)
+		inline bool default_encode_error_handler(typename convert_decision<convert_src, convert_des>::encode_result, ::std::size_t)
 		{
 			return false; // return true to finish converting, false to continue
 		}

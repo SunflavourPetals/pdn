@@ -19,7 +19,7 @@ namespace pdn::concepts
 	concept source_position_updater = requires(type pos_recorder, unicode::code_point_t c)
 	{
 		pos_recorder.update(c);
-		pos_recorder.update(::std::move(c));
+		pos_recorder.update(unicode::code_point_t{});
 	};
 
 	template <typename type>

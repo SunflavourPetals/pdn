@@ -14,22 +14,22 @@ namespace pdn
 		PS   = 0x20,
 	};
 
-	inline constexpr newline_modes& operator|=(newline_modes& lhs, newline_modes rhs) noexcept
+	constexpr newline_modes& operator|=(newline_modes& lhs, newline_modes rhs) noexcept
 	{
 		return lhs = static_cast<newline_modes>(static_cast<int>(lhs) | static_cast<int>(rhs));
 	}
 
-	inline constexpr newline_modes& operator&=(newline_modes& lhs, newline_modes rhs) noexcept
+	constexpr newline_modes& operator&=(newline_modes& lhs, newline_modes rhs) noexcept
 	{
 		return lhs = static_cast<newline_modes>(static_cast<int>(lhs) & static_cast<int>(rhs));
 	}
 
-	inline constexpr newline_modes operator|(newline_modes lhs, newline_modes rhs) noexcept
+	constexpr newline_modes operator|(newline_modes lhs, newline_modes rhs) noexcept
 	{
 		return lhs |= rhs;
 	}
 
-	inline constexpr newline_modes operator&(newline_modes lhs, newline_modes rhs) noexcept
+	constexpr newline_modes operator&(newline_modes lhs, newline_modes rhs) noexcept
 	{
 		return lhs &= rhs;
 	}

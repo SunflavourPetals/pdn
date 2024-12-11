@@ -81,56 +81,47 @@ namespace pdn::unicode
 
 		bom_type result{};
 
-		if (bom_size == 4)
+		switch (bom_size)
 		{
+		case 4:
 			if (bom == utf_32_le)
 			{
 				result = bom_type::utf_32_le;
-				goto out_of_judge;
+				break;
 			}
 			if (bom == utf_32_be)
 			{
 				result = bom_type::utf_32_be;
-				goto out_of_judge;
+				break;
 			}
 			bom_size = 3;
-			goto bom_size_3;
-		}
-		if (bom_size == 3)
-		{
-		bom_size_3:
+			[[fallthrough]];
+		case 3:
 			if (::std::equal(utf_8.cbegin(), utf_8.cend(), bom.begin()))
 			{
 				result = bom_type::utf_8;
-				goto out_of_judge;
+				break;
 			}
 			bom_size = 2;
-			goto bom_size_2;
-		}
-		if (bom_size == 2)
-		{
-		bom_size_2:
+			[[fallthrough]];
+		case 2:
 			if (::std::equal(utf_16_le.cbegin(), utf_16_le.cend(), bom.begin()))
 			{
 				result = bom_type::utf_16_le;
-				goto out_of_judge;
+				break;
 			}
 			if (::std::equal(utf_16_be.cbegin(), utf_16_be.cend(), bom.begin()))
 			{
 				result = bom_type::utf_16_be;
-				goto out_of_judge;
+				break;
 			}
 			// assign bom_size zero in next step
-			goto bom_no_bom;
-		}
-		if (bom_size < 2)
-		{
-		bom_no_bom:
+			[[fallthrough]];
+		default:
 			bom_size = 0;
 			result = bom_type::no_bom;
+			break;
 		}
-
-	out_of_judge:
 
 		if (read_count != bom_size)
 		{

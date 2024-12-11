@@ -10,7 +10,7 @@ namespace pdn
 		using text_position_type = ::std::size_t;
 		text_position_type line  { 1 };
 		text_position_type column{ 1 };
-		friend inline constexpr bool operator==(source_position, source_position) noexcept = default;
+		friend constexpr bool operator==(source_position, source_position) noexcept = default;
 	};
 }
 

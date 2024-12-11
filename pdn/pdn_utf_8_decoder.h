@@ -12,9 +12,9 @@
 
 namespace pdn::unicode::utf_8
 {
-	enum class decode_error_code : ::std::uint8_t
+	enum class decode_error_code : ::std::uint16_t
 	{
-		not_scalar_value,
+		not_scalar_value = 1,
 		eof_when_read_1st_code_unit,
 		eof_when_read_2nd_code_unit,
 		eof_when_read_3rd_code_unit,
@@ -34,7 +34,6 @@ namespace pdn::unicode::utf_8
 		using value_type = code_point_t;
 		using error_type = decode_error_code;
 		using count_type = ::std::uint16_t;
-		using bool_type  = ::std::uint8_t;
 	public:
 		constexpr auto value() const noexcept
 		{
@@ -50,24 +49,17 @@ namespace pdn::unicode::utf_8
 		}
 		constexpr auto failed() const noexcept
 		{
-			return static_cast<bool>(is_failed);
+			return error_code != error_type{};
 		}
 		constexpr explicit operator bool() const noexcept
 		{
 			return !failed();
 		}
+		friend class decoder;
 	private:
 		value_type code_point{};
 		count_type distance_count{};
-		bool_type  is_failed{};
-		error_type error_code{}; // valid only on failure
-
-		constexpr void set_error(error_type code) noexcept
-		{
-			is_failed  = true;
-			error_code = code;
-		}
-		friend class decoder;
+		error_type error_code{};
 	};
 }
 
@@ -181,7 +173,7 @@ namespace pdn::unicode::utf_8
 
 			if (begin == end)
 			{
-				result.set_error(eof_when_read_1st_code_unit);
+				result.error_code = eof_when_read_1st_code_unit;
 				return result;
 			}
 		
@@ -204,21 +196,21 @@ namespace pdn::unicode::utf_8
 				case cu_count::unknown: [[fallthrough]];
 				default:
 					// mark c1, c2, c3, c4, trail and unconfirm not in second table, this branch only for case unknown.
-					result.set_error(unsupported_utf_8_leading);
+					result.error_code = unsupported_utf_8_leading;
 					if constexpr (reach_next_code_point) { to_next(begin, result); }
 					return result;
 				}
 				break;
 			default:
 				// mark c5, c6 and invalid not in first table, this branch only for trail mark.
-				result.set_error(requires_utf_8_leading);
+				result.error_code = requires_utf_8_leading;
 				if constexpr (reach_next_code_point) { to_next(begin, result); }
 				return result;
 			}
 
 			if (result && !is_scalar_value(result.value()))
 			{
-				result.set_error(not_scalar_value);
+				result.error_code = not_scalar_value;
 			}
 
 			if constexpr (reach_next_code_point) { to_next(begin, result); }
@@ -250,11 +242,11 @@ namespace pdn::unicode::utf_8
 				{
 					switch (i)
 					{
-					case 1: result.set_error(eof_when_read_2nd_code_unit); break;
-					case 2: result.set_error(eof_when_read_3rd_code_unit); break;
-					case 3: result.set_error(eof_when_read_4th_code_unit); break;
-					case 4: result.set_error(eof_when_read_5th_code_unit); break;
-					case 5: result.set_error(eof_when_read_6th_code_unit); break;
+					case 1: result.error_code = eof_when_read_2nd_code_unit; break;
+					case 2: result.error_code = eof_when_read_3rd_code_unit; break;
+					case 3: result.error_code = eof_when_read_4th_code_unit; break;
+					case 4: result.error_code = eof_when_read_5th_code_unit; break;
+					case 5: result.error_code = eof_when_read_6th_code_unit; break;
 					default: break;
 					}
 					return result;
@@ -262,11 +254,11 @@ namespace pdn::unicode::utf_8
 				auto c = ucu_t(*begin);
 				if (utf_8::is_trailing(c))
 				{
-					result.code_point |= (((value_type(c) & 0x3F) << ((trailing_count - i) * 6)));
+					result.code_point |= ((value_type(c) & 0x3F) << ((trailing_count - i) * 6));
 				}
 				else
 				{
-					result.set_error(requires_utf_8_trailing);
+					result.error_code = requires_utf_8_trailing;
 					return result;
 				}
 			}

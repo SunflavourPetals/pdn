@@ -12,6 +12,8 @@
 #include <limits>
 #include <memory>
 
+#include "pdn_exception.h"
+
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
 //     +---> BOM reader (provide: get BOM)
@@ -84,7 +86,7 @@ namespace pdn
 				return *this;
 			}
 			friend bool operator==(swap_chain_iterator, swap_chain_iterator) = default;
-			swap_chain_iterator() : swap_ptr{ nullptr } {} // default constructor make itself be end iterator
+			swap_chain_iterator() = default; // default constructor make itself be end iterator
 			explicit swap_chain_iterator(swap_chain& swap) : swap_ptr{ &swap } {}
 		private:
 			swap_chain_type* swap_ptr{ nullptr }; // swap_ptr == nullptr means it is end
@@ -162,7 +164,7 @@ namespace pdn
 			}
 			else
 			{
-				throw std::runtime_error{ "todo" }; // todo
+				throw inner_error{ "istream failed" };
 			}
 		}
 		value_type* get_buff_1_ptr() noexcept

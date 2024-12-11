@@ -10,7 +10,7 @@ namespace pdn::unicode::utf_32
 {
 	enum class decode_error_code : ::std::uint8_t
 	{
-		not_scalar_value,        // decode result is not Unicode scalar value
+		not_scalar_value = 1,    // decode result is not Unicode scalar value
 		eof_when_read_code_unit, // eof when read first code unit
 	};
 
