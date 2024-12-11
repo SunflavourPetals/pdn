@@ -5,7 +5,7 @@ namespace pdn
 {
 	enum class lexical_error_code
 	{
-		not_unicode_scalar_value,
+		not_unicode_scalar_value, // not_unicode_scalar_value
 
 		unacceptable_character,
 

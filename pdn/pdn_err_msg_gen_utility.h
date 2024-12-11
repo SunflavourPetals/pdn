@@ -5,6 +5,7 @@
 #include <concepts>
 #include <variant>
 #include <string>
+#include <array>
 #include <limits>
 #include <cstddef>
 #include <charconv>
@@ -23,8 +24,14 @@
 
 #include "pdn_unicode.h"
 
+namespace pdn::dev_util
+{
+	using raw_err_v_cref = const raw_error_message_variant&;
+}
+
 namespace pdn::dev_util::err_msg_gen_util
 {
+	namespace raw_details = raw_error_message_type;
 	inline auto make_slashes(error_msg_string_view view) -> error_msg_string
 	{
 		return make_slashes_string<error_msg_string>(unicode::code_convert<unicode::code_point_string>(view));
@@ -74,36 +81,36 @@ namespace pdn::dev_util::err_msg_gen_util
 namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 {
 	// for identifier
-	inline auto get_slashes_iden(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_slashes_iden(raw_err_v_cref raw) -> error_msg_string
 	{
-		return make_slashes(::std::get<raw_error_message_type::identifier>(raw).value);
+		return make_slashes(::std::get<raw_details::identifier>(raw).value);
 	}
 
 	// for casting_msg
-	inline auto get_source_type_name(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_source_type_name(raw_err_v_cref raw) -> error_msg_string
 	{
-		return type_code_to_error_msg_string(::std::get<raw_error_message_type::casting_msg>(raw).source_type);
+		return type_code_to_error_msg_string(::std::get<raw_details::casting_msg>(raw).source_type);
 	}
 	// for casting_msg
-	inline auto get_target_type_name(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_target_type_name(raw_err_v_cref raw) -> error_msg_string
 	{
-		return type_code_to_error_msg_string(::std::get<raw_error_message_type::casting_msg>(raw).target_type);
+		return type_code_to_error_msg_string(::std::get<raw_details::casting_msg>(raw).target_type);
 	}
 
 	// for casting_msg
-	inline auto is_source_type_list_or_object(const raw_error_message_variant& raw) -> bool
+	inline auto is_source_type_list_or_object(raw_err_v_cref raw) -> bool
 	{
-		const auto src_type_c = ::std::get<raw_error_message_type::casting_msg>(raw).source_type;
+		const auto src_type_c = ::std::get<raw_details::casting_msg>(raw).source_type;
 		return src_type_c == type_code::list || src_type_c == type_code::object;
 	}
 
 	// for casting_msg
-	inline auto get_casting_operand(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_casting_operand(raw_err_v_cref raw) -> error_msg_string
 	{
 		using namespace literals::error_message_literals;
-		using raw_error_message_type::casting_msg;
+		using raw_details::casting_msg;
 
-		switch (::std::get<raw_error_message_type::casting_msg>(raw).source_type)
+		switch (::std::get<raw_details::casting_msg>(raw).source_type)
 		{
 		case type_code::list:   return u8"list"_em;
 		case type_code::object: return u8"object"_em;
@@ -162,35 +169,35 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	}
 
 	// for casting_msg from casting_domain_error
-	inline auto get_target_min_s(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_target_min_s(raw_err_v_cref raw) -> error_msg_string
 	{
-		return get_integer_min_value_s(::std::get<raw_error_message_type::casting_msg>(raw).target_type);
+		return get_integer_min_value_s(::std::get<raw_details::casting_msg>(raw).target_type);
 	}
 
 	// for casting_msg from casting_domain_error
-	inline auto get_target_max_s(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_target_max_s(raw_err_v_cref raw) -> error_msg_string
 	{
-		return get_integer_max_value_s(::std::get<raw_error_message_type::casting_msg>(raw).target_type);
+		return get_integer_max_value_s(::std::get<raw_details::casting_msg>(raw).target_type);
 	}
 
 	// for error_token
-	inline auto get_description_for_error_token(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_description_for_error_token(raw_err_v_cref raw) -> error_msg_string
 	{
-		return description_of(::std::get<raw_error_message_type::error_token>(raw).value);
+		return description_of(::std::get<raw_details::error_token>(raw).value);
 	}
 
 	// for unary_operation
-	inline auto get_unary_operator_s(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_unary_operator_s(raw_err_v_cref raw) -> error_msg_string
 	{
 		using namespace literals::error_message_literals;
-		auto is_negative = ::std::get<raw_error_message_type::unary_operation>(raw).negative;
+		auto is_negative = ::std::get<raw_details::unary_operation>(raw).negative;
 		return is_negative ? u8"operator-"_em : u8"operator+"_em;
 	}
 
 	// for unary_operation
-	inline auto get_description_for_unary_operation(const raw_error_message_variant& raw) -> error_msg_string
+	inline auto get_description_for_unary_operation(raw_err_v_cref raw) -> error_msg_string
 	{
-		return description_of(::std::get<raw_error_message_type::unary_operation>(raw).operand);
+		return description_of(::std::get<raw_details::unary_operation>(raw).operand);
 	}
 }
 
@@ -200,8 +207,8 @@ namespace pdn::dev_util::err_msg_gen_util
 	inline auto to_s(::std::integral auto const val) -> error_msg_string
 	{
 		using namespace literals::error_message_literals;
-		char buffer[buffer_size]{};
-		auto to_chars_result = ::std::to_chars(buffer, buffer + buffer_size, val, base);
+		::std::array<char, buffer_size> buffer{};
+		auto to_chars_result = ::std::to_chars(buffer.data(), buffer.data() + buffer.size(), val, base);
 		if (to_chars_result.ec != ::std::errc{})
 		{
 			if (to_chars_result.ec == ::std::errc::value_too_large)
@@ -210,15 +217,15 @@ namespace pdn::dev_util::err_msg_gen_util
 			}
 			else
 			{
-				throw inner_error{ "unknown error" };
+				throw inner_error{ "unknown to_chars error" };
 			}
 		}
-		if (to_chars_result.ptr - buffer < 0)
+		if (to_chars_result.ptr - buffer.data() < 0)
 		{
 			throw inner_error{ "to chars error: to_chars_result.ptr < begin(buffer)" };
 		}
-		auto begin  = reinterpret_cast<error_msg_char*>(buffer);
-		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer);
+		auto begin  = reinterpret_cast<error_msg_char*>(buffer.data());
+		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
 		auto result = error_msg_string{};
 		for (auto i = length; i < width; ++i)
 		{
@@ -231,6 +238,15 @@ namespace pdn::dev_util::err_msg_gen_util
 	inline auto offset_of_leading(const auto& msg, const int multi = 1) -> error_msg_string
 	{
 		return u8"0x"_em.append(to_s<16, 4>((msg.last_code_unit_offset - msg.result.distance()) * multi));
+	}
+}
+
+namespace pdn::dev_util::err_msg_gen_util::lexical_err_msg_gen_util
+{
+	// for not_unicode_scalar_value
+	inline auto get_code_point_hex(raw_err_v_cref raw) -> error_msg_string
+	{
+		return u8"0x"_em.append(to_s<16, 8>(::std::get<raw_details::not_unicode_scalar_value>(raw).value));
 	}
 }
 

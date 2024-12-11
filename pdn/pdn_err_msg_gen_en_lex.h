@@ -1,22 +1,29 @@
 #ifndef PDN_Header_pdn_err_msg_gen_en_lex
 #define PDN_Header_pdn_err_msg_gen_en_lex
 
+#include <variant>
+
+#include "pdn_exception.h"
 #include "pdn_error_string.h"
-#include "pdn_error_message.h"
 #include "pdn_lexical_error_code.h"
+#include "pdn_source_position.h"
+#include "pdn_raw_error_message_type.h"
+#include "pdn_raw_error_message_variant.h"
+
+#include "pdn_err_msg_gen_utility.h"
 
 namespace pdn::dev_util
 {
-	inline constexpr error_msg_string err_msg_gen_en(lexical_error_code errc, error_msg_string src)
+	inline auto err_msg_gen_en(lexical_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string
 	{
+		using namespace err_msg_gen_util::lexical_err_msg_gen_util;
 		using namespace error_message_literals;
 		using enum lexical_error_code;
+		auto src = u8"todo"_em;
 		switch (errc)
 		{
-	//	case success:
-	//		return u8"lexical_error_code == success: \""_em + src + u8"\""_em;
 		case not_unicode_scalar_value:
-			return u8"pdn lexer requires unicode scalar value: \""_em + src + u8"\""_em;
+			return u8"pdn lexer requires unicode scalar value: "_em + get_code_point_hex(raw);
 		case unacceptable_character:
 			return u8"unacceptable character: \""_em + src + u8"\""_em;
 		case at_value_not_found:

@@ -16,12 +16,12 @@ namespace pdn::dev_util
 {
 	using utf_8_decode_error_code = unicode::utf_8::decode_error_code;
 
-	inline auto err_msg_gen_en(utf_8_decode_error_code errc, source_position, raw_error_message_variant raw) -> error_msg_string
+	inline auto err_msg_gen_en(utf_8_decode_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string
 	{
 		using namespace err_msg_gen_util;
 		using namespace error_message_literals;
 		using enum utf_8_decode_error_code;
-		const auto& msg = ::std::get<raw_error_message_type::utf_8_decode_error>(raw);
+		const auto& msg = ::std::get<raw_details::utf_8_decode_error>(raw);
 		switch (errc)
 		{
 		case not_scalar_value:

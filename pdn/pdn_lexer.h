@@ -162,8 +162,8 @@ namespace pdn
 
 				if (!unicode::is_scalar_value(c))
 				{
-					auto msg = ::std::format("0x{:x}", static_cast<::std::uint32_t>(c));
-					post_err(func_pkg->position(), lex_ec::not_unicode_scalar_value, reinterpret_to_err_msg_str(msg));
+					using raw_err = raw_error_message_type::not_unicode_scalar_value;
+					post_err(func_pkg->position(), lex_ec::not_unicode_scalar_value, raw_err{ c });
 					++begin;
 					continue;
 				}
@@ -1455,11 +1455,6 @@ namespace pdn
 		{
 			func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
 		}
-
-	//	void post_err(source_position pos, auto error_code, error_msg_string&& str_for_msg_gen)
-	//	{
-	//		func_pkg->handle_error(error_message{ error_code, pos, func_pkg->generate_error_message(error_code, ::std::move(str_for_msg_gen)) });
-	//	}
 	private:
 		function_package* func_pkg{};
 	};

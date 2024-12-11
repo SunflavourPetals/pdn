@@ -12,7 +12,7 @@
 
 namespace pdn::dev_util
 {
-	inline auto err_msg_gen_en(syntax_error_code errc, source_position, raw_error_message_variant raw) -> error_msg_string
+	inline auto err_msg_gen_en(syntax_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string
 	{
 		using namespace err_msg_gen_util::syntax_err_msg_gen_util;
 		using namespace error_message_literals;

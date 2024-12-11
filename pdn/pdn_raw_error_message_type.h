@@ -71,4 +71,12 @@ namespace pdn::raw_error_message_type
 	};
 }
 
+namespace pdn::raw_error_message_type
+{
+	struct not_unicode_scalar_value final
+	{
+		unicode::code_point_t value;
+	};
+}
+
 #endif

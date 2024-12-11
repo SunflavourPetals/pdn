@@ -19,6 +19,7 @@ namespace pdn::raw_error_message_type::dev_util
 		error_token,
 		unary_operation,
 		casting_msg,
+		not_unicode_scalar_value,
 
 		error_msg_string>; // remove it
 }

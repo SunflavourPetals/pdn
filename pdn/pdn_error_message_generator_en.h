@@ -25,7 +25,7 @@ namespace pdn
 		{
 			if constexpr (requires{dev_util::err_msg_gen_en(code, src.position, src.raw_error_message); })
 			{
-				return dev_util::err_msg_gen_en(code, src.position, ::std::move(src.raw_error_message));
+				return dev_util::err_msg_gen_en(code, src.position, src.raw_error_message);
 			}
 			else if constexpr (requires { dev_util::err_msg_gen_en(code, error_msg_string{}); }) // todo
 			{
