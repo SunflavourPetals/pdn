@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>ClangCL</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -181,13 +181,16 @@
     <ClInclude Include="pdn_swap_chain.h" />
     <ClInclude Include="pdn_token.h" />
     <ClInclude Include="pdn_types.h" />
+    <ClInclude Include="pdn_types_character.h" />
     <ClInclude Include="pdn_type_code.h" />
     <ClInclude Include="pdn_type_code_to_type.h" />
+    <ClInclude Include="pdn_types_config.h" />
     <ClInclude Include="pdn_type_generator_concept.h" />
     <ClInclude Include="pdn_type_generator_std.h" />
     <ClInclude Include="pdn_type_generator.h" />
     <ClInclude Include="pdn_err_msg_gen_en_utf_8_enc.h" />
     <ClInclude Include="pdn_type_to_type_code.h" />
+    <ClInclude Include="pdn_types_character_utility.h" />
     <ClInclude Include="pdn_unicode_base.h" />
     <ClInclude Include="pdn_unicode_encoder.h" />
     <ClInclude Include="pdn_utf_16_encoder.h" />

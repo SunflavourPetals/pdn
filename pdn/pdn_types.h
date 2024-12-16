@@ -16,23 +16,72 @@
 #include <cmath>
 #include <optional>
 
+#include <concepts>
+
 #include "pdn_unicode_base.h"
 #include "pdn_proxy.h"
 #include "pdn_exception.h"
 
+#include "pdn_types_config.h"
+
 namespace pdn::types
 {
-	using i8      = ::std::int8_t;
-	using i16     = ::std::int16_t;
-	using i32     = ::std::int32_t;
-	using i64     = ::std::int64_t;
-	using u8      = ::std::uint8_t;
-	using u16     = ::std::uint16_t;
-	using u32     = ::std::uint32_t;
-	using u64     = ::std::uint64_t;
-	using f32     = float;
-	using f64     = double;
-	using boolean = bool;
+	template <typename char_t>
+	struct entity;
+
+	using config::i8;
+	using config::i16;
+	using config::i32;
+	using config::i64;
+	using config::u8;
+	using config::u16;
+	using config::u32;
+	using config::u64;
+	using config::f32;
+	using config::f64;
+	using config::boolean;
+	using config::character;
+	using config::string;
+
+	template <typename char_t>
+	using list = config::list<entity<char_t>>;
+
+	template <typename char_t>
+	using object = config::object<string<char_t>, entity<char_t>>;
+}
+
+namespace pdn::types::dev_util
+{
+	using ::std::same_as;
+
+	template <typename     int_t> struct alias_sint        { using type = void; };
+	template <same_as<i8>  int_t> struct alias_sint<int_t> { using type = i8;   };
+	template <same_as<i16> int_t> struct alias_sint<int_t> { using type = i16;  };
+	template <same_as<i32> int_t> struct alias_sint<int_t> { using type = i32;  };
+	template <same_as<i64> int_t> struct alias_sint<int_t> { using type = i64;  };
+	template <typename     int_t> using  alias_sint_t  =  alias_sint<int_t>::type;
+	template <typename     int_t> struct alias_uint        { using type = void; };
+	template <same_as<u8>  int_t> struct alias_uint<int_t> { using type = u8;   };
+	template <same_as<u16> int_t> struct alias_uint<int_t> { using type = u16;  };
+	template <same_as<u32> int_t> struct alias_uint<int_t> { using type = u32;  };
+	template <same_as<u64> int_t> struct alias_uint<int_t> { using type = u64;  };
+	template <typename     int_t> using  alias_uint_t  =  alias_uint<int_t>::type;
+
+	template <typename int_t>
+	inline constexpr bool sint_has_alias_v = !same_as<alias_sint_t<int_t>, void>;
+	template <typename int_t>
+	inline constexpr bool uint_has_alias_v = !same_as<alias_uint_t<int_t>, void>;
+
+	template <typename int_t>
+	using simu_int_t  = ::std::conditional_t<sint_has_alias_v<int_t>, alias_sint_t<int_t>, i32>;
+	template <typename int_t>
+	using simu_uint_t = ::std::conditional_t<uint_has_alias_v<int_t>, alias_uint_t<int_t>, u32>;
+}
+
+namespace pdn::types
+{
+	using cppint  = dev_util::simu_int_t <int>;
+	using cppuint = dev_util::simu_uint_t<unsigned int>;
 }
 
 namespace pdn::types::concepts
@@ -61,117 +110,13 @@ namespace pdn::types::concepts
 
 	template <typename bool_t>
 	concept pdn_bool = ::std::same_as<bool_t, boolean>;
-}
 
-namespace pdn::types::type_traits::dev_util
-{
-	using ::std::same_as;
-
-	template <typename     int_t> struct alias_sint        { using type = void; };
-	template <same_as<i8>  int_t> struct alias_sint<int_t> { using type = i8;   };
-	template <same_as<i16> int_t> struct alias_sint<int_t> { using type = i16;  };
-	template <same_as<i32> int_t> struct alias_sint<int_t> { using type = i32;  };
-	template <same_as<i64> int_t> struct alias_sint<int_t> { using type = i64;  };
-	template <typename     int_t> using  alias_sint_t  =  alias_sint<int_t>::type;
-	template <typename     int_t> struct alias_uint        { using type = void; };
-	template <same_as<u8>  int_t> struct alias_uint<int_t> { using type = u8;   };
-	template <same_as<u16> int_t> struct alias_uint<int_t> { using type = u16;  };
-	template <same_as<u32> int_t> struct alias_uint<int_t> { using type = u32;  };
-	template <same_as<u64> int_t> struct alias_uint<int_t> { using type = u64;  };
-	template <typename     int_t> using  alias_uint_t  =  alias_uint<int_t>::type;
-
-	template <typename int_t>
-	inline constexpr bool sint_have_alias_v = !same_as<alias_sint_t<int_t>, void>;
-	template <typename int_t>
-	inline constexpr bool uint_have_alias_v = !same_as<alias_uint_t<int_t>, void>;
-
-	using ::std::conditional_t;
-
-	template <typename int_t>
-	using simu_int_t = conditional_t<sint_have_alias_v<int_t>, alias_sint_t<int_t>, i32>;
-	template <typename int_t>
-	using simu_uint_t = conditional_t<uint_have_alias_v<int_t>, alias_uint_t<int_t>, u32>;
-}
-
-namespace pdn::types::type_traits
-{
-	using dev_util::simu_int_t;
-	using dev_util::simu_uint_t;
-}
-
-namespace pdn::types
-{
-	using cppint  = type_traits::simu_int_t <int>;
-	using cppuint = type_traits::simu_uint_t<unsigned int>;
-
-	template <typename char_t>
-	class character
-	{
-	private:
-		static_assert(sizeof(char_t) == 1 || sizeof(char_t) == 2 || sizeof(char_t) == 4);
-		static constexpr auto max_size = 4 / sizeof(char_t);
-		using data_type = ::std::array<char_t, max_size>;
-	public:
-		using small_size_type = u32;
-		using value_type      = char_t;
-		using size_type       = typename data_type::size_type;
-		using difference_type = ptrdiff_t;
-		using pointer         = value_type*;
-		using const_pointer   = const value_type*;
-		using reference       = value_type&;
-		using const_reference = const value_type&;
-	public:
-		constexpr character() : sz{ 1 } {}
-		template <typename it_t>
-		constexpr character(it_t first, size_type count) noexcept
-		{
-			auto c = small_size_type(count > max_size ? max_size : count);
-			auto data_it = cont.begin();
-			for (small_size_type i = 0; i < c; ++i)
-			{
-				*data_it = *first;
-				++first;
-				++data_it;
-			}
-			sz = c;
-		}
-		constexpr character(const character& rhs) : cont{ rhs.cont }, sz{ rhs.sz } {}
-		constexpr character& operator= (const character& rhs) noexcept
-		{
-			cont = rhs.cont;
-			sz = rhs.sz;
-			return *this;
-		}
-		const value_type* data() const noexcept
-		{
-			return cont.data();
-		}
-		size_type size() const noexcept
-		{
-			return sz;
-		}
-		template <typename traits = ::std::char_traits<char_t>>
-		constexpr auto to_string_view() const noexcept -> ::std::basic_string_view<char_t, traits>
-		{
-			return { data(), size()};
-		}
-	private:
-		data_type cont{};
-		small_size_type sz{};
-	};
-}
-
-namespace pdn::types
-{
-	template <typename char_t>
-	struct entity;
-}
-
-namespace pdn::types
-{
-	template <typename char_t> using string = ::std::basic_string<char_t>;
-	template <typename char_t> using list   = ::std::vector<entity<char_t>>;
-	template <typename char_t> using object = ::std::unordered_map<string<char_t>, entity<char_t>>;
+	template <typename t, typename char_t>
+	concept basic_types
+		 = concepts::pdn_integral<t>
+		|| concepts::pdn_fp<t>
+		|| concepts::pdn_bool<t>
+		|| ::std::same_as<t, character<char_t>>;
 }
 
 namespace pdn::types::dev_util
@@ -186,16 +131,6 @@ namespace pdn::types::dev_util
 		proxy<string<char_t>>,
 		proxy<list<char_t>>,
 		proxy<object<char_t>>>;
-}
-
-namespace pdn::types::dev_util
-{
-	template <typename t, typename char_t>
-	concept basic_types
-		 = concepts::pdn_integral<t>
-		|| concepts::pdn_fp<t>
-		|| concepts::pdn_bool<t>
-		|| ::std::same_as<t, character<char_t>>;
 }
 
 namespace pdn
@@ -219,6 +154,8 @@ namespace pdn
 		using list_proxy   = proxy<list>;
 		using object_proxy = proxy<object>;
 	public:
+		// Accessor
+
 		auto sint_val  () const -> i64           { return ptr ? ptr->sint_val  () : i64{}; }
 		auto uint_val  () const -> u64           { return ptr ? ptr->uint_val  () : u64{}; }
 		auto fp_val    () const -> f64           { return ptr ? ptr->fp_val    () : f64{}; }
@@ -228,7 +165,7 @@ namespace pdn
 		auto list_val  () const -> const list&   { return ptr ? ptr->list_val  () : entity::null_list_val(); }
 		auto object_val() const -> const object& { return ptr ? ptr->object_val() : entity::null_object_val(); }
 
-		template <types::dev_util::basic_types<char_type> type>
+		template <types::concepts::basic_types<char_type> type>
 		::std::optional<type> get_optional() const { return ptr ? ptr->template get_optional<type>() : ::std::nullopt; }
 		auto i8_opt    () const { return ptr ? ptr->i8_opt  () : ::std::nullopt; }
 		auto i16_opt   () const { return ptr ? ptr->i16_opt () : ::std::nullopt; }
@@ -332,7 +269,7 @@ namespace pdn::types
 		auto  ref() const & -> const_refer<char_type> { return const_refer<char_type>{ const_cast<entity&>(*this) }; }
 		auto cref() const & -> const_refer<char_type> { return const_refer<char_type>{ const_cast<entity&>(*this) }; }
 
-		template <dev_util::basic_types<char_type> type>
+		template <concepts::basic_types<char_type> type>
 		::std::optional<type> get_optional() const
 		{
 			return ::std::visit([](const auto& arg) -> ::std::optional<type>

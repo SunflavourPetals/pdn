@@ -227,6 +227,7 @@ namespace pdn_test
 		inline static auto help  = pdn::unicode::code_convert<pdn::types::string<char_t>>(u8"help"_ucusv);
 		inline static auto mb    = pdn::unicode::code_convert<pdn::types::string<char_t>>(u8"mb"_ucusv);
 		inline static auto el    = pdn::unicode::code_convert<pdn::types::string<char_t>>(u8"el"_ucusv);
+		inline static auto chcp  = pdn::unicode::code_convert<pdn::types::string<char_t>>(u8"chcp"_ucusv);
 	};
 
 	namespace
@@ -770,6 +771,10 @@ namespace pdn_test
 						<< "\tel <index> [depth opt default=3] : -- list members | elements for this[index]\n"
 						<< "\tcd <iden>|<index> : ----------------- move to this.iden|this[index]\n"
 						<< "\tbk (bk)* : -------------------------- move back...\n";
+				}
+				else if (cmd_str == ct::chcp) // for test on Windows
+				{
+					::std::system("chcp 65001");
 				}
 				else
 				{

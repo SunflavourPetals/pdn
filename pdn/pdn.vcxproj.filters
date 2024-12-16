@@ -306,6 +306,15 @@
     <ClInclude Include="pdn_error_message_generator_en.h">
       <Filter>pdn_error_message_generator</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_types_config.h">
+      <Filter>pdn_types</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_types_character.h">
+      <Filter>pdn_types</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_types_character_utility.h">
+      <Filter>pdn_types</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pdn.cpp">
