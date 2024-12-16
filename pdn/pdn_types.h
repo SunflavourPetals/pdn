@@ -63,27 +63,46 @@ namespace pdn::types::concepts
 	concept pdn_bool = ::std::same_as<bool_t, boolean>;
 }
 
+namespace pdn::types::type_traits::dev_util
+{
+	using ::std::same_as;
+
+	template <typename     int_t> struct alias_sint        { using type = void; };
+	template <same_as<i8>  int_t> struct alias_sint<int_t> { using type = i8;   };
+	template <same_as<i16> int_t> struct alias_sint<int_t> { using type = i16;  };
+	template <same_as<i32> int_t> struct alias_sint<int_t> { using type = i32;  };
+	template <same_as<i64> int_t> struct alias_sint<int_t> { using type = i64;  };
+	template <typename     int_t> using  alias_sint_t  =  alias_sint<int_t>::type;
+	template <typename     int_t> struct alias_uint        { using type = void; };
+	template <same_as<u8>  int_t> struct alias_uint<int_t> { using type = u8;   };
+	template <same_as<u16> int_t> struct alias_uint<int_t> { using type = u16;  };
+	template <same_as<u32> int_t> struct alias_uint<int_t> { using type = u32;  };
+	template <same_as<u64> int_t> struct alias_uint<int_t> { using type = u64;  };
+	template <typename     int_t> using  alias_uint_t  =  alias_uint<int_t>::type;
+
+	template <typename int_t>
+	inline constexpr bool sint_have_alias_v = !same_as<alias_sint_t<int_t>, void>;
+	template <typename int_t>
+	inline constexpr bool uint_have_alias_v = !same_as<alias_uint_t<int_t>, void>;
+
+	using ::std::conditional_t;
+
+	template <typename int_t>
+	using simu_int_t = conditional_t<sint_have_alias_v<int_t>, alias_sint_t<int_t>, i32>;
+	template <typename int_t>
+	using simu_uint_t = conditional_t<uint_have_alias_v<int_t>, alias_uint_t<int_t>, u32>;
+}
+
 namespace pdn::types::type_traits
 {
-	template <typename int_t>                               struct simu_cpp_int        { using type = i32; }; // default cppint = i32
-	template <typename int_t> requires (sizeof(int_t) == 1) struct simu_cpp_int<int_t> { using type = i8;  };
-	template <typename int_t> requires (sizeof(int_t) == 2) struct simu_cpp_int<int_t> { using type = i16; };
-	template <typename int_t> requires (sizeof(int_t) == 4) struct simu_cpp_int<int_t> { using type = i32; };
-	template <typename int_t> requires (sizeof(int_t) == 8) struct simu_cpp_int<int_t> { using type = i64; };
-	template <typename int_t> using simu_cpp_int_t    =   typename simu_cpp_int<int_t>::type;
-
-	template <typename int_t>                               struct simu_cpp_uint        { using type = u32; }; // default cppuint = u32
-	template <typename int_t> requires (sizeof(int_t) == 1) struct simu_cpp_uint<int_t> { using type = u8;  };
-	template <typename int_t> requires (sizeof(int_t) == 2) struct simu_cpp_uint<int_t> { using type = u16; };
-	template <typename int_t> requires (sizeof(int_t) == 4) struct simu_cpp_uint<int_t> { using type = u32; };
-	template <typename int_t> requires (sizeof(int_t) == 8) struct simu_cpp_uint<int_t> { using type = u64; };
-	template <typename int_t> using simu_cpp_uint_t   =   typename simu_cpp_uint<int_t>::type;
+	using dev_util::simu_int_t;
+	using dev_util::simu_uint_t;
 }
 
 namespace pdn::types
 {
-	using cppint  = type_traits::simu_cpp_int_t <int>;
-	using cppuint = type_traits::simu_cpp_uint_t<unsigned int>;
+	using cppint  = type_traits::simu_int_t <int>;
+	using cppuint = type_traits::simu_uint_t<unsigned int>;
 
 	template <typename char_t>
 	class character
