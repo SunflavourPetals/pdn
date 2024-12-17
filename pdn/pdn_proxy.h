@@ -28,9 +28,7 @@ namespace pdn
 		{
 			return handle.get();
 		}
-		proxy() = default;
-		explicit proxy(handle_type h) : handle{ ::std::move(h) } {}
-		proxy(const proxy& o) : handle{ ::std::make_unique<t>(*o) } {}
+		proxy(const proxy& o) : proxy(::std::make_unique<t>(*o)) {}
 		proxy(proxy&& o) noexcept
 		{
 			*this = ::std::move(o);
@@ -45,8 +43,11 @@ namespace pdn
 			::std::swap(handle, o.handle);
 			return *this;
 		}
+		template <typename type, typename... args_t>
+		friend auto make_proxy(args_t&&... args) -> proxy<type>;
 	private:
 		handle_type handle{};
+		explicit proxy(handle_type h) : handle{ ::std::move(h) } {}
 	};
 
 	template <typename type>
