@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -144,6 +144,11 @@
     <ClInclude Include="pdn_dfa_state_code.h" />
     <ClInclude Include="pdn_dfa_state_object.h" />
     <ClInclude Include="pdn_dom.h" />
+    <ClInclude Include="pdn_entity.h" />
+    <ClInclude Include="pdn_entity_as_accessor.h" />
+    <ClInclude Include="pdn_entity_forward_decl.h" />
+    <ClInclude Include="pdn_entity_get_accessor.h" />
+    <ClInclude Include="pdn_entity_utility.h" />
     <ClInclude Include="pdn_eof_checker_concept.h" />
     <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h" />
     <ClInclude Include="pdn_error_handler_concept.h" />
@@ -181,6 +186,7 @@
     <ClInclude Include="pdn_swap_chain.h" />
     <ClInclude Include="pdn_token.h" />
     <ClInclude Include="pdn_types.h" />
+    <ClInclude Include="pdn_types_basic.h" />
     <ClInclude Include="pdn_types_character.h" />
     <ClInclude Include="pdn_type_code.h" />
     <ClInclude Include="pdn_type_code_to_type.h" />

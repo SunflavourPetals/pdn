@@ -70,6 +70,9 @@
     <Filter Include="pdn_error_message_generator\pdn_err_msg_gen_impl">
       <UniqueIdentifier>{20490ef1-c2d0-49d2-814e-89125dadb6c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pdn_entity">
+      <UniqueIdentifier>{536fbc96-7a98-497f-a029-b773b5f1953a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pdn_unicode_base.h">
@@ -314,6 +317,24 @@
     </ClInclude>
     <ClInclude Include="pdn_types_character_utility.h">
       <Filter>pdn_types</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_types_basic.h">
+      <Filter>pdn_types</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_entity_forward_decl.h">
+      <Filter>pdn_entity</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_entity.h">
+      <Filter>pdn_entity</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_entity_utility.h">
+      <Filter>pdn_entity</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_entity_as_accessor.h">
+      <Filter>pdn_entity</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_entity_get_accessor.h">
+      <Filter>pdn_entity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

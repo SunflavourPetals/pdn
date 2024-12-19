@@ -2,11 +2,14 @@
 #define PDN_Header_pdn_dom
 
 #include "pdn_types.h"
+#include "pdn_entity.h"
+#include "pdn_entity_as_accessor.h"
+#include "pdn_entity_get_accessor.h"
 
 namespace pdn
 {
 	template <typename char_t>
-	using document_object_model = types::entity<char_t>;
+	using document_object_model = entity<char_t>;
 
 	template <typename char_t>
 	using dom = document_object_model<char_t>;

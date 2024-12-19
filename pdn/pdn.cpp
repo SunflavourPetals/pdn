@@ -148,7 +148,7 @@ namespace pdn_test
 	                  const pdn::types::string<char_t>& id,
 	                  const std::size_t max_layer = 3)
 	{
-		auto op = dom.object_ptr();
+		auto op = pdn::get_ptr<pdn::types::object<char_t>>(dom);
 		if (!op)
 		{
 			out << "[!] this is not an object\n";
@@ -183,7 +183,7 @@ namespace pdn_test
 	                   const std::size_t index,
 	                   const std::size_t max_layer = 3)
 	{
-		auto lp = dom.list_ptr();
+		auto lp = pdn::get_ptr<pdn::types::list<char_t>>(dom);
 		if (!lp)
 		{
 			out << "[!] this is not a list\n";
@@ -354,11 +354,11 @@ namespace pdn_test
 		template <typename char_t>
 		void print_self_shortly(std::ostream& out, const pdn::dom<char_t>& dom)
 		{
-			if (auto p = dom.object_ptr())
+			if (auto p = pdn::get_ptr<pdn::types::object<char_t>>(dom))
 			{
 				out << "this type: object";
 			}
-			else if (auto p = dom.list_ptr())
+			else if (auto p = pdn::get_ptr<pdn::types::list<char_t>>(dom))
 			{
 				out << "this type: list";
 			}
@@ -407,6 +407,7 @@ namespace pdn_test
 	template <typename char_t>
 	void play(std::ostream& out, pdn::dom<char_t>& dom, std::size_t& exit_layer, std::size_t layer = 0)
 	{
+		using dom_t = pdn::dom<char_t>;
 		for (; ; )
 		{
 			if (exit_layer > 0)
@@ -568,7 +569,7 @@ namespace pdn_test
 							out << "[!] inner error arg val is null\n";
 							continue;
 						}
-						auto op = dom.object_ptr();
+						auto op = get_ptr<typename dom_t::object>(dom);
 						if (!op)
 						{
 							out << "[!] this is not an object\n";
@@ -623,7 +624,7 @@ namespace pdn_test
 							out << "[!] inner error arg val is not integer\n";
 							continue;
 						}
-						auto lp = dom.list_ptr();
+						auto lp = get_ptr<typename dom_t::list>(dom);
 						if (!lp)
 						{
 							out << "[!] this is not a list\n";
@@ -670,11 +671,11 @@ namespace pdn_test
 					else
 					{
 						auto cmd_u8s = convert_to_u8s(cmd_str);
-						if (auto p = dom.object_ptr())
+						if (auto p = pdn::get_ptr<typename dom_t::object>(dom))
 						{
 							out << "[!] missing identifier arguments after: \"" << reinterpret_to_sv(cmd_u8s) << "\"\n";
 						}
-						else if (auto p = dom.list_ptr())
+						else if (auto p = pdn::get_ptr<typename dom_t::list>(dom))
 						{
 							out << "[!] missing index arguments after: \"" << reinterpret_to_sv(cmd_u8s) << "\"\n";
 						}
@@ -829,6 +830,21 @@ namespace pdn_test
 
 int main(int argc, const char* argv[])
 {
+	{
+		using std::cout;
+		auto ln = "\n";
+		pdn::entity<char8_t> test = 1;
+		get<int>(test) = 123;
+		const auto& ctest = test;
+		cout << get<int>(ctest) << ln;
+
+		pdn::entity<char8_t> tests = pdn::make_proxy<std::u8string>(u8"test");
+		std::u8string exc{ u8"getter" };
+		exc = get<std::u8string>(std::move(tests));
+		cout << (const char*)exc.c_str() << ln
+			<< (const char*)get<std::u8string>(tests).c_str() << ln;
+	}
+	
 	std::string filename{};
 	std::string out_filename{};
 	std::string log_filename{};

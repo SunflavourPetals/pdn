@@ -4,8 +4,10 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <functional>
 #include <unordered_map>
 
+#include "pdn_unicode_base.h"
 #include "pdn_types_character.h"
 
 namespace pdn::types::config
@@ -34,8 +36,29 @@ namespace pdn::types::config
 	template <typename entity_t>
 	using list = ::std::vector<entity_t>;
 	
+	struct key_hasher
+	{
+		using is_transparent = void; // enables heterogeneous operations.
+		using u8sv  = unicode::utf_8_code_unit_string_view;
+		using u16sv = unicode::utf_16_code_unit_string_view;
+		using u32sv = unicode::utf_32_code_unit_string_view;
+
+		auto operator()(const u8sv sv) const -> ::std::size_t
+		{
+			return ::std::hash<u8sv>{}(sv);
+		}
+		auto operator()(const u16sv sv) const -> ::std::size_t
+		{
+			return ::std::hash<u16sv>{}(sv);
+		}
+		auto operator()(const u32sv sv) const -> ::std::size_t
+		{
+			return ::std::hash<u32sv>{}(sv);
+		}
+	};
+
 	template <typename iden_t, typename entity_t>
-	using object = ::std::unordered_map<iden_t, entity_t>;
+	using object = ::std::unordered_map<iden_t, entity_t, key_hasher, ::std::equal_to<>>;
 }
 
 #endif

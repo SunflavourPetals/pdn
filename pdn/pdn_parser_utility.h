@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <concepts>
 
+#include "pdn_entity.h"
 #include "pdn_types.h"
 #include "pdn_proxy.h"
 #include "pdn_token_code.h"
@@ -92,7 +93,7 @@ namespace pdn::parser_utility
 	}
 
 	template <typename code_unit_t>
-	constexpr auto default_entity_value(type_code type_c) -> types::entity<code_unit_t>
+	constexpr auto default_entity_value(type_code type_c) -> entity<code_unit_t>
 	{
 		using char_t   = types::character<code_unit_t>;
 		using string_t = types::string<code_unit_t>;
@@ -134,11 +135,10 @@ namespace pdn::parser_utility
 	}
 
 	template <typename char_t>
-	auto token_value_to_entity(token<char_t> src) -> types::entity<char_t>
+	auto token_value_to_entity(token<char_t> src) -> entity<char_t>
 	{
-		return ::std::visit([](auto& arg) -> types::entity<char_t>
+		return ::std::visit([]<typename arg_t>(arg_t arg) -> entity<char_t>
 		{
-			using arg_t = ::std::decay_t<decltype(arg)>;
 			if constexpr (::std::same_as<arg_t, ::std::monostate>)
 			{
 				throw inner_error{ "token have no value" };
@@ -146,9 +146,9 @@ namespace pdn::parser_utility
 			}
 			else
 			{
-				return types::entity<char_t>{ ::std::move(arg) };
+				return entity<char_t>{ ::std::move(arg) };
 			}
-		}, src.value);
+		}, ::std::move(src.value));
 	}
 }
 

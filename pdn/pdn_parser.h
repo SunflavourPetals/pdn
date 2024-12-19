@@ -12,6 +12,7 @@
 #include "pdn_code_convert.h"
 
 #include "pdn_types.h"
+#include "pdn_entity.h"
 
 #include "pdn_token_code.h"
 #include "pdn_token.h"
@@ -52,7 +53,7 @@ namespace pdn
 	{
 	public:
 		using char_type = char_t;
-		using entity = types::entity<char_type>;
+		using entity_type = entity<char_type>;
 	private:
 		using syn_ec = syntax_error_code;
 	public:
@@ -65,7 +66,7 @@ namespace pdn
 				throw inner_error{ "parse terminated" };
 			}
 		}
-		entity parse(concepts::token_iterator<char_t> auto begin, auto end)
+		entity_type parse(concepts::token_iterator<char_t> auto begin, auto end)
 		{
 			auto o = types::object<char_t>{};
 			parse(begin, end, o);
@@ -118,7 +119,7 @@ namespace pdn
 			}
 		}
 
-		entity parse_decl(auto& begin, auto end)
+		entity_type parse_decl(auto& begin, auto end)
 		{
 			// ... iden CURPOS ...
 			// expect : | expr
@@ -191,7 +192,7 @@ namespace pdn
 			return type_code::unknown;
 		}
 
-		entity parse_expr(auto& begin, auto end)
+		entity_type parse_expr(auto& begin, auto end)
 		{
 			// expect
 			//     - ...
@@ -321,7 +322,7 @@ namespace pdn
 			}, tk.value);
 		}
 
-		entity parse_list_expr(auto& begin, auto end, source_position left_brackets_pos)
+		entity_type parse_list_expr(auto& begin, auto end, source_position left_brackets_pos)
 		{
 			// ... [ CURRPOS ...
 
@@ -358,7 +359,7 @@ namespace pdn
 			return make_proxy<types::list<char_t>>(::std::move(result));
 		}
 
-		entity parse_list_element(auto& begin, auto end, bool& with_comma)
+		entity_type parse_list_element(auto& begin, auto end, bool& with_comma)
 		{
 			// ... iden [colon [typename] ] [ ... ] CURPOS ...
 
@@ -378,7 +379,7 @@ namespace pdn
 				}
 			}
 
-			entity e = parse_expr(begin, end);
+			entity_type e = parse_expr(begin, end);
 			// to ... [ (element,)* element CURRPOS ...
 
 			if (tk.code == pdn_token_code::comma)
@@ -399,7 +400,7 @@ namespace pdn
 			return e;
 		}
 
-		entity parse_object_expr(auto& begin, auto end, source_position left_curly_brackets_pos)
+		entity_type parse_object_expr(auto& begin, auto end, source_position left_curly_brackets_pos)
 		{
 			// ... { CURRPOS ...
 
@@ -454,7 +455,7 @@ namespace pdn
 			return make_proxy<types::object<char_t>>(::std::move(result));
 		}
 
-		entity entity_cast(entity src, type_code target_type_c, source_position type_pos)
+		entity_type entity_cast(entity_type src, type_code target_type_c, source_position type_pos)
 		{
 			using enum type_code;
 			switch (target_type_c)
@@ -480,13 +481,13 @@ namespace pdn
 		}
 
 		template <type_code target_type_c>
-		entity entity_cast(entity src, source_position type_pos)
+		entity_type entity_cast(entity_type src, source_position type_pos)
 		{
 			static_assert(target_type_c != type_code::unknown, "[pdn] cast to unknown type");
 
 			using parser_utility::default_entity_value;
 
-			return ::std::visit([&](auto& arg) -> entity
+			return ::std::visit([&](auto& arg) -> entity_type
 			{
 				using src_t = remove_proxy_t<::std::decay_t<decltype(arg)>>;
 				using tar_t = type_code_to_type_t<target_type_c, char_t>; // unknown -> void
@@ -502,7 +503,7 @@ namespace pdn
 
 				if constexpr (::std::same_as<src_t, tar_t>)
 				{
-					return entity{ ::std::move(arg) };
+					return entity_type{ ::std::move(arg) };
 				}
 				else if constexpr (pdn_sint<src_t>)
 				{

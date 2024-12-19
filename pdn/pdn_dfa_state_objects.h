@@ -534,7 +534,7 @@ namespace pdn::dfa_state_objects
 	};
 	inline cdfaso at_identifier{
 		dfa_state_code::at_identifier,
-		pdn_token_code::invalid,
+		pdn_token_code::at_identifier,
 		[](code_point_t c) noexcept
 		{
 			if (lexer_utility::is_allowed_in_identifier(c))

@@ -8,6 +8,7 @@ namespace pdn
 		invalid,
 
 		eof,
+		at_identifier, // variant(string)
 		identifier, // variant(string)
 		literal_integer, // variant(int or other int types)
 		literal_floating_point, // variant(f64)

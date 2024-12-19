@@ -19,7 +19,7 @@ namespace pdn::dev_util
 {
 	struct constants_table_key_hasher
 	{
-		using is_transparent = void; // Enables heterogeneous operations.
+		using is_transparent = void; // enables heterogeneous operations.
 		using string_view = unicode::utf_8_code_unit_string_view;
 		auto operator()(string_view sv) const -> ::std::size_t
 		{

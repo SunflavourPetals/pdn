@@ -20,6 +20,10 @@ namespace pdn
 		{
 			return static_cast<bool>(handle);
 		}
+		auto get() const noexcept -> pointer
+		{
+			return handle.get();
+		}
 		auto operator*() const noexcept -> ::std::add_lvalue_reference_t<t>
 		{
 			return *handle;
