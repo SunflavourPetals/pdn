@@ -56,6 +56,10 @@ namespace pdn::dev_util
 				+ u8", sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
+		case invalid_sequence:
+			return u8"invalid utf-8 sequence, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		default:
 			throw inner_error{ "UTF-8 decode error and error_message_generator_en unresolved" };
 			return u8"UTF-8 decode error, error_message_generator_en unresolved"_em;

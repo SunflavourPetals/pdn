@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <concepts>
+#include <cstddef>
 
 #include "pdn_entity.h"
 #include "pdn_types.h"
@@ -14,6 +15,7 @@
 #include "pdn_error_string.h"
 #include "pdn_code_convert.h"
 #include "pdn_raw_error_message_type.h"
+#include "pdn_source_position.h"
 
 namespace pdn::dev_util
 {
@@ -72,6 +74,7 @@ namespace pdn::parser_utility
 		using enum pdn_token_code;
 		switch (c)
 		{
+		case at_identifier:
 		case minus:
 		case plus:
 		case literal_boolean:
@@ -130,26 +133,19 @@ namespace pdn::parser_utility
 		}
 		else
 		{
-			return raw_error_message_type::error_token{ token_convert<error_msg_char>(::std::move(src)) };
+			return raw_error_message_type::error_token{ dev_util::token_convert<error_msg_char>(::std::move(src)) };
 		}
 	}
 
-	template <typename char_t>
-	auto token_value_to_entity(token<char_t> src) -> entity<char_t>
+	struct unary_record
 	{
-		return ::std::visit([]<typename arg_t>(arg_t arg) -> entity<char_t>
-		{
-			if constexpr (::std::same_as<arg_t, ::std::monostate>)
-			{
-				throw inner_error{ "token have no value" };
-				return types::cppint{};
-			}
-			else
-			{
-				return entity<char_t>{ ::std::move(arg) };
-			}
-		}, ::std::move(src.value));
-	}
+		source_position last_positive_sign_pos{}; // P-pos
+		source_position last_negative_sign_pos{}; // N-pos
+		::std::size_t   negative_sign_count{};
+		bool            is_last_sign_negative{};  // true => N-pos is valid, false => P-pos is valis
+		bool            has_sign{};               // true => this object is valid
+		explicit unary_record(bool v) : has_sign{ v } {}
+	};
 }
 
 #endif

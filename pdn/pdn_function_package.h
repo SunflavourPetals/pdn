@@ -6,7 +6,7 @@
 #include "pdn_source_position_recorder.h"
 #include "pdn_error_handler.h"
 #include "pdn_error_message_generator.h"
-#include "pdn_constants_generator.h"
+#include "pdn_constant_generator.h"
 #include "pdn_type_generator.h"
 
 namespace pdn
@@ -15,11 +15,11 @@ namespace pdn
 	class default_function_package
 	{
 	private:
-		pdn::source_position_recorder            pos_recorder{};
-		pdn::default_error_handler               err_handler{};
-		pdn::default_error_message_generator     err_msg_gen{};
-		pdn::default_constants_generator<char_t> const_gen{};
-		pdn::default_type_generator<char_t>      type_gen{};
+		pdn::source_position_recorder           pos_recorder{};
+		pdn::default_error_handler              err_handler{};
+		pdn::default_error_message_generator    err_msg_gen{};
+		pdn::default_constant_generator<char_t> const_gen{};
+		pdn::default_type_generator<char_t>     type_gen{};
 	public:
 		auto position() const -> pdn::source_position
 		{
@@ -41,7 +41,7 @@ namespace pdn
 		{
 			return err_msg_gen.generate_error_message(std::move(raw));
 		}
-		auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) const -> ::std::optional<pdn::constant_variant<char_t>>
+		auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) const -> ::std::optional<pdn::entity<char_t>>
 		{
 			return const_gen.generate_constant(iden);
 		}

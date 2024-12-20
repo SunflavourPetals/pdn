@@ -36,6 +36,34 @@ namespace pdn::dev_util::err_msg_gen_util
 	{
 		return make_slashes_string<error_msg_string>(unicode::code_convert<unicode::code_point_string>(view));
 	}
+	inline auto value_variant_to_s(const auto& arg) -> error_msg_string
+	{
+		using arg_t = ::std::decay_t<decltype(arg)>;
+		if constexpr (::std::same_as<arg_t, types::character<error_msg_char>>)
+		{
+			return u8"\'"_em + error_msg_string{ arg.to_string_view() } + u8"\'"_em;
+		}
+		else if constexpr (::std::same_as<arg_t, proxy<types::string<error_msg_char>>>)
+		{
+			return u8"\""_em + make_slashes(*arg) + u8"\""_em;
+		}
+		else if constexpr (::std::same_as<arg_t, types::boolean>)
+		{
+			return arg ? u8"true"_em : u8"false"_em;
+		}
+		else if constexpr (::std::same_as<arg_t, ::std::monostate>)
+		{
+			return u8"monostate"_em;
+		}
+		else if constexpr (::std::same_as<arg_t, dev_util::at_iden_string_proxy>)
+		{
+			return u8"\"@"_em + make_slashes(arg.get_id()) + u8"\""_em;
+		}
+		else
+		{
+			return reinterpret_to_err_msg_str(::std::to_string(arg));
+		}
+	}
 	inline auto token_value_variant_to_s(const token_value_variant<error_msg_char>& variant) -> error_msg_string
 	{
 		return ::std::visit([](const auto& arg) -> error_msg_string
@@ -56,6 +84,10 @@ namespace pdn::dev_util::err_msg_gen_util
 			else if constexpr (::std::same_as<arg_t, ::std::monostate>)
 			{
 				return u8"monostate"_em;
+			}
+			else if constexpr (::std::same_as<arg_t, dev_util::at_iden_string_proxy>)
+			{
+				return u8"\"@"_em.append(arg.get_id()).append(u8"\""_em);
 			}
 			else
 			{
@@ -197,6 +229,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	// for unary_operation
 	inline auto get_description_for_unary_operation(raw_err_v_cref raw) -> error_msg_string
 	{
+		// todo for list and object
 		return description_of(::std::get<raw_details::unary_operation>(raw).operand);
 	}
 }

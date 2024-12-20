@@ -394,7 +394,7 @@ namespace pdn_test
 		{
 			return fp.generate_error_message(std::move(raw));
 		}
-		auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) -> ::std::optional<pdn::constant_variant<char_t>>
+		auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) -> ::std::optional<pdn::entity<char_t>>
 		{
 			return fp.generate_constant(iden);
 		}
@@ -830,21 +830,6 @@ namespace pdn_test
 
 int main(int argc, const char* argv[])
 {
-	{
-		using std::cout;
-		auto ln = "\n";
-		pdn::entity<char8_t> test = 1;
-		get<int>(test) = 123;
-		const auto& ctest = test;
-		cout << get<int>(ctest) << ln;
-
-		pdn::entity<char8_t> tests = pdn::make_proxy<std::u8string>(u8"test");
-		std::u8string exc{ u8"getter" };
-		exc = get<std::u8string>(std::move(tests));
-		cout << (const char*)exc.c_str() << ln
-			<< (const char*)get<std::u8string>(tests).c_str() << ln;
-	}
-	
 	std::string filename{};
 	std::string out_filename{};
 	std::string log_filename{};

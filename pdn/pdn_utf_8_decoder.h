@@ -24,6 +24,7 @@ namespace pdn::unicode::utf_8
 		requires_utf_8_trailing,     // requires trailing and read one which not trailing
 		requires_utf_8_leading,      // requires leading and read one which not leading
 		unsupported_utf_8_leading,
+		invalid_sequence,            // invalid utf-8 sequence, such as using two bytes to represent values in the range U+0000 to U+007F
 	};
 
 	class decoder;
@@ -208,9 +209,18 @@ namespace pdn::unicode::utf_8
 				return result;
 			}
 
-			if (result && !is_scalar_value(result.value()))
+			if (result)
 			{
-				result.error_code = not_scalar_value;
+				// 0x007F, 0x07FF, 0xFFFF, 0x10'FFFF
+				static ::std::array<::std::uint_least32_t, 4> min_valid{ 0, 0x0080, 0x0800, 0x1'0000 };
+				if (!is_scalar_value(result.value()))
+				{
+					result.error_code = not_scalar_value;
+				}
+				else if (result.value() < min_valid[result.distance()])
+				{
+					result.error_code = invalid_sequence;
+				}
 			}
 
 			if constexpr (reach_next_code_point) { to_next(begin, result); }

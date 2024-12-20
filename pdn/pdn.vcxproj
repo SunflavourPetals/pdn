@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>ClangCL</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -136,10 +136,9 @@
     <ClInclude Include="pdn_code_convert.h" />
     <ClInclude Include="pdn_code_point_iterator.h" />
     <ClInclude Include="pdn_code_unit_iterator.h" />
-    <ClInclude Include="pdn_constants_generator.h" />
-    <ClInclude Include="pdn_constants_generator_concept.h" />
-    <ClInclude Include="pdn_constants_generator_std.h" />
-    <ClInclude Include="pdn_constants_variant.h" />
+    <ClInclude Include="pdn_constant_generator.h" />
+    <ClInclude Include="pdn_constant_generator_concept.h" />
+    <ClInclude Include="pdn_constant_generator_std.h" />
     <ClInclude Include="pdn_dfa_state_objects.h" />
     <ClInclude Include="pdn_dfa_state_code.h" />
     <ClInclude Include="pdn_dfa_state_object.h" />

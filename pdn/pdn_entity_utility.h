@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_entity_utility
 
 #include <variant>
+#include <cmath>
 
 #include "pdn_types.h"
 #include "pdn_proxy.h"

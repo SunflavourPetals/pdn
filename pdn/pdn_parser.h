@@ -31,6 +31,7 @@
 #include "pdn_error_handler_concept.h"
 #include "pdn_error_message_generator_concept.h"
 #include "pdn_type_generator_concept.h"
+#include "pdn_constant_generator_concept.h"
 
 #include "pdn_make_slashes_string.h"
 #include "pdn_parser_utility.h"
@@ -43,7 +44,8 @@ namespace pdn::concepts
 	concept function_package_for_parser
 		 = concepts::error_handler<type>
 		&& concepts::error_message_generator<type>
-		&& concepts::type_generator<type, char_t>;
+		&& concepts::type_generator<type, char_t>
+		&& concepts::constant_generator<type, char_t>;
 }
 
 namespace pdn
@@ -66,7 +68,7 @@ namespace pdn
 				throw inner_error{ "parse terminated" };
 			}
 		}
-		entity_type parse(concepts::token_iterator<char_t> auto begin, auto end)
+		auto parse(concepts::token_iterator<char_t> auto begin, auto end) -> entity_type
 		{
 			auto o = types::object<char_t>{};
 			parse(begin, end, o);
@@ -119,7 +121,7 @@ namespace pdn
 			}
 		}
 
-		entity_type parse_decl(auto& begin, auto end)
+		auto parse_decl(auto& begin, auto end) -> entity_type
 		{
 			// ... iden CURPOS ...
 			// expect : | expr
@@ -164,7 +166,7 @@ namespace pdn
 			return e;
 		}
 
-		type_code parse_type_spec(auto& begin, auto end)
+		auto parse_type_spec(auto& begin, auto end) -> type_code
 		{
 			//    ... iden : CURPOS expr ...
 			// or ... CURPOS : expr ...
@@ -192,7 +194,7 @@ namespace pdn
 			return type_code::unknown;
 		}
 
-		entity_type parse_expr(auto& begin, auto end)
+		auto parse_expr(auto& begin, auto end) -> entity_type
 		{
 			// expect
 			//     - ...
@@ -204,16 +206,84 @@ namespace pdn
 			//     [ ... ]
 
 			using enum pdn_token_code;
-			using unicode::code_convert;
-			using parser_utility::is_unary_operator;
-			using parser_utility::is_negative_sign;
-			using parser_utility::token_value_to_entity;
 
-			if (is_unary_operator(tk.code))
+			auto unary_rec = process_unary_operation(begin, end);
+
+			if (!parser_utility::is_expr_first(tk.code))
 			{
-				process_unary_operation(begin, end);
+				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
+				return types::cppint{};
 			}
 
+			auto result = parse_expr_without_unary(begin, end);
+
+			if (!unary_rec.has_sign) return result;
+
+			// 这个visit里用的tk被更新了，需要用arg构造token传入错误处理函数
+			::std::visit([&](auto& arg)
+			{
+				using raw_err_unary_op = raw_error_message_type::unary_operation;
+				using arg_t = ::std::decay_t<decltype(arg)>;
+				using types::concepts::pdn_sint;
+				using types::concepts::pdn_uint;
+				using types::concepts::pdn_fp;
+				if constexpr (pdn_fp<arg_t> || pdn_sint<arg_t>) // f32, f64, i8, i16, i32, i64
+				{
+					if (unary_rec.negative_sign_count % 2)
+					{
+						arg = -arg;
+					}
+				}
+				else if constexpr (pdn_uint<arg_t>) // unary operator- on u8, u16, u32, u64 is illegal
+				{
+					if (unary_rec.negative_sign_count)
+					{
+						constexpr auto operand_type = type_to_type_code_v<arg_t, char_t>;
+						post_err(unary_rec.last_negative_sign_pos,
+						         syn_ec::invalid_unary_operation,
+						         raw_err_unary_op{ dev_util::token_convert<error_msg_char>(tk), operand_type, false });
+					}
+				}
+				else if constexpr (::std::same_as<arg_t, ::std::monostate>)
+				{
+					throw inner_error{ "token have no value" };
+				}
+				else // boolean, character, string, list, object
+				{
+					constexpr auto operand_type = type_to_type_code_v<remove_proxy_t<arg_t>, char_t>;
+					post_err(unary_rec.is_last_sign_negative ? unary_rec.last_negative_sign_pos : unary_rec.last_positive_sign_pos,
+					         syn_ec::invalid_unary_operation,
+					         raw_err_unary_op{ dev_util::token_convert<error_msg_char>(tk), operand_type, unary_rec.is_last_sign_negative });
+				}
+			}, result);
+
+			// todo
+			// if is at_identifier
+			// to entity
+			// set tk code(get)
+
+
+			// down todo remove constants_variant ... replace it with entity yes
+			// down todo rename constants generator -> constant generator yes
+
+			// todo 上面的 visit 函数
+			// todo error msg gen of at_identifier_not_found
+			// todo invalid_unary_operation to support list and object
+
+
+			return result;
+		}
+
+		auto parse_expr_without_unary(auto& begin, auto end) -> entity_type
+		{
+			// expect
+			//     literals
+			//         integer | floating-points | string* | character
+			//     @name
+			//     { ... }
+			//     [ ... ]
+
+			using enum pdn_token_code;
 			switch (tk.code)
 			{
 			case literal_string:
@@ -233,6 +303,7 @@ namespace pdn
 			case literal_character:
 			case literal_floating_point:
 			case literal_integer:
+			case at_identifier:
 			{
 				auto result = token_value_to_entity(::std::move(tk));
 				update_token(begin, end);
@@ -252,77 +323,35 @@ namespace pdn
 			}
 			default:
 				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
-				break;
+				return types::cppint{};
 			}
-
-			return types::cppint{};
 		}
 
-		void process_unary_operation(auto& begin, auto end)
+		auto process_unary_operation(auto& begin, auto end) -> parser_utility::unary_record
 		{
-			using ::std::uint_fast32_t;
 			using parser_utility::is_unary_operator;
 			using parser_utility::is_negative_sign;
 
-			source_position last_positive_sign_pos{}; // P-pos
-			source_position last_negative_sign_pos{}; // N-pos
-			uint_fast32_t   negative_sign_count{};
-			bool            is_last_sign_negative{};  // true => N-pos is valid, false => P-pos is valis
-			
+			auto result = parser_utility::unary_record{ is_unary_operator(tk.code) };
 
 			for (; is_unary_operator(tk.code); update_token(begin, end))
 			{
-				is_last_sign_negative = is_negative_sign(tk.code);
-				if (is_last_sign_negative)
+				result.is_last_sign_negative = is_negative_sign(tk.code);
+				if (result.is_last_sign_negative)
 				{
-					last_negative_sign_pos = tk.position;
-					++negative_sign_count;
+					result.last_negative_sign_pos = tk.position;
+					++result.negative_sign_count;
 				}
 				else
 				{
-					last_positive_sign_pos = tk.position;
+					result.last_positive_sign_pos = tk.position;
 				}
 			}
 
-			::std::visit([&](auto& arg)
-			{
-				using raw_err_unary_op = raw_error_message_type::unary_operation;
-				using arg_t = ::std::decay_t<decltype(arg)>;
-				using types::concepts::pdn_sint;
-				using types::concepts::pdn_uint;
-				using types::concepts::pdn_fp;
-				if constexpr (pdn_fp<arg_t> || pdn_sint<arg_t>) // f32, f64, i8, i16, i32, i64
-				{
-					if (negative_sign_count % 2)
-					{
-						arg = -arg;
-					}
-				}
-				else if constexpr (pdn_uint<arg_t>) // unary operator- on u8, u16, u32, u64 is illegal
-				{
-					if (negative_sign_count)
-					{
-						constexpr auto operand_type = type_to_type_code_v<arg_t, char_t>;
-						post_err(last_negative_sign_pos,
-						         syn_ec::invalid_unary_operation,
-						         raw_err_unary_op{ token_convert<error_msg_char>(tk), operand_type, false });
-					}
-				}
-				else if constexpr (::std::same_as<arg_t, ::std::monostate>)
-				{
-					throw inner_error{ "token have no value" };
-				}
-				else // boolean, character, string, list, object
-				{
-					constexpr auto operand_type = type_to_type_code_v<remove_proxy_t<arg_t>, char_t>;
-					post_err(is_last_sign_negative ? last_negative_sign_pos : last_positive_sign_pos,
-					         syn_ec::invalid_unary_operation,
-					         raw_err_unary_op{ token_convert<error_msg_char>(tk), operand_type, is_last_sign_negative });
-				}
-			}, tk.value);
+			return result;
 		}
-
-		entity_type parse_list_expr(auto& begin, auto end, source_position left_brackets_pos)
+		
+		auto parse_list_expr(auto& begin, auto end, source_position left_brackets_pos) -> entity_type
 		{
 			// ... [ CURRPOS ...
 
@@ -359,7 +388,7 @@ namespace pdn
 			return make_proxy<types::list<char_t>>(::std::move(result));
 		}
 
-		entity_type parse_list_element(auto& begin, auto end, bool& with_comma)
+		auto parse_list_element(auto& begin, auto end, bool& with_comma) -> entity_type
 		{
 			// ... iden [colon [typename] ] [ ... ] CURPOS ...
 
@@ -379,7 +408,7 @@ namespace pdn
 				}
 			}
 
-			entity_type e = parse_expr(begin, end);
+			entity_type e{ parse_expr(begin, end) };
 			// to ... [ (element,)* element CURRPOS ...
 
 			if (tk.code == pdn_token_code::comma)
@@ -400,7 +429,7 @@ namespace pdn
 			return e;
 		}
 
-		entity_type parse_object_expr(auto& begin, auto end, source_position left_curly_brackets_pos)
+		auto parse_object_expr(auto& begin, auto end, source_position left_curly_brackets_pos) -> entity_type
 		{
 			// ... { CURRPOS ...
 
@@ -455,7 +484,7 @@ namespace pdn
 			return make_proxy<types::object<char_t>>(::std::move(result));
 		}
 
-		entity_type entity_cast(entity_type src, type_code target_type_c, source_position type_pos)
+		auto entity_cast(entity_type src, type_code target_type_c, source_position type_pos) -> entity_type
 		{
 			using enum type_code;
 			switch (target_type_c)
@@ -481,7 +510,7 @@ namespace pdn
 		}
 
 		template <type_code target_type_c>
-		entity_type entity_cast(entity_type src, source_position type_pos)
+		auto entity_cast(entity_type src, source_position type_pos) -> entity_type
 		{
 			static_assert(target_type_c != type_code::unknown, "[pdn] cast to unknown type");
 
@@ -599,9 +628,17 @@ namespace pdn
 				}
 				else // character|string|list|object
 				{
-					if constexpr (::std::same_as<src_t, types::character<char_t>> || ::std::same_as<src_t, types::string<char_t>>)
+					if constexpr (::std::same_as<src_t, types::character<char_t>>)
 					{
-						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
+						auto s = unicode::code_convert<error_msg_string>(arg.to_string_view());
+						using err_char_t = types::character<error_msg_char>;
+						post_err(type_pos, illegal_cast, raw_err_casting{ { err_char_t{ s.data(), s.size() } }, src_c, tar_c });
+					}
+					else if constexpr (::std::same_as<src_t, types::string<char_t>>)
+					{
+						using err_s_t = types::string<error_msg_char>;
+						auto sp = make_proxy<err_s_t>(unicode::code_convert<err_s_t>(*arg));
+						post_err(type_pos, illegal_cast, raw_err_casting{ { ::std::move(sp) }, src_c, tar_c});
 					}
 					else // list|object
 					{
@@ -610,6 +647,34 @@ namespace pdn
 					return default_entity_value<char_t>(target_type_c);
 				}
 			}, src);
+		}
+
+		auto token_value_to_entity(token<char_t> src) -> entity<char_t>
+		{
+			return ::std::visit([&]<typename arg_t>(arg_t arg) -> entity<char_t>
+			{
+				if constexpr (::std::same_as<arg_t, ::std::monostate>)
+				{
+					throw inner_error{ "token have no value" };
+				}
+				else if constexpr (::std::same_as<arg_t, dev_util::at_iden_string_proxy>)
+				{
+					if (auto value_opt = func_pkg->generate_constant(arg.get_id()); value_opt)
+					{
+						return ::std::move(*value_opt);
+					}
+					else
+					{
+						using parser_utility::to_raw_error_token;
+						post_err(src.position, syn_ec::at_value_not_found, to_raw_error_token(tk));
+					}
+					return types::cppint{};
+				}
+				else
+				{
+					return entity<char_t>{ ::std::move(arg) };
+				}
+			}, ::std::move(src.value));
 		}
 
 		void update_token(auto& begin, auto end)

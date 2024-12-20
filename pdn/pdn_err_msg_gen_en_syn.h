@@ -33,6 +33,9 @@ namespace pdn::dev_util
 				: u8"illegal cast: cast "_em + get_casting_operand(raw)
 				+ u8" with type "_em         + get_source_type_name(raw)
 				+ u8" to type "_em           + get_target_type_name(raw);
+		case at_value_not_found:
+			// todo
+			return u8"error"_em;
 		case expect_entity_name:
 			return u8"expect entity-name(identifier) but receiving "_em
 				+ get_description_for_error_token(raw)

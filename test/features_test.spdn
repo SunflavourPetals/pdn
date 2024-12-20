@@ -359,6 +359,8 @@ test_block {
 			Φ@Φ;
 			hello@hello;
 			inf∞;
+			fib_10_list@fib_10_list;
+			me_object@me_object;
 		}
 	}
 	sign_test [

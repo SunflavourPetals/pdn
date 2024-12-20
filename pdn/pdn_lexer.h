@@ -18,7 +18,6 @@
 #include "pdn_source_position_recorder_concept.h"
 #include "pdn_error_handler_concept.h"
 #include "pdn_error_message_generator_concept.h"
-#include "pdn_constants_generator_concept.h"
 
 #include "pdn_code_convert.h"
 #include "pdn_lexical_error_code.h"
@@ -29,8 +28,7 @@ namespace pdn::concepts
 	concept function_package_for_lexer
 		 = concepts::source_position_getter<type>
 		&& concepts::error_handler<type>
-		&& concepts::error_message_generator<type>
-		&& concepts::constants_generator<type, char_t>;
+		&& concepts::error_message_generator<type>;
 }
 
 namespace pdn
@@ -204,6 +202,7 @@ namespace pdn
 					using namespace unicode_literals;
 					text = U"infinity"_us;
 					new_dfa_state.state_code = dfa_state_objects::at_identifier.state_code;
+					new_dfa_state.token_code = dfa_state_objects::at_identifier.token_code;
 					break;
 				}
 				case identifier_string_with_LF:
@@ -487,56 +486,37 @@ namespace pdn
 				break;
 			case identifier_string_opened:
 			case identifier_string:
-				post_err(position, lex_ec::identifier_string_missing_terminating_character, code_convert<err_ms>(text));
-				goto label_process_string_token;
 			case string_opened:
 			case string:
-				post_err(position, lex_ec::string_missing_terminating_character, code_convert<err_ms>(text));
-				goto label_process_string_token;
 			case identifier_raw_string:
-				post_err(position, lex_ec::identifier_raw_string_missing_terminating_sequence, code_convert<err_ms>(text));
-				goto label_process_string_token;
 			case raw_string:
-				post_err(position, lex_ec::raw_string_missing_terminating_sequence, code_convert<err_ms>(text));
-				goto label_process_string_token;
 				// ERROR STATES ^^^
-			case at_identifier:
-			{
-					// todo 
-
-				::std::optional<constant_variant<char_t>> value_opt = func_pkg->generate_constant(
-					text_code_convert<unicode::utf_8_code_unit_t>(text, position));
-				if (value_opt)
-				{
-					constant_variant<char_t>& value = *value_opt;
-					::std::visit([&]<typename arg_t>(arg_t && arg)
-					{
-						using decay_arg_t = ::std::decay_t<arg_t>;
-						if constexpr (::std::same_as<decay_arg_t, types::string<char_t>>)
-						{
-							result.value = make_proxy<types::string<char_t>>(::std::forward<arg_t>(arg));
-						}
-						else
-						{
-							result.value = ::std::forward<arg_t>(arg);
-						}
-					}, ::std::move(value));
-				}
-				else
-				{
-					post_err(position, lex_ec::at_value_not_found, code_convert<err_ms>(text));
-					result.value = 0;
-				}
-				set_token_code_by_value(result);
-				break;
-			}
 			case identifier:
 			case identifier_string_closed:
 			case string_closed:
 			case raw_string_closed:
 			case identifier_raw_string_closed:
-			label_process_string_token:
+				switch (dfa_state.state_code) // ERROR STATES
+				{
+				case identifier_string_opened:
+				case identifier_string:
+					post_err(position, lex_ec::identifier_string_missing_terminating_character, code_convert<err_ms>(text));
+					break;
+				case string_opened:
+				case string:
+					post_err(position, lex_ec::string_missing_terminating_character, code_convert<err_ms>(text));
+					break;
+				case identifier_raw_string:
+					post_err(position, lex_ec::identifier_raw_string_missing_terminating_sequence, code_convert<err_ms>(text));
+					break;
+				case raw_string:
+					post_err(position, lex_ec::raw_string_missing_terminating_sequence, code_convert<err_ms>(text));
+					break;
+				}
 				result.value = make_proxy<types::string<char_t>>(text_code_convert<char_t>(text, position));
+				break;
+			case at_identifier:
+				result.value = dev_util::at_iden_string_proxy{ text_code_convert<unicode::utf_8_code_unit_t>(text, position) };
 				break;
 			case character_opened: // <<< ERROR STATE
 			case character:        // <<< ERROR STATE
@@ -824,39 +804,6 @@ namespace pdn
 		static bool check_no_0x_prefix(const ::std::string& seq)
 		{
 			return seq.size() < 2 || seq[0] != '0' || (seq[1] != 'x' && seq[1] != 'X');
-		}
-		static void set_token_code_by_value(token<char_t>& r)
-		{
-			r.code = ::std::visit([](auto&& arg)
-			{
-				using type = ::std::decay_t<decltype(arg)>;
-				using types::concepts::pdn_bool;
-				using types::concepts::pdn_fp;
-				using types::concepts::pdn_integral;
-				using enum pdn_token_code;
-
-				if constexpr (pdn_bool<type>)
-				{
-					return literal_boolean;
-				}
-				else if constexpr (pdn_fp<type>)
-				{
-					return literal_floating_point;
-				}
-				else if constexpr (pdn_integral<type>)
-				{
-					return literal_integer;
-				}
-				else if constexpr (::std::same_as<type, types::character<char_t>>)
-				{
-					return literal_character;
-				}
-				else if constexpr (::std::same_as<type, proxy<types::string<char_t>>>)
-				{
-					return literal_character;
-				}
-				return invalid;
-			}, r.value);
 		}
 
 		bool get_escape(auto& oc,    // out param, the result of get escape
