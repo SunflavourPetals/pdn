@@ -29,10 +29,11 @@ namespace pdn
 		auto operator[](index_type index)   const -> refer { return at(index); }
 		auto operator[](const key_type key) const -> refer { return at(key); }
 
+		bool has_value() const noexcept { return get(); }
 		entity_type* get() const noexcept { return ptr; }
 		entity_type* operator->() const noexcept { return ptr; }
 		entity_type& operator*() const noexcept { return *ptr; }
-		explicit operator bool() const noexcept { return ptr; }
+		explicit operator bool() const noexcept { return has_value(); }
 
 		refer() = default;
 		refer(const refer& m) : ptr{ m.ptr } {}
@@ -57,10 +58,11 @@ namespace pdn
 		auto operator[](index_type index)   const -> const_refer { return at(index); }
 		auto operator[](const key_type key) const -> const_refer { return at(key); }
 
+		bool has_value() const noexcept { return get(); }
 		const entity_type* get() const noexcept { return ptr; }
 		const entity_type* operator->() const noexcept { return ptr; }
 		const entity_type& operator*() const noexcept { return *ptr; }
-		explicit operator bool() const noexcept { return ptr; }
+		explicit operator bool() const noexcept { return has_value(); }
 
 		const_refer() = default;
 		const_refer(const const_refer& m) : ptr{ m.ptr } {}

@@ -25,20 +25,26 @@ void parse_something()
 ```
 
 用户提供 `function_package`，可参考 `pdn::concepts::function_package_for...` 等概念实现(分别定义于 `pdn_parser`、`pdn_lexer`、`pdn_code_point_iterator`)。  
-记录行列位置信息的功能由 `function_package_for_code_point_iterator` 提供，`pdn` 的 `@val` 形式的常量由 `function_package_for_lexer` 提供，此外它还需要获得解析点行列位置。`pdn` 中的类型名由 `function_package_for_parser` 提供。  
+记录行列位置信息的功能由 `function_package_for_code_point_iterator` 提供；`function_package_for_parser` 需要获得解析点行列位置；`pdn` 的 `@val` 形式的常量和类型名由 `function_package_for_parser` 提供。  
 此外，以上三者都需要错误处理和错误信息生成功能，默认的错误处理为打印错误信息到标准输出，默认的错误信息生成方法生成英文错误信息。  
 最佳实践是组合 `pdn_function_package.h` 内的 `pdn::default_function_package` 和用户需要自定义的内容，使它满足以上三者的需求，然后为它们三个提供同一个`function_package` 对象(将按引用传递)。
 
 ## dom
 
-解析后将得到一个 dom，dom 是 `std::variant<pdn_data_types...>` 的派生类，除了可以用 `std::get` `std::get_if` `std::visit` 等方法查询，dom 还以成员函数的方式提供：  
+解析后将得到一个 `dom`，`dom` 也可以称为实体(entity)或数据实体(data entity)，是 `std::variant<pdn_data_types...>` 的派生类，除了可以用 `std::get` `std::get_if` `std::visit` 等方法查询，还提供如下访问函数(名称空间 `pdn` 内)：  
 
-1. `get_xxx` 系列函数：对代理进行处理的 `std::get` 的封装；  
-2. `xxx_opt` `xxx_ptr` 系列函数：获得相应类型的值或得到 `nullopt`/`nullptr`；  
-3. `xxx_val` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值。  
-4. `operator[const string<char_t>&]`：获得 Object 的成员数据，如果当前实体不是 Object 或没有相应成员数据，将抛出异常；  
-5. `operator[size_t]`：获得 List 的元素数据，如果当前实体不是 List 或 out of range，将抛出异常；  
-6. `ref` `cref`：获得 `refer` 或 `const_refer` 类。  
+1. `get` 系列函数：对代理进行处理的 `std::get` 的封装，不支持 `refer` 和 `const_refer` 版本；  
+2. `get_ptr` 系列函数：获得相应类型的值或得到 nullptr；  
+3. `get_optional` 系列函数：仅对基本类型提供(整数、浮点数、布尔和字符)，获得相应类型的 `optional` 或得到 `nullopt`；  
+4. `as_xxx` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值。  
+
+`dom` 还有如下成员方法：  
+
+1. `ref` `cref`：获得 `refer` 或 `const_refer` 类，它们有 `operator[]` 和 `at` 方法，但查询失败时都返回空 `refer|const_refer`。  
+2. `operator[string_view<char_t>]`：获得 Object 的成员数据，如果当前实体不是 Object 或没有相应成员数据，将抛出异常；  
+3. `operator[index]`：获得 List 的元素数据，如果当前实体不是 List 将抛出异常，且无范围检查；  
+4. `at(string_view<char_t>)`：获得 Object 的成员数据的 `refer|const_refer`，如果当前实体不是 Object 或没有相应成员数据，返回空 `refer|const_refer`；  
+5. `at(index)`：获得 List 的元素数据的 `refer|const_refer`，如果当前实体不是 List 或 out of range，返回空 `refer|const_refer`；  
 
 `refer` 和 `const_refer` 类提供不抛出的 `operator[]`，当查询失败时，返回一个空 `refer|const_refer`，对空 `refer|const_refer` 的任何成员查询操作都只能得到空 `refer|const_refer`，获取值时只能获得 `nullptr`、`nullopt` 或是无效的值。  
-`refer` 和 `const_refer` 类不提供 `get_xxx` 系列的函数，也不支持 `std::get` `std::get_if` `std::visit` 等方法。  
+`refer` 和 `const_refer` 类不支持 `pdn::get`，也不支持 `std::get` `std::get_if` `std::visit` 等方法。  
