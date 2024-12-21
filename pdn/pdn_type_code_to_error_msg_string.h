@@ -30,7 +30,6 @@ namespace pdn
 		case object:    return u8"object"_em;
 		default:        return u8"unknown"_em;
 		}
-		return u8"unknown"_em;
 	}
 }
 

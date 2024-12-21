@@ -512,6 +512,8 @@ namespace pdn
 				case raw_string:
 					post_err(position, lex_ec::raw_string_missing_terminating_sequence, code_convert<err_ms>(text));
 					break;
+				default:
+					break;
 				}
 				result.value = make_proxy<types::string<char_t>>(text_code_convert<char_t>(text, position));
 				break;

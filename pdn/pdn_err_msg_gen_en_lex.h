@@ -26,8 +26,6 @@ namespace pdn::dev_util
 			return u8"pdn lexer requires unicode scalar value: "_em + get_code_point_hex(raw);
 		case unacceptable_character:
 			return u8"unacceptable character: \""_em + src + u8"\""_em;
-		case at_value_not_found:
-			return u8"at value not found: \""_em + src + u8"\""_em;
 		case identifier_string_terminated_by_LF:
 			return u8"identifier string terminated by LF: \""_em + src + u8"\""_em;
 		case string_literal_terminated_by_LF:

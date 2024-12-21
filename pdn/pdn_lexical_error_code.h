@@ -9,8 +9,6 @@ namespace pdn
 
 		unacceptable_character,
 
-		at_value_not_found,
-
 		// string/character terminated by LF
 		identifier_string_terminated_by_LF,
 		string_literal_terminated_by_LF,

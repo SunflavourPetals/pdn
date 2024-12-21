@@ -36,34 +36,6 @@ namespace pdn::dev_util::err_msg_gen_util
 	{
 		return make_slashes_string<error_msg_string>(unicode::code_convert<unicode::code_point_string>(view));
 	}
-	inline auto value_variant_to_s(const auto& arg) -> error_msg_string
-	{
-		using arg_t = ::std::decay_t<decltype(arg)>;
-		if constexpr (::std::same_as<arg_t, types::character<error_msg_char>>)
-		{
-			return u8"\'"_em + error_msg_string{ arg.to_string_view() } + u8"\'"_em;
-		}
-		else if constexpr (::std::same_as<arg_t, proxy<types::string<error_msg_char>>>)
-		{
-			return u8"\""_em + make_slashes(*arg) + u8"\""_em;
-		}
-		else if constexpr (::std::same_as<arg_t, types::boolean>)
-		{
-			return arg ? u8"true"_em : u8"false"_em;
-		}
-		else if constexpr (::std::same_as<arg_t, ::std::monostate>)
-		{
-			return u8"monostate"_em;
-		}
-		else if constexpr (::std::same_as<arg_t, dev_util::at_iden_string_proxy>)
-		{
-			return u8"\"@"_em + make_slashes(arg.get_id()) + u8"\""_em;
-		}
-		else
-		{
-			return reinterpret_to_err_msg_str(::std::to_string(arg));
-		}
-	}
 	inline auto token_value_variant_to_s(const token_value_variant<error_msg_char>& variant) -> error_msg_string
 	{
 		return ::std::visit([](const auto& arg) -> error_msg_string
@@ -123,6 +95,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	{
 		return type_code_to_error_msg_string(::std::get<raw_details::casting_msg>(raw).source_type);
 	}
+
 	// for casting_msg
 	inline auto get_target_type_name(raw_err_v_cref raw) -> error_msg_string
 	{
@@ -212,10 +185,29 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 		return get_integer_max_value_s(::std::get<raw_details::casting_msg>(raw).target_type);
 	}
 
+	// for at_value_not_found
+	inline auto get_at_iden_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		return u8"\"@"_em + make_slashes(::std::get<raw_details::identifier>(raw).value) + u8"\""_em;
+	}
+
 	// for error_token
 	inline auto get_description_for_error_token(raw_err_v_cref raw) -> error_msg_string
 	{
 		return description_of(::std::get<raw_details::error_token>(raw).value);
+	}
+
+	// for unary_operation
+	inline auto get_operand_type_name(raw_err_v_cref raw) -> error_msg_string
+	{
+		return type_code_to_error_msg_string(::std::get<raw_details::unary_operation>(raw).operand_type);
+	}
+
+	// for unary_operation
+	inline auto is_operand_type_list_or_object(raw_err_v_cref raw) -> bool
+	{
+		const auto src_type_c = ::std::get<raw_details::unary_operation>(raw).operand_type;
+		return src_type_c == type_code::list || src_type_c == type_code::object;
 	}
 
 	// for unary_operation
@@ -229,8 +221,13 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	// for unary_operation
 	inline auto get_description_for_unary_operation(raw_err_v_cref raw) -> error_msg_string
 	{
-		// todo for list and object
-		return description_of(::std::get<raw_details::unary_operation>(raw).operand);
+		const auto& msg = ::std::get<raw_details::unary_operation>(raw);
+		using namespace literals::error_message_literals;
+		return is_mono(msg.operand)
+			? get_operand_type_name(raw)
+			: get_operand_type_name(raw)
+			+ u8" with value "_em
+			+ token_value_variant_to_s(msg.operand);
 	}
 }
 

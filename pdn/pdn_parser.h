@@ -141,7 +141,8 @@ namespace pdn
 
 				if (tk.code == identifier)
 				{
-					type_c = parse_type_spec(begin, end);
+					type_c = parse_type_spec();
+					update_token(begin, end);
 					// ... iden : typename CURPOS(expect expr) ...
 				}
 				// ... iden : CURPOS(expect expr) ...
@@ -166,7 +167,7 @@ namespace pdn
 			return e;
 		}
 
-		auto parse_type_spec(auto& begin, auto end) -> type_code
+		auto parse_type_spec() -> type_code
 		{
 			//    ... iden : CURPOS expr ...
 			// or ... CURPOS : expr ...
@@ -176,22 +177,18 @@ namespace pdn
 			using err_ms = error_msg_string;
 			using unicode::code_convert;
 
-			if (tk.code == identifier)
+			if (tk.code != identifier)
 			{
-				using string_pr = proxy<types::string<char_t>>;
-				auto type_c = type_gen(*::std::get<string_pr>(tk.value));
-				if (type_c == type_code::unknown)
-				{
-					using raw_err_iden = raw_error_message_type::identifier;
-					post_err(tk.position, syn_ec::unknown_type, raw_err_iden{ code_convert<err_ms>(*::std::get<string_pr>(tk.value)) });
-				}
-				update_token(begin, end);
-				return type_c;
+				throw inner_error{ "generate type from non-identifier" };
 			}
-
-			post_err(tk.position, syn_ec::expect_type_name, parser_utility::to_raw_error_token(tk));
-
-			return type_code::unknown;
+			using string_pr = proxy<types::string<char_t>>;
+			auto type_c = type_gen(*::std::get<string_pr>(tk.value));
+			if (type_c == type_code::unknown)
+			{
+				using raw_err_iden = raw_error_message_type::identifier;
+				post_err(tk.position, syn_ec::unknown_type, raw_err_iden{ code_convert<err_ms>(*::std::get<string_pr>(tk.value)) });
+			}
+			return type_c;
 		}
 
 		auto parse_expr(auto& begin, auto end) -> entity_type
@@ -219,7 +216,6 @@ namespace pdn
 
 			if (!unary_rec.has_sign) return result;
 
-			// 这个visit里用的tk被更新了，需要用arg构造token传入错误处理函数
 			::std::visit([&](auto& arg)
 			{
 				using raw_err_unary_op = raw_error_message_type::unary_operation;
@@ -241,35 +237,33 @@ namespace pdn
 						constexpr auto operand_type = type_to_type_code_v<arg_t, char_t>;
 						post_err(unary_rec.last_negative_sign_pos,
 						         syn_ec::invalid_unary_operation,
-						         raw_err_unary_op{ dev_util::token_convert<error_msg_char>(tk), operand_type, false });
+						         raw_err_unary_op{ { arg }, operand_type, true });
 					}
-				}
-				else if constexpr (::std::same_as<arg_t, ::std::monostate>)
-				{
-					throw inner_error{ "token have no value" };
 				}
 				else // boolean, character, string, list, object
 				{
+					using types::concepts::pdn_bool;
+					auto err_tkv = token_value_variant<error_msg_char>{};
+					if constexpr (pdn_bool<arg_t>)
+					{
+						err_tkv = arg;
+					}
+					else if constexpr (::std::same_as<arg_t, proxy<types::character<char_t>>>)
+					{
+						auto s = unicode::code_convert<error_msg_string>(arg.to_string_view());
+						err_tkv = types::character<error_msg_char>{ s.data(), s.size() };
+					}
+					else if constexpr (::std::same_as<arg_t, proxy<types::string<char_t>>>)
+					{
+						using err_s_t = types::string<error_msg_char>;
+						err_tkv = make_proxy<err_s_t>(unicode::code_convert<err_s_t>(*arg));
+					}
 					constexpr auto operand_type = type_to_type_code_v<remove_proxy_t<arg_t>, char_t>;
 					post_err(unary_rec.is_last_sign_negative ? unary_rec.last_negative_sign_pos : unary_rec.last_positive_sign_pos,
 					         syn_ec::invalid_unary_operation,
-					         raw_err_unary_op{ dev_util::token_convert<error_msg_char>(tk), operand_type, unary_rec.is_last_sign_negative });
+					         raw_err_unary_op{ err_tkv, operand_type, unary_rec.is_last_sign_negative });
 				}
 			}, result);
-
-			// todo
-			// if is at_identifier
-			// to entity
-			// set tk code(get)
-
-
-			// down todo remove constants_variant ... replace it with entity yes
-			// down todo rename constants generator -> constant generator yes
-
-			// todo 上面的 visit 函数
-			// todo error msg gen of at_identifier_not_found
-			// todo invalid_unary_operation to support list and object
-
 
 			return result;
 		}
@@ -361,25 +355,25 @@ namespace pdn
 
 			for (bool with_comma{ true }; tk.code != pdn_token_code::right_brackets; )
 			{
+				using parser_utility::to_raw_error_token;
 				if (tk.code == pdn_token_code::eof)
 				{
 					post_err(left_brackets_pos, syn_ec::missing_right_brackets, {});
 					return make_proxy<types::list<char_t>>(::std::move(result));
 				}
-				if (!with_comma)
+				if (is_list_element_first(tk.code))
 				{
-					using parser_utility::to_raw_error_token;
-					if (is_list_element_first(tk.code))
+					if (!with_comma)
 					{
 						post_err(tk.position, syn_ec::expect_comma, to_raw_error_token(tk));
 					}
-					else
-					{
-						post_err(tk.position, syn_ec::expect_definition_of_list_element, to_raw_error_token(tk));
-						update_token(begin, end);
-					}
+					result.push_back(parse_list_element(begin, end, with_comma));
 				}
-				result.push_back(parse_list_element(begin, end, with_comma));
+				else
+				{
+					post_err(tk.position, syn_ec::expect_definition_of_list_element, to_raw_error_token(tk));
+					update_token(begin, end);
+				}
 			}
 
 			// to ... [ ... ] CURRPOS
@@ -397,7 +391,8 @@ namespace pdn
 
 			if (tk.code == pdn_token_code::identifier)
 			{
-				type_c = parse_type_spec(begin, end);
+				type_c = parse_type_spec();
+				update_token(begin, end);
 				if (tk.code == pdn_token_code::colon)
 				{
 					update_token(begin, end);
@@ -665,8 +660,9 @@ namespace pdn
 					}
 					else
 					{
-						using parser_utility::to_raw_error_token;
-						post_err(src.position, syn_ec::at_value_not_found, to_raw_error_token(tk));
+						using raw_err_iden = raw_error_message_type::identifier;
+						using unicode::code_convert;
+						post_err(src.position, syn_ec::at_value_not_found, raw_err_iden{ code_convert<error_msg_string>(arg.get_id()) });
 					}
 					return types::cppint{};
 				}

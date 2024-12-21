@@ -34,14 +34,11 @@ namespace pdn::dev_util
 				+ u8" with type "_em         + get_source_type_name(raw)
 				+ u8" to type "_em           + get_target_type_name(raw);
 		case at_value_not_found:
-			// todo
-			return u8"error"_em;
+			return u8"at value not found: "_em + get_at_iden_s(raw);
 		case expect_entity_name:
 			return u8"expect entity-name(identifier) but receiving "_em
 				+ get_description_for_error_token(raw)
 				+ u8" before entity"_em;
-		case expect_type_name:
-			return u8"expect type-name(identifier) but receiving "_em + get_description_for_error_token(raw);
 		case expect_expression:
 			return u8"expect expression but receiving "_em + get_description_for_error_token(raw);
 		case expect_comma:

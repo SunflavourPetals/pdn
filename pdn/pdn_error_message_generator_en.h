@@ -23,14 +23,7 @@ namespace pdn
 	{
 		return ::std::visit([&](auto code) -> error_msg_string
 		{
-			if constexpr (requires{dev_util::err_msg_gen_en(code, src.position, src.raw_error_message); })
-			{
-				return dev_util::err_msg_gen_en(code, src.position, src.raw_error_message);
-			}
-			else if constexpr (requires { dev_util::err_msg_gen_en(code, error_msg_string{}); }) // todo
-			{
-				return dev_util::err_msg_gen_en(code, error_msg_string{});
-			}
+			return dev_util::err_msg_gen_en(code, src.position, src.raw_error_message);
 			using namespace literals::error_message_literals;
 			return u8"unknown error type, error_message_generator_en unresolved"_em;
 		}, src.error_code);

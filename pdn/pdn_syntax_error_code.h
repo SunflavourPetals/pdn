@@ -10,10 +10,9 @@ namespace pdn
 		casting_domain_error, // extra(casting_msg), source_type and target_type belong to { i8, i16, i32, i64, u8, u16, u32, u64 }
 		illegal_cast, // extra(casting_msg)
 
-		at_value_not_found, // extra(error_token)
+		at_value_not_found, // extra(identifier)
 
 		expect_entity_name, // extra(error_token)
-		expect_type_name, // extra(error_token)
 		expect_expression, // extra(error_token)
 		expect_comma, // extra(error_token)
 		expect_colon, // extra(error_token)

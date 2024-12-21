@@ -59,9 +59,9 @@ namespace pdn::raw_error_message_type
 	};
 	struct unary_operation final
 	{
-		token<error_msg_char> operand;
-		type_code             operand_type;
-		bool                  negative;
+		token_value_variant<error_msg_char> operand;
+		type_code operand_type;
+		bool      negative;
 	};
 	struct casting_msg final
 	{
