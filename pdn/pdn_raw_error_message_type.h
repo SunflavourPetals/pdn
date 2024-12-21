@@ -47,6 +47,7 @@ namespace pdn::raw_error_message_type
 	};
 }
 
+// for parser
 namespace pdn::raw_error_message_type
 {
 	struct identifier final
@@ -71,6 +72,7 @@ namespace pdn::raw_error_message_type
 	};
 }
 
+// for lexer
 namespace pdn::raw_error_message_type
 {
 	struct not_unicode_scalar_value final
