@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_parse
 
 #include <type_traits>
+#include <cassert>
 #include <utility>
 #include <cstddef>
 #include <fstream>
@@ -9,7 +10,6 @@
 #include <optional>
 
 #include "pdn_unicode_base.h"
-#include "pdn_exception.h"
 
 #include "pdn_bom_reader.h"
 #include "pdn_swap_chain.h"
@@ -100,7 +100,7 @@ namespace pdn
 		case utf_16_be: return parse(make_code_unit_iterator<utf_16_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
 		case utf_32_le: return parse(make_code_unit_iterator<utf_32_le>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
 		case utf_32_be: return parse(make_code_unit_iterator<utf_32_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		default:        throw  inner_error{ "[pdn] inner error in pdn::parse: unknown bom_type" };
+		default:        assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type");
 		}
 		return ::std::nullopt;
 	}

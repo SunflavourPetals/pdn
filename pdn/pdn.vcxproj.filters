@@ -52,9 +52,6 @@
     <Filter Include="pdn_make_escape_sequence">
       <UniqueIdentifier>{dac397c7-6a75-4c49-80f9-c44a1f606de7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="pdn_exception">
-      <UniqueIdentifier>{726b4cb4-a95f-41de-8b72-27d5173b8880}</UniqueIdentifier>
-    </Filter>
     <Filter Include="pdn_include">
       <UniqueIdentifier>{0eeb7d28-79c0-4a68-8e90-d72961154027}</UniqueIdentifier>
     </Filter>
@@ -221,9 +218,6 @@
     </ClInclude>
     <ClInclude Include="pdn_make_slashes_string.h">
       <Filter>pdn_make_escape_sequence</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_exception.h">
-      <Filter>pdn_exception</Filter>
     </ClInclude>
     <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h">
       <Filter>pdn_error</Filter>

@@ -162,7 +162,6 @@
     <ClInclude Include="pdn_error_message_generator.h" />
     <ClInclude Include="pdn_error_message_generator_en.h" />
     <ClInclude Include="pdn_err_msg_gen_en_lex.h" />
-    <ClInclude Include="pdn_exception.h" />
     <ClInclude Include="pdn_function_package.h" />
     <ClInclude Include="pdn_lexer.h" />
     <ClInclude Include="pdn_make_slashes_string.h" />

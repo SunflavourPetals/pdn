@@ -10,7 +10,6 @@
 #include "pdn_proxy.h"
 #include "pdn_token_code.h"
 #include "pdn_token.h"
-#include "pdn_exception.h"
 #include "pdn_type_code.h"
 #include "pdn_error_string.h"
 #include "pdn_code_convert.h"

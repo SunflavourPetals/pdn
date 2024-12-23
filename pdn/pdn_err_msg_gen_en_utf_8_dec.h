@@ -1,9 +1,9 @@
 #ifndef PDN_Header_pdn_err_msg_gen_en_utf_8_dec
 #define PDN_Header_pdn_err_msg_gen_en_utf_8_dec
 
+#include <cassert>
 #include <variant>
 
-#include "pdn_exception.h"
 #include "pdn_error_string.h"
 #include "pdn_utf_8_decoder.h"
 #include "pdn_source_position.h"
@@ -61,8 +61,8 @@ namespace pdn::dev_util
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		default:
-			throw inner_error{ "UTF-8 decode error and error_message_generator_en unresolved" };
-			return u8"UTF-8 decode error, error_message_generator_en unresolved"_em;
+			assert(0 && "UTF-8 decode error and error_message_generator_en unresolved");
+			return u8"UTF-8 decode error and error_message_generator_en unresolved"_em;
 		}
 	}
 }

@@ -11,8 +11,7 @@
 #include <fstream>
 #include <limits>
 #include <memory>
-
-#include "pdn_exception.h"
+#include <cassert>
 
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
@@ -154,17 +153,11 @@ namespace pdn
 		{
 			// if input_stream not in good state then throw
 			// if eof was reached, then no need to call fill_to anytime
-			if (*istream_ptr)
+			assert((bool)*istream_ptr && "istream failed");
+			istream_ptr->read(target_buffer, size() * sizeof(value_type));
+			if (istream_ptr->eof())
 			{
-				istream_ptr->read(target_buffer, size() * sizeof(value_type));
-				if (istream_ptr->eof())
-				{
-					eof_pos = target_buffer + istream_ptr->gcount() / sizeof(value_type);
-				}
-			}
-			else
-			{
-				throw inner_error{ "istream failed" };
+				eof_pos = target_buffer + istream_ptr->gcount() / sizeof(value_type);
 			}
 		}
 		value_type* get_buff_1_ptr() noexcept

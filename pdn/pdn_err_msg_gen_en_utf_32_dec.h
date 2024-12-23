@@ -1,9 +1,9 @@
 #ifndef PDN_Header_pdn_err_msg_gen_en_utf_32_dec
 #define PDN_Header_pdn_err_msg_gen_en_utf_32_dec
 
+#include <cassert>
 #include <variant>
 
-#include "pdn_exception.h"
 #include "pdn_error_string.h"
 #include "pdn_utf_32_decoder.h"
 #include "pdn_source_position.h"
@@ -31,8 +31,8 @@ namespace pdn::dev_util
 		case eof_when_read_code_unit: // unreachable
 			return u8"eof when read code unit, sequence at offset "_em + offset_of_leading(msg, 4) + u8"(if with BOM then +4)"_em;
 		default:
-			throw inner_error{ "UTF-32 decode error and error_message_generator_en unresolved" };
-			return u8"UTF-32 decode error, error_message_generator_en unresolved"_em;
+			assert(0 && "UTF-32 decode error and error_message_generator_en unresolved");
+			return u8"UTF-32 decode error and error_message_generator_en unresolved"_em;
 		}
 	}
 }

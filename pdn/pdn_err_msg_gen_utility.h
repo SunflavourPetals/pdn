@@ -9,10 +9,10 @@
 #include <limits>
 #include <cstddef>
 #include <charconv>
+#include <cassert>
 
 #include "pdn_types.h"
 #include "pdn_proxy.h"
-#include "pdn_exception.h"
 #include "pdn_error_string.h"
 #include "pdn_code_convert.h"
 #include "pdn_make_slashes_string.h"
@@ -137,7 +137,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 		case u16: return ::std::numeric_limits<type_code_to_type_t<u16, char_t>>::min();
 		case u32: return ::std::numeric_limits<type_code_to_type_t<u32, char_t>>::min();
 		case u64: return ::std::numeric_limits<type_code_to_type_t<u64, char_t>>::min();
-		default:  throw  inner_error{ "get_integer_min_value for non-integer type" }; return 0;
+		default:  assert(0 && "get_integer_min_value for non-integer type"); return 0;
 		}
 	}
 
@@ -162,7 +162,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 		case u16: return ::std::numeric_limits<type_code_to_type_t<u16, char_t>>::max();
 		case u32: return ::std::numeric_limits<type_code_to_type_t<u32, char_t>>::max();
 		case u64: return ::std::numeric_limits<type_code_to_type_t<u64, char_t>>::max();
-		default:  throw  inner_error{ "get_integer_max_value for non-integer type" }; return 0;
+		default:  assert(0 && "get_integer_max_value for non-integer type"); return 0;
 		}
 	}
 
@@ -239,17 +239,14 @@ namespace pdn::dev_util::err_msg_gen_util
 		{
 			if (to_chars_result.ec == ::std::errc::value_too_large)
 			{
-				throw inner_error{ "too large value" };
+				assert(0 && "too large value");
 			}
 			else
 			{
-				throw inner_error{ "unknown to_chars error" };
+				assert(0 && "unknown to_chars error");
 			}
 		}
-		if (to_chars_result.ptr - buffer.data() < 0)
-		{
-			throw inner_error{ "to chars error: to_chars_result.ptr < begin(buffer)" };
-		}
+		assert(to_chars_result.ptr - buffer.data() < 0);
 		auto begin  = reinterpret_cast<error_msg_char*>(buffer.data());
 		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
 		auto result = error_msg_string{};

@@ -1,7 +1,8 @@
 #ifndef PDN_Header_pdn_err_msg_gen_en_syn
 #define PDN_Header_pdn_err_msg_gen_en_syn
 
-#include "pdn_exception.h"
+#include <cassert>
+
 #include "pdn_error_string.h"
 #include "pdn_syntax_error_code.h"
 #include "pdn_source_position.h"
@@ -61,8 +62,8 @@ namespace pdn::dev_util
 		case missing_right_curly_brackets:
 			return u8"missing right curly brackets: }"_em;
 		default:
-			throw inner_error{ "syntax error and error_message_generator_en unresolved" };
-			return u8"syntax error, error_message_generator_en unresolved"_em;
+			assert(0 && "syntax error and error_message_generator_en unresolved");
+			return u8"syntax error and error_message_generator_en unresolved"_em;
 		}
 	}
 }

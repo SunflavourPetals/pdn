@@ -1,9 +1,9 @@
 #ifndef PDN_Header_pdn_err_msg_gen_en_lex
 #define PDN_Header_pdn_err_msg_gen_en_lex
 
+#include <cassert>
 #include <variant>
 
-#include "pdn_exception.h"
 #include "pdn_error_string.h"
 #include "pdn_lexical_error_code.h"
 #include "pdn_source_position.h"
@@ -133,9 +133,9 @@ namespace pdn::dev_util
 			return u8"number from_chars error (not result_out_of_range and invalid_argument) \""_em + src + u8"\""_em;
 
 		default:
-			break;
+			assert(0 && "lexical error and error_message_generator_en unresolved");
+			return u8"lexical error and error_message_generator_en unresolved"_em;
 		}
-		return u8"lexical error, error_message_generator_en unresolved: \""_em + src + u8"\""_em;
 	}
 }
 

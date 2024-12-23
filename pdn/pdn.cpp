@@ -980,10 +980,6 @@ int main(int argc, const char* argv[])
 	{
 		pdn_test::test<parser_utf_config::my_char>(filename, out, log, to_play);
 	}
-	catch (const pdn::runtime_error& e)
-	{
-		std::cout << "pdn runtime_error: " << e.what() << "\n";
-	}
 	catch (const std::exception& e)
 	{
 		std::cout << "std exception: " << e.what() << "\n";
