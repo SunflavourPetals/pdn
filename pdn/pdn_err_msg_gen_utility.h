@@ -31,6 +31,7 @@ namespace pdn::dev_util
 
 namespace pdn::dev_util::err_msg_gen_util
 {
+	using namespace literals::error_message_literals;
 	namespace raw_details = raw_error_message_type;
 	inline auto make_slashes(error_msg_string_view view) -> error_msg_string
 	{
@@ -73,7 +74,6 @@ namespace pdn::dev_util::err_msg_gen_util
 	}
 	inline auto description_of(const token<error_msg_char>& token_val) -> error_msg_string
 	{
-		using namespace literals::error_message_literals;
 		return is_mono(token_val.value)
 			? token_code_to_error_msg_string(token_val.code)
 			: token_code_to_error_msg_string(token_val.code)
@@ -112,7 +112,6 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	// for casting_msg
 	inline auto get_casting_operand(raw_err_v_cref raw) -> error_msg_string
 	{
-		using namespace literals::error_message_literals;
 		using raw_details::casting_msg;
 
 		switch (::std::get<raw_details::casting_msg>(raw).source_type)
@@ -213,7 +212,6 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	// for unary_operation
 	inline auto get_unary_operator_s(raw_err_v_cref raw) -> error_msg_string
 	{
-		using namespace literals::error_message_literals;
 		auto is_negative = ::std::get<raw_details::unary_operation>(raw).negative;
 		return is_negative ? u8"operator-"_em : u8"operator+"_em;
 	}
@@ -222,7 +220,6 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	inline auto get_description_for_unary_operation(raw_err_v_cref raw) -> error_msg_string
 	{
 		const auto& msg = ::std::get<raw_details::unary_operation>(raw);
-		using namespace literals::error_message_literals;
 		return is_mono(msg.operand)
 			? get_operand_type_name(raw)
 			: get_operand_type_name(raw)
@@ -236,7 +233,6 @@ namespace pdn::dev_util::err_msg_gen_util
 	template <int base = 10, ::std::size_t width = 1, ::std::size_t buffer_size = 64>
 	inline auto to_s(::std::integral auto const val) -> error_msg_string
 	{
-		using namespace literals::error_message_literals;
 		::std::array<char, buffer_size> buffer{};
 		auto to_chars_result = ::std::to_chars(buffer.data(), buffer.data() + buffer.size(), val, base);
 		if (to_chars_result.ec != ::std::errc{})
@@ -277,6 +273,17 @@ namespace pdn::dev_util::err_msg_gen_util::lexical_err_msg_gen_util
 	inline auto get_code_point_hex(raw_err_v_cref raw) -> error_msg_string
 	{
 		return u8"0x"_em.append(to_s<16, 8>(::std::get<raw_details::not_unicode_scalar_value>(raw).value));
+	}
+	// for error_string
+	inline auto get_quoted_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		return u8"\""_em.append(::std::get<raw_details::error_string>(raw).value).append(u8"\""_em);
+	}
+	// for error_string
+	inline auto get_quoted_slash_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		const auto& err_s_ref = ::std::get<raw_details::error_string>(raw).value;
+		return u8"\""_em.append(make_slashes(err_s_ref)).append(u8"\""_em);
 	}
 }
 
