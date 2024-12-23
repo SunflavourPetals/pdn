@@ -1334,10 +1334,9 @@ namespace pdn
 		{
 			using raw_err = raw_error_message_type::from_chars_error;
 			auto [unresolved_char_ptr, err_code] = from_chars_r;
-			{
-				const auto is_ptr_valid = unresolved_char_ptr >= src.data() && unresolved_char_ptr <= (src.data() + src.size());
-				assert(is_ptr_valid && "invalid arguments");
-			}
+
+			assert(unresolved_char_ptr >= src.data() && unresolved_char_ptr <= (src.data() + src.size())
+				&& "invalid arguments");
 
 			auto num_seq_to_ems = [&]() { return reinterpret_to_err_msg_str(src); };
 			using enum lexical_error_code;
