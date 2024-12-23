@@ -69,12 +69,6 @@ namespace pdn
 		d_seq_error_cannot_find_end_sign,
 		d_seq_error_invalid_character_in_raw_string_delimiter,      // @"d_seq...@
 		d_seq_error_raw_string_delimiter_longer_than_16_characters, // A"aaaabbbbccccdddd@...()..."
-
-		// inner error
-		inner_error_binary_integer_without_0b_prefix,
-		inner_error_hexadecimal_integer_without_0x_prefix,
-		inner_error_hexadecimal_floating_point_without_0x_prefix,
-		inner_error_make_non_final_dfa_state_to_token,
 	};
 }
 

@@ -39,7 +39,7 @@ namespace pdn
 		FLAG_ERRER_STATE_BEGIN, // vvv
 
 		// block comment not closed
-		block_comment,
+		block_comment = FLAG_ERRER_STATE_BEGIN,
 		block_comment_closing,
 
 		// nested block comment not closed
@@ -70,48 +70,39 @@ namespace pdn
 		// numbers
 		// number separator not allowed here
 		dec_seq_with_quote,
-		dec_seq_with_quotes,
 		fp_dec_part_with_quote,
-		fp_dec_part_with_quotes,
 		// expect exp part
 		fp_exp_sign_or_first,
 		fp_exp_first,
 		// number separator not allowed here
 		fp_exp_with_quote,
-		fp_exp_with_quotes,
 		oct_seq_with_quote,
-		oct_seq_with_quotes,
 		// invalid oct number
 		dec_seq_start_with_0,
 		// number separator not allowed here
 		dec_seq_start_with_0_with_quote,
-		dec_seq_start_with_0_with_quotes,
 		// expect binary number sequence
 		bin_seq_first,
 		// number separator not allowed here
 		bin_seq_with_quote,
-		bin_seq_with_quotes,
 		// expect hexadecimal number sequence
 		hex_seq_first,
 		// number separator not allowed here
 		hex_seq_with_quote,
-		hex_seq_with_quotes,
 		// expect exp part
 		hex_fp_dec_part_first_after_hex_with_dot,
 		hex_fp_dec_part,
 		// number separator not allowed here and expect exp part
 		hex_fp_dec_part_with_quote,
-		hex_fp_dec_part_with_quotes,
 		// expect exp part
 		hex_fp_exp_sign_or_first,
 		hex_fp_exp_first,
 		// number separator not allowed here
 		hex_fp_exp_with_quote,
-		hex_fp_exp_with_quotes,
 		// in this case, hexadecimal decimals are necessary "0x.[not hex]", and expect exp part
 		hex_fp_seq_start_with_0x_dot,
 
-		FLAG_ERRER_STATE_END, // ^^^
+		FLAG_ERRER_STATE_END = hex_fp_seq_start_with_0x_dot, // ^^^
 
 
 
@@ -119,7 +110,7 @@ namespace pdn
 
 		FLAG_FINAL_STATE_BEGIN, // vvv
 
-		identifier,
+		identifier = FLAG_FINAL_STATE_BEGIN,
 		identifier_string_closed,
 		string_closed,
 		character_closed,
@@ -179,7 +170,7 @@ namespace pdn
 	}
 	constexpr bool is_error_dfa_state(dfa_state_code state) noexcept
 	{
-		return state >= dfa_state_code::FLAG_ERRER_STATE_BEGIN && state < dfa_state_code::FLAG_ERRER_STATE_END;
+		return state >= dfa_state_code::FLAG_ERRER_STATE_BEGIN && state <= dfa_state_code::FLAG_ERRER_STATE_END;
 	}
 }
 

@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_parser
 #define PDN_Header_pdn_parser
 
+#include <cassert>
 #include <utility>
 #include <cstdint>
 #include <variant>
@@ -36,8 +37,6 @@
 #include "pdn_make_slashes_string.h"
 #include "pdn_parser_utility.h"
 
-#include "pdn_exception.h"
-
 namespace pdn::concepts
 {
 	template <typename type, typename char_t>
@@ -63,10 +62,7 @@ namespace pdn
 		{
 			using enum pdn_token_code;
 			parse_start(begin, end, o);
-			if (tk.code != eof)
-			{
-				throw inner_error{ "parse terminated" };
-			}
+			assert(tk.code == eof && "parse terminated");
 		}
 		auto parse(concepts::token_iterator<char_t> auto begin, auto end) -> entity_type
 		{
@@ -177,10 +173,7 @@ namespace pdn
 			using err_ms = error_msg_string;
 			using unicode::code_convert;
 
-			if (tk.code != identifier)
-			{
-				throw inner_error{ "generate type from non-identifier" };
-			}
+			assert(tk.code == identifier && "generate type from non-identifier");
 			using string_pr = proxy<types::string<char_t>>;
 			auto type_c = type_gen(*::std::get<string_pr>(tk.value));
 			if (type_c == type_code::unknown)
@@ -499,9 +492,10 @@ namespace pdn
 			case string:    return entity_cast<string>   (::std::move(src), type_pos);
 			case list:      return entity_cast<list>     (::std::move(src), type_pos);
 			case object:    return entity_cast<object>   (::std::move(src), type_pos);
-			case unknown:   throw  inner_error{ "cast to unknown type" };
-			default:        return types::cppint{};
+			case unknown:   assert(0 && "cast to unknown type"); break;
+			default:        assert(0 && "type cast unhandled");  break;
 			}
+			return types::cppint{};
 		}
 
 		template <type_code target_type_c>
@@ -650,7 +644,8 @@ namespace pdn
 			{
 				if constexpr (::std::same_as<arg_t, ::std::monostate>)
 				{
-					throw inner_error{ "token have no value" };
+					assert(0 && "token have no value");
+					return types::cppint{};
 				}
 				else if constexpr (::std::same_as<arg_t, dev_util::at_iden_string_proxy>)
 				{

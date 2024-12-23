@@ -16,12 +16,6 @@ namespace pdn
 	public:
 		using runtime_error::runtime_error;
 	};
-
-	class null_proxy_error : public runtime_error
-	{
-	public:
-		using runtime_error::runtime_error;
-	};
 }
 
 #endif

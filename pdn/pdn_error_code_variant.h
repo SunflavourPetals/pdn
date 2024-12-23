@@ -11,11 +11,8 @@ namespace pdn
 {
 	using error_code_variant = ::std::variant<
 		unicode::utf_8 ::decode_error_code,
-		unicode::utf_8 ::encode_error_code,
 		unicode::utf_16::decode_error_code,
-		unicode::utf_16::encode_error_code,
 		unicode::utf_32::decode_error_code,
-		unicode::utf_32::encode_error_code,
 		lexical_error_code,
 		syntax_error_code>;
 }

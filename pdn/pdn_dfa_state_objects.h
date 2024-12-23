@@ -84,32 +84,23 @@ namespace pdn::dfa_state_objects
 
 	inline extern cdfaso
 		dec_seq_with_quote,
-		dec_seq_with_quotes,
 		fp_dec_part_with_quote,
-		fp_dec_part_with_quotes,
 		fp_exp_sign_or_first,
 		fp_exp_first,
 		fp_exp_with_quote,
-		fp_exp_with_quotes,
 		oct_seq_with_quote,
-		oct_seq_with_quotes,
 		dec_seq_start_with_0, // invalid oct number
 		dec_seq_start_with_0_with_quote,
-		dec_seq_start_with_0_with_quotes,
 		bin_seq_first,
 		bin_seq_with_quote,
-		bin_seq_with_quotes,
 		hex_seq_first,
 		hex_seq_with_quote,
-		hex_seq_with_quotes,
 		hex_fp_dec_part_first_after_hex_with_dot,
 		hex_fp_dec_part,
 		hex_fp_dec_part_with_quote,
-		hex_fp_dec_part_with_quotes,
 		hex_fp_exp_sign_or_first,
 		hex_fp_exp_first,
 		hex_fp_exp_with_quote,
-		hex_fp_exp_with_quotes,
 		hex_fp_seq_start_with_0x_dot;
 
 	inline extern cdfaso
@@ -645,19 +636,7 @@ namespace pdn::dfa_state_objects
 			if (lexer_utility::is_digit(c))
 				return dec_seq;
 			if (c == U'\'')
-				return dec_seq_with_quotes;
-			return unmatched;
-		}
-	};
-	inline cdfaso dec_seq_with_quotes{
-		dfa_state_code::dec_seq_with_quotes,
-		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept
-		{
-			if (lexer_utility::is_digit(c))
-				return dec_seq;
-			if (c == U'\'')
-				return dec_seq_with_quotes;
+				return dec_seq_with_quote;
 			return unmatched;
 		}
 	};
@@ -707,19 +686,7 @@ namespace pdn::dfa_state_objects
 			if (lexer_utility::is_digit(c))
 				return fp_dec_part;
 			if (c == U'\'')
-				return fp_dec_part_with_quotes;
-			return unmatched;
-		}
-	};
-	inline cdfaso fp_dec_part_with_quotes{
-		dfa_state_code::fp_dec_part_with_quotes,
-		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept
-		{
-			if (lexer_utility::is_digit(c))
-				return fp_dec_part;
-			if (c == U'\'')
-				return fp_dec_part_with_quotes;
+				return fp_dec_part_with_quote;
 			return unmatched;
 		}
 	};
@@ -771,19 +738,7 @@ namespace pdn::dfa_state_objects
 			if (lexer_utility::is_digit(c))
 				return fp_exp;
 			if (c == U'\'')
-				return fp_exp_with_quotes;
-			return unmatched;
-		}
-	};
-	inline cdfaso fp_exp_with_quotes{
-		dfa_state_code::fp_exp_with_quotes,
-		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept
-		{
-			if (lexer_utility::is_digit(c))
-				return fp_exp;
-			if (c == U'\'')
-				return fp_exp_with_quotes;
+				return fp_exp_with_quote;
 			return unmatched;
 		}
 	};
@@ -865,34 +820,7 @@ namespace pdn::dfa_state_objects
 			switch (c)
 			{
 			case U'\'':
-				return oct_seq_with_quotes;
-			case U'0':
-			case U'1':
-			case U'2':
-			case U'3':
-			case U'4':
-			case U'5':
-			case U'6':
-			case U'7':
-				return oct_seq;
-			case U'8':
-			case U'9':
-				return dec_seq_start_with_0;
-			default:
-				break;
-			}
-			return unmatched;
-		}
-	};
-	inline cdfaso oct_seq_with_quotes{
-		dfa_state_code::oct_seq_with_quotes,
-		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept
-		{
-			switch (c)
-			{
-			case U'\'':
-				return oct_seq_with_quotes;
+				return oct_seq_with_quote;
 			case U'0':
 			case U'1':
 			case U'2':
@@ -941,19 +869,7 @@ namespace pdn::dfa_state_objects
 			if (lexer_utility::is_digit(c))
 				return dec_seq_start_with_0;
 			if (c == U'\'')
-				return dec_seq_start_with_0_with_quotes;
-			return unmatched;
-		}
-	};
-	inline cdfaso dec_seq_start_with_0_with_quotes{
-		dfa_state_code::dec_seq_start_with_0_with_quotes,
-		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept
-		{
-			if (lexer_utility::is_digit(c))
-				return dec_seq_start_with_0;
-			if (c == U'\'')
-				return dec_seq_start_with_0_with_quotes;
+				return dec_seq_start_with_0_with_quote;
 			return unmatched;
 		}
 	};
@@ -999,25 +915,7 @@ namespace pdn::dfa_state_objects
 			switch (c)
 			{
 			case U'\'':
-				return bin_seq_with_quotes;
-			case U'0':
-			case U'1':
-				return bin_seq;
-			default:
-				break;
-			}
-			return unmatched;
-		}
-	};
-	inline cdfaso bin_seq_with_quotes{
-		dfa_state_code::bin_seq_with_quotes,
-		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept
-		{
-			switch (c)
-			{
-			case U'\'':
-				return bin_seq_with_quotes;
+				return bin_seq_with_quote;
 			case U'0':
 			case U'1':
 				return bin_seq;
@@ -1074,19 +972,7 @@ namespace pdn::dfa_state_objects
 			if (lexer_utility::is_hex(c))
 				return hex_seq;
 			if (c == U'\'')
-				return hex_seq_with_quotes;
-			return unmatched;
-		}
-	};
-	inline cdfaso hex_seq_with_quotes{
-		dfa_state_code::hex_seq_with_quotes,
-		pdn_token_code::literal_integer,
-		[](code_point_t c) noexcept
-		{
-			if (lexer_utility::is_hex(c))
-				return hex_seq;
-			if (c == U'\'')
-				return hex_seq_with_quotes;
+				return hex_seq_with_quote;
 			return unmatched;
 		}
 	};
@@ -1136,19 +1022,7 @@ namespace pdn::dfa_state_objects
 			if (lexer_utility::is_hex(c))
 				return hex_fp_dec_part;
 			if (c == U'\'')
-				return hex_fp_dec_part_with_quotes;
-			return unmatched;
-		}
-	};
-	inline cdfaso hex_fp_dec_part_with_quotes{
-		dfa_state_code::hex_fp_dec_part_with_quotes,
-		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept
-		{
-			if (lexer_utility::is_hex(c))
-				return hex_fp_dec_part;
-			if (c == U'\'')
-				return hex_fp_dec_part_with_quotes;
+				return hex_fp_dec_part_with_quote;
 			return unmatched;
 		}
 	};
@@ -1205,19 +1079,7 @@ namespace pdn::dfa_state_objects
 			if (lexer_utility::is_digit(c))
 				return hex_fp_exp;
 			if (c == U'\'')
-				return hex_fp_exp_with_quotes;
-			return unmatched;
-		}
-	};
-	inline cdfaso hex_fp_exp_with_quotes{
-		dfa_state_code::hex_fp_exp_with_quotes,
-		pdn_token_code::literal_floating_point,
-		[](code_point_t c) noexcept
-		{
-			if (lexer_utility::is_digit(c))
-				return hex_fp_exp;
-			if (c == U'\'')
-				return hex_fp_exp_with_quotes;
+				return hex_fp_exp_with_quote;
 			return unmatched;
 		}
 	};

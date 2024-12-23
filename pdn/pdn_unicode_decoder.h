@@ -52,7 +52,7 @@ namespace pdn::unicode
 		return utf_32::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
 	}
 
-	class decoder // not final for ebo
+	class decoder
 	{
 	public:
 		template <bool reach_next_code_point, concepts::code_unit it_begin_t, typename it_end_t>

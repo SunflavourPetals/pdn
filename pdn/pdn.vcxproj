@@ -193,7 +193,6 @@
     <ClInclude Include="pdn_type_generator_concept.h" />
     <ClInclude Include="pdn_type_generator_std.h" />
     <ClInclude Include="pdn_type_generator.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_utf_8_enc.h" />
     <ClInclude Include="pdn_type_to_type_code.h" />
     <ClInclude Include="pdn_types_character_utility.h" />
     <ClInclude Include="pdn_unicode_base.h" />
@@ -210,9 +209,7 @@
     <ClInclude Include="pdn_unicode_decoder.h" />
     <ClInclude Include="pdn_unicode.h" />
     <ClInclude Include="pdn_err_msg_gen_en_utf_8_dec.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_utf_16_enc.h" />
     <ClInclude Include="pdn_err_msg_gen_en_utf_16_dec.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_utf_32_enc.h" />
     <ClInclude Include="pdn_err_msg_gen_en_utf_32_dec.h" />
     <ClInclude Include="pdn_err_msg_gen_en_syn.h" />
     <ClInclude Include="pdn_type_code_to_error_msg_string.h" />

@@ -128,14 +128,6 @@ namespace pdn::dev_util
 			return u8"number from_chars error invalid_argument \""_em + src + u8"\""_em;
 		case number_from_chars_errc_other:
 			return u8"number from_chars error (not result_out_of_range and invalid_argument) \""_em + src + u8"\""_em;
-		case inner_error_binary_integer_without_0b_prefix:
-			return u8"inner lexer error binary integer sequence without 0b|0B prefix: \""_em + src + u8"\""_em;
-		case inner_error_hexadecimal_integer_without_0x_prefix:
-			return u8"inner lexer error hexadecimal integer sequence without 0x|0X prefix: \""_em + src + u8"\""_em;
-		case inner_error_hexadecimal_floating_point_without_0x_prefix:
-			return u8"inner lexer error hexadecimal floating point sequence without 0x|0X prefix: \""_em + src + u8"\""_em;
-		case inner_error_make_non_final_dfa_state_to_token:
-			return u8"inner lexer error non-final dfa state to token"_em;
 
 		default:
 			break;

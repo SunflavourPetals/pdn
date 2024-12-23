@@ -279,19 +279,10 @@
     <ClInclude Include="pdn_err_msg_gen_en_utf_8_dec.h">
       <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf_8_enc.h">
-      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
-    </ClInclude>
     <ClInclude Include="pdn_err_msg_gen_en_utf_16_dec.h">
       <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf_16_enc.h">
-      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
-    </ClInclude>
     <ClInclude Include="pdn_err_msg_gen_en_utf_32_dec.h">
-      <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf_32_enc.h">
       <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
     </ClInclude>
     <ClInclude Include="pdn_err_msg_gen_utility.h">

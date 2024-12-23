@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_raw_error_message_type
 #define PDN_Header_pdn_raw_error_message_type
 
+#include <system_error>
 #include <cstddef>
 
 #include "pdn_types.h"
@@ -78,6 +79,41 @@ namespace pdn::raw_error_message_type
 	struct not_unicode_scalar_value final
 	{
 		unicode::code_point_t value;
+	};
+	struct error_string final
+	{
+		error_msg_string value;
+	};
+	struct character_length_error final
+	{
+		error_msg_string value;
+		::std::size_t    code_point_count;
+	};
+	enum class number_type
+	{
+		bin_integer,
+		oct_integer,
+		dec_integer,
+		hex_integer,
+		dec_floating,
+		hex_floating,
+	};
+	struct number_end_with_separator final
+	{
+		error_msg_string number_sequence;
+		number_type      literal_type;
+	};
+	struct from_chars_error final // n: for number sequence
+	{
+		error_msg_string sequence;
+		::std::ptrdiff_t offset; // from_chars_result.ptr - begin
+		::std::errc      ec;
+		number_type      type;
+	};
+	struct escape_not_unicode_scalar_value final
+	{
+		error_msg_string      escape_sequence; // escape sequence
+		unicode::code_point_t code_point;      // result of parsing
 	};
 }
 
