@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_entity_utility
 #define PDN_Header_pdn_entity_utility
 
+#include <type_traits>
 #include <variant>
 #include <cmath>
 

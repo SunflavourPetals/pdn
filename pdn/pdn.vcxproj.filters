@@ -231,7 +231,7 @@
     <ClInclude Include="pdn_type_generator_concept.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_dom.h">
+    <ClInclude Include="pdn_data_entity.h">
       <Filter>pdn_include</Filter>
     </ClInclude>
     <ClInclude Include="pdn_parse.h">
@@ -320,7 +320,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pdn.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

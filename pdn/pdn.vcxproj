@@ -142,7 +142,7 @@
     <ClInclude Include="pdn_dfa_state_objects.h" />
     <ClInclude Include="pdn_dfa_state_code.h" />
     <ClInclude Include="pdn_dfa_state_object.h" />
-    <ClInclude Include="pdn_dom.h" />
+    <ClInclude Include="pdn_data_entity.h" />
     <ClInclude Include="pdn_entity.h" />
     <ClInclude Include="pdn_entity_as_accessor.h" />
     <ClInclude Include="pdn_entity_forward_decl.h" />
@@ -216,7 +216,7 @@
     <ClInclude Include="pdn_token_value_variant_convert.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pdn.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

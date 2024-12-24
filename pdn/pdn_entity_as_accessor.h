@@ -12,49 +12,49 @@ namespace pdn
 	template <typename char_t>
 	inline auto as_int(const entity<char_t>& e) -> types::i64
 	{
-		return ::std::visit(dev_util::as_int, e);
+		return ::std::visit([](const auto& v) { return dev_util::as_int(v); }, e);
 	}
 
 	template <typename char_t>
 	inline auto as_uint(const entity<char_t>& e) -> types::u64
 	{
-		return ::std::visit(dev_util::as_uint, e);
+		return ::std::visit([](const auto& v) { return dev_util::as_uint(v); }, e);
 	}
 
 	template <typename char_t>
 	inline auto as_fp(const entity<char_t>& e) -> types::f64
 	{
-		return ::std::visit(dev_util::as_fp, e);
+		return ::std::visit([](const auto& v) { return dev_util::as_fp(v); }, e);
 	}
 
 	template <typename char_t>
 	inline auto as_bool(const entity<char_t>& e) -> types::boolean
 	{
-		return ::std::visit(dev_util::as_bool, e);
+		return ::std::visit([](const auto& v) { return dev_util::as_bool(v); }, e);
 	}
 
 	template <typename char_t>
 	inline auto as_char(const entity<char_t>& e) -> types::character<char_t>
 	{
-		return ::std::visit(dev_util::as_accessor<char_t>::as_char, e);
+		return ::std::visit([](const auto& v) { return dev_util::as_accessor<char_t>::as_char(v); }, e);
 	}
 
 	template <typename char_t>
 	inline auto as_string(const entity<char_t>& e) -> const types::string<char_t>&
 	{
-		return ::std::visit(dev_util::as_accessor<char_t>::as_string, e);
+		return ::std::visit([](const auto& v) -> decltype(auto) { return dev_util::as_accessor<char_t>::as_string(v); }, e);
 	}
 
 	template <typename char_t>
 	inline auto as_list(const entity<char_t>& e) -> const types::list<char_t>&
 	{
-		return ::std::visit(dev_util::as_accessor<char_t>::as_list, e);
+		return ::std::visit([](const auto& v) -> decltype(auto) { return dev_util::as_accessor<char_t>::as_list(v); }, e);
 	}
 
 	template <typename char_t>
 	inline auto as_object(const entity<char_t>& e) -> const types::object<char_t>&
 	{
-		return ::std::visit(dev_util::as_accessor<char_t>::as_object, e);
+		return ::std::visit([](const auto& v) -> decltype(auto) { return dev_util::as_accessor<char_t>::as_object(v); }, e);
 	}
 
 	template <typename char_t>
