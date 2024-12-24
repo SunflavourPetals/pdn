@@ -54,6 +54,10 @@ namespace pdn::concepts
 		 = utf_8_code_unit_iterator<type>
 		|| utf_16_code_unit_iterator<type>
 		|| utf_32_code_unit_iterator<type>;
+	template <typename type>
+	concept utf_code_unit_string_view
+		 = requires(type sv) { sv.cbegin(); sv.cend(); }
+		&& utf_code_unit_iterator<typename type::const_iterator>;
 }
 
 namespace pdn::parser_utility

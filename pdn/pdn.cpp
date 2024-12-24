@@ -836,24 +836,7 @@ int main(int argc, const char* argv[])
 	
 	bool is_using_stdout = false;
 	bool to_play = false;
-	/*
-	const char* my_argv[]{ "./pdn", "-p", R"(..\test\features_test.pdn)" };
-	{
-		std::string answer{};
-		std::cout << "do debug test[yes/y = yes, else = no]: ";
-		std::getline(std::cin, answer);
 
-		for (auto& c : answer)
-		{
-			c = std::tolower(c);
-		}
-		if (answer == "y" || answer == "yes")
-		{
-			argc = 3;
-			argv = my_argv;
-		}
-	}
-	*/
 	if (argc <= 1)
 	{
 		std::cout << "no arguments.\n" << "using \"./pdn -help\" for help.\n";
@@ -917,8 +900,8 @@ int main(int argc, const char* argv[])
 					std::cout
 						<< "Version:\n"
 						<< "----------------------------------------------------------------------------\n"
-						<< "Pdn Lib Version:     Beta   1.2\n"
-						<< "PdnShell Version:    Alpha  0.5\n"
+						<< "Pdn Lib Version:     Beta   1.5\n"
+						<< "PdnShell Version:    Alpha  0.6\n"
 						<< "----------------------------------------------------------------------------\n";
 					showed_ver = true;
 				}

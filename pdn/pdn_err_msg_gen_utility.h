@@ -32,6 +32,47 @@ namespace pdn::dev_util
 namespace pdn::dev_util::err_msg_gen_util
 {
 	using namespace literals::error_message_literals;
+	inline auto add_quote(error_msg_string_view src) -> error_msg_string
+	{
+		return u8"\""_em.append(src).append(u8"\"");
+	}
+	inline auto add_single_quote(error_msg_string_view src) -> error_msg_string
+	{
+		return u8"'"_em.append(src).append(u8"'");
+	}
+	template <int base = 10, ::std::size_t width = 1, ::std::size_t buffer_size = 64>
+	inline auto to_s(::std::integral auto const val) -> error_msg_string
+	{
+		::std::array<char, buffer_size> buffer{};
+		auto to_chars_result = ::std::to_chars(buffer.data(), buffer.data() + buffer.size(), val, base);
+		if (to_chars_result.ec != ::std::errc{})
+		{
+			if (to_chars_result.ec == ::std::errc::value_too_large)
+			{
+				assert(0 && "too large value");
+			}
+			else
+			{
+				assert(0 && "unknown to_chars error");
+			}
+		}
+		assert(to_chars_result.ptr - buffer.data() < 0);
+		auto begin = reinterpret_cast<error_msg_char*>(buffer.data());
+		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
+		auto result = error_msg_string{};
+		for (auto i = length; i < width; ++i)
+		{
+			result += u8'0';
+		}
+		result.append(begin, length);
+		return result;
+	}
+	// for utf_8|16|32_decode_error
+	inline auto offset_of_leading(const auto& msg, const int multi = 1) -> error_msg_string
+	{
+		return u8"0x"_em.append(to_s<16, 4>((msg.last_code_unit_offset - msg.result.distance()) * multi));
+	}
+
 	namespace raw_details = raw_error_message_type;
 	inline auto make_slashes(error_msg_string_view view) -> error_msg_string
 	{
@@ -44,11 +85,11 @@ namespace pdn::dev_util::err_msg_gen_util
 			using arg_t = ::std::decay_t<decltype(arg)>;
 			if constexpr (::std::same_as<arg_t, types::character<error_msg_char>>)
 			{
-				return u8"\'"_em + error_msg_string{ arg.to_string_view() } + u8"\'"_em;
+				return add_single_quote(arg.to_string_view());
 			}
 			else if constexpr (::std::same_as<arg_t, proxy<types::string<error_msg_char>>>)
 			{
-				return u8"\""_em + make_slashes(*arg) + u8"\""_em;
+				return add_quote(make_slashes(*arg));
 			}
 			else if constexpr (::std::same_as<arg_t, types::boolean>)
 			{
@@ -60,7 +101,7 @@ namespace pdn::dev_util::err_msg_gen_util
 			}
 			else if constexpr (::std::same_as<arg_t, dev_util::at_iden_string_proxy>)
 			{
-				return u8"\"@"_em.append(arg.get_id()).append(u8"\""_em);
+				return add_quote(u8"@"_em.append(arg.get_id()));
 			}
 			else
 			{
@@ -144,7 +185,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	// for casting_msg from casting_domain_error
 	inline auto get_integer_min_value_s(type_code c) -> error_msg_string
 	{
-		return reinterpret_to_err_msg_str(::std::to_string(get_integer_min_value(c)));
+		return to_s(get_integer_min_value(c));
 	}
 
 	// for casting_msg from casting_domain_error
@@ -169,7 +210,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	// for casting_msg from casting_domain_error
 	inline auto get_integer_max_value_s(type_code c) -> error_msg_string
 	{
-		return reinterpret_to_err_msg_str(::std::to_string(get_integer_max_value(c)));
+		return to_s(get_integer_max_value(c));
 	}
 
 	// for casting_msg from casting_domain_error
@@ -187,7 +228,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	// for at_value_not_found
 	inline auto get_at_iden_s(raw_err_v_cref raw) -> error_msg_string
 	{
-		return u8"\"@"_em + make_slashes(::std::get<raw_details::identifier>(raw).value) + u8"\""_em;
+		return add_quote(u8"@"_em.append(make_slashes(::std::get<raw_details::identifier>(raw).value)));
 	}
 
 	// for error_token
@@ -228,42 +269,6 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	}
 }
 
-namespace pdn::dev_util::err_msg_gen_util
-{
-	template <int base = 10, ::std::size_t width = 1, ::std::size_t buffer_size = 64>
-	inline auto to_s(::std::integral auto const val) -> error_msg_string
-	{
-		::std::array<char, buffer_size> buffer{};
-		auto to_chars_result = ::std::to_chars(buffer.data(), buffer.data() + buffer.size(), val, base);
-		if (to_chars_result.ec != ::std::errc{})
-		{
-			if (to_chars_result.ec == ::std::errc::value_too_large)
-			{
-				assert(0 && "too large value");
-			}
-			else
-			{
-				assert(0 && "unknown to_chars error");
-			}
-		}
-		assert(to_chars_result.ptr - buffer.data() < 0);
-		auto begin  = reinterpret_cast<error_msg_char*>(buffer.data());
-		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
-		auto result = error_msg_string{};
-		for (auto i = length; i < width; ++i)
-		{
-			result += u8'0';
-		}
-		result.append(begin, length);
-		return result;
-	}
-	// for utf_8|16|32_decode_error
-	inline auto offset_of_leading(const auto& msg, const int multi = 1) -> error_msg_string
-	{
-		return u8"0x"_em.append(to_s<16, 4>((msg.last_code_unit_offset - msg.result.distance()) * multi));
-	}
-}
-
 namespace pdn::dev_util::err_msg_gen_util::lexical_err_msg_gen_util
 {
 	// for not_unicode_scalar_value
@@ -272,15 +277,103 @@ namespace pdn::dev_util::err_msg_gen_util::lexical_err_msg_gen_util
 		return u8"0x"_em.append(to_s<16, 8>(::std::get<raw_details::not_unicode_scalar_value>(raw).value));
 	}
 	// for error_string
-	inline auto get_quoted_s(raw_err_v_cref raw) -> error_msg_string
+	inline auto get_slashes_s(raw_err_v_cref raw) -> error_msg_string
 	{
-		return u8"\""_em.append(::std::get<raw_details::error_string>(raw).value).append(u8"\""_em);
+		return make_slashes(::std::get<raw_details::error_string>(raw).value);
 	}
 	// for error_string
-	inline auto get_quoted_slash_s(raw_err_v_cref raw) -> error_msg_string
+	inline auto get_quoted_slashes_s(raw_err_v_cref raw) -> error_msg_string
 	{
 		const auto& err_s_ref = ::std::get<raw_details::error_string>(raw).value;
-		return u8"\""_em.append(make_slashes(err_s_ref)).append(u8"\""_em);
+		return add_quote(make_slashes(err_s_ref));
+	}
+	// for error_string
+	inline auto get_single_quoted_slashes_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		const auto& err_s_ref = ::std::get<raw_details::error_string>(raw).value;
+		return add_single_quote(make_slashes(err_s_ref));
+	}
+	// for character_length_error
+	inline auto get_single_quoted_slashes_s_for_cle(raw_err_v_cref raw) -> error_msg_string
+	{
+		const auto& err_s_ref = ::std::get<raw_details::character_length_error>(raw).value;
+		return add_single_quote(make_slashes(err_s_ref));
+	}
+	// for character_length_error
+	inline auto get_cle_cp_length(raw_err_v_cref raw) -> error_msg_string
+	{
+		return to_s(::std::get<raw_details::character_length_error>(raw).code_point_count);
+	}
+	// for error_string
+	inline auto get_quoted_slashes_s_for_mts(raw_err_v_cref raw) -> error_msg_string
+	{
+		const auto& err_s_ref = ::std::get<raw_details::missing_terminating_sequence>(raw).content;
+		return add_quote(make_slashes(err_s_ref));
+	}
+	// for error_string
+	inline auto get_slashes_d_seq_for_mts(raw_err_v_cref raw) -> error_msg_string
+	{
+		const auto& err_s_ref = ::std::get<raw_details::missing_terminating_sequence>(raw).d_seq;
+		return make_slashes(err_s_ref);
+	}
+	// for number_end_with_separator
+	inline auto get_slashes_s_for_ews(raw_err_v_cref raw) -> error_msg_string
+	{
+		return make_slashes(::std::get<raw_details::number_end_with_separator>(raw).number_sequence);
+	}
+	// for from_chars_error
+	inline auto get_quoted_from_chars_src_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		return add_quote(make_slashes(::std::get<raw_details::from_chars_error>(raw).sequence));
+	}
+	// for from_chars_error
+	inline auto get_quoted_from_chars_incomplete_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		const auto& msg = ::std::get<raw_details::from_chars_error>(raw);
+		const auto view = error_msg_string_view{ msg.sequence.data(), msg.sequence.data() + msg.offset };
+		return add_quote(make_slashes(view));
+	}
+	// for from_chars_error
+	inline auto get_from_chars_desc_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		const auto& msg = ::std::get<raw_details::from_chars_error>(raw);
+		using enum raw_details::number_type;
+		switch (msg.type)
+		{
+		case bin_integer:  return u8"integer, base 2"_em;
+		case oct_integer:  return u8"integer, base 8"_em;
+		case dec_integer:  return u8"integer, base 10"_em;
+		case hex_integer:  return u8"integer, base 16"_em;
+		case dec_floating: return u8"floating, default chars_format(general)"_em;
+		case hex_floating: return u8"floating, chars_format hex"_em;
+		default: assert(0 && "enum unhandled"); return u8"unknown"_em;
+		}
+	}
+	// for from_chars_error
+	inline auto get_from_chars_errc_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		return to_s(static_cast<int>(::std::get<raw_details::from_chars_error>(raw).ec));
+	}
+	// for escape_not_unicode_scalar_value
+	inline auto get_value_from_esc_not_u_scalar(raw_err_v_cref raw) -> error_msg_string
+	{
+		return u8"0x"_em.append(to_s<16, 4>(static_cast<int>(::std::get<raw_details::escape_not_unicode_scalar_value>(raw).code_point)));
+	}
+	// for escape_not_unicode_scalar_value
+	inline auto get_quoted_seq_from_esc_not_u_scalar(raw_err_v_cref raw) -> error_msg_string
+	{
+		return add_quote(::std::get<raw_details::escape_not_unicode_scalar_value>(raw).escape_sequence);
+	}
+	// for delimiter_error
+	inline auto get_prefix_and_d_seq(raw_err_v_cref raw) -> error_msg_string
+	{
+		const auto& msg = ::std::get<raw_details::delimiter_error>(raw);
+		return make_slashes((msg.is_raw_identifier_string ? u8"@`"_em : u8"@\""_em) + msg.d_seq);
+	}
+	// for delimiter_error
+	inline auto get_prefix_and_d_seq_with_par(raw_err_v_cref raw) -> error_msg_string
+	{
+		return get_prefix_and_d_seq(raw) + u8"("_em;
 	}
 }
 

@@ -9,6 +9,9 @@
 namespace pdn
 {
 	template <typename char_t>
+	using data_entity = entity<char_t>;
+
+	template <typename char_t>
 	using document_object_model = entity<char_t>;
 
 	template <typename char_t>

@@ -144,7 +144,7 @@ namespace pdn
 		token<char_t> get_token(auto&& begin, auto end)
 		{
 			token<char_t>              result{};
-			types::string<char_t>      TAGTAG_my_src{};   // rename text
+			types::string<char_t>      text{};   // rename text
 			unicode::code_point_string open_d_seq{};      // delimiter-sequence for raw string
 			::std::string              number_sequence{}; // Unicode[U+0000, U+007f] -> ASCII -> form_chars
 			::std::size_t              nested_block_comment_layer{};
@@ -212,7 +212,7 @@ namespace pdn
 				{
 					using namespace unicode_literals;
 					using ct = char_t;
-					TAGTAG_my_src = types::string<ct>{ ct('i'), ct('n'), ct('f'), ct('i'), ct('n'), ct('i'), ct('t'), ct('y') };
+					text = types::string<ct>{ ct('i'), ct('n'), ct('f'), ct('i'), ct('n'), ct('i'), ct('t'), ct('y') };
 					new_dfa_state.state_code = dfa_state_objects::at_identifier.state_code;
 					new_dfa_state.token_code = dfa_state_objects::at_identifier.token_code;
 					break;
@@ -220,19 +220,19 @@ namespace pdn
 				case identifier_string_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::identifier_string_closed;
-					post_err(position, lex_ec::identifier_string_terminated_by_LF, to_raw_err_str(code_convert<err_ms>(TAGTAG_my_src)));
+					post_err(position, lex_ec::identifier_string_terminated_by_LF, to_raw_err_str(code_convert<err_ms>(text)));
 					goto label_update_dfa_state;
 				}
 				case string_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::string_closed;
-					post_err(position, lex_ec::string_literal_terminated_by_LF, to_raw_err_str(code_convert<err_ms>(TAGTAG_my_src)));
+					post_err(position, lex_ec::string_literal_terminated_by_LF, to_raw_err_str(code_convert<err_ms>(text)));
 					goto label_update_dfa_state;
 				}
 				case character_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::character_closed;
-					post_err(position, lex_ec::character_literal_terminated_by_LF, to_raw_err_str(code_convert<err_ms>(TAGTAG_my_src)));
+					post_err(position, lex_ec::character_literal_terminated_by_LF, to_raw_err_str(code_convert<err_ms>(text)));
 					goto label_update_dfa_state;
 				}
 				case start:
@@ -260,14 +260,14 @@ namespace pdn
 				case at_identifier:
 				case raw_string:
 				case identifier_raw_string:
-					append(TAGTAG_my_src, c);
+					append(text, c);
 					break;
 				case identifier_string_escape:
 					++begin;
 					new_dfa_state = dfa_state_objects::identifier_string;
 					if (get_escape(c, begin, end, true))
 					{
-						append(TAGTAG_my_src, c);
+						append(text, c);
 					}
 					goto label_update_dfa_state;
 				case string_escape:
@@ -275,7 +275,7 @@ namespace pdn
 					new_dfa_state = dfa_state_objects::string;
 					if (get_escape(c, begin, end))
 					{
-						append(TAGTAG_my_src, c);
+						append(text, c);
 					}
 					goto label_update_dfa_state;
 				case character_escape:
@@ -283,30 +283,30 @@ namespace pdn
 					new_dfa_state = dfa_state_objects::character;
 					if (get_escape(c, begin, end))
 					{
-						append(TAGTAG_my_src, c);
+						append(text, c);
 					}
 					goto label_update_dfa_state;
 				case raw_string_d_seq_opened:
 					++begin;
 					// @"d_seq()d_seq"
 					//  ^ -> to first d sequence character or '('
-					get_raw_string_opening_d_seq(open_d_seq, begin, end);
+					get_raw_string_opening_d_seq(open_d_seq, begin, end, false);
 					new_dfa_state = dfa_state_objects::raw_string;
 					goto label_update_dfa_state;
 				case raw_string_received_CR:
 					++begin;
 					if (begin == end)
 					{
-						TAGTAG_my_src += char_t('\r');
+						text += char_t('\r');
 						new_dfa_state = dfa_state_objects::raw_string;
 						goto label_update_dfa_state;
 					}
 					c = *begin;
 					if (c != U'\n')
 					{
-						TAGTAG_my_src += char_t('\r');
+						text += char_t('\r');
 					}
-					append(TAGTAG_my_src, c);
+					append(text, c);
 					new_dfa_state = dfa_state_objects::raw_string;
 					goto label_move_iterator;
 				case raw_string_received_right_parentheses:
@@ -319,8 +319,8 @@ namespace pdn
 					}
 					else
 					{
-						TAGTAG_my_src += char_t(')');
-						TAGTAG_my_src += unicode::code_convert<types::string<char_t>>(close_d_seq);
+						text += char_t(')');
+						text += unicode::code_convert<types::string<char_t>>(close_d_seq);
 						new_dfa_state = dfa_state_objects::raw_string;
 					}
 					goto label_update_dfa_state;
@@ -329,23 +329,23 @@ namespace pdn
 					++begin;
 					// @`d_seq()d_seq`
 					//  ^ -> to first d sequence character or '('
-					get_raw_string_opening_d_seq(open_d_seq, begin, end);
+					get_raw_string_opening_d_seq(open_d_seq, begin, end, true);
 					new_dfa_state = dfa_state_objects::identifier_raw_string;
 					goto label_update_dfa_state;
 				case identifier_raw_string_received_CR:
 					++begin;
 					if (begin == end)
 					{
-						TAGTAG_my_src += char_t('\r');
+						text += char_t('\r');
 						new_dfa_state = dfa_state_objects::identifier_raw_string;
 						goto label_update_dfa_state;
 					}
 					c = *begin;
 					if (c != U'\n')
 					{
-						TAGTAG_my_src += char_t('\r');
+						text += char_t('\r');
 					}
-					append(TAGTAG_my_src, c);
+					append(text, c);
 					new_dfa_state = dfa_state_objects::identifier_raw_string;
 					goto label_move_iterator;
 				case identifier_raw_string_received_right_parentheses:
@@ -358,8 +358,8 @@ namespace pdn
 					}
 					else
 					{
-						TAGTAG_my_src += char_t(')');
-						TAGTAG_my_src += unicode::code_convert<types::string<char_t>>(close_d_seq);
+						text += char_t(')');
+						text += unicode::code_convert<types::string<char_t>>(close_d_seq);
 						new_dfa_state = dfa_state_objects::identifier_raw_string;
 					}
 					goto label_update_dfa_state;
@@ -445,7 +445,7 @@ namespace pdn
 			case string:
 			case identifier_raw_string:
 			case raw_string:
-				process_string_like_error(dfa_state.state_code, position, to_err_ms(TAGTAG_my_src));
+				process_string_like_error(dfa_state.state_code, position, to_err_ms(text), open_d_seq);
 				[[fallthrough]];
 				// ERROR STATES ^^^
 			case identifier:
@@ -453,24 +453,24 @@ namespace pdn
 			case string_closed:
 			case raw_string_closed:
 			case identifier_raw_string_closed:
-				result.value = make_proxy<types::string<char_t>>(::std::move(TAGTAG_my_src));
+				result.value = make_proxy<types::string<char_t>>(::std::move(text));
 				break;
 			case at_identifier:
 				if constexpr (::std::same_as<char_t, unicode::utf_8_code_unit_t>)
 				{
-					result.value = dev_util::at_iden_string_proxy{ ::std::move(TAGTAG_my_src) };
+					result.value = dev_util::at_iden_string_proxy{ ::std::move(text) };
 				}
 				else
 				{
-					result.value = dev_util::at_iden_string_proxy{ code_convert<unicode::utf_8_code_unit_string>(TAGTAG_my_src) };
+					result.value = dev_util::at_iden_string_proxy{ code_convert<unicode::utf_8_code_unit_string>(text) };
 				}
 				break;
 			case character_opened: // <<< ERROR STATE
 			case character:        // <<< ERROR STATE
-				process_char_missing_quote_error(position, to_err_ms(TAGTAG_my_src));
+				process_char_missing_quote_error(position, to_err_ms(text));
 				[[fallthrough]];
 			case character_closed:
-				result.value = process_char_literal(TAGTAG_my_src, position);
+				result.value = process_char_literal(text, position);
 				break;
 			case dec_seq_start_with_0:             // <<< ERROR STATE
 			case dec_seq_start_with_0_with_quote:  // <<< ERROR STATE
@@ -503,8 +503,8 @@ namespace pdn
 				else if (dfa_state.state_code == fp_dec_part_with_quote || dfa_state.state_code == fp_exp_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
-					constexpr auto lit_type = raw_error_message_type::number_type::dec_floating;
-					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), lit_type });
+					using enum raw_error_message_type::number_type;
+					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), dec_floating });
 				}
 				[[fallthrough]];
 			case fp_dec_part_first_after_dec_with_dot:
@@ -526,8 +526,8 @@ namespace pdn
 			case oct_seq_with_quote:  // <<< ERROR STATE
 			{
 				using raw_err = raw_error_message_type::number_end_with_separator;
-				constexpr auto lit_type = raw_error_message_type::number_type::oct_integer;
-				post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), lit_type });
+				using enum raw_error_message_type::number_type;
+				post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), oct_integer });
 				[[fallthrough]];
 			}
 			case zero:
@@ -555,8 +555,8 @@ namespace pdn
 				else if (dfa_state.state_code == bin_seq_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
-					constexpr auto lit_type = raw_error_message_type::number_type::bin_integer;
-					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), lit_type });
+					using enum raw_error_message_type::number_type;
+					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), bin_integer });
 				}
 				[[fallthrough]];
 			case bin_seq:
@@ -584,8 +584,8 @@ namespace pdn
 				else if (dfa_state.state_code == hex_seq_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
-					constexpr auto lit_type = raw_error_message_type::number_type::hex_integer;
-					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), lit_type });
+					using enum raw_error_message_type::number_type;
+					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_integer });
 				}
 				[[fallthrough]];
 			case hex_seq:
@@ -1108,7 +1108,7 @@ namespace pdn
 		// or to ')' if it is an empty string.
 		// Returns false when the d_seq is longer than 16 or contains illegal characters,
 		// but '(' will be handled by the function just as normal
-		bool get_raw_string_opening_d_seq(unicode::code_point_string& out_sequence, auto& begin, auto end)
+		bool get_raw_string_opening_d_seq(unicode::code_point_string& out_sequence, auto& begin, auto end, bool is_raw_id_s)
 		{
 			// begin pointing:
 			// 
@@ -1120,7 +1120,9 @@ namespace pdn
 			// @`()`
 			//   ^
 
+			using raw_err = raw_error_message_type::delimiter_error;
 			using err_ms = error_msg_string;
+			using namespace literals::error_message_literals;
 			using unicode::code_convert;
 
 			auto position = get_pos();
@@ -1138,7 +1140,7 @@ namespace pdn
 					{
 						post_err(position,
 						         d_seq_error_raw_string_delimiter_longer_than_16_characters,
-						         to_raw_err_str(code_convert<err_ms>(out_sequence)));
+						         raw_err{ code_convert<err_ms>(out_sequence), is_raw_id_s });
 						return false;
 					}
 					return !invalid_character_in_raw_string_delimiter;
@@ -1149,7 +1151,7 @@ namespace pdn
 					{
 						post_err(get_pos(),
 						         d_seq_error_invalid_character_in_raw_string_delimiter,
-						         to_raw_err_str(code_convert<err_ms>(out_sequence)));
+						         raw_err{ code_convert<err_ms>(out_sequence), is_raw_id_s });
 						invalid_character_in_raw_string_delimiter = true;
 					}
 					out_sequence += c;
@@ -1157,7 +1159,8 @@ namespace pdn
 				}
 			}
 
-			post_err(position, d_seq_error_cannot_find_end_sign, to_raw_err_str(code_convert<err_ms>(out_sequence)));
+			post_err(position, d_seq_error_cannot_find_end_sign, raw_err{ code_convert<err_ms>(out_sequence), is_raw_id_s });
+
 			return false;
 		}
 
@@ -1209,8 +1212,8 @@ namespace pdn
 			case hex_fp_dec_part_with_quote:  // <<< ERROR STATE
 			{
 				using raw_err = raw_error_message_type::number_end_with_separator;
-				constexpr auto lit_type = raw_error_message_type::number_type::hex_floating;
-				post_err(pos, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), lit_type });
+				using enum raw_error_message_type::number_type;
+				post_err(pos, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_floating });
 			}
 				[[fallthrough]];
 			case hex_fp_dec_part_first_after_hex_with_dot: // <<< ERROR STATE
@@ -1235,8 +1238,8 @@ namespace pdn
 			case hex_fp_exp_with_quote:  // <<< ERROR STATE
 			{
 				using raw_err = raw_error_message_type::number_end_with_separator;
-				constexpr auto lit_type = raw_error_message_type::number_type::hex_floating;
-				post_err(pos, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), lit_type });
+				using enum raw_error_message_type::number_type;
+				post_err(pos, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_floating });
 				break;
 			}
 			case hex_fp_seq_start_with_0x_dot: // <<< ERROR STATE
@@ -1249,10 +1252,16 @@ namespace pdn
 			}
 		}
 
-		void process_string_like_error(dfa_state_code dfa_state_c, source_position position, error_msg_string err_s)
+		void process_string_like_error(dfa_state_code dfa_state_c, source_position position, error_msg_string err_s, unicode::code_point_string_view d_seq)
 		{
 			using lex_ec = lexical_error_code;
 			using enum dfa_state_code;
+			auto make_missing_d_seq_err = [&]()
+			{
+				using miss_d_seq_msg = raw_error_message_type::missing_terminating_sequence;
+				using unicode::code_convert;
+				return miss_d_seq_msg{ .content = ::std::move(err_s), .d_seq = code_convert<error_msg_string>(d_seq) };
+			};
 			switch (dfa_state_c) // ERROR STATES
 			{
 			case identifier_string_opened:
@@ -1264,10 +1273,10 @@ namespace pdn
 				post_err(position, lex_ec::string_missing_terminating_character, to_raw_err_str(::std::move(err_s)));
 				break;
 			case identifier_raw_string:
-				post_err(position, lex_ec::identifier_raw_string_missing_terminating_sequence, to_raw_err_str(::std::move(err_s)));
+				post_err(position, lex_ec::identifier_raw_string_missing_terminating_sequence, make_missing_d_seq_err());
 				break;
 			case raw_string:
-				post_err(position, lex_ec::raw_string_missing_terminating_sequence, to_raw_err_str(::std::move(err_s)));
+				post_err(position, lex_ec::raw_string_missing_terminating_sequence, make_missing_d_seq_err());
 				break;
 			default:
 				break;
@@ -1291,13 +1300,13 @@ namespace pdn
 			using raw_err = raw_error_message_type::number_end_with_separator;
 			if (code == dec_seq_start_with_0_with_quote)
 			{
-				constexpr auto lit_type = raw_error_message_type::number_type::oct_integer;
-				post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ ::std::move(error_str), lit_type });
+				using enum raw_error_message_type::number_type;
+				post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ ::std::move(error_str), oct_integer });
 			}
 			else if (code == dec_seq_with_quote)
 			{
-				constexpr auto lit_type = raw_error_message_type::number_type::dec_integer;
-				post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ ::std::move(error_str), lit_type });
+				using enum raw_error_message_type::number_type;
+				post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ ::std::move(error_str), dec_integer });
 			}
 		}
 

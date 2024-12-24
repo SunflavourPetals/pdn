@@ -27,7 +27,9 @@ namespace pdn::raw_error_message_type::dev_util
 		character_length_error,
 		number_end_with_separator,
 		from_chars_error,
-		escape_not_unicode_scalar_value>;
+		escape_not_unicode_scalar_value,
+		missing_terminating_sequence,
+		delimiter_error>;
 }
 
 namespace pdn

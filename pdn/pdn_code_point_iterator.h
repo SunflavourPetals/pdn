@@ -51,7 +51,7 @@ namespace pdn::concepts
 		&& concepts::error_message_generator<type>;
 }
 
-namespace pdn::util
+namespace pdn::dev_util
 {
 	template <typename type>
 	struct decode_result_to_raw_error {};
@@ -145,7 +145,7 @@ namespace pdn
 						func_pkg->generate_error_message(raw_error_message{
 							result.error(),
 							func_pkg->position(),
-							util::decode_result_to_raw_error_t<result_type>{ result, last, offset }
+							dev_util::decode_result_to_raw_error_t<result_type>{ result, last, offset }
 						})
 					});
 					constexpr auto not_scalar_value = decision::decode_result::error_type::not_scalar_value;

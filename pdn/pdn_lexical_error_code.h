@@ -5,7 +5,7 @@ namespace pdn
 {
 	enum class lexical_error_code
 	{
-		not_unicode_scalar_value, // extra(not_unicode_scalar_value)
+		not_unicode_scalar_value = 1, // extra(not_unicode_scalar_value)
 
 		unacceptable_character, // extra(error_string)
 
@@ -26,8 +26,8 @@ namespace pdn
 		identifier_string_missing_terminating_character,    // extra(error_string) identifier
 		string_missing_terminating_character,               // extra(error_string) string
 		character_missing_terminating_character,            // extra(error_string) character
-		identifier_raw_string_missing_terminating_sequence, // extra(error_string) identifier
-		raw_string_missing_terminating_sequence,            // extra(error_string) string
+		identifier_raw_string_missing_terminating_sequence, // extra(missing_terminating_sequence) identifier and d_seq
+		raw_string_missing_terminating_sequence,            // extra(missing_terminating_sequence) string and d_seq
 
 		// number sequence error
 		invalid_octal_number,       // extra(error_string) number string
@@ -39,7 +39,7 @@ namespace pdn
 		more_than_one_separators_may_between_numbers, // extra(error_string) number string
 		number_cannot_end_with_separator,             // extra(number_end_with_separator)
 
-		// number from chars error
+		// number from chars error // [[unlikely]]
 		number_from_chars_errc_result_out_of_range, // extra(from_chars_error)
 		number_from_chars_errc_invalid_argument,    // extra(from_chars_error)
 		number_from_chars_errc_other,               // extra(from_chars_error)
@@ -60,18 +60,18 @@ namespace pdn
 		escape_error_U_incomplete_universal_character_name, // \U@ \Un@ \Unn@ \Unnn@ \Unnnn@ \Unnnnn@ \Unnnnnn@ \Unnnnnnn@
 		escape_error_not_unicode_scalar_value, // extra(escape_not_unicode_scalar_value)
 
-		// escape from_chars error
+		// escape from_chars error // [[unlikely]]
 		escape_error_from_chars_errc_result_out_of_range, // extra(from_chars_error)
 		escape_error_from_chars_errc_invalid_argument,    // extra(from_chars_error)
 		escape_error_from_chars_errc_other,               // extra(from_chars_error)
 		escape_error_from_chars_parsing_incomplete,       // extra(from_chars_error)
 
 		// raw string/identifier raw string error
-		// extra(error_string) delimiter sequence
+		// extra(delimiter_error) delimiter sequence
 		d_seq_error_cannot_find_end_sign, // @"... EOF
-		// extra(error_string) delimiter sequence and last is invalid character 
+		// extra(delimiter_error) delimiter sequence and last is invalid character 
 		d_seq_error_invalid_character_in_raw_string_delimiter, // @"d_seq...@
-		// extra(error_string) delimiter sequence
+		// extra(delimiter_error) delimiter sequence
 		d_seq_error_raw_string_delimiter_longer_than_16_characters, // A"aaaabbbbccccdddd@...()..."
 	};
 }

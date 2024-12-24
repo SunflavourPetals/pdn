@@ -8,13 +8,13 @@ namespace pdn
 		invalid,
 
 		eof,
-		at_identifier, // variant(string)
-		identifier, // variant(string)
-		literal_integer, // variant(int or other int types)
+		at_identifier,          // variant(string)
+		identifier,             // variant(string)
+		literal_integer,        // variant(int or other int types)
 		literal_floating_point, // variant(f64)
-		literal_string, // variant(string)
-		literal_character, // variant(character)
-		literal_boolean, // variant(boolean)
+		literal_string,         // variant(string)
+		literal_character,      // variant(character)
+		literal_boolean,        // variant(boolean)
 
 		tilde,                // ~
 		exclamation_mark,     // !

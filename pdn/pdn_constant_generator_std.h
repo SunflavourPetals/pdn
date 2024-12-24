@@ -27,9 +27,10 @@ namespace pdn::dev_util
 			return ::std::hash<string_view>{}(sv);
 		}
 	};
+	template <typename char_t>
 	using constant_table_base = ::std::unordered_map<
 		unicode::utf_8_code_unit_string,
-		entity<unicode::utf_8_code_unit_t>,
+		entity<char_t>,
 		constant_table_key_hasher,
 		::std::equal_to<>>;
 
@@ -85,7 +86,7 @@ namespace pdn::dev_util
 namespace pdn
 {
 	template <typename char_t>
-	class constant_table : public dev_util::constant_table_base
+	class constant_table : public dev_util::constant_table_base<char_t>
 	{
 	public:
 		constant_table()
@@ -131,9 +132,9 @@ namespace pdn
 			self[u8"fib_10_list"_ucus]   = dev_util::test_list_fib_10<char_t>();  // not std
 			self[u8"me_object"_ucus]     = dev_util::test_object_me<char_t>();    // not std
 		}
-		static auto instance() -> const constant_table&
+		static auto instance() -> const constant_table<char_t>&
 		{
-			static constant_table obj{};
+			static constant_table<char_t> obj{};
 			return obj;
 		}
 	};
@@ -143,7 +144,7 @@ namespace pdn
 	{
 		if (auto result = constant_table<char_t>::instance().find(s); result != constant_table<char_t>::instance().end())
 		{
-			return result->second;
+			return ::std::make_optional<entity<char_t>>(result->second);
 		}
 		return ::std::nullopt;
 	}

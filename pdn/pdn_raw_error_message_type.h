@@ -115,6 +115,16 @@ namespace pdn::raw_error_message_type
 		error_msg_string      escape_sequence; // escape sequence
 		unicode::code_point_t code_point;      // result of parsing
 	};
+	struct missing_terminating_sequence final
+	{
+		error_msg_string content;
+		error_msg_string d_seq;
+	};
+	struct delimiter_error final
+	{
+		error_msg_string d_seq;
+		bool is_raw_identifier_string; // true -> @`d_seq(...)d_seq`; false -> @"d_seq(...)d_seq"
+	};
 }
 
 #endif

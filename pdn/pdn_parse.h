@@ -37,8 +37,8 @@ namespace pdn
 		return par.parse(begin, end);
 	}
 	// for token iterator
-	template <unicode::concepts::code_unit         char_t,
-	          concepts::token_iterator<char_t>     it_t>
+	template <unicode::concepts::code_unit     char_t,
+	          concepts::token_iterator<char_t> it_t>
 	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> dom<char_t>
 	{
 		default_function_package<char_t> fp{};
@@ -64,8 +64,8 @@ namespace pdn
 		return parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
 	}
 	// for code_unit iterator
-	template <unicode::concepts::code_unit         char_t,
-	          concepts::utf_code_unit_iterator     it_t>
+	template <unicode::concepts::code_unit     char_t,
+	          concepts::utf_code_unit_iterator it_t>
 	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> dom<char_t>
 	{
 		default_function_package<char_t> fp{};
@@ -208,6 +208,32 @@ namespace pdn
 	{
 		default_function_package<char_t> fp{};
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
+	}
+	// for utf_code_unit_string_view
+	template <unicode::concepts::code_unit                       char_t,
+	          concepts::utf_code_unit_string_view                str_view_t,
+	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(str_view_t         sv,
+	                         fn_pkg_for_cp_it&  cp_it_fp,
+	                         fn_pkg_for_lexer&  lex_fp,
+	                         fn_pkg_for_parser& par_fp,
+	                         char_t             char_tag = {}) -> dom<char_t>
+	{
+		lexer<char_t, fn_pkg_for_lexer> lex{ lex_fp };
+		auto cp_it     = make_code_point_iterator(sv.cbegin(), sv.cend(), cp_it_fp);
+		auto token_it  = make_token_iterator(lex, cp_it, sv.cend());
+		auto token_end = make_end_token_iterator(token_it);
+		return parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
+	}
+	// for utf_code_unit_string_view
+	template <unicode::concepts::code_unit        char_t,
+	          concepts::utf_code_unit_string_view str_view_t>
+	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> dom<char_t>
+	{
+		default_function_package<char_t> fp{};
+		return parse(sv, fp, fp, fp, char_tag);
 	}
 }
 
