@@ -56,7 +56,7 @@ namespace pdn::dev_util::err_msg_gen_util
 				assert(0 && "unknown to_chars error");
 			}
 		}
-		assert(to_chars_result.ptr - buffer.data() < 0);
+		assert(to_chars_result.ptr > buffer.data());
 		auto begin = reinterpret_cast<error_msg_char*>(buffer.data());
 		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
 		auto result = error_msg_string{};
