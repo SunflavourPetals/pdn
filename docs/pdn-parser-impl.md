@@ -29,9 +29,9 @@ void parse_something()
 此外，以上三者都需要错误处理和错误信息生成功能，默认的错误处理为打印错误信息到标准输出，默认的错误信息生成方法生成英文错误信息。  
 最佳实践是组合 `pdn_function_package.h` 内的 `pdn::default_function_package` 和用户需要自定义的内容，使它满足以上三者的需求，然后为它们三个提供同一个`function_package` 对象(将按引用传递)。
 
-## dom
+## data_entity
 
-解析后将得到一个 `dom`，`dom` 也可以称为实体(entity)或数据实体(data entity)，是 `std::variant<pdn_data_types...>` 的派生类，除了可以用 `std::get` `std::get_if` `std::visit` 等方法查询，还提供如下访问函数(名称空间 `pdn` 内)：  
+解析后将得到一个持有 `object` 类型的 `data_entity` (数据实体)，是 `std::variant<pdn_data_types...>` 的派生类，除了可以用 `std::get` `std::get_if` `std::visit` 等方法查询，还提供如下访问函数(名称空间 `pdn` 内)：  
 
 1. `get` 系列函数：对代理进行处理的 `std::get` 的封装，不支持 `refer` 和 `const_refer` 版本；  
 2. `get_ptr` 系列函数：获得相应类型的值或得到 nullptr；  

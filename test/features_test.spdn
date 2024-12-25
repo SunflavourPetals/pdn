@@ -15,450 +15,605 @@
 </ block comment </ nested block comment /> block comment />
 </</</</</nested</block/>comment/>/>/>/>/>
 
-test_block {
-	integer_literals_test {
-		dec [ 1, 2, 3, 99, 1'1'1'1, 123'456'789, 2'147'483'647, ]
-		oct [ 0, 01, 02, 03, 07, 077, 0777, 0'7'7'7, 0'777'777'777, 017'777'777'777, ]
-		bin [ 0b0, 0b1, 0B0, 0B1, 0b1111'0000, 0B11'11'0000, 0b0111'1111'1111'1111'1111'1111'1111'1111 ]
-		hex [ 0x0, 0X1, 0xFFFa, 0XfedC, 0xAB'CD'EF'FF, 0XAB'CD'EF'FF, 0xAb'Cd'Ef'Ff, 0XaB'cD'eF'fF, 0x7fff'ffff ]
-	}
-	floating_points_test {
-		dec [
-			.0,
-			0010.05,        // 10.05
-			01.,            // 1.0
-			010.05e0'0'0'1, // 100.5
-			0'01.E-00'1,    // 0.1
-			0.,
-			0.0,
-			.1E3,
-			1.e3,
-			1e3,
-			1E3,
-			1E+3,
-			1E-3,
-			1.123e3,
-			1.213E3,
-			1.312E+3,
-			1.321E-3,
-			50.90e-0,
-			40.90E+0,
-			30.90e0,
-			20.60E-123,
+integer_literals_test {
+	dec [ 1, 2, 3, 99, 1'1'1'1, 123'456'789, 2'147'483'647, ]
+	oct [ 0, 01, 02, 03, 07, 077, 0777, 0'7'7'7, 0'777'777'777, 017'777'777'777, ]
+	bin [ 0b0, 0b1, 0B0, 0B1, 0b1111'0000, 0B11'11'0000, 0b0111'1111'1111'1111'1111'1111'1111'1111 ]
+	hex [ 0x0, 0X1, 0xFFFa, 0XfedC, 0xAB'CD'EF'FF, 0XAB'CD'EF'FF, 0xAb'Cd'Ef'Ff, 0XaB'cD'eF'fF, 0x7fff'ffff ]
+}
+
+floating_points_test {
+	dec [
+		.0,
+		0010.05,        // 10.05
+		01.,            // 1.0
+		010.05e0'0'0'1, // 100.5
+		0'01.E-00'1,    // 0.1
+		0.,
+		0.0,
+		.1E3,
+		1.e3,
+		1e3,
+		1E3,
+		1E+3,
+		1E-3,
+		1.123e3,
+		1.213E3,
+		1.312E+3,
+		1.321E-3,
+		50.90e-0,
+		40.90E+0,
+		30.90e0,
+		20.60E-123,
+	]
+	hex [
+		0xA.8p1, // 10.5 * 2^1 = 21
+		0xa.cp1, // 10.75 * 2^1 = 21.5
+		0x.8P+1, // 0.5 * 2^1 = 1
+		0x2.p-1, // 2.0 * 2^-1 = 1
+		0x89abcdef.89ABCDEFp+8,
+		0x7f.F0P-2,
+	]
+}
+
+character_test {
+	character [
+		'A',
+		'a',
+		'あ',
+		'Δ',
+		'我',
+		'♥',
+		'U',
+		'🍌',
+		'"',
+		'爱',
+		'愛',
+		'🥰',
+	]
+	escape {
+		sample [
+			'\'',
+			'\"',
+			'\?',
+			'\\',
+			'\a',
+			'\b',
+			'\f',
+			'\n',
+			'\r',
+			'\t',
+			'\v',
+		]
+		oct [
+			'\0',
+			'\101', // A
+			'\60',  // 0
+			'\060', // 0
+			'\243', // U+00A3 Pound sign
+			'\777', // U+01FF Latin small letter o with stroke and acute
+		]
+		oct_with_curly_brackets [
+			'\o{0}',
+			'\o{0101}',
+			'\o{101}',
+			'\o{60}',
+			'\o{000060}',
+			'\o{243}',
+			'\o{71061}',  // U+7231 爱
+			'\o{071061}',
+			'\o{60433}',  // U+611B 愛
+			'\o{060433}',
+			'\o{374560}', // U+1F970 emoji smiling face with hearts 🥰
+			{
+				cannot_show [
+					'\o{4177777}', // U+10FFFF
+					'\o{004177777}',
+				]
+			},
 		]
 		hex [
-			0xA.8p1, // 10.5 * 2^1 = 21
-			0xa.cp1, // 10.75 * 2^1 = 21.5
-			0x.8P+1, // 0.5 * 2^1 = 1
-			0x2.p-1, // 2.0 * 2^-1 = 1
-			0x89abcdef.89ABCDEFp+8,
-			0x7f.F0P-2,
+			'\x30', // 0 - 9
+			'\x31',
+			'\x32',
+			'\x33',
+			'\x34',
+			'\x35',
+			'\x36',
+			'\x37',
+			'\x38',
+			'\x39',
+			'\x0000000000000030', // 0 - 9
+			'\x0000000000000031',
+			'\x0000000000000032',
+			'\x0000000000000033',
+			'\x0000000000000034',
+			'\x0000000000000035',
+			'\x0000000000000036',
+			'\x0000000000000037',
+			'\x0000000000000038',
+			'\x0000000000000039',
+			'\x41', // A
+			'\x0041',
+			'\x61', // a
+			'\x00000061',
+			'\x7231', // 爱
+			'\x00007231',
+			'\x611B', // 愛
+			'\x0000611b',
+			'\x1f970', // U+1F970 emoji smiling face with hearts 🥰 
+			'\x1F970',
+			{
+				cannot_show [
+					'\x0',
+					'\x000000000000000000000000000',
+					'\x10FFFF',
+					'\x0010FffF',
+				]
+			},
+		]
+		hex_with_curly_brackets [
+			'\x{30}', // 0 - 9
+			'\x{31}',
+			'\x{32}',
+			'\x{33}',
+			'\x{34}',
+			'\x{35}',
+			'\x{36}',
+			'\x{37}',
+			'\x{38}',
+			'\x{39}',
+			'\x{0000000000000030}', // 0 - 9
+			'\x{0000000000000031}',
+			'\x{0000000000000032}',
+			'\x{0000000000000033}',
+			'\x{0000000000000034}',
+			'\x{0000000000000035}',
+			'\x{0000000000000036}',
+			'\x{0000000000000037}',
+			'\x{0000000000000038}',
+			'\x{0000000000000039}',
+			'\x{41}', // A
+			'\x{0041}',
+			'\x{61}', // a
+			'\x{00000061}',
+			'\x{7231}', // 爱
+			'\x{00007231}',
+			'\x{611B}', // 愛
+			'\x{0000611b}',
+			'\x{1f970}', // U+1F970 emoji smiling face with hearts 🥰 
+			'\x{1F970}',
+			{
+				cannot_show [
+					'\x{0}',
+					'\x{000000000000000000000000000000000000}',
+					'\x{10FFFF}',
+					'\x{0010FffF}',
+				]
+			},
+		]
+		universal_u [
+			'\u0030', // 0 - 9
+			'\u0031',
+			'\u0032',
+			'\u0033',
+			'\u0034',
+			'\u0035',
+			'\u0036',
+			'\u0037',
+			'\u0038',
+			'\u0039',
+			'\u0000',
+			'\u0041', // A
+			'\u0061', // a
+			'\u7231', // 爱
+			'\u611B', // 愛
+			{
+				cannot_show [
+					'\u0000',
+				]
+			},
+		]
+		universal_u_with_curly_brackets [
+			'\u{30}', // 0 - 9
+			'\u{31}',
+			'\u{32}',
+			'\u{33}',
+			'\u{34}',
+			'\u{35}',
+			'\u{36}',
+			'\u{37}',
+			'\u{38}',
+			'\u{39}',
+			'\u{0000000000000030}', // 0 - 9
+			'\u{0000000000000031}',
+			'\u{0000000000000032}',
+			'\u{0000000000000033}',
+			'\u{0000000000000034}',
+			'\u{0000000000000035}',
+			'\u{0000000000000036}',
+			'\u{0000000000000037}',
+			'\u{0000000000000038}',
+			'\u{0000000000000039}',
+			'\u{41}', // A
+			'\u{0041}',
+			'\u{61}', // a
+			'\u{00000061}',
+			'\u{7231}', // 爱
+			'\u{00007231}',
+			'\u{611B}', // 愛
+			'\u{0000611b}',
+			'\u{1f970}', // U+1F970 emoji smiling face with hearts 🥰 
+			'\u{1F970}',
+			{
+				cannot_show [
+					'\u{0}',
+					'\u{000000000000000000000000000000000000}',
+					'\u{10FFFF}',
+					'\u{0010FffF}',
+				]
+			},
+		]
+		universal_U [
+			'\U00000030', // 0 - 9
+			'\U00000031',
+			'\U00000032',
+			'\U00000033',
+			'\U00000034',
+			'\U00000035',
+			'\U00000036',
+			'\U00000037',
+			'\U00000038',
+			'\U00000039',
+			'\U00000000',
+			'\U00000041', // A
+			'\U00000061', // a
+			'\U00007231', // 爱
+			'\U0000611B', // 愛
+			'\U0000611b', // 愛
+			'\U0001f970', // U+1F970 emoji smiling face with hearts 🥰 
+			'\U0001F970',
+			'\U0010FFFF',
+			'\U0010ffff',
+			'\U0010Ffff',
+			{
+				cannot_show [
+					'\U00000000',
+				]
+			},
 		]
 	}
-	character_test {
-		character [
-			'A',
-			'a',
-			'あ',
-			'Δ',
-			'我',
-			'♥',
-			'U',
-			'🍌',
-			'"',
-			'爱',
-			'愛',
-			'🥰',
-		]
-		escape {
-			sample [
-				'\'',
-				'\"',
-				'\?',
-				'\\',
-				'\a',
-				'\b',
-				'\f',
-				'\n',
-				'\r',
-				'\t',
-				'\v',
-			]
-			oct [
-				'\0',
-				'\101', // A
-				'\60',  // 0
-				'\060', // 0
-				'\243', // U+00A3 Pound sign
-				'\777', // U+01FF Latin small letter o with stroke and acute
-			]
-			oct_with_curly_brackets [
-				'\o{0}',
-				'\o{0101}',
-				'\o{101}',
-				'\o{60}',
-				'\o{000060}',
-				'\o{243}',
-				'\o{71061}',  // U+7231 爱
-				'\o{071061}',
-				'\o{60433}',  // U+611B 愛
-				'\o{060433}',
-				'\o{374560}', // U+1F970 emoji smiling face with hearts 🥰
-				'\o{4177777}', // U+10FFFF
-				'\o{004177777}',
-			]
-			hex [
-				'\x30', // 0 - 9
-				'\x31',
-				'\x32',
-				'\x33',
-				'\x34',
-				'\x35',
-				'\x36',
-				'\x37',
-				'\x38',
-				'\x39',
-				'\x0000000000000030', // 0 - 9
-				'\x0000000000000031',
-				'\x0000000000000032',
-				'\x0000000000000033',
-				'\x0000000000000034',
-				'\x0000000000000035',
-				'\x0000000000000036',
-				'\x0000000000000037',
-				'\x0000000000000038',
-				'\x0000000000000039',
-				'\x0',
-				'\x000000000000000000000000000',
-				'\x41', // A
-				'\x0041',
-				'\x61', // a
-				'\x00000061',
-				'\x7231', // 爱
-				'\x00007231',
-				'\x611B', // 愛
-				'\x0000611b',
-				'\x1f970', // U+1F970 emoji smiling face with hearts 🥰 
-				'\x1F970',
-				'\x10FFFF',
-				'\x0010FffF',
-			]
-			hex_with_curly_brackets [
-				'\x{30}', // 0 - 9
-				'\x{31}',
-				'\x{32}',
-				'\x{33}',
-				'\x{34}',
-				'\x{35}',
-				'\x{36}',
-				'\x{37}',
-				'\x{38}',
-				'\x{39}',
-				'\x{0000000000000030}', // 0 - 9
-				'\x{0000000000000031}',
-				'\x{0000000000000032}',
-				'\x{0000000000000033}',
-				'\x{0000000000000034}',
-				'\x{0000000000000035}',
-				'\x{0000000000000036}',
-				'\x{0000000000000037}',
-				'\x{0000000000000038}',
-				'\x{0000000000000039}',
-				'\x{0}',
-				'\x{000000000000000000000000000000000000}',
-				'\x{41}', // A
-				'\x{0041}',
-				'\x{61}', // a
-				'\x{00000061}',
-				'\x{7231}', // 爱
-				'\x{00007231}',
-				'\x{611B}', // 愛
-				'\x{0000611b}',
-				'\x{1f970}', // U+1F970 emoji smiling face with hearts 🥰 
-				'\x{1F970}',
-				'\x{10FFFF}',
-				'\x{0010FffF}',
-			]
-			universal_u [
-				'\u0030', // 0 - 9
-				'\u0031',
-				'\u0032',
-				'\u0033',
-				'\u0034',
-				'\u0035',
-				'\u0036',
-				'\u0037',
-				'\u0038',
-				'\u0039',
-				'\u0000',
-				'\u0041', // A
-				'\u0061', // a
-				'\u7231', // 爱
-				'\u611B', // 愛
-			]
-			universal_u_with_curly_brackets [
-				'\u{30}', // 0 - 9
-				'\u{31}',
-				'\u{32}',
-				'\u{33}',
-				'\u{34}',
-				'\u{35}',
-				'\u{36}',
-				'\u{37}',
-				'\u{38}',
-				'\u{39}',
-				'\u{0000000000000030}', // 0 - 9
-				'\u{0000000000000031}',
-				'\u{0000000000000032}',
-				'\u{0000000000000033}',
-				'\u{0000000000000034}',
-				'\u{0000000000000035}',
-				'\u{0000000000000036}',
-				'\u{0000000000000037}',
-				'\u{0000000000000038}',
-				'\u{0000000000000039}',
-				'\u{0}',
-				'\u{000000000000000000000000000000000000}',
-				'\u{41}', // A
-				'\u{0041}',
-				'\u{61}', // a
-				'\u{00000061}',
-				'\u{7231}', // 爱
-				'\u{00007231}',
-				'\u{611B}', // 愛
-				'\u{0000611b}',
-				'\u{1f970}', // U+1F970 emoji smiling face with hearts 🥰 
-				'\u{1F970}',
-				'\u{10FFFF}',
-				'\u{0010FffF}',
-			]
-			universal_U [
-				'\U00000030', // 0 - 9
-				'\U00000031',
-				'\U00000032',
-				'\U00000033',
-				'\U00000034',
-				'\U00000035',
-				'\U00000036',
-				'\U00000037',
-				'\U00000038',
-				'\U00000039',
-				'\U00000000',
-				'\U00000041', // A
-				'\U00000061', // a
-				'\U00007231', // 爱
-				'\U0000611B', // 愛
-				'\U0000611b', // 愛
-				'\U0001f970', // U+1F970 emoji smiling face with hearts 🥰 
-				'\U0001F970',
-				'\U0010FFFF',
-				'\U0010ffff',
-				'\U0010Ffff',
-			]
-		}
-	}
-	string_test {
-		string [
-			"",
-			"I'm string",
-			"我是字符串",
-			"🍌🥑🍓",
-		]
-		raw_string [
-			@"()",
-			@"ABCD("(.\test\features_test.pdn)")ABCD",
-			@"(\0\a\b\f\r\n)",
-			@"ABCD("(.\test\features_test.pdn
-				new line!
-				new line 2!)")ABCD",
-		]
-		raw_string_delimiter [
-			@"()",
-			@"0123456789(🍓num)0123456789",
-			@"!"#%&'*+,-./:;<=(signs 1🍓)!"#%&'*+,-./:;<=",
-			@">?[]^_{|}~$@`(signs🍓2)>?[]^_{|}~$@`",
-			@"ABCDEFGHIJKLMNOP(uppercase🍓letters 1)ABCDEFGHIJKLMNOP",
-			@"abcdefghijklmnop(lowercase letters🍓1)abcdefghijklmnop",
-			@"QRSTUVWXYZ(uppercase letters🍓2)QRSTUVWXYZ",
-			@"qrstuvwxyz(lowercase🍓letters 2)qrstuvwxyz",
-			// 16 + 10 + 13 + 26 + 26 = 91 = 99 - 5 - 2 - 1; space 5, () 2, \ 1.
-		]
-		escape {
-			sample [
-				"\'\"\?\\\a\b\f\n\r\t\v"
-			]
-			oct [
-				"\0\101\60\060\243\777", // NUL; A; 0; 0; U+00A3 Pound sign; U+01FF Latin small letter o with stroke and acute;
-				"\0007\1017\608\0607\2437\777777", // NUL; 7; A; 7; 0; 8; 0; 7; U+00A3 Pound sign; 7; U+01FF Latin small letter o with stroke and acute; 7; 7; 7;
-			]
-			oct_with_curly_brackets [
-				// todo
-			]
-			hex [
-				// todo
-			]
-			hex_with_curly_brackets [
-				// todo
-			]
-			universal_u [
-				// todo
-			]
-			universal_u_with_curly_brackets [
-				// todo
-			]
-			universal_U [
-				// todo
-			]
-		}
-	}
-	bool_test {
-		true@true
-		false@false
-		bool_1:@true;
-		bool_2:@false;
-		bool_3:bool@true;
-		bool_4:boolean@false;
-	}
-	list_test {
-		list_1 [[[[]]],[],[[]],[[],[],[]],[]]
-		// todo
-	}
-	object_test {
-		object {a{a{a{}b{};};}b{}c{};}
-		// todo
-	}
-	at_value_test {
-		true@true;
-		false@false;
-		e@e;
-		log2e@log2e;
-		log10e@log10e;
-		pi@pi;
-		inv_pi@inv_pi;
-		inv_sqrtpi@inv_sqrtpi;
-		ln2@ln2;
-		ln10@ln10;
-		sqrt2@sqrt2;
-		sqrt3@sqrt3;
-		inv_sqrt3@inv_sqrt3;
-		egamma@egamma;
-		phi@phi;
-		inifinity@infinity;
-		inf@inf;
-		quiet_NaN@quiet_NaN;
-		qNaN@qNaN;
-		qnan@qnan;
-		NaN@NaN;
-		nan@nan;
-		signaling_NaN@signaling_NaN;
-		sNaN@sNaN;
-		snan@snan;
-		extra { // not standard
-			π@π;
-			γ@γ;
-			Φ@Φ;
-			hello@hello;
-			inf∞;
-			fib_10_list@fib_10_list;
-			me_object@me_object;
-		}
-	}
-	sign_test [
-		+ 1, ++ 1, +++1, ++++1, ++++++++++++++++1, // 16 +
-		- 1, - -1, ---1, ----1, ----------------1, // 16 -
-		+-1,  -+1, +-+-1, -+-+1, --+--+-++-++-+1, // 7 - and 7 +
-		+1., ++1., +++1., ++++1., ++++++++++++++++1., // 16 +
-		-.1, --.1, ---.1, ----.1, ----------------.1, // 16 -
-		+-0.0, -+.0, +-+-0., -+-+0.0, --+--+-++-++-+.0, // 7 - and 7 +
-		+@inf, -@infinity,
+}
+
+string_test {
+	string [
+		"",
+		"I'm string",
+		"我是字符串",
+		"🍌🥑🍓",
 	]
-	type_assignment_test {
-		object {
-			// todo iden:type expr
-		}
-		list [
-			// todo type:expr
+	raw_string [
+		@"()",
+		@"ABCD("(.\test\features_test.pdn)")ABCD",
+		@"(\0\a\b\f\r\n)",
+		@"ABCD("(.\test\features_test.pdn
+			new line!
+			new line 2!)")ABCD",
+	]
+	raw_string_delimiter [
+		@"()",
+		@"0123456789(🍓num)0123456789",
+		@"!"#%&'*+,-./:;<=(signs 1🍓)!"#%&'*+,-./:;<=",
+		@">?[]^_{|}~$@`(signs🍓2)>?[]^_{|}~$@`",
+		@"ABCDEFGHIJKLMNOP(uppercase🍓letters 1)ABCDEFGHIJKLMNOP",
+		@"abcdefghijklmnop(lowercase letters🍓1)abcdefghijklmnop",
+		@"QRSTUVWXYZ(uppercase letters🍓2)QRSTUVWXYZ",
+		@"qrstuvwxyz(lowercase🍓letters 2)qrstuvwxyz",
+		// 16 + 10 + 13 + 26 + 26 = 91 = 99 - 5 - 2 - 1; space 5, () 2, \ 1.
+	]
+	escape {
+		sample [
+			"\'\"\?\\\a\b\f\n\r\t\v"
+		]
+		oct [
+			"\0\101\60\060\243\777", // NUL; A; 0; 0; U+00A3 Pound sign; U+01FF Latin small letter o with stroke and acute;
+			"\0007\1017\608\0607\2437\777777", // NUL; 7; A; 7; 0; 8; 0; 7; U+00A3 Pound sign; 7; U+01FF Latin small letter o with stroke and acute; 7; 7; 7;
+		]
+		oct_with_curly_brackets [
+			"\o{101}\o{0141}\o{60}\o{0061}", // Aa01
+		]
+		hex [
+			"\x41\x061\x00000030\x0031", // Aa01
+		]
+		hex_with_curly_brackets [
+			"\x{41}\x{061}\x{00000030}\x{0031}", // Aa01
+		]
+		universal_u [
+			"\u0041\u0061\u0030\u0031", // Aa01
+		]
+		universal_u_with_curly_brackets [
+			"\u{41}\u{061}\u{00000030}\u{0031}", // Aa01
+		]
+		universal_U [
+			"\U00000041\U00000061\U00000030\U00000031", // Aa01
 		]
 	}
-	cast_test {
-		object {
-			// todo
-		}
-		list [
-			// todo
-		]
+}
+
+bool_test {
+	true@true
+	false@false
+	bool_1:@true;
+	bool_2:@false;
+	bool_3:bool@true;
+	bool_4:boolean@false;
+}
+
+list_test {
+	list_1 [[[[]]],[],[[]],[[],[],[]],[]]
+	list_2 [ 1, 2, 3, @true, 1., .0, 1e5, 0x.8p+2, 'C', "String" ]
+}
+
+object_test {
+	object {a{a{a{}b{};};}b{}c{};}
+}
+
+at_value_test {
+	true@true;
+	false@false;
+	e@e;
+	log2e@log2e;
+	log10e@log10e;
+	pi@pi;
+	inv_pi@inv_pi;
+	inv_sqrtpi@inv_sqrtpi;
+	ln2@ln2;
+	ln10@ln10;
+	sqrt2@sqrt2;
+	sqrt3@sqrt3;
+	inv_sqrt3@inv_sqrt3;
+	egamma@egamma;
+	phi@phi;
+	inifinity@infinity;
+	inf@inf;
+	quiet_NaN@quiet_NaN;
+	qNaN@qNaN;
+	qnan@qnan;
+	NaN@NaN;
+	nan@nan;
+	signaling_NaN@signaling_NaN;
+	sNaN@sNaN;
+	snan@snan;
+	extra { // not standard
+		π@π;
+		γ@γ;
+		Φ@Φ;
+		hello@hello;
+		inf∞;
+		fib_10_list@fib_10_list;
+		me_object@me_object;
 	}
-	type_deducing_test {
-		int_uint {
-			id_1 0x7f'ff'ff'ff;             // i32(win-x86_64)
-			id_2 0x80'00'00'00;             // i64(win-x86_64)
-			id_3 0x7f'ff'ff'ff'ff'ff'ff'ff; // i64(win-x86_64)
-			id_4 0x80'00'00'00'00'00'00'00; // u64(win-x86_64)
-			id_5 0xff'ff'ff'ff'ff'ff'ff'ff; // u64(win-x86_64)
-			id_6:0x7f'ff'ff'ff;             // i32(win-x86_64)
-			id_7:0x80'00'00'00;             // i64(win-x86_64)
-			id_8:0x7f'ff'ff'ff'ff'ff'ff'ff; // i64(win-x86_64)
-			id_9:0x80'00'00'00'00'00'00'00; // u64(win-x86_64)
-			id_A:0xff'ff'ff'ff'ff'ff'ff'ff; // u64(win-x86_64)
-		}
-		floating_point {
-			fp1 .0;
-			fp2 0.;
-			fp3:.0;
-			fp4:0.;
-			fp5 321.123
-			fp6 1e0;
-			fp7 0E1;
-			fp8 .0e2000
-			fp9:.1e10
-			fpa 0.e0;
-			fpb:1.1e-1;
-			fpc 0xFfP15
-			fpd 0x5.8P+1
-			fpe 0x.Ep-1;
-			fpf:0x.8p1;
-		}
-		string {
-			s1 "string"
-			s2 "string\n"
-			s3:"s"
-			s4:""
-			s5 @"R(raw string \\ RAW STRING)R";
-			s6:@"()"
-			s7""
-			s8@"()"
-		}
-		character {
-			c1 '\0'
-			c2:'\0'
-			c3'C'
-			c4:'c'
-			c5 '\0'
-			c6:'\0'
-			c7'😶'
-			c8:'😊'
-		}
-		boolean {
-			bool_1@true;
-			bool_2@false;
-			bool_3:@true;
-			bool_4:@false;
-		}
-		list {
-			list1 [];
-			list2:[];
-			list3[[]]
-			list4[1,2,3,4,5,1.,.2,.3e1,0x4p+0,0XA.P-1,"",@"()",' ',@true,@false,@inf,@NaN,[],{},list:[],obj:{}];
-		}
-		object {
-			obj1 {};
-			obj2:{};
-			obj3{}
-			obj4:{ a 1; b 2e0; c:'C'; d "string"; };
-		}
+}
+
+sign_test [
+	+ 1, ++ 1, +++1, ++++1, ++++++++++++++++1, // 16 +
+	- 1, - -1, ---1, ----1, ----------------1, // 16 -
+	+-1,  -+1, +-+-1, -+-+1, --+--+-++-++-+1, // 7 - and 7 +
+	+1., ++1., +++1., ++++1., ++++++++++++++++1., // 16 +
+	-.1, --.1, ---.1, ----.1, ----------------.1, // 16 -
+	+-0.0, -+.0, +-+-0., -+-+0.0, --+--+-++-++-+.0, // 7 - and 7 +
+	+@inf, -@infinity,
+]
+
+type_assignment_test {
+	object {
+		a : int  0;
+		b : i    0;
+		c : uint 0;
+		d : u    0;
+		e : i8  0;
+		f : i16 0;
+		g : i32 0;
+		h : i64 0;
+		i : u8  0;
+		j : u16 0;
+		k : u32 0;
+		l : u64 0;
+		m : f32 0;
+		n : f64 0;
+		o : f    0;
+		p : float 0;
+		q : double 0;
+		r : bool @true;
+		s : boolean @false;
+		t : c 'c';
+		u : char 'c';
+		v : character 'c';
+		w : s "s";
+		x : str "str";
+		y : string "string";
+		z : list [];
+		A : obj {};
+		B : object {};
 	}
-	others {
-		o { a 123b 456c:789d:10; };
-		x { a:123; b:456; c:789; d:10; }
+	list [
+		int:0,
+		i:0,
+		uint:0,
+		u:0,
+		i8:0,
+		i16:0,
+		i32:0,
+		i64:0,
+		u8:0,
+		u16:0,
+		u32:0,
+		u64:0,
+		f32:0,
+		f64:0,
+		f:0,
+		float:0,
+		double:0,
+		bool:@true,
+		boolean:@false,
+		c:'c',
+		char:'c',
+		character:'c',
+		s:"s",
+		str:"str",
+		string:"string",
+		list:[],
+		obj:{},
+		object:{},
+	]
+}
+
+cast_test {
+	object {
+		to_i8:i8   123;
+		to_i16:i16 30000;
+		to_i32:i32 0; // no cast_test
+		to_i64:i64 99999;
+		to_u8:u8   255;
+		to_u16:u16 65535;
+		to_u32:u32 99999;
+		to_u64:u64 99999;
+
+		to_f32_1:f32 100;
+		to_f32_2:f32 1.0;
+		to_f64:f64 0.0; // no cast_test
+
+		to_bool_1:bool @true; // no cast
+		to_bool_2:bool 0;
+		to_bool_3:bool 1;
+		to_bool_4:bool -100;
+		to_bool_5:bool 0xff'ff'ff'ff'ff'ff'ff'ff;
+		to_bool_6:bool 0.;
+		to_bool_7:bool .0;
+		to_bool_8:bool 0.00001;
+		to_bool_9:bool 1e-6;
+		to_bool_10:bool -1e-6;
 	}
+	list [
+		i8:  123,
+		i16: 30000,
+		i32: 0, // no cast_test
+		i64: 99999,
+		u8:  255,
+		u16: 65535,
+		u32: 99999,
+		u64: 99999,
+
+		f32: 100,
+		f32: 1.0,
+		f64: 0.0, // no cast_test
+
+		bool: @true, // no cast
+		bool: 0,
+		bool: 1,
+		bool: -100,
+		bool: 0xff'ff'ff'ff'ff'ff'ff'ff,
+		bool: 0.,
+		bool: .0,
+		bool: 0.00001,
+		bool: 1e-6,
+		bool: -1e-6,
+	]
+}
+
+type_deducing_test {
+	int_uint {
+		id_1 0x7f'ff'ff'ff;             // i32(win-x86_64)
+		id_2 0x80'00'00'00;             // i64(win-x86_64)
+		id_3 0x7f'ff'ff'ff'ff'ff'ff'ff; // i64(win-x86_64)
+		id_4 0x80'00'00'00'00'00'00'00; // u64(win-x86_64)
+		id_5 0xff'ff'ff'ff'ff'ff'ff'ff; // u64(win-x86_64)
+		id_6:0x7f'ff'ff'ff;             // i32(win-x86_64)
+		id_7:0x80'00'00'00;             // i64(win-x86_64)
+		id_8:0x7f'ff'ff'ff'ff'ff'ff'ff; // i64(win-x86_64)
+		id_9:0x80'00'00'00'00'00'00'00; // u64(win-x86_64)
+		id_A:0xff'ff'ff'ff'ff'ff'ff'ff; // u64(win-x86_64)
+	}
+	floating_point {
+		fp1 .0;
+		fp2 0.;
+		fp3:.0;
+		fp4:0.;
+		fp5 321.123
+		fp6 1e0;
+		fp7 0E1;
+		fp8 .0e2000
+		fp9:.1e10
+		fpa 0.e0;
+		fpb:1.1e-1;
+		fpc 0xFfP15
+		fpd 0x5.8P+1
+		fpe 0x.Ep-1;
+		fpf:0x.8p1;
+	}
+	string {
+		s1 "string"
+		s2 "string\n"
+		s3:"s"
+		s4:""
+		s5 @"R(raw string \\ RAW STRING)R";
+		s6:@"()"
+		s7""
+		s8@"()"
+	}
+	character {
+		c1 '\0'
+		c2:'\0'
+		c3'C'
+		c4:'c'
+		c5 '\0'
+		c6:'\0'
+		c7'😶'
+		c8:'😊'
+	}
+	boolean {
+		bool_1@true;
+		bool_2@false;
+		bool_3:@true;
+		bool_4:@false;
+	}
+	list {
+		list1 [];
+		list2:[];
+		list3[[]]
+		list4[1,2,3,4,5,1.,.2,.3e1,0x4p+0,0XA.P-1,"",@"()",' ',@true,@false,@inf,@NaN,[],{},list:[],obj:{}];
+	}
+	object {
+		obj1 {};
+		obj2:{};
+		obj3{}
+		obj4:{ a 1; b 2e0; c:'C'; d "string"; };
+	}
+}
+
+raw_identifier_string_test {
+	raw {
+		@`()` 0;
+		@`ABCD(`(.\test\features_test.pdn)`)ABCD` 0;
+		@`(\0\a\b\f\r\n)` 0;
+		@`ABCD(`(.\test\features_test.pdn
+			new line!
+			new line 2!)`)ABCD` 0;
+	}
+	delimiter {
+		@`()` 0;
+		@`0123456789(🍓num)0123456789` 0;
+		@`!"#%&'*+,-./:;<=(signs 1🍓)!"#%&'*+,-./:;<=` 0;
+		@`>?[]^_{|}~$@`(signs🍓2)>?[]^_{|}~$@`` 0
+		@`ABCDEFGHIJKLMNOP(uppercase🍓letters 1)ABCDEFGHIJKLMNOP` 0;
+		@`abcdefghijklmnop(lowercase letters🍓1)abcdefghijklmnop` 0;
+		@`QRSTUVWXYZ(uppercase letters🍓2)QRSTUVWXYZ` 0;
+		@`qrstuvwxyz(lowercase🍓letters 2)qrstuvwxyz` 0;
+		// 16 + 10 + 13 + 26 + 26 = 91 = 99 - 5 - 2 - 1; space 5, () 2, \ 1.
+	}
+}
+
+others {
+	o { a 123b 456c:789d:10; };
+	x { a:123; b:456; c:789; d:10; }
 }

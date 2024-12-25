@@ -384,8 +384,12 @@ namespace pdn
 				case bin_seq:
 				case hex_seq:
 				case hex_fp_exp:
-					cont_n_delimiter_count = 0;
 					number_sequence += char(c);
+					if (cont_n_delimiter_count > 1)
+					{
+						post_err(get_pos(), lex_ec::more_than_one_separators_between_numbers, to_raw_err_str(num_seq_to_ems()));
+					}
+					cont_n_delimiter_count = 0;
 					break;
 				case dec_seq_with_quote:
 				case fp_dec_part_with_quote:
@@ -396,12 +400,8 @@ namespace pdn
 				case hex_seq_with_quote:
 				case hex_fp_dec_part_with_quote:
 				case hex_fp_exp_with_quote:
-					++cont_n_delimiter_count;
 					number_sequence += char(c);
-					if (cont_n_delimiter_count > 1)
-					{
-						post_err(get_pos(), lex_ec::more_than_one_separators_may_between_numbers, to_raw_err_str(num_seq_to_ems()));
-					}
+					++cont_n_delimiter_count;
 					break;
 				default:
 					break;
@@ -743,8 +743,8 @@ namespace pdn
 			using namespace literals::error_message_literals;
 			auto l_bracket = is_with_curly_brackets ? u8"{"_em : u8""_em;
 			auto r_bracket = is_with_curly_brackets ? u8"}"_em : u8""_em;
-			auto ms = u8"\\"_em.append(escape_sign).append(l_bracket).append(sequence).append(r_bracket);
-			return { ::std::move(ms), parse_val };
+			escape_sign.append(l_bracket).append(sequence).append(r_bracket);
+			return { ::std::move(escape_sign), parse_val };
 		};
 		
 		bool get_escape(auto& oc,    // out param, the result of get escape
@@ -759,7 +759,7 @@ namespace pdn
 			using enum lexical_error_code;
 			if (begin == end)
 			{
-				post_err(position, escape_error_unknown_escape_sequence, to_raw_err_str(u8"\\"_em));
+				post_err(position, escape_error_unknown_escape_sequence, to_raw_err_str(u8""_em));
 				return false;
 			}
 
@@ -796,7 +796,7 @@ namespace pdn
 
 				if (begin == end || *begin != U'{')
 				{
-					post_err(position, escape_error_o_not_followed_by_left_brackets, to_raw_err_str(u8"\\o"_em));
+					post_err(position, escape_error_o_not_followed_by_left_brackets, to_raw_err_str(u8"o"_em));
 					return false;
 				}
 				c = *begin;
@@ -806,16 +806,20 @@ namespace pdn
 
 				if (begin == end || *begin != U'}')
 				{
-					post_err(position, escape_error_o_not_terminated_with_right_brackets, to_raw_err_str(u8"\\o{"_em + seq_to_err_msg_str()));
+					post_err(position, escape_error_o_not_terminated_with_right_brackets, to_raw_err_str(u8"o{"_em + seq_to_err_msg_str()));
+					if (sequence.empty())
+					{
+						post_err(position, escape_error_o_empty_delimited_escape_sequence, to_raw_err_str(u8"o{"_em));
+					}
 					return false;
 				}
 				c = *begin;
 				++begin;
 
-				if (sequence.size() == 0)
+				if (sequence.empty())
 				{
 					// The contents of the curly braces cannot be empty
-					post_err(position, escape_error_o_empty_delimited_escape_sequence, to_raw_err_str(u8"\\o{}"_em));
+					post_err(position, escape_error_o_empty_delimited_escape_sequence, to_raw_err_str(u8"o{}"_em));
 					return false;
 				}
 
@@ -849,7 +853,7 @@ namespace pdn
 
 				if (begin == end)
 				{
-					post_err(position, escape_error_x_used_with_no_following_hex_digits, to_raw_err_str(u8"\\x"_em));
+					post_err(position, escape_error_x_used_with_no_following_hex_digits, to_raw_err_str(u8"x"_em));
 					return false;
 				}
 				c = *begin;
@@ -866,18 +870,22 @@ namespace pdn
 				{
 					if (begin == end || *begin != U'}')
 					{
-						post_err(position, escape_error_x_not_terminated_with_right_brackets, to_raw_err_str(u8"\\x{"_em + seq_to_err_msg_str()));
+						post_err(position, escape_error_x_not_terminated_with_right_brackets, to_raw_err_str(u8"x{"_em + seq_to_err_msg_str()));
+						if (sequence.empty())
+						{
+							post_err(position, escape_error_x_empty_delimited_escape_sequence, to_raw_err_str(u8"x{"_em));
+						}
 						return false;
 					}
 					c = *begin;
 					++begin;
 				}
 
-				if (sequence.size() == 0)
+				if (sequence.empty())
 				{
 					// length of hexadecimal number sequence cannot be 0 in \x... and \x{...}
 					post_err(position, escape_error_x_empty_delimited_escape_sequence,
-						to_raw_err_str(is_with_curly_brackets ? u8"\\x{}"_em : u8"\\x"_em));
+						to_raw_err_str(is_with_curly_brackets ? u8"x{}"_em : u8"x"_em));
 					return false;
 				}
 
@@ -910,7 +918,7 @@ namespace pdn
 				++begin; // -> { or n (hex/)
 				if (begin == end)
 				{
-					post_err(position, escape_error_u_incomplete_universal_character_name, to_raw_err_str(u8"\\u"_em));
+					post_err(position, escape_error_u_incomplete_universal_character_name, to_raw_err_str(u8"u"_em));
 					return false;
 				}
 				c = *begin;
@@ -935,16 +943,20 @@ namespace pdn
 					if (begin == end || *begin != U'}')
 					{
 						post_err(position, escape_error_u_not_terminated_with_right_brackets,
-							to_raw_err_str(u8"\\u{"_em + seq_to_err_msg_str()));
+							to_raw_err_str(u8"u{"_em + seq_to_err_msg_str()));
+						if (sequence.empty())
+						{
+							post_err(position, escape_error_u_empty_delimited_escape_sequence, to_raw_err_str(u8"u{"_em));
+						}
 						return false;
 					}
 					c = *begin;
 					++begin;
 
-					if (sequence.size() == 0)
+					if (sequence.empty())
 					{
 						// length of hexadecimal number sequence cannot be 0 in \u{n...}
-						post_err(position, escape_error_u_empty_delimited_escape_sequence, to_raw_err_str(u8"\\u{}"_em));
+						post_err(position, escape_error_u_empty_delimited_escape_sequence, to_raw_err_str(u8"u{}"_em));
 						return false;
 					}
 				}
@@ -954,7 +966,7 @@ namespace pdn
 					{
 						// length of hexadecimal number sequence cannot be number other than 4 in \unnnn
 						post_err(position, escape_error_u_incomplete_universal_character_name,
-							to_raw_err_str(u8"\\u"_em + seq_to_err_msg_str()));
+							to_raw_err_str(u8"u"_em + seq_to_err_msg_str()));
 						return false;
 					}
 				}
@@ -989,7 +1001,7 @@ namespace pdn
 
 				if (begin == end)
 				{
-					post_err(position, escape_error_U_incomplete_universal_character_name, to_raw_err_str(u8"\\U"_em));
+					post_err(position, escape_error_U_incomplete_universal_character_name, to_raw_err_str(u8"U"_em));
 					return false;
 				}
 
@@ -1001,7 +1013,7 @@ namespace pdn
 				{
 					// length of hexadecimal number sequence cannot be number other than 8 in \Unnnnnnnn
 					post_err(position, escape_error_U_incomplete_universal_character_name,
-						to_raw_err_str(u8"\\U"_em + seq_to_err_msg_str()));
+						to_raw_err_str(u8"U"_em + seq_to_err_msg_str()));
 					return false;
 				}
 
@@ -1064,7 +1076,7 @@ namespace pdn
 				break;
 			}
 			auto cp = unicode::code_point_t(c);
-			auto err_msg = u8"\\"_em.append(unicode::code_convert<error_msg_string>(unicode::code_point_string_view{ &cp, 1 }));
+			auto err_msg = unicode::code_convert<error_msg_string>(unicode::code_point_string_view{ &cp, 1 });
 			post_err(position, escape_error_unknown_escape_sequence, to_raw_err_str(::std::move(err_msg)));
 			return false;
 		}
@@ -1214,8 +1226,8 @@ namespace pdn
 				using raw_err = raw_error_message_type::number_end_with_separator;
 				using enum raw_error_message_type::number_type;
 				post_err(pos, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_floating });
-			}
 				[[fallthrough]];
+			}
 			case hex_fp_dec_part_first_after_hex_with_dot: // <<< ERROR STATE
 			case hex_fp_dec_part:          // <<< ERROR STATE
 			case hex_fp_exp_sign_or_first: // <<< ERROR STATE

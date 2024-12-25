@@ -58,21 +58,21 @@ namespace pdn::dev_util
 				+ u8" content: "_em + get_quoted_slashes_s_for_mts(raw);
 
 		case invalid_octal_number:
-			return u8"invalid octal number: "_em + get_slashes_s(raw) + u8", reinterpreting it as decimal integer"_em;
+			return u8"invalid octal number: "_em + get_err_s(raw) + u8", reinterpreting it as decimal integer"_em;
 		case fp_dec_expect_exponent:
-			return u8"expect exponent part: "_em + get_slashes_s(raw);
+			return u8"expect exponent part: "_em + get_err_s(raw);
 		case fp_hex_expect_exponent:
-			return u8"hexadecimal floating-point literal requires an exponent: "_em + get_slashes_s(raw);
+			return u8"hexadecimal floating-point literal requires an exponent: "_em + get_err_s(raw);
 		case bin_prefix_expect_bin_number_sequence:
-			return u8"expect binary number sequence: "_em + get_slashes_s(raw);
+			return u8"expect binary number sequence: "_em + get_err_s(raw);
 		case hex_prefix_expect_hex_number_sequence:
-			return u8"expect hexadecimal number sequence: "_em + get_slashes_s(raw);
+			return u8"expect hexadecimal number sequence: "_em + get_err_s(raw);
 		case fp_hex_expect_decimal_part:
-			return u8"expect hexadecimal decimal part: "_em + get_slashes_s(raw);
-		case more_than_one_separators_may_between_numbers:
-			return u8"more than one separators may between numbers: "_em + get_slashes_s(raw);
+			return u8"expect hexadecimal decimal part: "_em + get_err_s(raw);
+		case more_than_one_separators_between_numbers:
+			return u8"more than one separators between numbers: "_em + get_err_s(raw);
 		case number_cannot_end_with_separator:
-			return u8"number cannot end with separator: "_em + get_slashes_s_for_ews(raw);
+			return u8"number cannot end with separator: "_em + get_s_for_ews(raw);
 
 			// NUMBER FROM CHARS ERROR
 		case number_from_chars_parsing_incomplete:
@@ -96,32 +96,32 @@ namespace pdn::dev_util
 
 			// unknown escape sequence
 		case escape_error_unknown_escape_sequence:
-			return u8"escape error: unknown escape sequence: "_em + get_quoted_slashes_s(raw);
+			return u8"escape error: unknown escape sequence: "_em + get_esc_quoted_s(raw);
 
 			// escape \o{...}
 		case escape_error_o_not_followed_by_left_brackets:
-			return u8"escape error: "_em + get_quoted_slashes_s(raw) + u8" not followed by '{'"_em;
+			return u8"escape error: "_em + get_esc_quoted_s(raw) + u8" not followed by '{'"_em;
 		case escape_error_o_not_terminated_with_right_brackets:
-			return u8"escape error: "_em + get_quoted_slashes_s(raw) + u8" not followed by '}'"_em;
+			return u8"escape error: "_em + get_esc_quoted_s(raw) + u8" not followed by '}'"_em;
 		case escape_error_o_empty_delimited_escape_sequence:
-			return u8"escape error: "_em + get_quoted_slashes_s(raw) + u8" empty delimited escape sequence"_em;
+			return u8"escape error: "_em + get_esc_quoted_s(raw) + u8" empty delimited escape sequence"_em;
 
 			// escape \x... \x{...}
-		case escape_error_x_used_with_no_following_hex_digits:
-			return u8"escape error: "_em + get_quoted_slashes_s(raw) + u8" not followed by hexadecimal digit or '{'"_em;
 		case escape_error_x_not_terminated_with_right_brackets:
-			return u8"escape error: "_em + get_quoted_slashes_s(raw) + u8" not followed by '}'"_em;
+			return u8"escape error: "_em + get_esc_quoted_s(raw) + u8" not followed by '}'"_em;
 		case escape_error_x_empty_delimited_escape_sequence:
-			return u8"escape error: "_em + get_quoted_slashes_s(raw) + u8" empty delimited escape sequence"_em;
+			return u8"escape error: "_em + get_esc_quoted_s(raw) + u8" empty delimited escape sequence"_em;
+		case escape_error_x_used_with_no_following_hex_digits:
+			return u8"escape error: "_em + get_esc_quoted_s(raw) + u8" not followed by hexadecimal digit or '{'"_em;
 
 			// escape \Unnnnnnnn \unnnn \u{...}
 		case escape_error_U_incomplete_universal_character_name:
 		case escape_error_u_incomplete_universal_character_name:
-			return u8"escape error: "_em + get_quoted_slashes_s(raw) + u8" incomplete universal character name"_em;
+			return u8"escape error: "_em + get_esc_quoted_s(raw) + u8" incomplete universal character name"_em;
 		case escape_error_u_not_terminated_with_right_brackets:
-			return u8"escape error: "_em + get_quoted_slashes_s(raw) + u8" not followed by '}'"_em;
+			return u8"escape error: "_em + get_esc_quoted_s(raw) + u8" not followed by '}'"_em;
 		case escape_error_u_empty_delimited_escape_sequence:
-			return u8"escape error: "_em + get_quoted_slashes_s(raw) + u8" empty delimited escape sequence"_em;
+			return u8"escape error: "_em + get_esc_quoted_s(raw) + u8" empty delimited escape sequence"_em;
 
 			// escape result is not unicode scalar value
 		case escape_error_not_unicode_scalar_value:

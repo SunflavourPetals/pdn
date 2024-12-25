@@ -282,10 +282,21 @@ namespace pdn::dev_util::err_msg_gen_util::lexical_err_msg_gen_util
 		return make_slashes(::std::get<raw_details::error_string>(raw).value);
 	}
 	// for error_string
+	inline auto get_err_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		return ::std::get<raw_details::error_string>(raw).value;
+	}
+	// for error_string
 	inline auto get_quoted_slashes_s(raw_err_v_cref raw) -> error_msg_string
 	{
 		const auto& err_s_ref = ::std::get<raw_details::error_string>(raw).value;
 		return add_quote(make_slashes(err_s_ref));
+	}
+	// for error_string escape error
+	inline auto get_esc_quoted_s(raw_err_v_cref raw) -> error_msg_string
+	{
+		const auto& s_ref = ::std::get<raw_details::error_string>(raw).value;
+		return add_quote(u8"\\"_em.append(make_slashes(s_ref)));
 	}
 	// for error_string
 	inline auto get_single_quoted_slashes_s(raw_err_v_cref raw) -> error_msg_string
@@ -322,9 +333,9 @@ namespace pdn::dev_util::err_msg_gen_util::lexical_err_msg_gen_util
 		return make_slashes(err_s_ref);
 	}
 	// for number_end_with_separator
-	inline auto get_slashes_s_for_ews(raw_err_v_cref raw) -> error_msg_string
+	inline auto get_s_for_ews(raw_err_v_cref raw) -> error_msg_string
 	{
-		return make_slashes(::std::get<raw_details::number_end_with_separator>(raw).number_sequence);
+		return ::std::get<raw_details::number_end_with_separator>(raw).number_sequence;
 	}
 	// for from_chars_error
 	inline auto get_quoted_from_chars_src_s(raw_err_v_cref raw) -> error_msg_string
@@ -367,7 +378,8 @@ namespace pdn::dev_util::err_msg_gen_util::lexical_err_msg_gen_util
 	// for escape_not_unicode_scalar_value
 	inline auto get_quoted_seq_from_esc_not_u_scalar(raw_err_v_cref raw) -> error_msg_string
 	{
-		return add_quote(::std::get<raw_details::escape_not_unicode_scalar_value>(raw).escape_sequence);
+		const auto& s_ref = ::std::get<raw_details::escape_not_unicode_scalar_value>(raw).escape_sequence;
+		return add_quote(u8"\\"_em.append(make_slashes(s_ref)));
 	}
 	// for delimiter_error
 	inline auto get_prefix_and_d_seq(raw_err_v_cref raw) -> error_msg_string

@@ -34,10 +34,10 @@ namespace pdn
 		fp_dec_expect_exponent,     // extra(error_string) number string
 		fp_hex_expect_exponent,     // extra(error_string) number string
 		fp_hex_expect_decimal_part, // extra(error_string) number string
-		bin_prefix_expect_bin_number_sequence,        // extra(error_string) number string
-		hex_prefix_expect_hex_number_sequence,        // extra(error_string) number string
-		more_than_one_separators_may_between_numbers, // extra(error_string) number string
-		number_cannot_end_with_separator,             // extra(number_end_with_separator)
+		bin_prefix_expect_bin_number_sequence,    // extra(error_string) number string
+		hex_prefix_expect_hex_number_sequence,    // extra(error_string) number string
+		more_than_one_separators_between_numbers, // extra(error_string) number string
+		number_cannot_end_with_separator,         // extra(number_end_with_separator)
 
 		// number from chars error // [[unlikely]]
 		number_from_chars_errc_result_out_of_range, // extra(from_chars_error)
@@ -46,7 +46,7 @@ namespace pdn
 		number_from_chars_parsing_incomplete,       // extra(from_chars_error)
 
 		// escape error
-		// extra(error_string) escape sequence "\..." vvv
+		// extra(error_string) escape sequence except \, e.g. "\u{}" -> "u{}" vvv
 		escape_error_unknown_escape_sequence,               // \@ (@ is illegal character in this escape sequence)
 		escape_error_o_not_followed_by_left_brackets,       // \o@
 		escape_error_o_not_terminated_with_right_brackets,  // \o{n...@ (missing '}')

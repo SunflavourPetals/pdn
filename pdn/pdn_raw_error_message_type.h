@@ -112,7 +112,7 @@ namespace pdn::raw_error_message_type
 	};
 	struct escape_not_unicode_scalar_value final
 	{
-		error_msg_string      escape_sequence; // escape sequence
+		error_msg_string      escape_sequence; // escape sequence except \, e.g. "\u{}" -> "u{}"
 		unicode::code_point_t code_point;      // result of parsing
 	};
 	struct missing_terminating_sequence final
