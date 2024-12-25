@@ -307,8 +307,13 @@ namespace pdn::dev_util::err_msg_gen_util::lexical_err_msg_gen_util
 	// for error_string
 	inline auto get_quoted_slashes_s_for_mts(raw_err_v_cref raw) -> error_msg_string
 	{
-		const auto& err_s_ref = ::std::get<raw_details::missing_terminating_sequence>(raw).content;
-		return add_quote(make_slashes(err_s_ref));
+		const auto& msg = ::std::get<raw_details::missing_terminating_sequence>(raw);
+		const auto full = u8"@"_em
+			.append(msg.is_raw_identifier_string ? u8"`"_em : u8"\""_em)
+			.append(make_slashes(msg.d_seq))
+			.append(u8"("_em)
+			.append(make_slashes(msg.content));
+		return add_quote(full);
 	}
 	// for error_string
 	inline auto get_slashes_d_seq_for_mts(raw_err_v_cref raw) -> error_msg_string

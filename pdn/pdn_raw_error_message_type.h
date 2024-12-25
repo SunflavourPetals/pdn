@@ -119,6 +119,7 @@ namespace pdn::raw_error_message_type
 	{
 		error_msg_string content;
 		error_msg_string d_seq;
+		bool is_raw_identifier_string;
 	};
 	struct delimiter_error final
 	{

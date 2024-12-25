@@ -49,8 +49,8 @@ namespace pdn::types::dev_util
 
 namespace pdn::types
 {
-	using cppint  = dev_util::simu_int_t <int>;
-	using cppuint = dev_util::simu_uint_t<unsigned int>;
+	using auto_int  = dev_util::simu_int_t <int>;
+	using auto_uint = dev_util::simu_uint_t<unsigned int>;
 }
 
 namespace pdn::types::concepts

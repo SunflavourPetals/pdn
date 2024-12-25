@@ -70,8 +70,8 @@ namespace pdn::dev_util
 namespace pdn
 {
 #define PDN_Macro_Temp_make_map_for_typename_to_typecode(prefix) \
-	constexpr auto pl_int  = dev_util::cppint_to_type_code_v<types::cppint>;   \
-	constexpr auto pl_uint = dev_util::cppuint_to_type_code_v<types::cppuint>; \
+	constexpr auto pl_int  = dev_util::cppint_to_type_code_v<types::auto_int>;   \
+	constexpr auto pl_uint = dev_util::cppuint_to_type_code_v<types::auto_uint>; \
 	self[prefix##"i8"_ucus]        = i8;        \
 	self[prefix##"i16"_ucus]       = i16;       \
 	self[prefix##"i32"_ucus]       = i32;       \

@@ -123,7 +123,7 @@ namespace pdn::parser_utility
 		case string:    return make_proxy<string_t>();
 		case list:      return make_proxy<list_t>();
 		case object:    return make_proxy<object_t>();
-		default:        return types::cppint{};
+		default:        return types::auto_int{};
 		}
 	}
 

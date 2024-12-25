@@ -202,7 +202,7 @@ namespace pdn
 			if (!parser_utility::is_expr_first(tk.code))
 			{
 				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
-				return types::cppint{};
+				return types::auto_int{};
 			}
 
 			auto result = parse_expr_without_unary(begin, end);
@@ -310,7 +310,7 @@ namespace pdn
 			}
 			default:
 				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
-				return types::cppint{};
+				return types::auto_int{};
 			}
 		}
 
@@ -495,7 +495,7 @@ namespace pdn
 			case unknown:   assert(0 && "cast to unknown type"); break;
 			default:        assert(0 && "type cast unhandled");  break;
 			}
-			return types::cppint{};
+			return types::auto_int{};
 		}
 
 		template <type_code target_type_c>
@@ -645,7 +645,7 @@ namespace pdn
 				if constexpr (::std::same_as<arg_t, ::std::monostate>)
 				{
 					assert(0 && "token have no value");
-					return types::cppint{};
+					return types::auto_int{};
 				}
 				else if constexpr (::std::same_as<arg_t, dev_util::at_iden_string_proxy>)
 				{
@@ -659,7 +659,7 @@ namespace pdn
 						using unicode::code_convert;
 						post_err(src.position, syn_ec::at_value_not_found, raw_err_iden{ code_convert<error_msg_string>(arg.get_id()) });
 					}
-					return types::cppint{};
+					return types::auto_int{};
 				}
 				else
 				{

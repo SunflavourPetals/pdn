@@ -45,17 +45,17 @@ namespace pdn::dev_util
 			return u8"unterminated </ comment"_em;
 
 		case identifier_string_missing_terminating_character:
-			return u8"identifier string missing terminating ` character: "_em + get_quoted_slashes_s(raw);
+			return u8"identifier string missing terminating ` character, content: "_em + get_quoted_slashes_s(raw);
 		case string_missing_terminating_character:
-			return u8"string missing terminating \" character: "_em + get_quoted_slashes_s(raw);
+			return u8"string missing terminating \" character, content: "_em + get_quoted_slashes_s(raw);
 		case character_missing_terminating_character:
-			return u8"character missing terminating ' character: "_em + get_single_quoted_slashes_s(raw);
+			return u8"character missing terminating ' character, content: "_em + get_single_quoted_slashes_s(raw);
 		case identifier_raw_string_missing_terminating_sequence:
 			return u8"identifier raw string missing terminating )"_em + get_slashes_d_seq_for_mts(raw) + u8"`"
-				+ u8" sequence: "_em + get_quoted_slashes_s_for_mts(raw);
+				+ u8" content: "_em + get_quoted_slashes_s_for_mts(raw);
 		case raw_string_missing_terminating_sequence:
 			return u8"raw string missing terminating )"_em + get_slashes_d_seq_for_mts(raw) + u8"\""_em
-				+ u8" sequence: "_em + get_quoted_slashes_s_for_mts(raw);
+				+ u8" content: "_em + get_quoted_slashes_s_for_mts(raw);
 
 		case invalid_octal_number:
 			return u8"invalid octal number: "_em + get_slashes_s(raw) + u8", reinterpreting it as decimal integer"_em;

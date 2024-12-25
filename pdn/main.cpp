@@ -42,12 +42,12 @@ str   : "string";
 
 	std::cout << "Am I happy now? " << std::boolalpha << as_bool(cref[u8"Am I happy now"sv]) << "\n";
 
-	if (get<types::cppint>(dom[u8"num"]) == 123)
+	if (get<types::auto_int>(dom[u8"num"]) == 123)
 	{
 		std::cout << "num = 123\n";
 	}
 
-	if (auto p = get_ptr<types::cppint>(cref[u8"n_num"]))
+	if (auto p = get_ptr<types::auto_int>(cref[u8"n_num"]))
 	{
 		std::cout << "n_num = " << *p << "\n";
 	}

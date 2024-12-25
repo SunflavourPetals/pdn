@@ -666,14 +666,14 @@ namespace pdn
 		}
 		static void to_appropriate_int_type(token_value_variant<char_t>& target, types::u64 val)
 		{
-			constexpr auto cppint_max = static_cast<types::u64>(::std::numeric_limits<types::cppint>::max());
+			constexpr auto cppint_max = static_cast<types::u64>(::std::numeric_limits<types::auto_int>::max());
 			constexpr auto i8_max     = static_cast<types::u64>(::std::numeric_limits<types::i8>::max());
 			constexpr auto i16_max    = static_cast<types::u64>(::std::numeric_limits<types::i16>::max());
 			constexpr auto i32_max    = static_cast<types::u64>(::std::numeric_limits<types::i32>::max());
 			constexpr auto i64_max    = static_cast<types::u64>(::std::numeric_limits<types::i64>::max());
 			if (val <= cppint_max)
 			{
-				target = static_cast<types::cppint>(val);
+				target = static_cast<types::auto_int>(val);
 			}
 			else if (val <= i8_max)
 			{
@@ -1256,11 +1256,16 @@ namespace pdn
 		{
 			using lex_ec = lexical_error_code;
 			using enum dfa_state_code;
-			auto make_missing_d_seq_err = [&]()
+			auto make_missing_d_seq_err = [&](bool is_raw_iden_s)
 			{
 				using miss_d_seq_msg = raw_error_message_type::missing_terminating_sequence;
 				using unicode::code_convert;
-				return miss_d_seq_msg{ .content = ::std::move(err_s), .d_seq = code_convert<error_msg_string>(d_seq) };
+				return miss_d_seq_msg
+				{
+					.content = ::std::move(err_s),
+					.d_seq   = code_convert<error_msg_string>(d_seq),
+					.is_raw_identifier_string = is_raw_iden_s
+				};
 			};
 			switch (dfa_state_c) // ERROR STATES
 			{
@@ -1273,10 +1278,10 @@ namespace pdn
 				post_err(position, lex_ec::string_missing_terminating_character, to_raw_err_str(::std::move(err_s)));
 				break;
 			case identifier_raw_string:
-				post_err(position, lex_ec::identifier_raw_string_missing_terminating_sequence, make_missing_d_seq_err());
+				post_err(position, lex_ec::identifier_raw_string_missing_terminating_sequence, make_missing_d_seq_err(true));
 				break;
 			case raw_string:
-				post_err(position, lex_ec::raw_string_missing_terminating_sequence, make_missing_d_seq_err());
+				post_err(position, lex_ec::raw_string_missing_terminating_sequence, make_missing_d_seq_err(false));
 				break;
 			default:
 				break;
