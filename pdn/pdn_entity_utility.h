@@ -73,23 +73,22 @@ namespace pdn::dev_util
 		else if constexpr (pdn_uint<arg_t>)
 		{
 			constexpr auto tar_max = ::std::numeric_limits<tar_uint>::max();
-			constexpr auto arg_max = ::std::numeric_limits<arg_t>::max();
-			if (arg_max > tar_max) return tar_max;
+			if (arg > tar_max) return tar_max;
 			return static_cast<tar_uint>(arg);
 		}
 		else if constexpr (pdn_sint<arg_t>)
 		{
 			constexpr auto tar_max = ::std::numeric_limits<tar_uint>::max();
-			constexpr auto arg_max = ::std::numeric_limits<arg_t>::max();
 			if (arg < 0) return 0;
 			if (static_cast<types::u64>(arg) > tar_max) return tar_max;
 			return static_cast<tar_uint>(arg);
 		}
 		else if constexpr (pdn_fp<arg_t>)
 		{
+			constexpr auto max = ::std::numeric_limits<tar_uint>::max();
 			if (::std::isnan(arg)) return 0;
-			if (constexpr auto max = ::std::numeric_limits<tar_uint>::max(); arg > max) return max;
-			return arg < 0 ? (tar_uint)0 : (tar_uint)arg;
+			if (arg > arg_t(max)) return max;
+			return arg < 0 ? tar_uint(0) : tar_uint(arg);
 		}
 		else
 		{
@@ -103,7 +102,7 @@ namespace pdn::dev_util
 		using namespace types::concepts;
 		if constexpr (pdn_bool<arg_t> || pdn_integral<arg_t> || pdn_fp<arg_t>)
 		{
-			return arg;
+			return static_cast<tar_fp>(arg);
 		}
 		else
 		{
@@ -117,7 +116,7 @@ namespace pdn::dev_util
 		using namespace types::concepts;
 		if constexpr (pdn_bool<arg_t> || pdn_integral<arg_t> || pdn_fp<arg_t>)
 		{
-			return arg;
+			return static_cast<bool>(arg);
 		}
 		else
 		{

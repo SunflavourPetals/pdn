@@ -28,7 +28,7 @@ namespace pdn
 		return ::std::visit([](const auto& v) { return dev_util::as_int(v); }, e);
 	}
 
-	template <typename char_t, typename in>
+	template <typename char_t, types::concepts::pdn_sint in>
 	inline auto as_int(const entity<char_t>& e, in) -> in
 	{
 		return ::std::visit([]<typename arg_t>(const arg_t& v) { return dev_util::as_int<arg_t, in>(v); }, e);
@@ -40,7 +40,7 @@ namespace pdn
 		return ::std::visit([](const auto& v) { return dev_util::as_uint(v); }, e);
 	}
 
-	template <typename char_t, typename un>
+	template <typename char_t, types::concepts::pdn_uint un>
 	inline auto as_uint(const entity<char_t>& e, un) -> un
 	{
 		return ::std::visit([]<typename arg_t>(const arg_t& v) { return dev_util::as_uint<arg_t, un>(v); }, e);
@@ -52,7 +52,7 @@ namespace pdn
 		return ::std::visit([](const auto& v) { return dev_util::as_fp(v); }, e);
 	}
 
-	template <typename char_t, typename fn>
+	template <typename char_t, types::concepts::pdn_fp fn>
 	inline auto as_fp(const entity<char_t>& e, fn) -> fn
 	{
 		return ::std::visit([]<typename arg_t>(const arg_t& v) { return dev_util::as_fp<arg_t, fn>(v); }, e);
@@ -94,7 +94,7 @@ namespace pdn
 		return e ? as_int(*e) : types::i64{};
 	}
 
-	template <typename char_t, typename in>
+	template <typename char_t, types::concepts::pdn_sint in>
 	inline auto as_int(const const_refer<char_t>& e, in tag) -> in
 	{
 		return e ? as_int(*e, tag) : in{};
@@ -106,7 +106,7 @@ namespace pdn
 		return e ? as_uint(*e) : types::u64{};
 	}
 
-	template <typename char_t, typename un>
+	template <typename char_t, types::concepts::pdn_uint un>
 	inline auto as_uint(const const_refer<char_t>& e, un tag) -> un
 	{
 		return e ? as_uint(*e, tag) : un{};
@@ -118,7 +118,7 @@ namespace pdn
 		return e ? as_fp(*e) : types::f64{};
 	}
 
-	template <typename char_t, typename fn>
+	template <typename char_t, types::concepts::pdn_fp fn>
 	inline auto as_fp(const const_refer<char_t>& e, fn tag) -> fn
 	{
 		return e ? as_fp(*e, tag) : fn{};
