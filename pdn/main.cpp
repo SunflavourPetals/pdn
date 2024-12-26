@@ -88,5 +88,5 @@ str   : "string";
 	}
 
 	my_date date(cref[u8"date"]);
-	std::cout << (const char*)pdn::make_serializer<char8_t>().serialize(date.to_entity()).c_str() << "\n";
+	std::cout << (const char*)pdn::make_u8serializer().serialize(date.to_entity()).c_str() << "\n";
 }

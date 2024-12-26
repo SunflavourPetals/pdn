@@ -502,6 +502,39 @@ namespace pdn
 			.object_separator = dev_util::to_string<char_t>(obj_sep),
 		};
 	}
+
+	auto make_u8serializer(
+		serialize_tab          tab      = {},
+		serialize_last_semi    last     = {},
+		serialize_separator    sep      = {},
+		serialize_separator_ts sep_ts   = {},
+		serialize_separator    list_sep = {},
+		serialize_separator    obj_sep  = {}) -> serializer<char8_t>
+	{
+		return make_serializer<char8_t>(tab, last, sep, sep_ts, list_sep, obj_sep);
+	}
+
+	auto make_u16serializer(
+		serialize_tab          tab      = {},
+		serialize_last_semi    last     = {},
+		serialize_separator    sep      = {},
+		serialize_separator_ts sep_ts   = {},
+		serialize_separator    list_sep = {},
+		serialize_separator    obj_sep  = {}) -> serializer<char16_t>
+	{
+		return make_serializer<char16_t>(tab, last, sep, sep_ts, list_sep, obj_sep);
+	}
+
+	auto make_u32serializer(
+		serialize_tab          tab      = {},
+		serialize_last_semi    last     = {},
+		serialize_separator    sep      = {},
+		serialize_separator_ts sep_ts   = {},
+		serialize_separator    list_sep = {},
+		serialize_separator    obj_sep  = {}) -> serializer<char32_t>
+	{
+		return make_serializer<char32_t>(tab, last, sep, sep_ts, list_sep, obj_sep);
+	}
 }
 
 #endif
