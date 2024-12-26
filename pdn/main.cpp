@@ -7,6 +7,29 @@
 #include "pdn_data_entity.h"
 #include "pdn_serializer.h"
 
+void serializer_test()
+{
+	using namespace pdn;
+	auto e_opt = parse("../test/features_test.spdn", utf_8_tag);
+	if (!e_opt)
+	{
+		std::cerr << "failed in parse \"../test/features_test.spdn\"\n";
+		return;
+	}
+	const auto& e = *e_opt;
+	auto s = make_u8serializer().serialize(as_object(e));
+	{
+		std::ofstream f("../test/serialize_test.spdn");
+		if (!f.is_open())
+		{
+			std::cerr << "failed in open \"../test/serialize_test.spdn\"\n";
+			return;
+		}
+		f.write((const char*)s.data(), s.size());
+	}
+	auto copied_e_opt = parse("../test/serialize_test.spdn", utf_8_tag);
+}
+
 struct my_date
 {
 	int y{};
@@ -37,6 +60,8 @@ struct my_date
 
 int main()
 {
+	serializer_test();
+
 	using namespace std::literals::string_view_literals;
 	auto pdn_src = u8R"(// spdn source
 

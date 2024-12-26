@@ -23,6 +23,8 @@
 
 #include "pdn_proxy.h"
 
+#include "pdn_lexer_utility.h"
+
 namespace pdn::dev_util
 {
 	template <typename t>
@@ -215,16 +217,35 @@ namespace pdn
 		auto serialize_iden(const types::string<src_char_t>& iden) const -> string_t
 		{
 			string_t result{};
-			auto slashes = make_slashes_id_string<string_t>(unicode::replace_code_convert<unicode::code_point_string>(iden));
-			if (iden.size() != slashes.size())
+			auto cp_s = unicode::replace_code_convert<unicode::code_point_string>(iden);
+			bool need_quote{};
+			{
+				if (cp_s.empty())
+				{
+					need_quote = true;
+				}
+				else if (!lexer_utility::is_allowed_as_first_char_of_identifier(cp_s[0]))
+				{
+					need_quote = true;
+				}
+				else
+				{
+					for (auto c : unicode::code_point_string_view{ cp_s.cbegin() + 1, cp_s.cend() })
+					{
+						if (!lexer_utility::is_allowed_in_identifier(c))
+						{
+							need_quote = true;
+							break;
+						}
+					}
+				}
+			}
+			auto slashes = make_slashes_id_string<string_t>(cp_s);
+			
+			if (need_quote)
 			{
 				result.push_back(char_t('`'));
 				result += slashes;
-				result.push_back(char_t('`'));
-			}
-			else if (slashes.empty())
-			{
-				result.push_back(char_t('`'));
 				result.push_back(char_t('`'));
 			}
 			else

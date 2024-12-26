@@ -47,6 +47,16 @@ namespace pdn::unicode::concepts
 	};
 }
 
+namespace pdn::bom
+{
+	using byte_t = ::std::uint8_t;
+	inline constexpr auto utf_16_le = ::std::array<byte_t, 2>{ 0xFF, 0xFE };
+	inline constexpr auto utf_16_be = ::std::array<byte_t, 2>{ 0xFE, 0xFF };
+	inline constexpr auto utf_32_le = ::std::array<byte_t, 4>{ 0xFF, 0xFE, 0x00, 0x00 };
+	inline constexpr auto utf_32_be = ::std::array<byte_t, 4>{ 0x00, 0x00, 0xFE, 0xFF };
+	inline constexpr auto utf_8     = ::std::array<byte_t, 3>{ 0xEF, 0xBB, 0xBF };
+}
+
 namespace pdn::unicode
 {
 	// read bom from input stream
@@ -56,15 +66,16 @@ namespace pdn::unicode
 	{
 		using istream_type = ::std::remove_reference_t<istream_t>;
 		using char_type    = typename istream_type::char_type;
-		using byte_type    = ::std::uint8_t;
+		using byte_type    = bom::byte_t;
+		using namespace bom;
 
 		if (!input)
 		{
 			return bom_type::no_bom;
 		}
-		::std::array<byte_type, 4> bom{}; // BOM byte sequence
+		::std::array<byte_type, 4> my_bom{}; // BOM byte sequence
 
-		input.read(reinterpret_cast<char_type*>(bom.data()), 4);
+		input.read(reinterpret_cast<char_type*>(my_bom.data()), 4);
 
 		if (input.fail())
 		{
@@ -73,23 +84,17 @@ namespace pdn::unicode
 		auto read_count = input.gcount();
 		auto bom_size = read_count;
 
-		static ::std::array<byte_type, 2> utf_16_le{ 0xFF, 0xFE };
-		static ::std::array<byte_type, 2> utf_16_be{ 0xFE, 0xFF };
-		static ::std::array<byte_type, 4> utf_32_le{ 0xFF, 0xFE, 0x00, 0x00 };
-		static ::std::array<byte_type, 4> utf_32_be{ 0x00, 0x00, 0xFE, 0xFF };
-		static ::std::array<byte_type, 3> utf_8    { 0xEF, 0xBB, 0xBF };
-
 		bom_type result{};
 
 		switch (bom_size)
 		{
 		case 4:
-			if (bom == utf_32_le)
+			if (my_bom == utf_32_le)
 			{
 				result = bom_type::utf_32_le;
 				break;
 			}
-			if (bom == utf_32_be)
+			if (my_bom == utf_32_be)
 			{
 				result = bom_type::utf_32_be;
 				break;
@@ -97,7 +102,7 @@ namespace pdn::unicode
 			bom_size = 3;
 			[[fallthrough]];
 		case 3:
-			if (::std::equal(utf_8.cbegin(), utf_8.cend(), bom.begin()))
+			if (::std::equal(utf_8.cbegin(), utf_8.cend(), my_bom.begin()))
 			{
 				result = bom_type::utf_8;
 				break;
@@ -105,12 +110,12 @@ namespace pdn::unicode
 			bom_size = 2;
 			[[fallthrough]];
 		case 2:
-			if (::std::equal(utf_16_le.cbegin(), utf_16_le.cend(), bom.begin()))
+			if (::std::equal(utf_16_le.cbegin(), utf_16_le.cend(), my_bom.begin()))
 			{
 				result = bom_type::utf_16_le;
 				break;
 			}
-			if (::std::equal(utf_16_be.cbegin(), utf_16_be.cend(), bom.begin()))
+			if (::std::equal(utf_16_be.cbegin(), utf_16_be.cend(), my_bom.begin()))
 			{
 				result = bom_type::utf_16_be;
 				break;
