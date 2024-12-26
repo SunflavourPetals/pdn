@@ -67,7 +67,6 @@ namespace pdn::unicode
 		using istream_type = ::std::remove_reference_t<istream_t>;
 		using char_type    = typename istream_type::char_type;
 		using byte_type    = bom::byte_t;
-		using namespace bom;
 
 		if (!input)
 		{
@@ -89,12 +88,12 @@ namespace pdn::unicode
 		switch (bom_size)
 		{
 		case 4:
-			if (my_bom == utf_32_le)
+			if (my_bom == bom::utf_32_le)
 			{
 				result = bom_type::utf_32_le;
 				break;
 			}
-			if (my_bom == utf_32_be)
+			if (my_bom == bom::utf_32_be)
 			{
 				result = bom_type::utf_32_be;
 				break;
@@ -102,7 +101,7 @@ namespace pdn::unicode
 			bom_size = 3;
 			[[fallthrough]];
 		case 3:
-			if (::std::equal(utf_8.cbegin(), utf_8.cend(), my_bom.begin()))
+			if (::std::equal(bom::utf_8.cbegin(), bom::utf_8.cend(), my_bom.begin()))
 			{
 				result = bom_type::utf_8;
 				break;
@@ -110,12 +109,12 @@ namespace pdn::unicode
 			bom_size = 2;
 			[[fallthrough]];
 		case 2:
-			if (::std::equal(utf_16_le.cbegin(), utf_16_le.cend(), my_bom.begin()))
+			if (::std::equal(bom::utf_16_le.cbegin(), bom::utf_16_le.cend(), my_bom.begin()))
 			{
 				result = bom_type::utf_16_le;
 				break;
 			}
-			if (::std::equal(utf_16_be.cbegin(), utf_16_be.cend(), my_bom.begin()))
+			if (::std::equal(bom::utf_16_be.cbegin(), bom::utf_16_be.cend(), my_bom.begin()))
 			{
 				result = bom_type::utf_16_be;
 				break;
