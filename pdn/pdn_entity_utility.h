@@ -26,53 +26,35 @@ namespace pdn::types::dev_util
 
 namespace pdn::dev_util
 {
-	template <typename arg_t>
-	inline auto as_int(const arg_t& arg) -> types::i64
+	template <typename arg_t, types::concepts::pdn_sint tar_int = types::i64>
+	inline auto as_int(const arg_t& arg) -> tar_int
 	{
 		using namespace types::concepts;
-		using namespace types;
-		if constexpr (pdn_sint<arg_t> || pdn_bool<arg_t>)
-		{
-			return arg;
-		}
-		else if constexpr (pdn_fp<arg_t>)
-		{
-			constexpr auto max = ::std::numeric_limits<i64>::max();
-			constexpr auto min = ::std::numeric_limits<i64>::min();
-			if (arg >= arg_t(max)) return max;
-			if (arg <= arg_t(min)) return min;
-			if (::std::isnan(arg)) return 0;
-			return arg;
-		}
-		else if constexpr (pdn_uint<arg_t>)
-		{
-			constexpr auto max = ::std::numeric_limits<i64>::max();
-			return arg > u64(max) ? max : arg;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-
-	template <typename arg_t>
-	inline auto as_uint(const arg_t& arg) -> types::u64
-	{
-		using namespace types::concepts;
-		using namespace types;
-		if constexpr (pdn_uint<arg_t> || pdn_bool<arg_t>)
+		if constexpr (pdn_bool<arg_t>)
 		{
 			return arg;
 		}
 		else if constexpr (pdn_sint<arg_t>)
 		{
-			return arg < 0 ? 0 : arg;
+			constexpr auto tar_max = ::std::numeric_limits<tar_int>::max();
+			constexpr auto tar_min = ::std::numeric_limits<tar_int>::min();
+			if (arg > tar_max) return tar_max;
+			if (arg < tar_min) return tar_min;
+			return static_cast<tar_int>(arg);
+		}
+		else if constexpr (pdn_uint<arg_t>)
+		{
+			constexpr auto max = ::std::numeric_limits<tar_int>::max();
+			return arg > types::u64(max) ? max : tar_int(arg);
 		}
 		else if constexpr (pdn_fp<arg_t>)
 		{
-			if (constexpr auto max = ::std::numeric_limits<u64>::max(); arg > arg_t(max)) return max;
+			constexpr auto max = ::std::numeric_limits<tar_int>::max();
+			constexpr auto min = ::std::numeric_limits<tar_int>::min();
 			if (::std::isnan(arg)) return 0;
-			return arg < 0 ? 0 : arg;
+			if (arg >= arg_t(max)) return max;
+			if (arg <= arg_t(min)) return min;
+			return static_cast<tar_int>(arg);
 		}
 		else
 		{
@@ -80,8 +62,43 @@ namespace pdn::dev_util
 		}
 	}
 
-	template <typename arg_t>
-	inline auto as_fp(const arg_t& arg) -> types::f64
+	template <typename arg_t, types::concepts::pdn_uint tar_uint = types::u64>
+	inline auto as_uint(const arg_t& arg) -> tar_uint
+	{
+		using namespace types::concepts;
+		if constexpr (pdn_bool<arg_t>)
+		{
+			return arg;
+		}
+		else if constexpr (pdn_uint<arg_t>)
+		{
+			constexpr auto tar_max = ::std::numeric_limits<tar_uint>::max();
+			constexpr auto arg_max = ::std::numeric_limits<arg_t>::max();
+			if (arg_max > tar_max) return tar_max;
+			return static_cast<tar_uint>(arg);
+		}
+		else if constexpr (pdn_sint<arg_t>)
+		{
+			constexpr auto tar_max = ::std::numeric_limits<tar_uint>::max();
+			constexpr auto arg_max = ::std::numeric_limits<arg_t>::max();
+			if (arg < 0) return 0;
+			if (static_cast<types::u64>(arg) > tar_max) return tar_max;
+			return static_cast<tar_uint>(arg);
+		}
+		else if constexpr (pdn_fp<arg_t>)
+		{
+			if (::std::isnan(arg)) return 0;
+			if (constexpr auto max = ::std::numeric_limits<tar_uint>::max(); arg > max) return max;
+			return arg < 0 ? (tar_uint)0 : (tar_uint)arg;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	template <typename arg_t, types::concepts::pdn_fp tar_fp = types::f64>
+	inline auto as_fp(const arg_t& arg) -> tar_fp
 	{
 		using namespace types::concepts;
 		if constexpr (pdn_bool<arg_t> || pdn_integral<arg_t> || pdn_fp<arg_t>)
@@ -111,22 +128,22 @@ namespace pdn::dev_util
 	template <typename char_t>
 	struct as_accessor
 	{
-		template <typename arg_t>
-		static auto as_int(const arg_t& arg) -> types::i64
+		template <typename arg_t, typename in = types::i64>
+		static auto as_int(const arg_t& arg) -> in
 		{
-			return dev_util::as_int(arg);
+			return dev_util::as_int<arg_t, in>(arg);
 		}
 
-		template <typename arg_t>
-		static auto as_uint(const arg_t& arg) -> types::u64
+		template <typename arg_t, typename un = types::u64>
+		static auto as_uint(const arg_t& arg) -> un
 		{
-			return dev_util::as_uint(arg);
+			return dev_util::as_uint<arg_t, un>(arg);
 		}
 
-		template <typename arg_t>
-		static auto as_fp(const arg_t& arg) -> types::f64
+		template <typename arg_t, typename fn = types::f64>
+		static auto as_fp(const arg_t& arg) -> fn
 		{
-			return dev_util::as_fp(arg);
+			return dev_util::as_fp<arg_t, fn>(arg);
 		}
 
 		template <typename arg_t>

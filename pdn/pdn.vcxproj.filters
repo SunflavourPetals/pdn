@@ -318,6 +318,9 @@
     <ClInclude Include="pdn_entity_get_accessor.h">
       <Filter>pdn_entity</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_serializer.h">
+      <Filter>pdn_include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

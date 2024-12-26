@@ -273,12 +273,12 @@ character_test {
 			'\U0000611b', // 愛
 			'\U0001f970', // U+1F970 emoji smiling face with hearts 🥰 
 			'\U0001F970',
-			'\U0010FFFF',
-			'\U0010ffff',
-			'\U0010Ffff',
 			{
 				cannot_show [
 					'\U00000000',
+					'\U0010FFFF',
+					'\U0010ffff',
+					'\U0010Ffff',
 				]
 			},
 		]

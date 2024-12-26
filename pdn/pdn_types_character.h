@@ -52,6 +52,10 @@ namespace pdn::types::impl
 		{
 			return { data(), size() };
 		}
+		friend constexpr bool operator==(character lhs, character rhs) noexcept
+		{
+			return lhs.to_string_view() == rhs.to_string_view();
+		}
 	private:
 		data_type       cont{};
 		small_size_type sz{ 1u };

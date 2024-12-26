@@ -9,10 +9,29 @@
 
 namespace pdn
 {
+	inline constexpr auto auto_int_tag = types::auto_int{};
+	inline constexpr auto i8_tag  = types::i8{};
+	inline constexpr auto i16_tag = types::i16{};
+	inline constexpr auto i32_tag = types::i32{};
+	inline constexpr auto i64_tag = types::i64{};
+	inline constexpr auto auto_uint_tag = types::auto_uint{};
+	inline constexpr auto u8_tag  = types::u8{};
+	inline constexpr auto u16_tag = types::u16{};
+	inline constexpr auto u32_tag = types::u32{};
+	inline constexpr auto u64_tag = types::u64{};
+	inline constexpr auto f32_tag = types::f32{};
+	inline constexpr auto f64_tag = types::f64{};
+
 	template <typename char_t>
 	inline auto as_int(const entity<char_t>& e) -> types::i64
 	{
 		return ::std::visit([](const auto& v) { return dev_util::as_int(v); }, e);
+	}
+
+	template <typename char_t, typename in>
+	inline auto as_int(const entity<char_t>& e, in) -> in
+	{
+		return ::std::visit([]<typename arg_t>(const arg_t& v) { return dev_util::as_int<arg_t, in>(v); }, e);
 	}
 
 	template <typename char_t>
@@ -21,10 +40,22 @@ namespace pdn
 		return ::std::visit([](const auto& v) { return dev_util::as_uint(v); }, e);
 	}
 
+	template <typename char_t, typename un>
+	inline auto as_uint(const entity<char_t>& e, un) -> un
+	{
+		return ::std::visit([]<typename arg_t>(const arg_t& v) { return dev_util::as_uint<arg_t, un>(v); }, e);
+	}
+
 	template <typename char_t>
 	inline auto as_fp(const entity<char_t>& e) -> types::f64
 	{
 		return ::std::visit([](const auto& v) { return dev_util::as_fp(v); }, e);
+	}
+
+	template <typename char_t, typename fn>
+	inline auto as_fp(const entity<char_t>& e, fn) -> fn
+	{
+		return ::std::visit([]<typename arg_t>(const arg_t& v) { return dev_util::as_fp<arg_t, fn>(v); }, e);
 	}
 
 	template <typename char_t>
@@ -63,16 +94,34 @@ namespace pdn
 		return e ? as_int(*e) : types::i64{};
 	}
 
+	template <typename char_t, typename in>
+	inline auto as_int(const const_refer<char_t>& e, in tag) -> in
+	{
+		return e ? as_int(*e, tag) : in{};
+	}
+
 	template <typename char_t>
 	inline auto as_uint(const_refer<char_t> e) -> types::u64
 	{
 		return e ? as_uint(*e) : types::u64{};
 	}
 
+	template <typename char_t, typename un>
+	inline auto as_uint(const const_refer<char_t>& e, un tag) -> un
+	{
+		return e ? as_uint(*e, tag) : un{};
+	}
+
 	template <typename char_t>
 	inline auto as_fp(const_refer<char_t> e) -> types::f64
 	{
 		return e ? as_fp(*e) : types::f64{};
+	}
+
+	template <typename char_t, typename fn>
+	inline auto as_fp(const const_refer<char_t>& e, fn tag) -> fn
+	{
+		return e ? as_fp(*e, tag) : fn{};
 	}
 
 	template <typename char_t>

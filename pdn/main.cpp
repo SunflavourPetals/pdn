@@ -1,9 +1,39 @@
-#include <iostream>
+﻿#include <iostream>
 #include <iomanip>
 #include <string>
+#include <fstream>
 
 #include "pdn_parse.h"
 #include "pdn_data_entity.h"
+#include "pdn_serializer.h"
+
+struct my_date
+{
+	int y{};
+	int m{};
+	int d{};
+
+	explicit my_date(const pdn::u8entity_cref& e)
+	{
+		from_entity(e);
+	}
+	void from_entity(const pdn::u8entity_cref& e)
+	{
+		using namespace pdn;
+		y = as_int(e[u8"y"], auto_int_tag);
+		m = as_int(e[u8"m"], auto_int_tag);
+		d = as_int(e[u8"d"], auto_int_tag);
+	}
+	auto to_entity() const -> pdn::types::object<char8_t>
+	{
+		using namespace pdn;
+		types::object<char8_t> o;
+		o[u8"y"] = y;
+		o[u8"m"] = m;
+		o[u8"d"] = d;
+		return o;
+	}
+};
 
 int main()
 {
@@ -56,4 +86,7 @@ str   : "string";
 	{
 		std::cout << "bool = " << std::boolalpha << *opt << "\n";
 	}
+
+	my_date date(cref[u8"date"]);
+	std::cout << (const char*)pdn::make_serializer<char8_t>().serialize(date.to_entity()).c_str() << "\n";
 }

@@ -71,6 +71,27 @@ namespace pdn
 		}
 		return r;
 	}
+	template <typename string_t>
+	constexpr string_t make_slashes_id_string(unicode::code_point_t c)
+	{
+		using char_t = ::std::remove_cv_t<typename string_t::value_type>;
+
+		if (c == U'`')
+		{
+			return string_t{ char_t('\\'), char_t('`')};
+		}
+		return make_slashes_string<string_t>(c);
+	}
+	template <typename string_t>
+	constexpr string_t make_slashes_id_string(unicode::code_point_string_view sv)
+	{
+		string_t r{};
+		for (auto c : sv)
+		{
+			r += make_slashes_id_string<string_t>(c);
+		}
+		return r;
+	}
 }
 
 #endif

@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -183,6 +183,7 @@
     <ClInclude Include="pdn_source_position_recorder.h" />
     <ClInclude Include="pdn_swap_chain.h" />
     <ClInclude Include="pdn_token.h" />
+    <ClInclude Include="pdn_serializer.h" />
     <ClInclude Include="pdn_types.h" />
     <ClInclude Include="pdn_types_basic.h" />
     <ClInclude Include="pdn_types_character.h" />
