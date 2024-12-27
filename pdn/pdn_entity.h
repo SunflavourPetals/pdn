@@ -15,35 +15,6 @@
 namespace pdn
 {
 	template <typename char_t>
-	class refer
-	{
-	public:
-		using char_type   = char_t;
-		using entity_type = entity<char_type>;
-		using index_type  = ::std::size_t;
-		using key_type    = ::std::basic_string_view<char_type>;
-	public:
-		auto at(index_type index)   const -> refer { return ptr ? refer{ ptr->at(index) } : refer{}; }
-		auto at(const key_type key) const -> refer { return ptr ? refer{ ptr->at(key)   } : refer{}; }
-
-		auto operator[](index_type index)   const -> refer { return at(index); }
-		auto operator[](const key_type key) const -> refer { return at(key); }
-
-		bool has_value() const noexcept { return get(); }
-		entity_type* get() const noexcept { return ptr; }
-		entity_type* operator->() const noexcept { return ptr; }
-		entity_type& operator*() const noexcept { return *ptr; }
-		explicit operator bool() const noexcept { return has_value(); }
-
-		refer() = default;
-		refer(const refer& m) : ptr{ m.ptr } {}
-		refer(entity_type& e) : ptr{ &e } {}
-		refer& operator=(const refer& m) = default;
-	private:
-		entity_type* ptr{};
-	};
-
-	template <typename char_t>
 	class const_refer
 	{
 	public:
@@ -52,25 +23,58 @@ namespace pdn
 		using index_type  = ::std::size_t;
 		using key_type    = ::std::basic_string_view<char_type>;
 	public:
-		auto at(index_type index)   const -> const_refer { return ptr ? const_refer{ ptr->at(index) } : const_refer{}; }
-		auto at(const key_type key) const -> const_refer { return ptr ? const_refer{ ptr->at(key)   } : const_refer{}; }
+		auto at(index_type index)   const -> const_refer { return get() ? get()->at(index) : const_refer{}; }
+		auto at(const key_type key) const -> const_refer { return get() ? get()->at(key)   : const_refer{}; }
 
 		auto operator[](index_type index)   const -> const_refer { return at(index); }
 		auto operator[](const key_type key) const -> const_refer { return at(key); }
 
 		bool has_value() const noexcept { return get(); }
 		const entity_type* get() const noexcept { return ptr; }
-		const entity_type* operator->() const noexcept { return ptr; }
-		const entity_type& operator*() const noexcept { return *ptr; }
+		const entity_type* operator->() const noexcept { return get(); }
+		const entity_type& operator*() const noexcept { return *get(); }
 		explicit operator bool() const noexcept { return has_value(); }
 
 		const_refer() = default;
 		const_refer(const const_refer& m) : ptr{ m.ptr } {}
 		const_refer(const entity_type& e) : ptr{ &e } {}
-		const_refer(refer<char_t> r) : ptr{ r ? r.get() : nullptr } {}
 		const_refer& operator=(const const_refer& m) = default;
 	private:
 		const entity_type* ptr{};
+	};
+
+	template <typename char_t>
+	class refer : public const_refer<char_t>
+	{
+	private:
+		using base_type = const_refer<char_t>;
+	public:
+		using char_type   = char_t;
+		using entity_type = entity<char_type>;
+		using index_type  = ::std::size_t;
+		using key_type    = ::std::basic_string_view<char_type>;
+	public:
+		auto at(index_type index)   const -> refer { return get() ? get()->at(index) : refer{}; }
+		auto at(const key_type key) const -> refer { return get() ? get()->at(key)   : refer{}; }
+
+		auto operator[](index_type index)   const -> refer { return at(index); }
+		auto operator[](const key_type key) const -> refer { return at(key); }
+
+		bool has_value() const noexcept { return get(); }
+		entity_type* get() const noexcept { return get_from_base(); }
+		entity_type* operator->() const noexcept { return get(); }
+		entity_type& operator*() const noexcept { return *get(); }
+		explicit operator bool() const noexcept { return has_value(); }
+
+		refer() = default;
+		refer(const refer& m) : base_type(m) {}
+		refer(entity_type& e) : base_type(e) {}
+		refer& operator=(const refer& m) = default;
+	private:
+		entity_type* get_from_base() const noexcept
+		{
+			return const_cast<entity_type*>(base_type::get());
+		}
 	};
 }
 

@@ -14,7 +14,7 @@
 namespace pdn
 {
 	template <typename target_t, typename char_t>
-	inline auto get(const entity<char_t>& e) -> const target_t&
+	[[nodiscard]] inline auto get(const entity<char_t>& e) -> const target_t&
 	{
 		if constexpr (dev_util::has_proxy_v<target_t>)
 		{
@@ -27,7 +27,7 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	inline auto get(entity<char_t>&& e) -> target_t&&
+	[[nodiscard]] inline auto get(entity<char_t>&& e) -> target_t&&
 	{
 		if constexpr (dev_util::has_proxy_v<target_t>)
 		{
@@ -40,7 +40,7 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	inline auto get(entity<char_t>& e) -> target_t&
+	[[nodiscard]] inline auto get(entity<char_t>& e) -> target_t&
 	{
 		if constexpr (dev_util::has_proxy_v<target_t>)
 		{
@@ -53,7 +53,7 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	inline auto get_ptr(const entity<char_t>& e) -> const target_t*
+	[[nodiscard]] inline auto get_ptr(const entity<char_t>& e) -> const target_t*
 	{
 		if constexpr (dev_util::has_proxy_v<target_t>)
 		{
@@ -65,12 +65,12 @@ namespace pdn
 		}
 		else
 		{
-			return ::std::get_if<target_t>(e.get());
+			return ::std::get_if<target_t>(&e);
 		}
 	}
 
 	template <typename target_t, typename char_t>
-	inline auto get_ptr(entity<char_t>& e) -> target_t*
+	[[nodiscard]] inline auto get_ptr(entity<char_t>& e) -> target_t*
 	{
 		if constexpr (dev_util::has_proxy_v<target_t>)
 		{
@@ -82,12 +82,15 @@ namespace pdn
 		}
 		else
 		{
-			return ::std::get_if<target_t>(e.get());
+			return ::std::get_if<target_t>(&e);
 		}
 	}
 
 	template <typename target_t, typename char_t>
-	inline auto get_ptr(const_refer<char_t> e) -> const target_t*
+	auto get_ptr(entity<char_t>&& e) -> target_t* = delete;
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] inline auto get_ptr(const_refer<char_t> e) -> const target_t*
 	{
 		if constexpr (dev_util::has_proxy_v<target_t>)
 		{
@@ -104,7 +107,7 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	inline auto get_ptr(refer<char_t> e) -> target_t*
+	[[nodiscard]] inline auto get_ptr(refer<char_t> e) -> target_t*
 	{
 		if constexpr (dev_util::has_proxy_v<target_t>)
 		{
@@ -122,7 +125,7 @@ namespace pdn
 
 	// just for basic types
 	template <typename target_t, typename char_t>
-	inline auto get_optional(const entity<char_t>& e) -> ::std::optional<target_t>
+	[[nodiscard]] inline auto get_optional(const entity<char_t>& e) -> ::std::optional<target_t>
 	{
 		static_assert(types::concepts::basic_types<target_t, char_t>, "requires pdn basic types");
 		if (auto p = ::std::get_if<target_t>(&e))
@@ -134,7 +137,7 @@ namespace pdn
 
 	// just for basic types
 	template <typename target_t, typename char_t>
-	inline auto get_optional(const_refer<char_t> e) -> ::std::optional<target_t>
+	[[nodiscard]] inline auto get_optional(const_refer<char_t> e) -> ::std::optional<target_t>
 	{
 		static_assert(types::concepts::basic_types<target_t, char_t>, "requires pdn basic types");
 		if (auto p = ::std::get_if<target_t>(e.get()))
@@ -142,6 +145,18 @@ namespace pdn
 			return ::std::make_optional<target_t>(*p);
 		}
 		return ::std::nullopt;
+	}
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] inline bool type_test(const entity<char_t>& e)
+	{
+		return get_ptr<target_t>(e);
+	}
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] inline bool type_test(const_refer<char_t> e)
+	{
+		return get_ptr<target_t>(e);
 	}
 }
 
