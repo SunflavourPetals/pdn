@@ -153,6 +153,7 @@
     <ClInclude Include="pdn_error_handler_concept.h" />
     <ClInclude Include="pdn_error_message_generator_concept.h" />
     <ClInclude Include="pdn_err_msg_gen_utility.h" />
+    <ClInclude Include="pdn_ordered_map.h" />
     <ClInclude Include="pdn_parser_utility.h" />
     <ClInclude Include="pdn_raw_error_message.h" />
     <ClInclude Include="pdn_error_string.h" />

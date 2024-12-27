@@ -70,6 +70,9 @@
     <Filter Include="pdn_entity">
       <UniqueIdentifier>{536fbc96-7a98-497f-a029-b773b5f1953a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pdn_ordered_map">
+      <UniqueIdentifier>{3e788d19-8bd1-47a7-aab0-4d744f20efc5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pdn_unicode_base.h">
@@ -320,6 +323,9 @@
     </ClInclude>
     <ClInclude Include="pdn_serializer.h">
       <Filter>pdn_include</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_ordered_map.h">
+      <Filter>pdn_ordered_map</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -52,13 +52,22 @@ namespace pdn::unicode
 		return utf_32::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
 	}
 
+	namespace dev_util
+	{
+		template <bool reach_next_code_point, concepts::code_unit it_begin_t, typename it_end_t>
+		static auto decode_impl(it_begin_t&& begin, it_end_t end)
+		{
+			return decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
+		}
+	}
+
 	class decoder
 	{
 	public:
 		template <bool reach_next_code_point, concepts::code_unit it_begin_t, typename it_end_t>
 		static auto decode(it_begin_t&& begin, it_end_t end)
 		{
-			return ::pdn::unicode::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
+			return dev_util::decode_impl<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
 		}
 	};
 }
