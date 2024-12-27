@@ -14,8 +14,8 @@ namespace pdn::types::dev_util
 {
 	template <typename char_t>
 	using entity_variant = ::std::variant<
-		i8, i16, i32, i64,
-		u8, u16, u32, u64,
+		i32, i64, i8, i16,
+		u32, u64, u8, u16,
 		f32, f64,
 		boolean,
 		character<char_t>,

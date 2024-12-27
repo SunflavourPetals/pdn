@@ -157,6 +157,7 @@ str   : "string";
 
 	using namespace pdn;
 
+	auto a = entity<char8_t>{};
 	auto dom = parse(pdn_src, utf_8_tag);
 
 	auto cref = const_refer<char8_t>{ dom };
