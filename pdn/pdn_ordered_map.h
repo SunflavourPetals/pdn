@@ -7,6 +7,8 @@
 
 #include <type_traits>
 #include <algorithm>
+#include <stdexcept>
+
 #include <deque>
 
 namespace pdn::types::impl
@@ -35,6 +37,20 @@ namespace pdn::types::impl
 
 		using base_type::base_type;
 
+		auto get_base() noexcept -> base_type&
+		{
+			return *this;
+		}
+		auto get_base() const noexcept -> const base_type&
+		{
+			return *this;
+		}
+
+		auto get_allocator() const noexcept -> allocator_type
+		{
+			return bt::get_allocator();
+		}
+
 		auto begin()        { return bt::begin();  }
 		auto end()          { return bt::end();    }
 		auto begin()  const { return bt::begin();  }
@@ -45,16 +61,54 @@ namespace pdn::types::impl
 		auto empty() const { return bt::empty(); }
 		auto size()  const { return bt::size();  }
 
-		template <typename k_t>
-		auto find(const k_t& k) const
+		void clear() noexcept
 		{
-			return ::std::find_if(begin(), end(), [&](const auto& v) { return v.first == k; });
+			bt::clear();
+		}
+
+		iterator erase(iterator pos)
+		{
+			return bt::erase(pos);
+		}
+
+		iterator erase(const_iterator pos)
+		{
+			return bt::erase(pos);
+		}
+
+		iterator erase(const_iterator first, const_iterator last)
+		{
+			return bt::erase(first, last);
 		}
 
 		template <typename k_t>
-		auto find(const k_t& k)
+		size_type erase(k_t&& k)
 		{
-			return ::std::find_if(begin(), end(), [&](const auto& v) { return v.first == k; });
+			auto k_it = find(k);
+			if (k_it == end()) return 0;
+			return erase(k_it), 1;
+		}
+
+		template <typename k_t>
+		auto at(const k_t& k) const -> const mapped_type&
+		{
+			auto k_it = find(k);
+			if (k_it == end())
+			{
+				throw ::std::out_of_range{ "out of range" };
+			}
+			return k_it->second;
+		}
+
+		template <typename k_t>
+		auto at(const k_t& k) -> mapped_type&
+		{
+			auto k_it = find(k);
+			if (k_it == end())
+			{
+				throw ::std::out_of_range{ "out of range" };
+			}
+			return k_it->second;
 		}
 
 		template <typename k_t>
@@ -67,6 +121,30 @@ namespace pdn::types::impl
 			}
 			bt::emplace_back(::std::forward<k_t>(k), mapped_type{});
 			return bt::back().second;
+		}
+
+		template <typename k_t>
+		bool contains(const k_t& k) const
+		{
+			return find(k) != end();
+		}
+
+		template <typename k_t>
+		auto count(const k_t& k) const -> size_type
+		{
+			return contains(k);
+		}
+
+		template <typename k_t>
+		auto find(const k_t& k) const
+		{
+			return ::std::find_if(begin(), end(), [&](const auto& v) { return v.first == k; });
+		}
+
+		template <typename k_t>
+		auto find(const k_t& k)
+		{
+			return ::std::find_if(begin(), end(), [&](const auto& v) { return v.first == k; });
 		}
 	};
 }
