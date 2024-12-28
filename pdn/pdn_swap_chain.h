@@ -86,7 +86,7 @@ namespace pdn
 			}
 			friend bool operator==(swap_chain_iterator, swap_chain_iterator) = default;
 			swap_chain_iterator() = default; // default constructor make itself be end iterator
-			explicit swap_chain_iterator(swap_chain& swap) : swap_ptr{ &swap } {}
+			explicit swap_chain_iterator(swap_chain& swap) : swap_ptr{ swap.eof() ? nullptr : &swap} {}
 		private:
 			swap_chain_type* swap_ptr{ nullptr }; // swap_ptr == nullptr means it is end
 		};

@@ -11,6 +11,7 @@
 void serializer_test()
 {
 	using namespace pdn;
+
 	auto e_opt = parse("../test/features_test.spdn", utf_8_tag);
 	if (!e_opt)
 	{
@@ -70,13 +71,16 @@ list [
 )"sv;
 
 	using namespace pdn;
+
 	const auto& e = parse(src, utf_8_tag);
 	const auto r = e.ref();
 
 	using namespace pdn::types;
+
 	// get
-	get<auto_int>(e[u8"auto_int"]);
-	get<object<char8_t>>(e[u8"object"]);
+	(void)get<auto_int>(e[u8"auto_int"]);
+	(void)get<object<char8_t>>(e[u8"object"]);
+
 	auto test_i64 = get<i64>(e[u8"i64"]);
 	assert(test_i64 == -64);
 	// get_ptr

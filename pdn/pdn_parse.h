@@ -113,13 +113,12 @@ namespace pdn
 		{
 			return ::std::nullopt;
 		}
-		auto bom_type           = unicode::read_bom(source_file);
-		auto source_encode_type = unicode::utility::to_encode_type(bom_type);
-		auto source_swap_chain  = make_swap_chain(source_file, buffer_size);
+		auto bom_t = unicode::read_bom(source_file);
+		auto enc   = unicode::utility::to_encode_type(bom_t);
+		auto sw    = make_swap_chain(source_file, buffer_size);
 		using enum unicode::encode_type;
 
-		auto& sw = source_swap_chain;
-		switch (source_encode_type)
+		switch (enc)
 		{
 		case utf_8:     return parse(make_code_unit_iterator<utf_8>    (sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
 		case utf_16_le: return parse(make_code_unit_iterator<utf_16_le>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
