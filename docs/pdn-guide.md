@@ -33,6 +33,8 @@ say "Hello world!"
 say: "Hello world!"
 ```
 
+注意：`spdn` 文件的编码格式只可以是 `UTF-8` `UTF-16` `UTF-32` 其中之一，因为实现的解析器暂不支持其他编码。  
+
 ### 在 C++ 程序中访问 spdn 数据文件
 
 现在我们尝试在 C++ 程序中获取 `hello.spdn` 中的内容：  
@@ -106,11 +108,11 @@ g++ -std=c++20 -I../../../pdn -o hello-spdn ./hello-spdn.cpp
 `spdn` 基于 Unicode，我想在类型上明确表达使用 `utf_8_tag` 的解析结果是用 UTF-8 编码的，但是也就不能直接用 `std::cout` 进行输出了。不知道这样是不是设计失误。  
 
 如有必要，可以使用 [`c8rtomb`](https://zh.cppreference.com/w/cpp/string/multibyte/c8rtomb "cppreference") 转换编码。  
-此后的教学中就省略对这个问题的讨论了。  
+此后的教学中就不再讨论这个问题了。  
 
 ## 一个贴近实际的例子
 
-一个软件所需要的资源可能有很多种，比如一组数据、一些图片等。我们只需要表示数字和文本，其他资源如图片、音频等使用路径或者链接来引用。  
+一个软件所需要的资源可能有很多种，比如一组数据、一些图片等。我们只需要表示数字和文本，其他资源如图片、音频等使用文件路径或者链接来引用。  
 
 假设现在我们有一个图形界面程序，想要为他提供有关窗口大小、一组用于轮播展示的图片和图片的展示位置，并且希望这些内容可以更改而不必重新编译程序，我们就不能将数据直接写死在代码中了。  
 像下面这样为它编写一个 `spdn` 文件：  
@@ -140,5 +142,118 @@ pictures: {
 虽然我们使用的列表的元素全部都是字符串，但是它实际上可以存放一组不同类型的数据，包括列表和对象: `list [[ 123, 456 ], { m: 789 }, 123, "string" ]`。  
 
 学会这个例子，你就能熟练地编写 `spdn` 了。  
+
+### 访问不同类型数据的方法
+
+#### 用键从对象中查询数据
+
+在 [Hello world](#hello-world) 章节中，我们已经学会解析 `spdn` 文件和查询数据实体的成员，并用 `as_string` 方法将数据当作字符串使用。  
+
+一份 `spdn` 数据被解析后会被装进一个类型为对象的数据实体里，如 `hello.spdn` 被解析后，得到了一个数据实体，里面含有一个键值对 `say: "Hello world"!`。在 C++ 中我们使用下标运算符 `operator[]` 去查询 `say` 所指代的数据，就像在使用一个关联容器，然而它的语义与关联容器如 `map` 的 `operator[]` 并非相同，它只进行查询，而不包含在查询的键不存在时插入它的操作。  
+
+当对不是对象类型的数据实体使用键的下标运算符时，会抛出 `std::bad_variant_access` 异常，因为本库就是使用 `variant` 达到动态数据实体类型的目标的；访问不存在的数据时，会抛出 `std::out_of_range` 异常。  
+
+```C++
+auto& say = entity[u8"say"]; // entity 来自 hello.spdn
+say[u8""]; // 抛出 bad_variant_access 异常！say是一个字符串而不是对象
+entity[u8"name"]; // 抛出 out_of_range 异常！没有一个叫 name 的成员数据
+```
+
+有些数据没有那么重要，并且它们有可能不存在，在这种情况我们可能不想使用异常。  
+
+本库提供了实体引用和常实体引用类，它们就是用来应对上述情况的。  
+这是一种可以为空的引用(并非 C++ 语言中的引用，请注意区分，下文简称实体的引用为 ref)。  
+
+使用数据实体的 `ref` 和 `cref` 成员函数获取数据实体的引用，当我们不需要更改数据实体时，可以使用常实体引用：  
+
+```C++
+auto e_ref = entity.cref();
+```
+
+对 ref 进行的查询不会抛出异常，查询成功时返回相应数据实体的 ref，查询失败(该 ref 为空、该 ref 所指代的实体不是对象、该 ref 指代的对象没有相应成员)时返回空 ref：  
+
+```C++
+auto say = e_ref[u8"say"]; // say 是一个 ref，它不为空
+auto x = say[u8"x"]; // 得到空 ref，say 是一个字符串而不是对象
+if (!x) std::cout << "get null ref from say[u8\"x\"]\n";
+auto y = x[u8"y"]; // 得到空 ref，因为 x 就是一个空 ref
+if (!y) std::cout << "get null ref from x[u8\"y\"]\n";
+auto name = e_ref[u8"name"]; // 得到空 ref，没有一个叫 name 的成员数据
+if (name.has_value())
+{
+    std::cout << "has an entity named name\n";
+}
+else
+{
+    std::cout << "no entity named name\n";
+}
+```
+
+ref 对象的 `operator bool` 和 `has_value` 具有相同的功能。  
+
+代码见 `guide-source/chapter-1/query-by-key.cpp`。  
+
+#### 从列表中查询数据
+
+列表和对象相似，只不过是改成用编号指代数据而不是键。  
+而且对 ref 和 cref 也适用：  
+
+```C++
+// guide-source/chapter-1/query-on-list.cpp
+#include <iostream>
+#include <string>
+#include <cassert>
+
+#include "pdn_parse.h"
+#include "pdn_data_entity.h"
+
+#include "../outu8sv.h"
+
+int main()
+{
+    using namespace std::string_view_literals;
+    using namespace pdn;
+    auto entity = parse(u8R"(list [1, 2, 3, "hello", 5.0])"sv, utf_8_tag);
+    // 直接对 spdn 序列进行解析，返回一个 pdn::u8entity，而不再是一个 optional
+
+    const auto& list = entity[u8"list"];
+
+    std::cout << as_int(list[0]) << "\n";
+    std::cout << as_int(list[1]) << "\n";
+    std::cout << as_int(list[2]) << "\n";
+    std::cout << as_string(list[3]) << "\n";
+    std::cout << as_fp(list[4]) << "\n";
+
+    // std::cout << as_int(list[5]) << "\n";
+    // 没有越界检查！
+
+    try
+    {
+        // 将实体 list 当作 list 使用，在 C++ 中对应的类型通常是 std::vector<entity>
+        auto& e5 = as_list(list).at(5); // vector 的 at 函数带有越界检查
+        for (auto& e : as_list(list))
+        {
+            std::cout << as_int(e) << "\n";
+        }
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << e.what() << "\n";
+    }
+
+    auto list_ref = list.ref();
+    // 由于 list 是 const pdn::u8entity&，因此 ref 函数返回常实体引用
+
+    std::cout << as_string(list_ref[3]) << "\n";
+
+    auto elem_1 = list_ref[1];
+    auto elem_1_0 = elem_1[0]; // elem_1 不是列表，得到空 ref
+    assert(!elem_1_0.has_value());
+    auto elem_5 = list_ref[5]; // 5 号元素不存在，得到空 ref
+    assert(!elem_5.has_value());
+    auto nullref = elem_5[0]; // elem_5 是空 ref，得到空 ref
+    assert(!nullref.has_value());
+}
+```
 
 待续

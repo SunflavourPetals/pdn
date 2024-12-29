@@ -1,0 +1,14 @@
+window {
+    width: 640
+    height: 480
+}
+pictures {
+    path [
+        "sky.png",
+        "mountain.png",
+    ]
+    position {
+        left: 0.25 // 距离窗口最右侧 0.25 个 window.width 的距离
+        top: 0.15 // 距离窗口最上端 0.15 个 window.height 的距离
+    }
+}
