@@ -98,7 +98,7 @@ int main()
 例如，移动到 `PS .../pdn/docs/guide-source>` 使用以下命令：  
 
 ```shell
-g++ -std=c++20 -I../../../pdn -o hello-spdn ./hello-spdn.cpp
+g++ -std=c++20 -I../../pdn -o hello-spdn ./hello-spdn.cpp
 ```
 
 编译之后运行它(`hello-spdn.exe`)，程序会输出 `Hello world!`。
