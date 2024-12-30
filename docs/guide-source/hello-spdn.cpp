@@ -3,7 +3,7 @@
 #include "pdn_parse.h"
 #include "pdn_data_entity.h"
 
-#include "../outu8sv.h"
+#include "outu8sv.h"
 
 int main()
 {

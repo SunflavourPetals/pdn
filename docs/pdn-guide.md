@@ -7,6 +7,8 @@
 
 这个文档则致力于教学如何使用和编写 `spdn` 格式的文件，以及本库实现的解析器的使用方法。  
 
+注意：这个解析器是使用 C++20 标准实现的，开始前请确认你的编译器是否支持 C++20 标准。  
+
 ## Hello world
 
 现在我们来把 `Hello world!` 写进 `spdn` 文件里，并尝试在终端输出它！  
@@ -93,7 +95,7 @@ int main()
 如果不是，这里有一个使用 `g++` 进行编译的模板：  
 `g++ -std=c++20 -I<包含目录> -o <输出文件> <源文件>`  
 
-例如，移动到 `PS .../pdn/docs/guide-source/chapter-1>` 使用以下命令：  
+例如，移动到 `PS .../pdn/docs/guide-source>` 使用以下命令：  
 
 ```shell
 g++ -std=c++20 -I../../../pdn -o hello-spdn ./hello-spdn.cpp
@@ -101,7 +103,7 @@ g++ -std=c++20 -I../../../pdn -o hello-spdn ./hello-spdn.cpp
 
 编译之后运行它(`hello-spdn.exe`)，程序会输出 `Hello world!`。
 
-### 一些疑问
+### 关于使用 u8string 的疑问
 
 为什么不用 `std::string` 而是 `std::u8string`？  
 
@@ -138,24 +140,25 @@ pictures: {
 在 `pictures` 中，我们定义了一个列表 `path` 来存放一组路径，它的每个元素之间必须有逗号隔开，非空列表末尾元素后的逗号是可选的，我们还定义了一个 `position` 对象记录位置，我使用了行注释来解释 `left` 和 `top` 对应数据的含义。  
 
 这个例子出现的所有冒号和分号都是可选的，对于这种每个键值对后都换行的文件，使用分号反而使它不美观，我写出来只是为了展示每个键值对后都可以使用分号隔开。  
+我提供了一个我认为最美观的形式，详见 `guide-source/example.spdn`。  
 
 虽然我们使用的列表的元素全部都是字符串，但是它实际上可以存放一组不同类型的数据，包括列表和对象: `list [[ 123, 456 ], { m: 789 }, 123, "string" ]`。  
 
 学会这个例子，你就能熟练地编写 `spdn` 了。  
 
-### 访问不同类型数据的方法
+## 访问不同类型数据的方法
 
-#### 用键从对象中查询数据
+### 用键从对象中查询数据
 
 在 [Hello world](#hello-world) 章节中，我们已经学会解析 `spdn` 文件和查询数据实体的成员，并用 `as_string` 方法将数据当作字符串使用。  
 
-一份 `spdn` 数据被解析后会被装进一个类型为对象的数据实体里，如 `hello.spdn` 被解析后，得到了一个数据实体，里面含有一个键值对 `say: "Hello world"!`。在 C++ 中我们使用下标运算符 `operator[]` 去查询 `say` 所指代的数据，就像在使用一个关联容器，然而它的语义与关联容器如 `map` 的 `operator[]` 并非相同，它只进行查询，而不包含在查询的键不存在时插入它的操作。  
+一份 `spdn` 数据被解析后会被装进一个类型为对象的数据实体里，如 `hello.spdn` 被解析后，得到了一个数据实体，里面含有一个键值对 `say: "Hello world"!`。在 C++ 中我们使用下标运算符 `operator[]` 去查询 `say` 所指代的数据，就像在使用一个关联容器，然而它的语义与关联容器如 `map` 的 `operator[]` 并非相同，它只进行查询，而不包含在查询的键不存在时构造新值的操作。  
 
 当对不是对象类型的数据实体使用键的下标运算符时，会抛出 `std::bad_variant_access` 异常，因为本库就是使用 `variant` 达到动态数据实体类型的目标的；访问不存在的数据时，会抛出 `std::out_of_range` 异常。  
 
 ```C++
 auto& say = entity[u8"say"]; // entity 来自 hello.spdn
-say[u8""]; // 抛出 bad_variant_access 异常！say是一个字符串而不是对象
+say[u8"x"]; // 抛出 bad_variant_access 异常！say是一个字符串而不是对象
 entity[u8"name"]; // 抛出 out_of_range 异常！没有一个叫 name 的成员数据
 ```
 
@@ -164,7 +167,7 @@ entity[u8"name"]; // 抛出 out_of_range 异常！没有一个叫 name 的成员
 本库提供了实体引用和常实体引用类，它们就是用来应对上述情况的。  
 这是一种可以为空的引用(并非 C++ 语言中的引用，请注意区分，下文简称实体的引用为 ref)。  
 
-使用数据实体的 `ref` 和 `cref` 成员函数获取数据实体的引用，当我们不需要更改数据实体时，可以使用常实体引用：  
+使用数据实体的成员函数 `ref` 和 `cref` 获取数据实体的引用，当我们不需要更改数据实体时，可以使用常实体引用：  
 
 ```C++
 auto e_ref = entity.cref();
@@ -191,15 +194,15 @@ else
 
 ref 对象的 `operator bool` 和 `has_value` 具有相同的功能。  
 
-代码见 `guide-source/chapter-1/query-by-key.cpp`。  
+代码见 `guide-source/query-by-key.cpp`。  
 
-#### 从列表中查询数据
+### 从列表中查询数据
 
 列表和对象相似，只不过是改成用编号指代数据而不是键。  
-而且对 ref 和 cref 也适用：  
+而且对任意类型的实体都有 ref 和 cref 。直接看代码可能更加直观：  
 
 ```C++
-// guide-source/chapter-1/query-on-list.cpp
+// guide-source/query-on-list.cpp
 #include <iostream>
 #include <string>
 #include <cassert>
@@ -256,4 +259,25 @@ int main()
 }
 ```
 
-待续
+### as 系列函数
+
+上面我们已经用过了一些 as 系列的函数，如 `as_int` `as_string` `as_list` 等，本库的 as 系列函数分为 8 类：`as_int` `as_uint` `as_fp`(fp 是 floating-point 的缩写) `as_bool` `as_char` `as_string` `as_list` `as_object`，全部在头文件 `pdn_data_entity.h`(`pdn_entity_as_accessor.h`)，名称空间 `pdn` 中。  
+
+// 未完成
+
+// 拓展  
+
+`spdn` 的有符号整数类型有 `i8` `i16` `i32` `i64` 四种；  
+无符号整数类型有 `u8` `u16` `u32` `u64` 四种；  
+浮点数有 `f32` `f64` 两种。  
+
+注：被称为 `f32` `f64` 的类型，实际上对应的 C++ 类型是 `float` 和 `double`，通常情况下，实现是 IEEE-754 的 binary32 和 binary64。  
+
+`as_int` `as_uint` `as_fp` 默认的获取类型分别是 `i64` `u64` `f64`。如果你想指定要获取的类型，可以使用名称空间 `pdn` 内的 `i8_tag` - `i64_tag`、`u8_tag` - `u64_tag` 及 `f32_tag` 和 `f64_tag`。  
+此外，`pdn::types` 名称空间内有类型别名 `auto_int` 和 `auto_uint`。`auto_int` 要么是 `int`，要么是 `pdn::types::i32`；`auto_uint` 要么是 `unsigned int`，要么是 `pdn::types::u32`。它们同样有对应的 `auto_int_tag` 和 `auto_uint_tag`。  
+
+使用 as 系列函数时，整数、浮点数和布尔值会被转换到目标类型，如对表示 `100.0` 的数据实体使用 `as_bool`，会得到 `true`，再举一个例子，对表示 `200` 的实体 `e` 使用 `as_int(e, i8_tag)`，那么可能会得到 `127`。  
+
+对表示 `character` 的实体使用 `as_bool`，如果实体表示 NUL 字符，得到 `false`，否则得到 `true`，字符不能转换成其他类型的值。  
+
+对于无法转换的数据，会得到一个零值：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空字符串。  

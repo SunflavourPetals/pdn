@@ -110,13 +110,17 @@ namespace pdn::dev_util
 		}
 	}
 
-	template <typename arg_t>
+	template <typename char_t, typename arg_t>
 	inline auto as_bool(const arg_t& arg) -> types::boolean
 	{
 		using namespace types::concepts;
 		if constexpr (pdn_bool<arg_t> || pdn_integral<arg_t> || pdn_fp<arg_t>)
 		{
 			return static_cast<bool>(arg);
+		}
+		else if constexpr (::std::same_as<arg_t, types::character<char_t>>)
+		{
+			return arg != types::character<char_t>{};
 		}
 		else
 		{
@@ -148,7 +152,7 @@ namespace pdn::dev_util
 		template <typename arg_t>
 		static auto as_bool(const arg_t& arg) -> types::boolean
 		{
-			return dev_util::as_bool(arg);
+			return dev_util::as_bool<char_t>(arg);
 		}
 
 		template <typename arg_t>

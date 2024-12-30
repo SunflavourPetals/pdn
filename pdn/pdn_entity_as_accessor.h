@@ -61,7 +61,7 @@ namespace pdn
 	template <typename char_t>
 	[[nodiscard]] inline auto as_bool(const entity<char_t>& e) -> types::boolean
 	{
-		return ::std::visit([](const auto& v) { return dev_util::as_bool(v); }, e);
+		return ::std::visit([](const auto& v) { return dev_util::as_accessor<char_t>::as_bool(v); }, e);
 	}
 
 	template <typename char_t>
