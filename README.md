@@ -1,14 +1,14 @@
-My data notation.
+# My data notation
 
 ## 本项目编译方法
 
 1. 打开 pdn.sln，在 VS 中编译；  
 2. 移动至 `./pdn` 目录内，使用命令行编译。
 
-### 命令行编译方式：
+### 命令行编译方式
 
-1. cl: 打开 VS 开发人员命令提示，移动至 `./pdn` 目录内，编译命令 `cl /EHsc /std:c++20 pdn.cpp`；
-2. g++: 移动至 `./pdn` 目录内，编译命令 `g++ -std=c++20 -o pdn pdn.cpp`。  
+1. cl: 打开 VS 开发人员命令提示，移动至 `./pdn` 目录内，编译命令 `cl /EHsc /std:c++20 main.cpp`；
+2. g++: 移动至 `./pdn` 目录内，编译命令 `g++ -std=c++20 -o main main.cpp`。  
 
 [参考 MSDN](https://learn.microsoft.com/zh-cn/cpp/build/walkthrough-compiling-a-native-cpp-program-on-the-command-line)  
 
