@@ -65,7 +65,8 @@ int main()
     using namespace pdn;
 
     // 使用 pdn::parse 解析 hello.spdn 中的数据
-    // pdn::utf_8_tag 指示其中的文本以 utf-8 进行编码并用 C++ 的 u8string 类型进行描述
+    // pdn::utf_8_tag 指示以 utf-8 作为解析后的键和字符、字符串的编码方式，表现为用 C++ 的 u8string 类型进行描述
+    // 该指示与被解析的文件采用什么编码无关，它只作用于解析结果
     auto entity_opt = parse("hello.spdn", utf_8_tag);
     
     // 得到一个 entity_opt，它是一个 std::optional<pdn::u8entity> 的对象
@@ -140,7 +141,25 @@ pictures: {
 在 `pictures` 中，我们定义了一个列表 `path` 来存放一组路径，它的每个元素之间必须有逗号隔开，非空列表末尾元素后的逗号是可选的，我们还定义了一个 `position` 对象记录位置，我使用了行注释来解释 `left` 和 `top` 对应数据的含义。  
 
 这个例子出现的所有冒号和分号都是可选的，对于这种每个键值对后都换行的文件，使用分号反而使它不美观，我写出来只是为了展示每个键值对后都可以使用分号隔开。  
-我提供了一个我认为最美观的形式，详见 `guide-source/example.spdn`。  
+我提供了一个我认为最美观的形式：  
+
+```spdn
+// ./guide-source/example.spdn
+window {
+    width: 640
+    height: 480
+}
+pictures {
+    path [
+        "sky.png",
+        "mountain.png",
+    ]
+    position {
+        left: 0.25 // 距离窗口最右侧 0.25 个 window.width 的距离
+        top: 0.15 // 距离窗口最上端 0.15 个 window.height 的距离
+    }
+}
+```
 
 虽然我们使用的列表的元素全部都是字符串，但是它实际上可以存放一组不同类型的数据，包括列表和对象: `list [[ 123, 456 ], { m: 789 }, 123, "string" ]`。  
 
@@ -261,11 +280,29 @@ int main()
 
 ### as 系列函数
 
-上面我们已经用过了一些 as 系列的函数，如 `as_int` `as_string` `as_list` 等，本库的 as 系列函数分为 8 类：`as_int` `as_uint` `as_fp`(fp 是 floating-point 的缩写) `as_bool` `as_char` `as_string` `as_list` `as_object`，全部在头文件 `pdn_data_entity.h`(`pdn_entity_as_accessor.h`)，名称空间 `pdn` 中。  
+上面我们已经用过了一些 as 系列的函数，如 `as_int` `as_string` `as_list` 等，本库的 as 系列函数分为 8 类：`as_int` `as_uint` `as_fp`(fp 是 floating-point 的缩写) `as_bool` `as_char` `as_string` `as_list` `as_object`，全部在头文件 `pdn_data_entity.h`(间接包含，实际定义在 `pdn_entity_as_accessor.h`)，名称空间 `pdn` 中。  
 
-// 未完成
+* `as_int` 的返回值类型是 `i64`；  
+* `as_uint` 的返回值类型是 `u64`；  
+* `as_fp` 的返回值类型是 `f64`；  
+* `as_bool` 的返回值类型是 `boolean`，对应 C++ 的 `bool` 类型；  
+* `as_char` 的返回值类型是 `character`；  
+* `as_string` 的返回值类型通常是是 `std::basic_string<char_t>`；  
+* `as_list` 的返回值类型通常是 `std::vector<entity<char_t>>`；  
+* `as_object` 的返回值类型通常是 `std::unordered_map<std::basic_string<char_t>, entity<char_t>>`；  
 
-// 拓展  
+在使用 as 系列函数时，在可能的情况下会尝试类型转换，如实体实际上是浮点数，但我们对它使用了 `as_int`，我们就获得了该实体转换到整数值的结果。  
+在实体和 as 函数返回值类型是整数、浮点数和布尔类型时，会发生这种转换；此外，字符可以转变为布尔值(NUL字符表示 `false`，其余表示 `true`，但布尔值不能转变为字符)，其余类型之间无法进行类型转换，使用 as 函数的结果是一个默认值，如空字符串、空列表和空对象。  
+
+当发生转换时，如果要转换的值超过了目标类型的表示范围，那么会发生“截断”，“截断”到目标类型能表示的最大值或最小值(原因之一是有符号整数溢出是未定义行为)：如将 `@infinity` 使用 `as_int` 转换到 `i64`，会得到 `i64` 能表示的最大值。  
+
+此外，将 `nan` 转换到整数时会得到默认值：0。  
+
+// todo 添加示例
+
+#### as 系列函数详解
+
+这段的内容你可能暂时用不到，等之后再来了解也许会更好。  
 
 `spdn` 的有符号整数类型有 `i8` `i16` `i32` `i64` 四种；  
 无符号整数类型有 `u8` `u16` `u32` `u64` 四种；  
@@ -274,10 +311,12 @@ int main()
 注：被称为 `f32` `f64` 的类型，实际上对应的 C++ 类型是 `float` 和 `double`，通常情况下，实现是 IEEE-754 的 binary32 和 binary64。  
 
 `as_int` `as_uint` `as_fp` 默认的获取类型分别是 `i64` `u64` `f64`。如果你想指定要获取的类型，可以使用名称空间 `pdn` 内的 `i8_tag` - `i64_tag`、`u8_tag` - `u64_tag` 及 `f32_tag` 和 `f64_tag`。  
-此外，`pdn::types` 名称空间内有类型别名 `auto_int` 和 `auto_uint`。`auto_int` 要么是 `int`，要么是 `pdn::types::i32`；`auto_uint` 要么是 `unsigned int`，要么是 `pdn::types::u32`。它们同样有对应的 `auto_int_tag` 和 `auto_uint_tag`。  
+此外，`pdn::types` 名称空间内有类型别名 `auto_int` 和 `auto_uint`。`auto_int` 要么是 `int`，要么是 `pdn::types::i32`；`auto_uint` 要么是 `unsigned int`，要么是 `pdn::types::u32`(当然也很可能两者都是)。它们同样有对应的 `auto_int_tag` 和 `auto_uint_tag`。  
 
 使用 as 系列函数时，整数、浮点数和布尔值会被转换到目标类型，如对表示 `100.0` 的数据实体使用 `as_bool`，会得到 `true`，再举一个例子，对表示 `200` 的实体 `e` 使用 `as_int(e, i8_tag)`，那么可能会得到 `127`。  
 
 对表示 `character` 的实体使用 `as_bool`，如果实体表示 NUL 字符，得到 `false`，否则得到 `true`，字符不能转换成其他类型的值。  
 
-对于无法转换的数据，会得到一个零值：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空字符串。  
+对于无法转换的数据，会得到一个默认值：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空字符串。  
+
+// 待续
