@@ -38,7 +38,7 @@ void parse_something()
 3. `get_optional` 系列函数：仅对基本类型提供(整数、浮点数、布尔和字符)，获得相应类型的 `optional`，失败时得到 `nullopt`；  
 4. `as_xxx` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值。  
 
-`dom` 还有如下成员方法：  
+`data_entity` 还有如下成员方法：  
 
 1. `ref` `cref`：获得 `refer` 或 `const_refer` 类，它们有 `operator[]` 和 `at` 方法，但查询失败时都返回空 `refer|const_refer`。  
 2. `operator[string_view<char_t>]`：获得 Object 的成员数据，如果当前实体不是 Object 或没有相应成员数据，将抛出异常；  
