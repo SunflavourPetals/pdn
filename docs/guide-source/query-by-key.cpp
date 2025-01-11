@@ -38,19 +38,19 @@ int main()
 
 	{
 		auto e_ref = entity.cref();
-		auto say = e_ref[u8"say"];
-		auto x = say[u8"x"];
-		if (!x) std::cout << "get null ref from say[u8\"x\"]\n";
+		auto say_ref = e_ref[u8"say"];
+		auto x = say_ref[u8"x"];
+		if (!x) std::cout << "get null ref from say_ref[u8\"x\"]\n";
 		auto y = x[u8"y"];
 		if (!y) std::cout << "get null ref from x[u8\"y\"]\n";
 		auto name = e_ref[u8"name"];
 		if (name.has_value())
 		{
-			std::cout << "has an entity named name\n";
+			std::cout << "has an entity named \"name\"\n";
 		}
 		else
 		{
-			std::cout << "no entity named name\n";
+			std::cout << "no entity named \"name\"\n";
 		}
 	}
 }

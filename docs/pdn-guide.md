@@ -161,17 +161,42 @@ pictures {
 }
 ```
 
-虽然我们使用的列表的元素全部都是字符串，但是它实际上可以存放一组不同类型的数据，包括列表和对象: `list [[ 123, 456 ], { m: 789 }, 123, "string" ]`。  
+虽然我们使用的列表的元素全部都是字符串，但是它实际上可以存放一组不同类型的数据，包括列表和对象：  
+
+```spdn
+list [
+    [ 123, 456, 789 ],
+    { m: 789 },
+    123,
+    "string",
+]
+```
 
 学会这个例子，你就能熟练地编写 `spdn` 格式的文件了。  
 
 ## 数字
 
-// todo
+之前我们写过如 `123` `0.25` 这样数字形式的数据，由于 `spdn` 为 C++ 程序服务的设计理念，数字分为整数和浮点数两种，而不是像 JavaScript 那样，如果你了解 C++ 的整数和浮点数字面量的词法，那么你能很快上手。  
+`spdn` 的整数和浮点数是无后缀的，除此之外和 C++ 整数和浮点数字面量的词法完全一样，支持二进制整数、八进制整数、十进制整数、十六进制整数、十进制浮点数、科学计数法浮点数、十六进制科学计数法浮点数，以及用于分隔符的 `'`。  
+
+示例参考：  
+[pdn_refernece 整数字面量](./pdn-reference.md#整数字面量)  
+[pdn_refernece 浮点数字面量](./pdn-reference.md#浮点数字面量)  
+
+cppreference：  
+[cppreference integer_literal](https://zh.cppreference.com/w/cpp/language/integer_literal)  
+[cppreference floating_literal](https://zh.cppreference.com/w/cpp/language/floating_literal)  
 
 ## 字符串
 
-// todo
+字符串的词法和 C++ 的字符串词法类似，有普通字符串和原始字符串之分。  
+
+// todo 包括原始字符串
+
+示例参考：  
+[pdn_reference](./pdn-reference.md#字符串字面量)
+cppreference：  
+[cppref string_literal](https://zh.cppreference.com/w/cpp/language/string_literal)  
 
 ## 布尔数据
 
@@ -186,9 +211,7 @@ bool_5 @false // 布尔值 false
 ```
 
 由于 `spdn` 无关键字的设计，`true` 和 `false` 本身是合法的标识符，如果想获得布尔值，要么像 `bool_1` `bool_2` `bool_3` 一样，通过类型指定来进行类型转换，要么就使用 at 常量，它的语法是 `@` 符号后紧跟一个普通的标识符，如 `@true` `@false`。  
-有关 at 常量，后面会做详细教学。  
-
-// todo at 常量链接
+[有关 at 常量，后面会做详细教学](#at-常量和原始字符串标识符)。  
 
 ## 标识符的三种表现形式
 
@@ -201,7 +224,7 @@ a_name_without_spaces 123 // OK
 a name with spaces 123 // "a" "name" "with" "spaces" "123" 不符合语法
 ```
 
-字符串标识符的词法是反引号 `` ` `` 包围的内容，不能包含换行符(LF)，且支持转义字符：  
+字符串标识符的词法是由反引号 `` ` `` 包围的内容，不能包含换行符(LF)，且支持转义字符：  
 
 ```spdn
 `a name with spaces` 123 // OK
@@ -221,14 +244,12 @@ linefeed` 123
 
 `\J` 123 // 错误，没有 \J 这个转义序列
 // 后果至少是反斜线被丢弃，键为 `J`
-// 请不要反这种错误
+// 请不要犯这种错误
 ```
 
 除了 `` \` `` 是 `spdn` 字符串标识符独有的转义序列外，`spdn` 支持 C++ 除了条件转义序列(实现定义)的所有转义序列，与目前最新的 C++ 标准(C++26)完全一样，参考 [`cppreference`](https://zh.cppreference.com/w/cpp/language/escape "escape")。  
 
-“原始字符串标识符”则是更没有用武之地的特性，我们之后再作讲解，先将精力放在更重要、更有用的地方。  
-
-// todo 超链接 原始字符串标识符
+“原始字符串标识符”则是更没有用武之地的特性，我们[之后再作讲解](#at-常量和原始字符串标识符)，先将精力放在更重要、更有用的地方。  
 
 ## 类型和类型指定
 
@@ -251,17 +272,23 @@ a_number_less_than_127: i8 9
 object: object { num: 123 }
 // 不好！{ num: 123 } 不是对象还能是什么？这个类型指定完全是多余的！
 
-// 当我们要表达“约束这个数据的取值范围”时，应该使用注释向他人说明，并在解析完 spdn 文件后，检查这些数据：
+// 当我们要表达“约束这个数据的取值范围”，并要向他人说明时，
+// 应该使用注释向他人说明，并在解析完 spdn 文件后，检查这些数据：
 score 100 // 分数的范围为 0 到 100 分
 ```
 
 一定不要滥用类型指定，它会让文档变得不自然和冗长，我们更应该关注数据本身，而不是它们的类型。  
 
-类型指定可能导致类型转换，转换规则在下一节讲解。  
+类型指定可能导致类型转换，转换规则在[下一节](#类型转换规则)讲解。  
 
 ### 类型转换规则
 
-// todo
+1. `i8`、`i16`、`i32`、`i64`、`u8`、`u16`、`u32`、`u64` 在不发生溢出的情况下可以相互转换(溢出被视为错误)、可以转换为 `f32`、`f64`、`boolean`；  
+2. `f32`、`f64` 可以相互转换、可以转换为 `boolean`；  
+3. `boolean` 可以转换为 `i8`、`i16`、`i32`、`i64`、`u8`、`u16`、`u32`、`u64`、`f32`、`f64`，其中 `false` 将被转换为 `0`，`true` 将被转换为 `1`，从其他类型转换到 `boolean` 时，非零值被转换为 `true`，零被转换为 `false`。  
+
+只有在整数类型之间相互转换时可能发生溢出错误，其余转换不会发生错误.  
+`f64` 转换到 `f32` 时可能会损失精度，但是不允许将浮点数转换为整数，即使浮点数实际上被用来表示一个整数：`num: int 1.0 // 错误`。  
 
 ### 类型系统详解
 
@@ -290,11 +317,13 @@ score 100 // 分数的范围为 0 到 100 分
 
 通常我们建议使用字符串，除非你有更好的理由使用字符。  
 
+参考 [pdn_reference](./pdn-reference.md#字符字面量)  
+
 #### 其他类型
 
 现在还剩下字符串、列表和对象类型，这几个类型我们已经耳熟能详了，也没有什么特别要注意的事情，这里就不再赘述。  
 
-## at 常量和原始字符串和原始字符串字面量
+## at 常量和原始字符串标识符
 
 // todo 说明这些内容不重要，先粗略浏览，需要时再学习。
 // todo
@@ -326,12 +355,12 @@ entity[u8"name"]; // 抛出 out_of_range 异常！没有一个叫 name 的成员
 auto e_ref = entity.cref();
 ```
 
-对 ref 进行的查询不会抛出异常，查询成功时返回相应数据实体的 ref，查询失败(该 ref 为空、该 ref 所指代的实体不是对象、该 ref 指代的对象没有相应成员)时返回空 ref：  
+对 ref 进行的查询不会抛出异常，查询成功时返回相应数据实体的 ref，查询失败(该 ref 为空、该 ref 所指代的实体不是对象或该 ref 指代的对象没有相应成员)时返回空 ref：  
 
 ```C++
-auto say = e_ref[u8"say"]; // say 是一个 ref，它不为空
-auto x = say[u8"x"]; // 得到空 ref，say 是一个字符串而不是对象
-if (!x) std::cout << "get null ref from say[u8\"x\"]\n";
+auto say_ref = e_ref[u8"say"]; // 查询成功，say_ref 不为空
+auto x = say_ref[u8"x"]; // 得到空，say_ref 引用的实体是一个字符串而不是对象
+if (!x) std::cout << "get null ref from say_ref[u8\"x\"]\n";
 auto y = x[u8"y"]; // 得到空 ref，因为 x 就是一个空 ref
 if (!y) std::cout << "get null ref from x[u8\"y\"]\n";
 auto name = e_ref[u8"name"]; // 得到空 ref，没有一个叫 name 的成员数据
@@ -347,12 +376,12 @@ else
 
 ref 对象的 `operator bool` 和 `has_value` 具有相同的功能。  
 
-代码见 `guide-source/query-by-key.cpp`。  
+代码见 [`guide-source/query-by-key.cpp`](./guide-source/query-by-key.cpp)。  
 
 ### 从列表中查询数据
 
 列表和对象相似，只不过是改成用编号指代数据而不是键。  
-而且对任意类型的实体都有 ref 和 cref 。直接看代码可能更加直观：  
+直接看[代码](./guide-source/query-on-list.cpp)可能更加直观：  
 
 ```C++
 // guide-source/query-on-list.cpp
