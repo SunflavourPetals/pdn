@@ -204,7 +204,29 @@ object { data1:f64 123; data2:f32 456; data3:789; my_list [ 1, 2, 3 ] }
 
 #### 普通标识符
 
-普通标识符的词法与摘录的 MSVC 的 C++ 标识符相同。  
+普通标识符的词法为 `首字符` 后紧跟任意个 `其他字符` 中的字符。  
+
+`首字符` 可以为下列字符之一：  
+
+```text
+_ a b c d e f g h i j k l m
+  n o p q r s t u v w x y z
+  A B C D E F G H I J K L M
+  N O P Q R S T U V W X Y Z
+```
+
+和以下 Unicode 码位对应的字符：  
+00A8、00AA、00AD、00AF、00B2-00B5、00B7-00BA、00BC-00BE、00C0-00D6、00D8-00F6、00F8-00FF、0100-02FF、0370-167F、1681-180D、180F-1DBF、1E00-1FFF、200B-200D、202A-202E、203F-2040、2054、2060-206F、2070-20CF、2100-218F、2460-24FF、2776-2793、2C00-2DFF、2E80-2FFF、3004-3007、3021-302F、3031-303F、3040-D7FF、F900-FD3D、FD40-FDCF、FDF0-FE1F、FE30-FE44、FE47-FFFD、10000-1FFFD、20000-2FFFD、30000-3FFFD、40000-4FFFD、50000-5FFFD、60000-6FFFD、70000-7FFFD、80000-8FFFD、90000-9FFFD、A0000-AFFFD、B0000-BFFFD、C0000-CFFFD、D0000-DFFFD、E0000-EFFFD
+
+`其他字符` 为下列字符：  
+
+```text
+  0 1 2 3 4 5 6 7 8 9
+```
+
+和以下 Unicode 码位对应的字符：  
+0300-036F、1DC0-1DFF、20D0-20FF、FE20-FE2F  
+
 标识符示例：  
 
 ```pdn
@@ -216,7 +238,20 @@ iden1234_1234
 _1
 ```
 
-PDN 对标识符的定义参考了 MSVC 的 C++ 标识符文档。  
+出于某些原因，标识符不支持通用字符名：  
+
+```C++
+int \u3042 = 100; // 在 C++ 中使用通用字符名表示平假名 あ
+```
+
+```spdn
+// \u3042: 100 // 不可以
+test1 { あ: 100 } // OK
+test2 { `\u3042`: 100 } // OK 使用字符串标识符
+// test1 和 test2 都有成员 あ
+```
+
+PDN 对标识符的定义参考了 MSVC 的 C++ 标识符文档(不含 `MSVC 专用` 部分)。  
 [参考 MSDN](https://learn.microsoft.com/zh-cn/cpp/cpp/identifiers-cpp "zh-cn")  
 [摘录 MSDN](#摘录-msdn-cpp-标识符)  
 
