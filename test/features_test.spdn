@@ -33,6 +33,7 @@ floating_points_test {
 		0.0,
 		.1E3,
 		1.e3,
+		09e1,
 		1e3,
 		1E3,
 		1E+3,

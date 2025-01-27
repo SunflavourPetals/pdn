@@ -340,6 +340,7 @@ PDN 的整数字面量无任何后缀，其余词法与 C++ 整数字面量一�
 #### 浮点数字面量
 
 PDN 的浮点字面量无任何后缀，其余词法与 C++ 整数字面量一致。  
+
 浮点字面量示例：  
 
 ```pdn
@@ -351,7 +352,7 @@ PDN 的浮点字面量无任何后缀，其余词法与 C++ 整数字面量一�
 123'456.0
 0xff'ffp-2 // 16383.75
 0x1.p1     // 2
-0x.8p1     // 1
+0x.8p+1     // 1
 ```
 
 [参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/floating_literal)  
