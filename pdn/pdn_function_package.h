@@ -61,7 +61,7 @@ namespace pdn
 			return type_gen.generate_type(iden);
 		}
 		default_function_package() = default;
-		default_function_package(error_count_t max_error_count) : err_handler{ max_error_count } {}
+		explicit default_function_package(error_count_t max_error_count) : err_handler{ max_error_count } {}
 	private:
 		source_position_recorder           pos_recorder{};
 		default_threshold_error_handler    err_handler{};
