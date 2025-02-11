@@ -132,7 +132,7 @@ struct my_date
 	}
 };
 
-int main()
+int main() try
 {
 	serializer_test();
 	access_test();
@@ -190,4 +190,12 @@ str   : "string";
 
 	my_date date(cref[u8"date"]);
 	std::cout << (const char*)pdn::make_u8serializer().serialize(date.to_entity()).c_str() << "\n";
+}
+catch (std::exception& e)
+{
+	std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+	std::cerr << "unknown exception\n";
 }

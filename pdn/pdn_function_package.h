@@ -14,13 +14,24 @@ namespace pdn
 	template <typename char_t>
 	class default_function_package
 	{
-	private:
-		pdn::source_position_recorder           pos_recorder{};
-		pdn::default_error_handler              err_handler{};
-		pdn::default_error_message_generator    err_msg_gen{};
-		pdn::default_constant_generator<char_t> const_gen{};
-		pdn::default_type_generator<char_t>     type_gen{};
 	public:
+		using error_count_t = default_threshold_error_handler::error_count_t;
+		void clear_error_count() noexcept
+		{
+			err_handler.clear();
+		}
+		auto error_count() const noexcept
+		{
+			return err_handler.count();
+		}
+		void reset_error_threshold(const error_count_t max_error_count) noexcept
+		{
+			err_handler.limit = max_error_count;
+		}
+		auto error_threshold() const noexcept
+		{
+			return err_handler.limit;
+		}
 		auto position() const -> pdn::source_position
 		{
 			return pos_recorder.position();
@@ -29,11 +40,11 @@ namespace pdn
 		{
 			pos_recorder.update(c);
 		}
-		void handle_error(const pdn::error_message& msg) const
+		void handle_error(const pdn::error_message& msg)
 		{
 			err_handler.handle_error(msg);
 		}
-		void handle_error(const pdn::error_message& msg, ::std::ostream& out) const
+		void handle_error(const pdn::error_message& msg, ::std::ostream& out)
 		{
 			err_handler.handle_error(msg, out);
 		}
@@ -49,6 +60,14 @@ namespace pdn
 		{
 			return type_gen.generate_type(iden);
 		}
+		default_function_package() = default;
+		default_function_package(error_count_t max_error_count) : err_handler{ max_error_count } {}
+	private:
+		source_position_recorder           pos_recorder{};
+		default_threshold_error_handler    err_handler{};
+		default_error_message_generator    err_msg_gen{};
+		default_constant_generator<char_t> const_gen{};
+		default_type_generator<char_t>     type_gen{};
 	};
 }
 
