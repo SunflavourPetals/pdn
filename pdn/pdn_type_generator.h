@@ -13,7 +13,7 @@ namespace pdn
 	class default_type_generator
 	{
 	public:
-		auto generate_type(types::string<char_t> iden) const -> type_code
+		static auto generate_type(types::string<char_t> iden) -> type_code
 		{
 			return type_generator_function<char_t>(::std::move(iden));
 		}

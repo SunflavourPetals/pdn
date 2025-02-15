@@ -36,7 +36,7 @@ namespace pdn
 		{
 			return pos_recorder.position();
 		}
-		void update(char32_t c)
+		void update(const char32_t c)
 		{
 			pos_recorder.update(c);
 		}
@@ -50,24 +50,21 @@ namespace pdn
 		}
 		auto generate_error_message(pdn::raw_error_message raw) const -> pdn::error_msg_string
 		{
-			return err_msg_gen.generate_error_message(std::move(raw));
+			return default_error_message_generator::generate_error_message(std::move(raw));
 		}
 		auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) const -> ::std::optional<pdn::entity<char_t>>
 		{
-			return const_gen.generate_constant(iden);
+			return default_constant_generator<char_t>::generate_constant(iden);
 		}
 		auto generate_type(const types::string<char_t>& iden) const -> type_code
 		{
-			return type_gen.generate_type(iden);
+			return default_type_generator<char_t>::generate_type(iden);
 		}
 		default_function_package() = default;
 		explicit default_function_package(error_count_t max_error_count) : err_handler{ max_error_count } {}
 	private:
-		source_position_recorder           pos_recorder{};
-		default_threshold_error_handler    err_handler{};
-		default_error_message_generator    err_msg_gen{};
-		default_constant_generator<char_t> const_gen{};
-		default_type_generator<char_t>     type_gen{};
+		source_position_recorder        pos_recorder{};
+		default_threshold_error_handler err_handler{};
 	};
 }
 

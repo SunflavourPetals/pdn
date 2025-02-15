@@ -14,7 +14,7 @@ namespace pdn
 	class default_constant_generator
 	{
 	public:
-		auto generate_constant(const unicode::utf_8_code_unit_string& iden) const -> ::std::optional<entity<char_t>>
+		static auto generate_constant(const unicode::utf_8_code_unit_string& iden) -> ::std::optional<entity<char_t>>
 		{
 			return constant_generator_std_function<char_t>(iden);
 		}

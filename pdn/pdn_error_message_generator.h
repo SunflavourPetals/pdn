@@ -17,7 +17,7 @@ namespace pdn
 	class default_error_message_generator
 	{
 	public:
-		auto generate_error_message(raw_error_message src) const -> error_msg_string
+		static auto generate_error_message(raw_error_message src) -> error_msg_string
 		{
 			using namespace literals::error_message_literals;
 			return

@@ -14,18 +14,18 @@ namespace pdn
 	class default_error_handler
 	{
 	public:
-		void handle_error(const error_message& e) const
+		static void handle_error(const error_message& e)
 		{
 			handle_error(e, ::std::cerr);
 		}
-		void handle_error(const error_message& e, ::std::ostream& out) const
+		static void handle_error(const error_message& e, ::std::ostream& out)
 		{
 			out << ::std::string_view{ reinterpret_cast<const char*>(e.error_message.data()), e.error_message.size() } << "\n";
 		}
 	};
 	static_assert(concepts::error_handler<default_error_handler>);
 
-	class default_threshold_error_handler : public default_error_handler
+	class default_threshold_error_handler
 	{
 	public:
 		using error_count_t = unsigned;
@@ -52,6 +52,7 @@ namespace pdn
 	private:
 		error_count_t error_count{};
 	public:
+		// Throws an exception once accumulated errors reach limit. If limit is 0, handle_error(...) behaves as if limit were 1.
 		error_count_t limit{ 255 };
 	};
 	static_assert(concepts::error_handler<default_threshold_error_handler>);
