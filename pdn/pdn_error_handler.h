@@ -53,7 +53,7 @@ namespace pdn
 		error_count_t error_count{};
 	public:
 		// Throws an exception once accumulated errors reach limit. If limit is 0, handle_error(...) behaves as if limit were 1.
-		error_count_t limit{ 255 };
+		error_count_t limit{ 100 };
 	};
 	static_assert(concepts::error_handler<default_threshold_error_handler>);
 }
