@@ -11,7 +11,6 @@
 void serializer_test()
 {
 	using namespace pdn;
-
 	auto e_opt = parse("../test/features_test.spdn", utf_8_tag);
 	if (!e_opt)
 	{

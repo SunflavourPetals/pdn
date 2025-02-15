@@ -48,15 +48,15 @@ namespace pdn
 		{
 			err_handler.handle_error(msg, out);
 		}
-		auto generate_error_message(pdn::raw_error_message raw) const -> pdn::error_msg_string
+		static auto generate_error_message(pdn::raw_error_message raw) -> pdn::error_msg_string
 		{
 			return default_error_message_generator::generate_error_message(std::move(raw));
 		}
-		auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) const -> ::std::optional<pdn::entity<char_t>>
+		static auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) -> ::std::optional<pdn::entity<char_t>>
 		{
 			return default_constant_generator<char_t>::generate_constant(iden);
 		}
-		auto generate_type(const types::string<char_t>& iden) const -> type_code
+		static auto generate_type(const types::string<char_t>& iden) -> type_code
 		{
 			return default_type_generator<char_t>::generate_type(iden);
 		}
