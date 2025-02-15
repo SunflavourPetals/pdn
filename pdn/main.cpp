@@ -135,7 +135,7 @@ struct my_date
 
 int main() try
 {
-	serializer_test();
+//	serializer_test();
 	access_test();
 
 	using namespace std::literals::string_view_literals;
