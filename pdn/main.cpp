@@ -1,5 +1,5 @@
 ﻿#include <iostream>
-#include <iomanip>
+#include <format>
 #include <string>
 #include <fstream>
 #include <cassert>
@@ -20,6 +20,7 @@ void serializer_test()
 	}
 	const auto& e = *e_opt;
 	auto s = make_u8serializer().serialize(as_object(e));
+
 	{
 		std::ofstream f("../test/serialize_test.spdn");
 		if (!f.is_open())
@@ -29,6 +30,7 @@ void serializer_test()
 		}
 		f.write((const char*)s.data(), s.size());
 	}
+
 	auto copied_e_opt = parse("../test/serialize_test.spdn", utf_8_tag);
 	if (!copied_e_opt)
 	{
@@ -100,7 +102,7 @@ list [
 	auto test_as_i8 = as_int(r[u8"u64"], i8_tag);
 	static_assert(::std::same_as<decltype(test_as_i8), i8>);
 	assert(test_as_i8 == 64);
-	auto test_as_string = as_string(r[u8"char"]);
+	const auto& test_as_string = as_string(r[u8"char"]);
 	assert(test_as_string == string<char8_t>{});
 }
 
@@ -171,7 +173,7 @@ str   : "string";
 		std::cout << (const char*)as_string(s).c_str() << "\n";
 	}
 
-	std::cout << "Am I happy now? " << std::boolalpha << as_bool(cref[u8"Am I happy now"sv]) << "\n";
+	std::cout << std::format("Am I happy now? {}!\n", as_bool(cref[u8"Am I happy now"sv]) ? "yes" : "no");
 
 	if (get<types::auto_int>(dom[u8"num"]) == 123)
 	{
@@ -180,12 +182,12 @@ str   : "string";
 
 	if (auto p = get_ptr<types::auto_int>(cref[u8"n_num"]))
 	{
-		std::cout << "n_num = " << *p << "\n";
+		std::cout << std::format("n_num = {}\n", *p);
 	}
 
 	if (auto opt = get_optional<types::boolean>(cref[u8"bool"]))
 	{
-		std::cout << "bool = " << std::boolalpha << *opt << "\n";
+		std::cout << std::format("bool = {}\n", *opt);
 	}
 
 	my_date date(cref[u8"date"]);

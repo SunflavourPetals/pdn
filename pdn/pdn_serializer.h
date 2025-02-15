@@ -153,10 +153,8 @@ namespace pdn
 			return result;
 		}
 		// to "[`]slashed_iden[`] [: [type]] pdn_form[;]"
-		template <typename src_char_t>
-		auto serialize(
-			const types::string<src_char_t>& iden,
-			dev_util::nonlist_nonobj<src_char_t> auto const& val) const -> string_t
+		template <typename src_char_t, dev_util::nonlist_nonobj<src_char_t> value_t>
+		auto serialize(const types::string<src_char_t>& iden, const value_t& val) const -> string_t
 		{
 			using val_t = ::std::decay_t<decltype(val)>;
 			string_t result = serialize_iden(iden);
