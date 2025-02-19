@@ -718,7 +718,7 @@ namespace pdn
 		}
 		static void remove_all_separator(::std::string& num_str)
 		{
-			num_str.erase(::std::remove(num_str.begin(), num_str.end(), '\''), num_str.end());
+			::std::erase(num_str, '\'');
 		}
 		static auto to_raw_err_str(error_msg_string err_msg_str) -> raw_error_message_type::error_string
 		{

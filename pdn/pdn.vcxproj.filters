@@ -327,6 +327,9 @@
     <ClInclude Include="pdn_ordered_map.h">
       <Filter>pdn_ordered_map</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_convert_decision.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

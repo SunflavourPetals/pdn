@@ -118,7 +118,7 @@ namespace pdn::dev_util
 			result.push_back(char_t('\"'));
 			return result;
 		};
-		auto cp_s = unicode::replace_code_convert<unicode::code_point_string>(val);
+		auto cp_s = unicode::code_convert<unicode::code_point_string>(val);
 		return get_quoted(make_slashes_string<types::string<char_t>>(cp_s));
 	}
 }
@@ -215,7 +215,7 @@ namespace pdn
 		auto serialize_iden(const types::string<src_char_t>& iden) const -> string_t
 		{
 			string_t result{};
-			auto cp_s = unicode::replace_code_convert<unicode::code_point_string>(iden);
+			auto cp_s = unicode::code_convert<unicode::code_point_string>(iden);
 			bool need_quote{};
 			{
 				if (cp_s.empty())

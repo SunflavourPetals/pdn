@@ -139,6 +139,7 @@
     <ClInclude Include="pdn_constant_generator.h" />
     <ClInclude Include="pdn_constant_generator_concept.h" />
     <ClInclude Include="pdn_constant_generator_std.h" />
+    <ClInclude Include="pdn_convert_decision.h" />
     <ClInclude Include="pdn_dfa_state_objects.h" />
     <ClInclude Include="pdn_dfa_state_code.h" />
     <ClInclude Include="pdn_dfa_state_object.h" />
