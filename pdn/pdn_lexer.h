@@ -1310,12 +1310,12 @@ namespace pdn
 		{
 			using lex_ec = lexical_error_code;
 			using enum dfa_state_code;
+			using raw_err = raw_error_message_type::number_end_with_separator;
 			if (code == dec_seq_start_with_0 || code == dec_seq_start_with_0_with_quote)
 			{
 				post_err(position, lex_ec::invalid_octal_number, to_raw_err_str(::std::move(error_str)));
 			}
-			using raw_err = raw_error_message_type::number_end_with_separator;
-			if (code == dec_seq_start_with_0_with_quote)
+			else if (code == dec_seq_start_with_0_with_quote)
 			{
 				using enum raw_error_message_type::number_type;
 				post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ ::std::move(error_str), oct_integer });
