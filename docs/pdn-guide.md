@@ -278,7 +278,7 @@ cat: "a" " " @"(string)" "!" // 等效于 "a string!"
 // todo
 
 示例参考：  
-[pdn_reference](./pdn-reference.md#原始字符串)
+[pdn_reference](./pdn-reference.md#原始字符串)  
 cppreference：  
 [cppref string_literal](https://zh.cppreference.com/w/cpp/language/string_literal)  
 
@@ -389,7 +389,7 @@ object: object { num: 123 }
 score 100 // 分数的范围为 0 到 100 分
 ```
 
-一定不要滥用类型指定，它会让文档变得不自然和冗长，我们更应该关注数据本身，而不是它们的类型。  
+一定不要滥用类型指定，它会让文档变得不自然和冗长，我们更应该关注数据本身，而不是它们的类型，大多数情况下，数据本身就隐含着它的类型。  
 
 类型指定可能导致类型转换，转换规则在[下一节](#类型转换规则)讲解。  
 
