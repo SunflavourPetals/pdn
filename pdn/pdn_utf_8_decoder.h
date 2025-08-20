@@ -29,7 +29,7 @@ namespace pdn::unicode::utf_8
 
 	class decoder;
 
-	class decode_result final
+	class [[nodiscard("decode_result should be processed")]] decode_result final
 	{
 	public:
 		using value_type = code_point_t;

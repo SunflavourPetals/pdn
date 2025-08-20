@@ -49,8 +49,8 @@ namespace pdn::unicode
 	{ \
 		using decode_result = source_ns::decode_result; \
 		using encode_result = target_ns::encode_result; \
-		using source_char = source_ns::code_unit_t; \
-		using target_char = target_ns::code_unit_t; \
+		using source_char   = source_ns::code_unit_t; \
+		using target_char   = target_ns::code_unit_t; \
 		template <bool reach_next_code_point = false> \
 		inline static decode_result decode(auto&& begin, auto end) noexcept(noexcept(source_ns::decode<reach_next_code_point>(begin, end))) \
 		{ \
@@ -62,9 +62,9 @@ namespace pdn::unicode
 		} \
 	};
 
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src, utf_8, concepts::utf_8_convert_des,  utf_8)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src, utf_8, concepts::utf_16_convert_des, utf_16)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src, utf_8, concepts::utf_32_convert_des, utf_32)
+	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src,  utf_8,  concepts::utf_8_convert_des,  utf_8)
+	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src,  utf_8,  concepts::utf_16_convert_des, utf_16)
+	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src,  utf_8,  concepts::utf_32_convert_des, utf_32)
 
 	PDN_Macro_Temp_make_convert_decision(concepts::utf_16_convert_src, utf_16, concepts::utf_8_convert_des,  utf_8)
 	PDN_Macro_Temp_make_convert_decision(concepts::utf_16_convert_src, utf_16, concepts::utf_16_convert_des, utf_16)

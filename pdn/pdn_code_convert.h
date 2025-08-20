@@ -72,9 +72,9 @@ namespace pdn::unicode
 	          typename source_string_view,
 	          typename decode_error_handler_t,
 	          typename encode_error_handler_t>
-	inline target_string code_convert(const source_string_view& source,
-	                                  decode_error_handler_t    decode_error_handler,
-	                                  encode_error_handler_t    encode_error_handler)
+	inline auto code_convert(const source_string_view& source,
+	                                       decode_error_handler_t    decode_error_handler,
+	                                       encode_error_handler_t    encode_error_handler) -> target_string
 	{
 		using decision = convert_decision<source_string_view, target_string>;
 
@@ -107,7 +107,7 @@ namespace pdn::unicode
 	}
 
 	template <typename target_string, typename source_string_view>
-	inline target_string code_convert(const source_string_view& source)
+	inline auto code_convert(const source_string_view& source) -> target_string
 	{
 		return code_convert<target_string>(
 			source,

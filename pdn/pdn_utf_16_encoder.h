@@ -16,7 +16,7 @@ namespace pdn::unicode::utf_16
 	};
 
 	class encoder;
-	class encode_result final
+	class [[nodiscard("encode_result should be processed")]] encode_result final
 	{
 	public:
 		using code_unit_sequence_type = ::std::array<code_unit_t, 2>;

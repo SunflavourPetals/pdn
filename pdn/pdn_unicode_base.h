@@ -91,7 +91,7 @@ namespace pdn::unicode::utility
 	{
 		switch (bom_type)
 		{
-		case bom_type::no_bom:    [[fallthrough]];
+		case bom_type::no_bom:
 		case bom_type::utf_8:     return encode_type::utf_8;
 		case bom_type::utf_16_le: return encode_type::utf_16_le;
 		case bom_type::utf_16_be: return encode_type::utf_16_be;
@@ -103,14 +103,15 @@ namespace pdn::unicode::utility
 
 	constexpr auto to_endian(encode_type encode_type) noexcept -> ::std::endian
 	{
-		using enum ::std::endian;
 		switch (encode_type)
 		{
-		case encode_type::utf_16_le: return little;
-		case encode_type::utf_16_be: return big;
-		case encode_type::utf_32_le: return little;
-		case encode_type::utf_32_be: return big;
-		default:                     return native; // case encode_type::unknown|utf_8
+		using enum pdn::unicode::encode_type;
+		using enum ::std::endian;
+		case utf_16_le: return little;
+		case utf_16_be: return big;
+		case utf_32_le: return little;
+		case utf_32_be: return big;
+		default:        return native; // case encode_type::unknown|utf_8
 		}
 	}
 }

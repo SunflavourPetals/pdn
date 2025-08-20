@@ -37,20 +37,20 @@ namespace pdn::unicode::dev_util
 
 namespace pdn::unicode
 {
-	inline auto encode(const code_point_t character, utf_8_code_unit_t) -> utf_8::encode_result
+	inline auto encode(code_point_t character, utf_8_code_unit_t) -> utf_8::encode_result
 	{
 		return utf_8::encode(character);
 	}
-	inline auto encode(const code_point_t character, utf_16_code_unit_t) -> utf_16::encode_result
+	inline auto encode(code_point_t character, utf_16_code_unit_t) -> utf_16::encode_result
 	{
 		return utf_16::encode(character);
 	}
-	inline auto encode(const code_point_t character, utf_32_code_unit_t) -> utf_32::encode_result
+	inline auto encode(code_point_t character, utf_32_code_unit_t) -> utf_32::encode_result
 	{
 		return utf_32::encode(character);
 	}
 	template <typename char_t>
-	inline auto encode(const code_point_t character) -> dev_util::encode_result_t<char_t>
+	inline auto encode(code_point_t character) -> dev_util::encode_result_t<char_t>
 	{
 		return dev_util::encoder<char_t>::encode(character);
 	}
@@ -59,7 +59,7 @@ namespace pdn::unicode
 	{
 	public:
 		template <typename char_t>
-		static auto encode(const code_point_t character)
+		static auto encode(code_point_t character)
 		{
 			return dev_util::encoder<char_t>::encode(character);
 		}
