@@ -10,9 +10,9 @@
 
 namespace pdn::unicode::utf_16
 {
-	enum class encode_error_code : ::std::uint8_t
+	enum class encode_error_code : ::std::uint16_t
 	{
-		not_scalar_value,
+		not_scalar_value = 1,
 	};
 
 	class encoder;
@@ -21,7 +21,6 @@ namespace pdn::unicode::utf_16
 	public:
 		using code_unit_sequence_type = ::std::array<code_unit_t, 2>;
 		using size_type               = ::std::uint16_t;
-		using bool_type               = ::std::uint8_t;
 		using error_type              = encode_error_code;
 	public:
 		constexpr auto size() const noexcept
@@ -58,24 +57,17 @@ namespace pdn::unicode::utf_16
 		}
 		constexpr auto failed() const noexcept
 		{
-			return static_cast<bool>(is_failed);
+			return error_code != error_type{};
 		}
 		constexpr explicit operator bool() const noexcept
 		{
 			return !failed();
 		}
-	private:
-		code_unit_sequence_type sequence{};      // code point sequence
-		size_type               sequence_size{}; // size of code point sequence
-		bool_type               is_failed{};
-		error_type              error_code{};    // valid only on failure
-
-		constexpr void set_error(error_type code) noexcept
-		{
-			is_failed  = true;
-			error_code = code;
-		}
 		friend class encoder;
+	private:
+		code_unit_sequence_type sequence{};
+		size_type               sequence_size{};
+		error_type              error_code{};
 	};
 
 	class encoder
@@ -105,7 +97,7 @@ namespace pdn::unicode::utf_16
 			}
 			else
 			{
-				result.set_error(encode_error_code::not_scalar_value);
+				result.error_code = encode_error_code::not_scalar_value;
 			}
 			return result;
 		}

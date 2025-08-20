@@ -8,7 +8,7 @@
 
 namespace pdn::unicode::utf_32
 {
-	enum class decode_error_code : ::std::uint8_t
+	enum class decode_error_code : ::std::uint16_t
 	{
 		not_scalar_value = 1,    // decode result is not Unicode scalar value
 		eof_when_read_code_unit, // eof when read first code unit
@@ -22,7 +22,6 @@ namespace pdn::unicode::utf_32
 		using value_type = code_point_t;
 		using error_type = decode_error_code;
 		using count_type = ::std::uint16_t;
-		using bool_type  = ::std::uint8_t;
 	public:
 		constexpr auto value() const noexcept
 		{
@@ -38,24 +37,17 @@ namespace pdn::unicode::utf_32
 		}
 		constexpr auto failed() const noexcept
 		{
-			return static_cast<bool>(is_failed);
+			return error_code != error_type{};
 		}
 		constexpr explicit operator bool() const noexcept
 		{
 			return !failed();
 		}
+		friend class decoder;
 	private:
 		value_type code_point{};
 		count_type distance_count{};
-		bool_type  is_failed{};
-		error_type error_code{}; // valid only on failure
-
-		constexpr void set_error(error_type code) noexcept
-		{
-			is_failed  = true;
-			error_code = code;
-		}
-		friend class decoder;
+		error_type error_code{};
 	};
 
 	class decoder
@@ -73,14 +65,14 @@ namespace pdn::unicode::utf_32
 
 			if (begin == end)
 			{
-				result.set_error(eof_when_read_code_unit);
+				result.error_code = eof_when_read_code_unit;
 				return result;
 			}
 
 			result.code_point = ucu_t(*begin);
 			if (!is_scalar_value(result.value()))
 			{
-				result.set_error(not_scalar_value);
+				result.error_code = not_scalar_value;
 			}
 
 			if constexpr (reach_next_code_point) { to_next(begin, result); }
