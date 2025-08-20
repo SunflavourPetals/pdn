@@ -636,7 +636,7 @@ namespace pdn
 			return result;
 		}
 
-		lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
+		explicit lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
 		static constexpr bool is_non_token_state(dfa_state_code c) noexcept
 		{
@@ -1084,7 +1084,7 @@ namespace pdn
 		void get_numeric_escape_sequence(::std::string& sequence,
 		                                          auto& begin,
 		                                          auto  end,
-		  ::std::predicate<unicode::code_point_t> auto  is_valid_char)
+		  ::std::predicate<unicode::code_point_t> auto  is_valid_char) const
 		{
 			for (; begin != end; ++begin)
 			{
@@ -1101,7 +1101,7 @@ namespace pdn
 		                                 ::std::string& sequence,
 		                                          auto& begin,
 		                                          auto  end,
-		  ::std::predicate<unicode::code_point_t> auto  is_valid_char) -> ::std::size_t
+		  ::std::predicate<unicode::code_point_t> auto  is_valid_char) const -> ::std::size_t
 		{
 			for (::std::size_t read_count{ 0 }; read_count < count && begin != end; ++read_count, ++begin)
 			{
@@ -1182,11 +1182,11 @@ namespace pdn
 		//     begin points to the first character that is not processed
 		// On success, the double/back quote is read in and it is skipped,
 		//     so that begin points to the first character after the double/back quote.
-		bool get_raw_string_closing_d_seq(const unicode::code_point_string_view in_sequence, // delimiter sequence for reference
-		                                  unicode::code_point_string&           out_sequence, // closing delimiter sequence we are reading
-		                                  auto&                                 begin,
-		                                  auto                                  end,
-		                                  unicode::code_point_t                 end_quote)
+		bool get_raw_string_closing_d_seq(unicode::code_point_string_view in_sequence, // delimiter sequence for reference
+		                                  unicode::code_point_string&     out_sequence, // closing delimiter sequence we are reading
+		                                  auto&                           begin,
+		                                  auto                            end,
+		                                  unicode::code_point_t           end_quote) const
 		{
 			for (::std::size_t index{}; begin != end; ++begin, ++index)
 			{
