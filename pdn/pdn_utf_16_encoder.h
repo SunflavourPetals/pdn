@@ -90,7 +90,7 @@ namespace pdn::unicode::utf_16
 
 			if (is_scalar_value(character))
 			{
-				if (in_BMP(character))
+				if (is_in_BMP(character))
 				{
 					result.sequence[0] = static_cast<cu_t>(character);
 					result.sequence_size = 1;

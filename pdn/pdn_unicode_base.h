@@ -79,7 +79,7 @@ namespace pdn::unicode
 		return is_code_point(c) && is_non_surrogate(c);
 	}
 
-	constexpr bool in_BMP(code_point_t c) noexcept
+	constexpr bool is_in_BMP(code_point_t c) noexcept
 	{
 		return c < code_point_t(0x10000u);
 	}

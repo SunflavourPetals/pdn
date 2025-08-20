@@ -106,7 +106,7 @@ namespace pdn::unicode::utf_8
 				result.sequence[0] = static_cast<cu_t>(cp_t(0xC0u) |  (character >> 6u)                ); // high 5 bits
 				result.sequence_size = 2;
 			}
-			else if (in_BMP(character)) // U+0800..U+FFFF | 3 code units
+			else if (is_in_BMP(character)) // U+0800..U+FFFF | 3 code units
 			{
 				result.sequence[2] = static_cast<cu_t>(cp_t(0x80u) | ( character         & cp_t(0x3Fu))); // low  6 bits
 				result.sequence[1] = static_cast<cu_t>(cp_t(0x80u) | ((character >> 6u)  & cp_t(0x3Fu))); // low  7..12 bits
