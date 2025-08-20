@@ -1195,7 +1195,7 @@ namespace pdn
 				{
 					if (c == end_quote)
 					{
-						++begin; // skip the double quotation marks that are read
+						++begin; // skip the double/back quotation marks that are read
 						return true;
 					}
 					else
