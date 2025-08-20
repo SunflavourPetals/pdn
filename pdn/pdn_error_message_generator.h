@@ -20,10 +20,12 @@ namespace pdn
 		static auto generate_error_message(raw_error_message src) -> error_msg_string
 		{
 			using namespace literals::error_message_literals;
+			auto errc = src.error_code;
+			auto pos  = src.position;
 			return
-				error_code_variant_to_error_msg_string(src.error_code).append(u8"("_em).
-				append(reinterpret_to_err_msg_str(::std::to_string(src.position.line))).append(u8":"_em).
-				append(reinterpret_to_err_msg_str(::std::to_string(src.position.column))).append(u8") "_em).
+				error_code_variant_to_error_msg_string(errc).append(u8"("_em).
+				append(reinterpret_to_err_msg_str(::std::to_string(pos.line))).append(u8":"_em).
+				append(reinterpret_to_err_msg_str(::std::to_string(pos.column))).append(u8") "_em).
 				append(error_message_generator_en(::std::move(src)));
 		}
 	};
