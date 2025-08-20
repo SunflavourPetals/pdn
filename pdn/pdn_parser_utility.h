@@ -145,7 +145,7 @@ namespace pdn::parser_utility
 		source_position last_positive_sign_pos{}; // P-pos
 		source_position last_negative_sign_pos{}; // N-pos
 		::std::size_t   negative_sign_count{};
-		bool            is_last_sign_negative{};  // true => N-pos is valid, false => P-pos is valis
+		bool            is_last_sign_negative{};  // true => N-pos is valid, false => P-pos is valid
 		bool            has_sign{};               // true => this object is valid
 		explicit unary_record(bool v) : has_sign{ v } {}
 	};
