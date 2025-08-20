@@ -36,10 +36,10 @@ namespace pdn
 
 		// ---------------- ERROR ----------------
 
-		FLAG_ERRER_STATE_BEGIN, // vvv
+		flag_error_state_begin, // vvv
 
 		// block comment not closed
-		block_comment = FLAG_ERRER_STATE_BEGIN,
+		block_comment = flag_error_state_begin,
 		block_comment_closing,
 
 		// nested block comment not closed
@@ -102,15 +102,15 @@ namespace pdn
 		// in this case, hexadecimal decimals are necessary "0x.[not hex]", and expect exp part
 		hex_fp_seq_start_with_0x_dot,
 
-		FLAG_ERRER_STATE_END = hex_fp_seq_start_with_0x_dot, // ^^^
+		flag_error_state_end = hex_fp_seq_start_with_0x_dot, // ^^^
 
 
 
 		// ---------------- FINAL ----------------
 
-		FLAG_FINAL_STATE_BEGIN, // vvv
+		flag_final_state_begin, // vvv
 
-		identifier = FLAG_FINAL_STATE_BEGIN,
+		identifier = flag_final_state_begin,
 		identifier_string_closed,
 		string_closed,
 		character_closed,
@@ -161,16 +161,16 @@ namespace pdn
 		dot,                  // . 
 		question_mark,        // ? 
 	};
-	static_assert(dfa_state_code::FLAG_ERRER_STATE_END <= dfa_state_code::FLAG_FINAL_STATE_BEGIN,
+	static_assert(dfa_state_code::flag_error_state_end <= dfa_state_code::flag_final_state_begin,
 	              "[pdn] dfa_state_code error: FLAG_ERRER_STATE_END <= FLAG_FINAL_STATE_BEGIN is false");
 
 	constexpr bool is_final_dfa_state(dfa_state_code state) noexcept
 	{
-		return state >= dfa_state_code::FLAG_FINAL_STATE_BEGIN;
+		return state >= dfa_state_code::flag_final_state_begin;
 	}
 	constexpr bool is_error_dfa_state(dfa_state_code state) noexcept
 	{
-		return state >= dfa_state_code::FLAG_ERRER_STATE_BEGIN && state <= dfa_state_code::FLAG_ERRER_STATE_END;
+		return state >= dfa_state_code::flag_error_state_begin && state <= dfa_state_code::flag_error_state_end;
 	}
 }
 
