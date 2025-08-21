@@ -73,8 +73,8 @@ namespace pdn::unicode
 	          typename decode_error_handler_t,
 	          typename encode_error_handler_t>
 	inline auto code_convert(const source_string_view& source,
-	                                       decode_error_handler_t    decode_error_handler,
-	                                       encode_error_handler_t    encode_error_handler) -> target_string
+	                         decode_error_handler_t    decode_error_handler,
+	                         encode_error_handler_t    encode_error_handler) -> target_string
 	{
 		using decision = convert_decision<source_string_view, target_string>;
 
