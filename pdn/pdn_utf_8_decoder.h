@@ -133,8 +133,8 @@ namespace pdn::unicode::utf_8::impl_components
 		}
 	};
 
-	inline const first_code_units_count_table  first_table{};
-	inline const second_code_units_count_table second_table{};
+	inline constexpr first_code_units_count_table  first_table{};
+	inline constexpr second_code_units_count_table second_table{};
 
 	inline code_unit_t high_5_bits(code_unit_t c) noexcept
 	{
@@ -229,7 +229,7 @@ namespace pdn::unicode::utf_8
 				// 2 code units: 0x0080 ~ 0x07FF;
 				// 3 code units: 0x0800 ~ 0xFFFF;
 				// 4 code units: 0x1'0000 ~ 0x10'FFFF
-				static const ::std::array<::std::uint_least32_t, 4> min_valid{ 0, 0x0080, 0x0800, 0x1'0000 };
+				static constexpr ::std::array<::std::uint_least32_t, 4> min_valid{ 0, 0x0080, 0x0800, 0x1'0000 };
 				if (!is_scalar_value(result.value())) [[unlikely]]
 				{
 					result.error_code = not_scalar_value;
