@@ -76,7 +76,7 @@ namespace pdn::unicode::utf_32
 		static auto encode(code_point_t character) noexcept -> encode_result
 		{
 			encode_result result{};
-			if (is_scalar_value(character))
+			if (is_scalar_value(character)) [[likely]]
 			{
 				result.sequence[0] = character;
 				result.sequence_size = 1;

@@ -63,14 +63,14 @@ namespace pdn::unicode::utf_32
 			
 			decode_result result{};
 
-			if (begin == end)
+			if (begin == end) [[unlikely]]
 			{
 				result.error_code = eof_when_read_code_unit;
 				return result;
 			}
 
 			result.code_point = ucu_t(*begin);
-			if (!is_scalar_value(result.value()))
+			if (!is_scalar_value(result.value())) [[unlikely]]
 			{
 				result.error_code = not_scalar_value;
 			}

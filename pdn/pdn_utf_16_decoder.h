@@ -67,7 +67,7 @@ namespace pdn::unicode::utf_16
 
 			decode_result result{};
 
-			if (begin == end)
+			if (begin == end) [[unlikely]]
 			{
 				result.error_code = eof_when_read_code_unit;
 				return result;
@@ -85,24 +85,24 @@ namespace pdn::unicode::utf_16
 			{
 				result.code_point = ((result.code_point & value_type(0x03FF)) << 10) + value_type(0x10000U);
 				to_next(begin, result);
-				if (begin == end)
+				if (begin == end) [[unlikely]]
 				{
 					result.error_code = eof_when_read_trailing_surrogate;
 					return result;
 				}
 				auto trailing = ucu_t(*begin);
-				if (!is_trailing_surrogate(trailing))
+				if (!is_trailing_surrogate(trailing)) [[unlikely]]
 				{
 					result.error_code = requires_trailing_surrogate;
 					return result;
 				}
 				result.code_point |= (value_type(trailing) & value_type(0x03FF));
-				if (!is_scalar_value(result.value()))
+				if (!is_scalar_value(result.value())) [[unlikely]]
 				{
 					result.error_code = not_scalar_value;
 				}
 			}
-			else // code unit must be trailing surrogate
+			else [[unlikely]] // code unit must be trailing surrogate
 			{
 				result.error_code = alone_trailing_surrogate;
 			}

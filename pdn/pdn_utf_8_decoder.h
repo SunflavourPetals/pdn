@@ -6,6 +6,9 @@
 #include <array>
 #include <stdexcept>
 #include <utility>
+#ifndef __cpp_lib_unreachable
+#include <cassert>
+#endif
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf_8_base.h"
@@ -172,7 +175,7 @@ namespace pdn::unicode::utf_8
 
 			decode_result result{};
 
-			if (begin == end)
+			if (begin == end) [[unlikely]]
 			{
 				result.error_code = eof_when_read_1st_code_unit;
 				return result;
@@ -194,30 +197,44 @@ namespace pdn::unicode::utf_8
 				{
 				case cu_count::c5: (result = process_trailing<4>(begin, end)).code_point |= ((value_type(c) & 0x03) << (6 * 4)); break;
 				case cu_count::c6: (result = process_trailing<5>(begin, end)).code_point |= ((value_type(c) & 0x01) << (6 * 5)); break;
-				case cu_count::unknown: [[fallthrough]];
-				default:
-					// mark c1, c2, c3, c4, trail and unconfirm not in second table, this branch only for case unknown.
+				[[unlikely]] case cu_count::unknown:
 					result.error_code = unsupported_utf_8_leading;
 					if constexpr (reach_next_code_point) { to_next(begin, result); }
 					return result;
+				[[unlikely]] default: // unreachable, mark c1, c2, c3, c4, trail and unconfirm not in second table
+#ifdef __cpp_lib_unreachable
+					std::unreachable();
+#else
+					assert(false && "unreachable branch in pdn::unicode::utf_8::decoder::decode");
+#endif
+					break;
 				}
 				break;
-			default:
-				// mark c5, c6 and invalid not in first table, this branch only for trail mark.
+			[[unlikely]] case cu_count::trail:
 				result.error_code = requires_utf_8_leading;
 				if constexpr (reach_next_code_point) { to_next(begin, result); }
 				return result;
+			[[unlikely]] default: // unreachable, mark c5, c6 and invalid not in first table
+#ifdef __cpp_lib_unreachable
+				std::unreachable();
+#else
+				assert(false && "unreachable branch in pdn::unicode::utf_8::decoder::decode");
+#endif
+				break;
 			}
 
 			if (result)
 			{
-				// 0x007F, 0x07FF, 0xFFFF, 0x10'FFFF
-				static ::std::array<::std::uint_least32_t, 4> min_valid{ 0, 0x0080, 0x0800, 0x1'0000 };
-				if (!is_scalar_value(result.value()))
+				// 1 code unit : 0x0000 ~ 0x007F;
+				// 2 code units: 0x0080 ~ 0x07FF;
+				// 3 code units: 0x0800 ~ 0xFFFF;
+				// 4 code units: 0x1'0000 ~ 0x10'FFFF
+				static const ::std::array<::std::uint_least32_t, 4> min_valid{ 0, 0x0080, 0x0800, 0x1'0000 };
+				if (!is_scalar_value(result.value())) [[unlikely]]
 				{
 					result.error_code = not_scalar_value;
 				}
-				else if (result.value() < min_valid[result.distance()])
+				else if (result.value() < min_valid[result.distance()]) [[unlikely]]
 				{
 					result.error_code = invalid_sequence;
 				}
@@ -245,10 +262,10 @@ namespace pdn::unicode::utf_8
 			using ucu_t          = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
 
 			decode_result result{};
-			for (int i{ 1 }; i <= trailing_count; ++i)
+			for (int i = 1; i <= trailing_count; ++i)
 			{
 				to_next(begin, result);
-				if (begin == end)
+				if (begin == end) [[unlikely]]
 				{
 					switch (i)
 					{
@@ -262,7 +279,7 @@ namespace pdn::unicode::utf_8
 					return result;
 				}
 				auto c = ucu_t(*begin);
-				if (utf_8::is_trailing(c))
+				if (utf_8::is_trailing(c)) [[likely]]
 				{
 					result.code_point |= ((value_type(c) & 0x3F) << ((trailing_count - i) * 6));
 				}

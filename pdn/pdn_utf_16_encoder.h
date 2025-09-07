@@ -80,7 +80,7 @@ namespace pdn::unicode::utf_16
 
 			encode_result result{};
 
-			if (is_scalar_value(character))
+			if (is_scalar_value(character)) [[likely]]
 			{
 				if (is_in_BMP(character))
 				{

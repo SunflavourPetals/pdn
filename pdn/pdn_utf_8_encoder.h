@@ -78,7 +78,7 @@ namespace pdn::unicode::utf_8
 		{
 			encode_result result{};
 
-			if (!is_scalar_value(character))
+			if (!is_scalar_value(character)) [[unlikely]]
 			{
 				result.error_code = encode_error_code::not_scalar_value;
 				return result;
