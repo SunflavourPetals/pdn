@@ -13,10 +13,10 @@ namespace pdn::unicode::utf_32
 	using code_unit_t = utf_32_code_unit_t;
 
 	template <typename traits = ::std::char_traits<code_unit_t>, typename alloc = ::std::allocator<code_unit_t>>
-	using basic_code_unit_string = ::std::basic_string<code_unit_t, traits, alloc>;
+	using basic_code_unit_string = basic_utf_32_code_unit_string<traits, alloc>;
 
 	template <typename traits = ::std::char_traits<code_unit_t>>
-	using basic_code_unit_string_view = ::std::basic_string_view<code_unit_t, traits>;
+	using basic_code_unit_string_view = basic_utf_32_code_unit_string_view<traits>;
 
 	using code_unit_string = basic_code_unit_string<>;
 	using code_unit_string_view = basic_code_unit_string_view<>;
