@@ -8,14 +8,13 @@
 namespace pdn::unicode
 {
 #define PDN_Macro_Temp_make_code_type_family(name, type) \
-	using name##_t                   = type; \
-	template <typename traits        = ::std::char_traits<name##_t>,\
-	          typename alloc         = ::std::allocator<name##_t>> \
-	using basic_##name##_string      = ::std::basic_string<name##_t, traits, alloc>; \
-	template <typename traits        = ::std::char_traits<name##_t>> \
+	using name##_t = type; \
+	template <typename traits = ::std::char_traits<name##_t>, typename alloc = ::std::allocator<name##_t>> \
+	using basic_##name##_string = ::std::basic_string<name##_t, traits, alloc>; \
+	template <typename traits = ::std::char_traits<name##_t>> \
 	using basic_##name##_string_view = ::std::basic_string_view<name##_t, traits>; \
-	using name##_string              = basic_##name##_string<>; \
-	using name##_string_view         = basic_##name##_string_view<>;
+	using name##_string = basic_##name##_string<>; \
+	using name##_string_view = basic_##name##_string_view<>;
 
 	PDN_Macro_Temp_make_code_type_family(code_point,       char32_t)
 	PDN_Macro_Temp_make_code_type_family(utf_8_code_unit,  char8_t)
