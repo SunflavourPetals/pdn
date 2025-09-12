@@ -4,7 +4,6 @@
 #include <type_traits>
 #include <cstdint>
 #include <array>
-#include <stdexcept>
 #include <utility>
 #ifndef __cpp_lib_unreachable
 #include <cassert>
@@ -69,92 +68,77 @@ namespace pdn::unicode::utf_8
 
 namespace pdn::unicode::utf_8::impl_components
 {
-	// enum class type, show how may code units to a unicode character
-	struct code_units_count final
+	// decoder::decode dependent code_unit_count.
+	// modifications require corresponding updates to decoder::decode.
+	enum class code_unit_count : ::std::uint8_t
 	{
-		using enum_type = ::std::uint8_t;
-		static constexpr enum_type invalid{ 0 }; // i do not support decode character which need 7 or more code units, and mark it invalid
-		static constexpr enum_type unknown{ 0 }; // that because unicode standard 15.0 code point range from 0 to 10FFFFH, just need 4 code units
-		static constexpr enum_type c1{ 1 };
-		static constexpr enum_type c2{ 2 };
-		static constexpr enum_type c3{ 3 };
-		static constexpr enum_type c4{ 4 };
-		static constexpr enum_type c5{ 5 }; // ucs4 code point used to range from 0 to 7FFFFFFFH, thus it maybe need 5 or 6 code units to encode
-		static constexpr enum_type c6{ 6 }; // but ucs4 not specify code point 110000H to 7FFFFFFFH, and unicode do not have these code points
-		static constexpr enum_type trail{ 7 };     // mark the trailing units
-		static constexpr enum_type unconfirm{ 8 }; // state in implementation(check high 5 bits first)
-		enum_type value{ invalid };
-		code_units_count() = default;
-		code_units_count(const code_units_count&) = default;
-		explicit code_units_count(enum_type e) noexcept : value{ e } {}
-		explicit constexpr operator enum_type() const noexcept { return value; }
+		// encoding a code point requires up to 4 code units,
+		// with the code_unit_count supporting a maximum of 4 code units.
+		invalid,
+		c1,
+		c2,
+		c3,
+		c4,
+		trail, // mark the trailing units
 	};
+
+	// decoder::decode dependent code_unit_count_ex.
+	// modifications require corresponding updates to decoder::decode.
+	enum class code_unit_count_ex : ::std::uint8_t
+	{
+		// i do not support decode character which need 7 or more code units, and mark it invalid
+		// that because unicode standard 15.0 code point range from 0 to 10FFFFH, just need 4 code units.
+		invalid,
+		c5,
+		c6
+	};
+
+	constexpr auto high_5_bits(code_unit_t c) noexcept -> code_unit_t
+	{
+		return c >> 3;
+	}
+
+	constexpr auto low_3_bits(code_unit_t c) noexcept -> code_unit_t
+	{
+		return c & code_unit_t(0b0111);
+	}
 
 	struct first_code_units_count_table final
 	{
-		using value_type = code_units_count::enum_type;
-		using table_type = ::std::array<code_units_count::enum_type, 32>;
-		table_type table{};
-		constexpr first_code_units_count_table()
+		using value_type = code_unit_count;
+		using table_type = ::std::array<value_type, 32>;
+		using enum code_unit_count;
+		table_type table
 		{
-			auto it = table.begin();
-			int code = 0;
-			for (; code < 0b10'000; ++code, ++it) { *it = code_units_count::c1;    }
-			for (; code < 0b11'000; ++code, ++it) { *it = code_units_count::trail; }
-			for (; code < 0b11'100; ++code, ++it) { *it = code_units_count::c2;    }
-			for (; code < 0b11'110; ++code, ++it) { *it = code_units_count::c3;    }
-			*(it++) = code_units_count::c4;
-			*(it++) = code_units_count::unconfirm;
-		}
+			c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, c1, // 16*c1
+			trail, trail, trail, trail, trail, trail, trail, trail,         // 8*trail
+			c2, c2, c2, c2, // 4*c2
+			c3, c3,         // 2*c3
+			c4,             // 1*c4
+			invalid,        // 1*invalid
+		};
 		constexpr value_type operator[](code_unit_t c) const noexcept
 		{
-			return table[c];
+			return table[high_5_bits(c)];
 		}
 	};
 
 	struct second_code_units_count_table final
 	{
-		using value_type = code_units_count::enum_type;
-		using table_type = ::std::array<code_units_count::enum_type, 8>;
+		using value_type = code_unit_count_ex;
+		using table_type = ::std::array<value_type, 8>;
+		using enum code_unit_count_ex;
 		table_type table
 		{
-			code_units_count::c5,      // F+0b1111'1000
-			code_units_count::c5,      // F+0b1111'1001
-			code_units_count::c5,      // F+0b1111'1010
-			code_units_count::c5,      // F+0b1111'1011
-			code_units_count::c6,      // F+0b1111'1100
-			code_units_count::c6,      // F+0b1111'1101
-			code_units_count::unknown, // F+0b1111'1110
-			code_units_count::unknown, // F+0b1111'1111
+			c5, c5, c5, c5,   // 0b1111'1000 ~ 0b1111'1011
+			c6, c6,           // 0b1111'1100 ~ 0b1111'1101
+			invalid, invalid, // 0b1111'1110 ~ 0b1111'1111
 		};
 		constexpr value_type operator[](code_unit_t c) const noexcept
 		{
-			return table[c];
+			return table[low_3_bits(c)];
 		}
 	};
-
-	inline constexpr first_code_units_count_table  first_table{};
-	inline constexpr second_code_units_count_table second_table{};
-
-	inline code_unit_t high_5_bits(code_unit_t c) noexcept
-	{
-		return c >> 3;
-	}
-
-	inline code_unit_t low_3_bits(code_unit_t c) noexcept
-	{
-		return c & code_unit_t(0b0111);
-	}
-
-	inline auto map_first_table(code_unit_t c) noexcept -> code_units_count::enum_type
-	{
-		return first_table[high_5_bits(c)];
-	}
-
-	inline auto map_second_table(code_unit_t c) noexcept -> code_units_count::enum_type
-	{
-		return second_table[low_3_bits(c)];
-	}
 }
 
 namespace pdn::unicode::utf_8
@@ -166,12 +150,10 @@ namespace pdn::unicode::utf_8
 		static auto decode(auto&& begin, auto end) -> decode_result
 		{
 			using enum decode_error_code;
-			using impl_components::map_first_table;
-			using impl_components::map_second_table;
 
-			using value_type     = decode_result::value_type;
+			using value_type = decode_result::value_type;
 			using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
-			using ucu_t          = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
+			using ucu_t = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
 
 			decode_result result{};
 
@@ -180,47 +162,37 @@ namespace pdn::unicode::utf_8
 				result.error_code = eof_when_read_1st_code_unit;
 				return result;
 			}
-		
-			using cu_count = impl_components::code_units_count;
-			switch (auto c = ucu_t(*begin); map_first_table(c))
+
+			static constexpr impl_components::first_code_units_count_table  cuc1st_tab{};
+			static constexpr impl_components::second_code_units_count_table cuc2nd_tab{};
+
+			switch (auto c = ucu_t(*begin); cuc1st_tab[c]) // switch covers all possible enum values.
 			{
-			case cu_count::c1:
+			using enum impl_components::code_unit_count;
+			case c1:
 				result.code_point = value_type(c);
 				if constexpr (reach_next_code_point) { to_next(begin, result); }
 				// no need to check is it a Unicode scalar value, because it must be
 				return result;
-			case cu_count::c2: (result = process_trailing<1>(begin, end)).code_point |= ((value_type(c) & 0x1F) << (6 * 1)); break;
-			case cu_count::c3: (result = process_trailing<2>(begin, end)).code_point |= ((value_type(c) & 0x0F) << (6 * 2)); break;
-			case cu_count::c4: (result = process_trailing<3>(begin, end)).code_point |= ((value_type(c) & 0x07) << (6 * 3)); break;
-			case cu_count::unconfirm:
-				switch (map_second_table(c))
+			case c2: process_trailing<1>(result, begin, end, c); break;
+			case c3: process_trailing<2>(result, begin, end, c); break;
+			case c4: process_trailing<3>(result, begin, end, c); break;
+			[[unlikely]] case invalid:
+				switch (cuc2nd_tab[c]) // switch covers all possible enum values.
 				{
-				case cu_count::c5: (result = process_trailing<4>(begin, end)).code_point |= ((value_type(c) & 0x03) << (6 * 4)); break;
-				case cu_count::c6: (result = process_trailing<5>(begin, end)).code_point |= ((value_type(c) & 0x01) << (6 * 5)); break;
-				[[unlikely]] case cu_count::unknown:
+				using enum impl_components::code_unit_count_ex;
+				case c5: process_trailing<4>(result, begin, end, c); break;
+				case c6: process_trailing<5>(result, begin, end, c); break;
+				case invalid:
 					result.error_code = unsupported_utf_8_leading;
 					if constexpr (reach_next_code_point) { to_next(begin, result); }
 					return result;
-				[[unlikely]] default: // unreachable, mark c1, c2, c3, c4, trail and unconfirm not in second table
-#ifdef __cpp_lib_unreachable
-					std::unreachable();
-#else
-					assert(false && "unreachable branch in pdn::unicode::utf_8::decoder::decode");
-#endif
-					break;
 				}
 				break;
-			[[unlikely]] case cu_count::trail:
+			[[unlikely]] case trail:
 				result.error_code = requires_utf_8_leading;
 				if constexpr (reach_next_code_point) { to_next(begin, result); }
 				return result;
-			[[unlikely]] default: // unreachable, mark c5, c6 and invalid not in first table
-#ifdef __cpp_lib_unreachable
-				std::unreachable();
-#else
-				assert(false && "unreachable branch in pdn::unicode::utf_8::decoder::decode");
-#endif
-				break;
 			}
 
 			if (result)
@@ -245,51 +217,78 @@ namespace pdn::unicode::utf_8
 			return result;
 		}
 	private:
-		static void to_next(auto& begin, decode_result& result)
+		class helper final
 		{
-			++begin;
-			++result.distance_count;
-		}
-		template <int trailing_count> // trailing_count [1, 5]
-		static auto process_trailing(auto& begin, auto end) -> decode_result
+		private:
+			// trailing_count [1, 5]
+			static auto process_trailing(int trailing_count, auto& begin, auto end) -> decode_result
+			{
+				using enum decode_error_code;
+
+				using value_type = decode_result::value_type;
+				using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
+				using ucu_t = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
+
+				decode_result result{};
+				for (int i = 1; i <= trailing_count; ++i)
+				{
+					to_next(begin, result);
+					if (begin == end) [[unlikely]]
+					{
+						switch (i)
+						{
+						case 1: result.error_code = eof_when_read_2nd_code_unit; break;
+						case 2: result.error_code = eof_when_read_3rd_code_unit; break;
+						case 3: result.error_code = eof_when_read_4th_code_unit; break;
+						case 4: result.error_code = eof_when_read_5th_code_unit; break;
+						case 5: result.error_code = eof_when_read_6th_code_unit; break;
+						default:
+#ifdef __cpp_lib_unreachable
+							std::unreachable();
+#else
+							assert(i >= 1 && i <= 5);
+#endif
+						}
+						return result;
+					}
+					auto c = ucu_t(*begin);
+					if (utf_8::is_trailing(c)) [[likely]]
+					{
+						result.code_point |= ((value_type(c) & 0x3F) << ((trailing_count - i) * 6));
+					}
+					else
+					{
+						result.error_code = requires_utf_8_trailing;
+						return result;
+					}
+				}
+				return result;
+			}
+		public:
+			template <int trailing_count> // trailing_count [1, 5]
+			static auto process_trailing(auto& begin, auto end) -> decode_result
+			{
+				static_assert(trailing_count >= 1 && trailing_count <= 5, "[pdn] trailing_count not belong to [1, 5] int");
+				return process_trailing(trailing_count, begin, end);
+			}
+			static void to_next(auto& begin, decode_result& result)
+			{
+				++begin;
+				++result.distance_count;
+			}
+		};
+		template <int trailing_count>
+		static void process_trailing(decode_result& result, auto& begin, auto end, decode_result::value_type c)
 		{
 			static_assert(trailing_count >= 1 && trailing_count <= 5, "[pdn] trailing_count not belong to [1, 5] int");
-
-			using enum decode_error_code;
-
-			using value_type     = decode_result::value_type;
-			using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
-			using ucu_t          = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
-
-			decode_result result{};
-			for (int i = 1; i <= trailing_count; ++i)
-			{
-				to_next(begin, result);
-				if (begin == end) [[unlikely]]
-				{
-					switch (i)
-					{
-					case 1: result.error_code = eof_when_read_2nd_code_unit; break;
-					case 2: result.error_code = eof_when_read_3rd_code_unit; break;
-					case 3: result.error_code = eof_when_read_4th_code_unit; break;
-					case 4: result.error_code = eof_when_read_5th_code_unit; break;
-					case 5: result.error_code = eof_when_read_6th_code_unit; break;
-					default: break;
-					}
-					return result;
-				}
-				auto c = ucu_t(*begin);
-				if (utf_8::is_trailing(c)) [[likely]]
-				{
-					result.code_point |= ((value_type(c) & 0x3F) << ((trailing_count - i) * 6));
-				}
-				else
-				{
-					result.error_code = requires_utf_8_trailing;
-					return result;
-				}
-			}
-			return result;
+			constexpr auto mask     = std::array{ 0x00, 0x1F, 0x0F, 0x07, 0x03, 0x01 }[trailing_count];
+			constexpr auto distance = 6 * trailing_count;
+			result = helper::process_trailing<trailing_count>(begin, end);
+			result.code_point |= (c & mask) << distance;
+		};
+		static void to_next(auto& begin, decode_result& result)
+		{
+			helper::to_next(begin, result);
 		}
 	};
 
