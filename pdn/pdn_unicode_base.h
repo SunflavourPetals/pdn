@@ -162,11 +162,11 @@ namespace pdn::unicode::type_traits
 	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf_32_be> = ::std::endian::big;
 
 	template <encode_type> struct code_unit                         { static_assert(false, "unknown encode type"); };
-	template <>            struct code_unit<encode_type::utf_8>     { using type = char8_t;  };
-	template <>            struct code_unit<encode_type::utf_16_le> { using type = char16_t; };
-	template <>            struct code_unit<encode_type::utf_16_be> { using type = char16_t; };
-	template <>            struct code_unit<encode_type::utf_32_le> { using type = char32_t; };
-	template <>            struct code_unit<encode_type::utf_32_be> { using type = char32_t; };
+	template <>            struct code_unit<encode_type::utf_8>     { using type = utf_8_code_unit_t;  };
+	template <>            struct code_unit<encode_type::utf_16_le> { using type = utf_16_code_unit_t; };
+	template <>            struct code_unit<encode_type::utf_16_be> { using type = utf_16_code_unit_t; };
+	template <>            struct code_unit<encode_type::utf_32_le> { using type = utf_32_code_unit_t; };
+	template <>            struct code_unit<encode_type::utf_32_be> { using type = utf_32_code_unit_t; };
 
 	template <encode_type e> using code_unit_t = typename code_unit<e>::type;
 }
