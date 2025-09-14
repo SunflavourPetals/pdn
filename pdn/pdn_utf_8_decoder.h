@@ -281,7 +281,7 @@ namespace pdn::unicode::utf_8
 		static void process_trailing(decode_result& result, auto& begin, auto end, decode_result::value_type c)
 		{
 			static_assert(trailing_count >= 1 && trailing_count <= 5, "[pdn] trailing_count not belong to [1, 5] int");
-			constexpr auto mask     = std::array{ 0x00, 0x1F, 0x0F, 0x07, 0x03, 0x01 }[trailing_count];
+			constexpr auto mask     = std::array{ 0x1F, 0x0F, 0x07, 0x03, 0x01 }[trailing_count - 1];
 			constexpr auto distance = 6 * trailing_count;
 			result = helper::process_trailing<trailing_count>(begin, end);
 			result.code_point |= (c & mask) << distance;
