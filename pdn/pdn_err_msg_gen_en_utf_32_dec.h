@@ -23,12 +23,17 @@ namespace pdn::dev_util
 		const auto& msg = ::std::get<raw_details::utf_32_decode_error>(raw);
 		switch (errc)
 		{
-		case not_scalar_value:
-			return u8"not scalar value: 0x"_em + to_s<16, 8>(msg.result.value())
+		case invalid_code_point:
+			return u8"invalid code point: 0x"_em + to_s<16, 8>(msg.result.value())
 				+ u8", sequence at offset "_em + offset_of_leading(msg, 4) + u8"(if with BOM then +4), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
-		case eof_when_read_code_unit: // unreachable
+		case non_code_point:
+			return u8"non-code point: 0x"_em + to_s<16, 8>(msg.result.value())
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 4) + u8"(if with BOM then +4), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
+		case unexpected_eof: // theoretically unreachable by implementation
 			return u8"eof when read code unit, sequence at offset "_em + offset_of_leading(msg, 4) + u8"(if with BOM then +4)"_em;
 		default:
 			assert(0 && "UTF-32 decode error and error_message_generator_en unresolved");

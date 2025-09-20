@@ -23,27 +23,32 @@ namespace pdn::dev_util
 		const auto& msg = ::std::get<raw_details::utf_16_decode_error>(raw);
 		switch (errc)
 		{
-		case not_scalar_value: // unreachable UTF-16 should not make this error
-			return u8"not scalar value: 0x"_em + to_s<16, 4>(msg.result.value())
+		case invalid_code_point: // theoretically unreachable, UTF-16 should not make this error
+			return u8"invalid code point: 0x"_em + to_s<16, 4>(msg.result.value())
 				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
-		case eof_when_read_code_unit: // unreachable
-			return u8"eof when read code unit(or leading surrogate), sequence at offset "_em
+		case non_code_point: // theoretically unreachable, UTF-16 should not make this error
+			return u8"non code point: 0x"_em + to_s<16, 4>(msg.result.value())
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
+		case incomplete_sequence:
+			return u8"incomplete sequence(expect utf-16 trailing surrogate), code unit: 0x"_em + to_s<16, 4>(msg.last_code_unit)
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
+		case trailing_as_start:
+			return u8"trailing as start(alone utf-16 trailing surrogate), code unit: 0x"_em + to_s<16, 4>(msg.last_code_unit)
+				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
+				+ to_s(msg.result.distance() + 1)
+				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
+		case unexpected_eof_offset0: // theoretically unreachable by implementation
+			return u8"eof when read code unit(or utf-16 leading surrogate), sequence at offset "_em
 				+ offset_of_leading(msg, 2) + u8"(if with BOM then +2)"_em;
-		case alone_trailing_surrogate:
-			return u8"alone trailing surrogate, code unit: 0x"_em + to_s<16, 4>(msg.last_code_unit)
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
-				+ to_s(msg.result.distance() + 1)
-				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
-		case eof_when_read_trailing_surrogate:
-			return u8"eof when read trailing surrogate, sequence at offset "_em
+		case unexpected_eof_offset1:
+			return u8"eof when read utf-16 trailing surrogate, sequence at offset "_em
 				+ offset_of_leading(msg, 2) + u8"(if with BOM then +2)"_em;
-		case requires_trailing_surrogate:
-			return u8"requires trailing surrogate, code unit: 0x"_em + to_s<16, 4>(msg.last_code_unit)
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
-				+ to_s(msg.result.distance() + 1)
-				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		default:
 			assert(0 && "UTF-16 decode error and error_message_generator_en unresolved");
 			return u8"UTF-16 decode error and error_message_generator_en unresolved"_em;

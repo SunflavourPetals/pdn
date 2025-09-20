@@ -10,8 +10,9 @@ namespace pdn::unicode::utf_32
 {
 	enum class decode_error_code : ::std::uint16_t
 	{
-		not_scalar_value = 1,    // decode result is not Unicode scalar value
-		eof_when_read_code_unit, // eof when read first code unit
+		invalid_code_point = 1, // decode result is not scalar value
+		non_code_point,         // decode result is not code point
+		unexpected_eof,         // eof when read code unit
 	};
 
 	class decoder;
@@ -27,7 +28,7 @@ namespace pdn::unicode::utf_32
 		{
 			return code_point;
 		}
-		constexpr auto error() const noexcept
+		constexpr auto errc() const noexcept
 		{
 			return error_code;
 		}
@@ -54,6 +55,19 @@ namespace pdn::unicode::utf_32
 	{
 	public:
 		template <bool reach_next_code_point>
+		static constexpr bool is_reaching_next(decode_result r) noexcept
+		{
+			if constexpr (reach_next_code_point)
+			{
+				return true;
+			}
+			else
+			{
+				using enum decode_error_code;
+				return r.distance() > 0 && r.errc() != invalid_code_point && r.errc() != non_code_point;
+			}
+		}
+		template <bool reach_next_code_point>
 		static auto decode(auto&& begin, auto end) -> decode_result
 		{
 			using enum decode_error_code;
@@ -65,14 +79,14 @@ namespace pdn::unicode::utf_32
 
 			if (begin == end) [[unlikely]]
 			{
-				result.error_code = eof_when_read_code_unit;
+				result.error_code = unexpected_eof;
 				return result;
 			}
 
 			result.code_point = ucu_t(*begin);
 			if (!is_scalar_value(result.value())) [[unlikely]]
 			{
-				result.error_code = not_scalar_value;
+				result.error_code = is_code_point(result.value()) ? invalid_code_point : non_code_point;
 			}
 
 			if constexpr (reach_next_code_point) { to_next(begin, result); }

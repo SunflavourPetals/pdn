@@ -10,11 +10,12 @@ namespace pdn::unicode::utf_16
 {
 	enum class decode_error_code : ::std::uint16_t
 	{
-		not_scalar_value = 1,             // decode result is not Unicode scalar value, But utf-16 will never make this error
-		eof_when_read_code_unit,          // eof when read first code unit
-		alone_trailing_surrogate,         // trailing surrogate is first code unit by reading
-		eof_when_read_trailing_surrogate, // case: leading surrogate + EOF
-		requires_trailing_surrogate,      // case: leading surrogate + non trailing surrogate
+		invalid_code_point = 1, // decode result is not scalar value, but utf-16 will never make this error
+		non_code_point,         // decode result is not code point
+		incomplete_sequence,    // case: leading surrogate + non trailing surrogate
+		trailing_as_start,      // trailing surrogate is first code unit by reading
+		unexpected_eof_offset0, // eof when read first code unit
+		unexpected_eof_offset1, // case: leading surrogate + EOF
 	};
 
 	class decoder;
@@ -30,7 +31,7 @@ namespace pdn::unicode::utf_16
 		{
 			return code_point;
 		}
-		constexpr auto error() const noexcept
+		constexpr auto errc() const noexcept
 		{
 			return error_code;
 		}
@@ -57,6 +58,19 @@ namespace pdn::unicode::utf_16
 	{
 	public:
 		template <bool reach_next_code_point>
+		static constexpr bool is_reaching_next(decode_result r) noexcept
+		{
+			if constexpr (reach_next_code_point)
+			{
+				return true;
+			}
+			else
+			{
+				using enum decode_error_code;
+				return r.distance() > 0 && r.errc() != invalid_code_point && r.errc() != non_code_point;
+			}
+		}
+		template <bool reach_next_code_point>
 		static auto decode(auto&& begin, auto end) -> decode_result
 		{
 			using enum decode_error_code;
@@ -69,7 +83,7 @@ namespace pdn::unicode::utf_16
 
 			if (begin == end) [[unlikely]]
 			{
-				result.error_code = eof_when_read_code_unit;
+				result.error_code = unexpected_eof_offset0;
 				return result;
 			}
 
@@ -87,24 +101,24 @@ namespace pdn::unicode::utf_16
 				to_next(begin, result);
 				if (begin == end) [[unlikely]]
 				{
-					result.error_code = eof_when_read_trailing_surrogate;
+					result.error_code = unexpected_eof_offset1;
 					return result;
 				}
 				auto trailing = ucu_t(*begin);
 				if (!is_trailing_surrogate(trailing)) [[unlikely]]
 				{
-					result.error_code = requires_trailing_surrogate;
+					result.error_code = incomplete_sequence;
 					return result;
 				}
 				result.code_point |= (value_type(trailing) & value_type(0x03FF));
 				if (!is_scalar_value(result.value())) [[unlikely]]
 				{
-					result.error_code = not_scalar_value;
+					result.error_code = is_code_point(result.value()) ? invalid_code_point : non_code_point;
 				}
 			}
 			else [[unlikely]] // code unit must be trailing surrogate
 			{
-				result.error_code = alone_trailing_surrogate;
+				result.error_code = trailing_as_start;
 			}
 
 			if constexpr (reach_next_code_point) { to_next(begin, result); }

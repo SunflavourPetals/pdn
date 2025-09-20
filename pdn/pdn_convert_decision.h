@@ -51,14 +51,16 @@ namespace pdn::unicode
 		using encode_result = target_ns::encode_result; \
 		using source_char   = source_ns::code_unit_t; \
 		using target_char   = target_ns::code_unit_t; \
+		using decoder       = source_ns::decoder; \
+		using encoder       = target_ns::encoder; \
 		template <bool reach_next_code_point = false> \
 		inline static decode_result decode(auto&& begin, auto end) noexcept(noexcept(source_ns::decode<reach_next_code_point>(begin, end))) \
 		{ \
-			return source_ns::decode<reach_next_code_point>(begin, end); \
+			return decoder::decode<reach_next_code_point>(begin, end); \
 		} \
 		inline static encode_result encode(code_point_t code_point) noexcept(noexcept(target_ns::encode(code_point))) \
 		{ \
-			return target_ns::encode(code_point); \
+			return encoder::encode(code_point); \
 		} \
 	};
 

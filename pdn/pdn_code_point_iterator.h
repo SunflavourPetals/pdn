@@ -130,7 +130,7 @@ namespace pdn
 				using decision = unicode::convert_decision<::std::basic_string_view<code_unit_type>, unicode::code_point_string>;
 				auto result = decision::template decode<false>(begin, end);
 				offset += result.distance();
-				if (result)
+				if (result) [[likely]]
 				{
 					curr_value = result.value();
 					break;
@@ -140,16 +140,15 @@ namespace pdn
 					using result_type = decltype(result);
 					const auto last = begin == end ? code_unit_type{} : *begin;
 					func_pkg->handle_error(error_message{
-						result.error(),
+						result.errc(),
 						func_pkg->position(),
 						func_pkg->generate_error_message(raw_error_message{
-							result.error(),
+							result.errc(),
 							func_pkg->position(),
 							dev_util::decode_result_to_raw_error_t<result_type>{ result, last, offset }
 						})
 					});
-					constexpr auto not_scalar_value = decision::decode_result::error_type::not_scalar_value;
-					if (begin != end && (result.distance() == 0 || result.error() == not_scalar_value))
+					if (begin != end && !decision::decoder::template is_reaching_next<false>(result))
 					{
 						++begin;
 						++offset;

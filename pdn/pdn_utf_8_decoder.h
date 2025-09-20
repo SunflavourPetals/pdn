@@ -16,17 +16,18 @@ namespace pdn::unicode::utf_8
 {
 	enum class decode_error_code : ::std::uint16_t
 	{
-		not_scalar_value = 1,
-		eof_when_read_1st_code_unit,
-		eof_when_read_2nd_code_unit,
-		eof_when_read_3rd_code_unit,
-		eof_when_read_4th_code_unit,
-		eof_when_read_5th_code_unit,
-		eof_when_read_6th_code_unit,
-		requires_utf_8_trailing,     // requires trailing and read one which not trailing
-		requires_utf_8_leading,      // requires leading and read one which not leading
-		unsupported_utf_8_leading,
-		invalid_sequence,            // invalid utf-8 sequence, such as using two bytes to represent values in the range U+0000 to U+007F
+		invalid_code_point = 1, // decode result is not scalar value
+		non_code_point,         // decode result is not code point
+		incomplete_sequence,    // requires trailing and read one which not trailing
+		trailing_as_start,      // for 0b10nn'nnnn
+		unsupported_leading,    // for 0b1111'1110 and 0b1111'1111
+		non_shortest_sequence,   // invalid utf-8 sequence, such as using two bytes to represent values in the range U+0000 to U+007F
+		unexpected_eof_offset0,
+		unexpected_eof_offset1,
+		unexpected_eof_offset2,
+		unexpected_eof_offset3,
+		unexpected_eof_offset4,
+		unexpected_eof_offset5,
 	};
 
 	class decoder;
@@ -42,7 +43,7 @@ namespace pdn::unicode::utf_8
 		{
 			return code_point;
 		}
-		constexpr auto error() const noexcept
+		constexpr auto errc() const noexcept
 		{
 			return error_code;
 		}
@@ -147,6 +148,19 @@ namespace pdn::unicode::utf_8
 	{
 	public:
 		template <bool reach_next_code_point>
+		static constexpr bool is_reaching_next(decode_result r) noexcept
+		{
+			if constexpr (reach_next_code_point)
+			{
+				return true;
+			}
+			else
+			{
+				using enum decode_error_code;
+				return r.distance() > 0 && r.errc() != invalid_code_point && r.errc() != non_code_point;
+			}
+		}
+		template <bool reach_next_code_point>
 		static auto decode(auto&& begin, auto end) -> decode_result
 		{
 			using enum decode_error_code;
@@ -159,7 +173,7 @@ namespace pdn::unicode::utf_8
 
 			if (begin == end) [[unlikely]]
 			{
-				result.error_code = eof_when_read_1st_code_unit;
+				result.error_code = unexpected_eof_offset0;
 				return result;
 			}
 
@@ -174,23 +188,23 @@ namespace pdn::unicode::utf_8
 				if constexpr (reach_next_code_point) { to_next(begin, result); }
 				// no need to check is it a Unicode scalar value, because it must be
 				return result;
-			case c2: process_trailing<1>(result, begin, end, c); break;
-			case c3: process_trailing<2>(result, begin, end, c); break;
-			case c4: process_trailing<3>(result, begin, end, c); break;
+			case c2: process_remaining<1>(result, begin, end, c); break;
+			case c3: process_remaining<2>(result, begin, end, c); break;
+			case c4: process_remaining<3>(result, begin, end, c); break;
 			[[unlikely]] case invalid:
 				switch (cuc2nd_tab[c]) // switch covers all possible enum values.
 				{
 				using enum impl_components::code_unit_count_ex;
-				case c5: process_trailing<4>(result, begin, end, c); break;
-				case c6: process_trailing<5>(result, begin, end, c); break;
+				case c5: process_remaining<4>(result, begin, end, c); break;
+				case c6: process_remaining<5>(result, begin, end, c); break;
 				case invalid:
-					result.error_code = unsupported_utf_8_leading;
+					result.error_code = unsupported_leading;
 					if constexpr (reach_next_code_point) { to_next(begin, result); }
 					return result;
 				}
 				break;
 			[[unlikely]] case trail:
-				result.error_code = requires_utf_8_leading;
+				result.error_code = trailing_as_start;
 				if constexpr (reach_next_code_point) { to_next(begin, result); }
 				return result;
 			}
@@ -204,11 +218,11 @@ namespace pdn::unicode::utf_8
 				static constexpr ::std::array<::std::uint_least32_t, 4> min_valid{ 0, 0x0080, 0x0800, 0x1'0000 };
 				if (!is_scalar_value(result.value())) [[unlikely]]
 				{
-					result.error_code = not_scalar_value;
+					result.error_code = is_code_point(result.value()) ? invalid_code_point : non_code_point;
 				}
-				else if (result.value() < min_valid[result.distance()]) [[unlikely]]
+				else if (result.value() < min_valid[result.distance()]) [[unlikely]] // distance eq count(code unit) - 1 now
 				{
-					result.error_code = invalid_sequence;
+					result.error_code = non_shortest_sequence;
 				}
 			}
 
@@ -235,20 +249,7 @@ namespace pdn::unicode::utf_8
 					to_next(begin, result);
 					if (begin == end) [[unlikely]]
 					{
-						switch (i)
-						{
-						case 1: result.error_code = eof_when_read_2nd_code_unit; break;
-						case 2: result.error_code = eof_when_read_3rd_code_unit; break;
-						case 3: result.error_code = eof_when_read_4th_code_unit; break;
-						case 4: result.error_code = eof_when_read_5th_code_unit; break;
-						case 5: result.error_code = eof_when_read_6th_code_unit; break;
-						default:
-#ifdef __cpp_lib_unreachable
-							std::unreachable();
-#else
-							assert(i >= 1 && i <= 5);
-#endif
-						}
+						result.error_code = to_unexpected_eof_errc(i);
 						return result;
 					}
 					auto c = ucu_t(*begin);
@@ -258,11 +259,30 @@ namespace pdn::unicode::utf_8
 					}
 					else
 					{
-						result.error_code = requires_utf_8_trailing;
+						result.error_code = incomplete_sequence;
 						return result;
 					}
 				}
 				return result;
+			}
+			static constexpr decode_error_code to_unexpected_eof_errc(int i)
+			{
+				switch (i)
+				{
+				using enum decode_error_code;
+				case 1: return unexpected_eof_offset1;
+				case 2: return unexpected_eof_offset2;
+				case 3: return unexpected_eof_offset3;
+				case 4: return unexpected_eof_offset4;
+				case 5: return unexpected_eof_offset5;
+				default:
+#ifdef __cpp_lib_unreachable
+					std::unreachable();
+#else
+					assert(false);
+#endif
+				}
+				return decode_error_code{};
 			}
 		public:
 			template <int trailing_count> // trailing_count [1, 5]
@@ -278,7 +298,7 @@ namespace pdn::unicode::utf_8
 			}
 		};
 		template <int trailing_count>
-		static void process_trailing(decode_result& result, auto& begin, auto end, decode_result::value_type c)
+		static void process_remaining(decode_result& result, auto& begin, auto end, decode_result::value_type c)
 		{
 			static_assert(trailing_count >= 1 && trailing_count <= 5, "[pdn] trailing_count not belong to [1, 5] int");
 			constexpr auto mask     = std::array{ 0x1F, 0x0F, 0x07, 0x03, 0x01 }[trailing_count - 1];
