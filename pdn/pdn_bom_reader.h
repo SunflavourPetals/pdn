@@ -47,30 +47,21 @@ namespace pdn::unicode::concepts
 	};
 }
 
-namespace pdn::bom
-{
-	using byte_t = ::std::uint8_t;
-	inline constexpr auto utf_16_le = ::std::array<byte_t, 2>{ 0xFF, 0xFE };
-	inline constexpr auto utf_16_be = ::std::array<byte_t, 2>{ 0xFE, 0xFF };
-	inline constexpr auto utf_32_le = ::std::array<byte_t, 4>{ 0xFF, 0xFE, 0x00, 0x00 };
-	inline constexpr auto utf_32_be = ::std::array<byte_t, 4>{ 0x00, 0x00, 0xFE, 0xFF };
-	inline constexpr auto utf_8     = ::std::array<byte_t, 3>{ 0xEF, 0xBB, 0xBF };
-}
-
 namespace pdn::unicode
 {
 	// read bom from input stream
 	// using input.seekg(...) to sets the input position indicator to the original position when failed in read BOM.
 	template <concepts::ibyte_stream istream_t>
-	bom_type read_bom(istream_t&& input)
+	auto read_bom(istream_t&& input) -> bom_type
 	{
 		using istream_type = ::std::remove_reference_t<istream_t>;
 		using char_type    = typename istream_type::char_type;
 		using byte_type    = bom::byte_t;
+		using enum bom_type;
 
 		if (!input)
 		{
-			return bom_type::no_bom;
+			return no_bom;
 		}
 		::std::array<byte_type, 4> my_bom{}; // BOM byte sequence
 
@@ -90,12 +81,12 @@ namespace pdn::unicode
 		case 4:
 			if (my_bom == bom::utf_32_le)
 			{
-				result = bom_type::utf_32_le;
+				result = utf_32_le;
 				break;
 			}
 			if (my_bom == bom::utf_32_be)
 			{
-				result = bom_type::utf_32_be;
+				result = utf_32_be;
 				break;
 			}
 			bom_size = 3;
@@ -103,7 +94,7 @@ namespace pdn::unicode
 		case 3:
 			if (::std::equal(bom::utf_8.cbegin(), bom::utf_8.cend(), my_bom.begin()))
 			{
-				result = bom_type::utf_8;
+				result = utf_8;
 				break;
 			}
 			bom_size = 2;
@@ -111,19 +102,19 @@ namespace pdn::unicode
 		case 2:
 			if (::std::equal(bom::utf_16_le.cbegin(), bom::utf_16_le.cend(), my_bom.begin()))
 			{
-				result = bom_type::utf_16_le;
+				result = utf_16_le;
 				break;
 			}
 			if (::std::equal(bom::utf_16_be.cbegin(), bom::utf_16_be.cend(), my_bom.begin()))
 			{
-				result = bom_type::utf_16_be;
+				result = utf_16_be;
 				break;
 			}
 			// assign bom_size zero in next step
 			[[fallthrough]];
 		default:
 			bom_size = 0;
-			result = bom_type::no_bom;
+			result = no_bom;
 			break;
 		}
 

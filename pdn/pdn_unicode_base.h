@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_unicode_base
 
 #include <bit>
+#include <array>
 #include <string>
 #include <type_traits>
 
@@ -82,6 +83,16 @@ namespace pdn::unicode
 	{
 		return c < code_point_t(0x10000u);
 	}
+}
+
+namespace pdn::unicode::bom
+{
+	using byte_t = ::std::uint8_t;
+	inline constexpr auto utf_8     = ::std::array<byte_t, 3>{ 0xEF, 0xBB, 0xBF };
+	inline constexpr auto utf_16_le = ::std::array<byte_t, 2>{ 0xFF, 0xFE };
+	inline constexpr auto utf_16_be = ::std::array<byte_t, 2>{ 0xFE, 0xFF };
+	inline constexpr auto utf_32_le = ::std::array<byte_t, 4>{ 0xFF, 0xFE, 0x00, 0x00 };
+	inline constexpr auto utf_32_be = ::std::array<byte_t, 4>{ 0x00, 0x00, 0xFE, 0xFF };
 }
 
 namespace pdn::unicode::utility
