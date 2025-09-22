@@ -182,6 +182,33 @@ namespace pdn::unicode::type_traits
 	template <encode_type e> using code_unit_t = typename code_unit<e>::type;
 }
 
+namespace pdn::unicode
+{
+	template <concepts::code_unit char_t>
+	inline auto get_replace() -> ::std::basic_string_view<::std::decay_t<char_t>>
+	{
+		using namespace ::std::literals::string_view_literals;
+		using c = ::std::decay_t<char_t>;
+		if constexpr (unicode::concepts::utf_8_code_unit<c>)
+		{
+			return u8"\uFFFD"sv;
+		}
+		else if constexpr (unicode::concepts::utf_16_code_unit<c>)
+		{
+			return u"\uFFFD"sv;
+		}
+		else if constexpr (unicode::concepts::utf_32_code_unit<c>)
+		{
+			return U"\uFFFD"sv;
+		}
+		else
+		{
+			// unreachable
+			static_assert(false, "bad call");
+		}
+	}
+}
+
 namespace pdn::inline literals::inline unicode_literals
 {
 #define PDN_Macro_Temp_make_unicode_user_defined_literals(name, suffix_s, suffix_sv) \

@@ -102,7 +102,7 @@ namespace pdn::dev_util
 		auto decode_result = unicode::decode<true>(src_sv.cbegin(), src_sv.cend());
 		if (!decode_result)
 		{
-			return get_quoted(unicode::utility::get_rep_char<char_t>());
+			return get_quoted(unicode::get_replace<char_t>());
 		}
 		return get_quoted(make_slashes_string<types::string<char_t>>(decode_result.value()));
 	}

@@ -10,30 +10,6 @@
 
 namespace pdn::unicode::utility
 {
-	template <concepts::code_unit char_t>
-	inline auto get_rep_char() -> ::std::basic_string_view<::std::decay_t<char_t>>
-	{
-		using namespace ::std::literals::string_view_literals;
-		using c = ::std::decay_t<char_t>;
-		if constexpr (unicode::concepts::utf_8_code_unit<c>)
-		{
-			return u8"\uFFFD"sv;
-		}
-		else if constexpr (unicode::concepts::utf_16_code_unit<c>)
-		{
-			return u"\uFFFD"sv;
-		}
-		else if constexpr (unicode::concepts::utf_32_code_unit<c>)
-		{
-			return U"\uFFFD"sv;
-		}
-		else
-		{
-			// unreachable
-			static_assert(false, "bad call");
-		}
-	}
-
 	template <typename cvt_src, typename cvt_des>
 	using dec_res = typename convert_decision<cvt_src, cvt_des>::decode_result;
 
@@ -47,7 +23,7 @@ namespace pdn::unicode::utility
 	inline bool default_decode_error_handler(cvt_des& des, dec_res<cvt_src, cvt_des>, ::std::size_t)
 	{
 		// replace with Replacement Character
-		auto rep = get_rep_char<dec_char<cvt_src, cvt_des>>();
+		auto rep = get_replace<dec_char<cvt_src, cvt_des>>();
 		des.append(rep.cbegin(), rep.cend());
 		// return true to finish converting, return false to continue
 		return false;
@@ -57,7 +33,7 @@ namespace pdn::unicode::utility
 	inline bool default_encode_error_handler(cvt_des& des, enc_res<cvt_src, cvt_des>, ::std::size_t)
 	{
 		// replace with Replacement Character
-		auto rep = get_rep_char<dec_char<cvt_src, cvt_des>>();
+		auto rep = get_replace<dec_char<cvt_src, cvt_des>>();
 		des.append(rep.cbegin(), rep.cend());
 		// return true to finish converting, return false to continue
 		return false;
