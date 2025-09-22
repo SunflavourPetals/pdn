@@ -91,7 +91,7 @@ namespace pdn::dev_util
 			{
 				// 0x12345678 le -> 0:0x78, 1:0x56, 2:0x34, 3:0x12
 				++begin;
-				if (is_eof())
+				if (is_eof()) [[unlikely]]
 				{
 					break;
 				}
@@ -108,7 +108,7 @@ namespace pdn::dev_util
 				// 0x12345678 be -> 0:0x12, 1:0x34, 2:0x56, 3:0x78
 				offset -= bits_count_of_byte;
 				++begin;
-				if (is_eof())
+				if (is_eof()) [[unlikely]]
 				{
 					break;
 				}
