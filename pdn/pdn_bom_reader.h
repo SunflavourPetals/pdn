@@ -52,7 +52,7 @@ namespace pdn::unicode
 	// read bom from input stream
 	// using input.seekg(...) to sets the input position indicator to the original position when failed in read BOM.
 	template <concepts::ibyte_stream istream_t>
-	auto read_bom(istream_t&& input) -> bom_type
+	auto read_bom(istream_t& input) -> bom_type
 	{
 		using istream_type = ::std::remove_reference_t<istream_t>;
 		using char_type    = typename istream_type::char_type;
