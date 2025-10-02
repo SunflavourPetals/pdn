@@ -38,6 +38,7 @@ namespace pdn
 		const_refer() = default;
 		const_refer(const const_refer& m) : ptr{ m.ptr } {}
 		const_refer(const entity_type& e) : ptr{ &e } {}
+		const_refer(entity_type&&) = delete;
 		const_refer& operator=(const const_refer& m) = default;
 	private:
 		const entity_type* ptr{};
@@ -108,11 +109,14 @@ namespace pdn
 		using object_proxy = proxy<object>;
 
 	public:
-		auto  ref()       & ->       refer<char_type> { return       refer<char_type>{ *this }; }
-		auto  ref() const & -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
-		auto cref() const & -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
+		auto  ref() const&& -> const_refer<char_type> = delete;
+		auto  ref()      &  ->       refer<char_type> { return       refer<char_type>{ *this }; }
+		auto  ref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
+		auto cref() const&& -> const_refer<char_type> = delete;
+		auto cref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
 
-		auto at(index_type index) const -> const_refer<char_type>
+		auto at(index_type) const&& ->const_refer<char_type> = delete;
+		auto at(index_type index) const& -> const_refer<char_type>
 		{
 			if (auto prp = ::std::get_if<list_proxy>(this); prp) // pointer to proxy of list
 			{
@@ -123,7 +127,7 @@ namespace pdn
 			}
 			return const_refer<char_type>{};
 		}
-		auto at(index_type index) -> refer<char_type>
+		auto at(index_type index) & -> refer<char_type>
 		{
 			if (auto prp = ::std::get_if<list_proxy>(this); prp) // pointer to proxy of list
 			{
@@ -134,7 +138,9 @@ namespace pdn
 			}
 			return refer<char_type>{};
 		}
-		auto at(const key_type key) const -> const_refer<char_type>
+
+		auto at(const key_type) const&& -> const_refer<char_type> = delete;
+		auto at(const key_type key) const& -> const_refer<char_type>
 		{
 			if (auto prp = ::std::get_if<object_proxy>(this); prp) // pointer to proxy of object
 			{
@@ -146,7 +152,7 @@ namespace pdn
 			}
 			return const_refer<char_type>{};
 		}
-		auto at(const key_type key) -> refer<char_type>
+		auto at(const key_type key) & -> refer<char_type>
 		{
 			if (auto prp = ::std::get_if<object_proxy>(this); prp) // pointer to proxy of object
 			{
@@ -159,10 +165,20 @@ namespace pdn
 			return refer<char_type>{};
 		}
 
-		auto operator[](index_type index) const -> const entity& { return get<list>(*this)[index]; }
-		auto operator[](index_type index)       ->       entity& { return get<list>(*this)[index]; }
+		auto operator[](index_type index) const& -> const entity&
+		{
+			return get<list>(*this)[index];
+		}
+		auto operator[](index_type index) & -> entity&
+		{
+			return get<list>(*this)[index];
+		}
+		auto operator[](index_type index) && -> entity&&
+		{
+			return ::std::move((*this)[index]);
+		}
 
-		auto operator[](const key_type key) const -> const entity&
+		auto operator[](const key_type key) const& -> const entity&
 		{
 			auto& o = get<object>(*this);
 			auto it = o.find(key);
@@ -172,7 +188,7 @@ namespace pdn
 			}
 			return it->second;
 		}
-		auto operator[](const key_type key) -> entity&
+		auto operator[](const key_type key) & -> entity&
 		{
 			auto& o = get<object>(*this);
 			auto it = o.find(key);
@@ -181,6 +197,10 @@ namespace pdn
 				throw ::std::out_of_range{ "out_of_range" };
 			}
 			return it->second;
+		}
+		auto operator[](const key_type key) && -> entity&&
+		{
+			return ::std::move((*this)[key]);
 		}
 	};
 }
