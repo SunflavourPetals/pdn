@@ -20,7 +20,7 @@ namespace pdn::dev_util
 	struct constant_table_key_hasher
 	{
 		using is_transparent = void; // enables heterogeneous operations.
-		using string_view = unicode::utf_8_code_unit_string_view;
+		using string_view = unicode::u8string_view;
 		auto operator()(string_view sv) const -> ::std::size_t
 		{
 			return ::std::hash<string_view>{}(sv);
@@ -28,7 +28,7 @@ namespace pdn::dev_util
 	};
 	template <typename char_t>
 	using constant_table_base = ::std::unordered_map<
-		unicode::utf_8_code_unit_string,
+		unicode::u8string,
 		entity<char_t>,
 		constant_table_key_hasher,
 		::std::equal_to<>>;
@@ -99,37 +99,37 @@ namespace pdn
 			constexpr auto f64_qNaN = ::std::numeric_limits<types::f64>::quiet_NaN();
 			constexpr auto f64_sNaN = ::std::numeric_limits<types::f64>::signaling_NaN();
 
-			self[u8"true"_ucus]          = true;
-			self[u8"false"_ucus]         = false;
-			self[u8"e"_ucus]             = e;
-			self[u8"log2e"_ucus]         = log2e;
-			self[u8"log10e"_ucus]        = log10e;
-			self[u8"pi"_ucus]            = pi;
-			self[u8"inv_pi"_ucus]        = inv_pi;
-			self[u8"inv_sqrtpi"_ucus]    = inv_sqrtpi;
-			self[u8"ln2"_ucus]           = ln2;
-			self[u8"ln10"_ucus]          = ln10;
-			self[u8"sqrt2"_ucus]         = sqrt2;
-			self[u8"sqrt3"_ucus]         = sqrt3;
-			self[u8"inv_sqrt3"_ucus]     = inv_sqrt3;
-			self[u8"egamma"_ucus]        = egamma;
-			self[u8"phi"_ucus]           = phi;
-			self[u8"\u03C0"_ucus]        = pi;     // Greek Small Letter Pi,    not std
-			self[u8"\u03B3"_ucus]        = egamma; // Greek Small Letter Gamma, not std
-			self[u8"\u03A6"_ucus]        = phi;    // Greek Capital Letter Phi, not std
-			self[u8"infinity"_ucus]      = f64_inf;
-			self[u8"inf"_ucus]           = f64_inf;
-			self[u8"quiet_NaN"_ucus]     = f64_qNaN;
-			self[u8"qNaN"_ucus]          = f64_qNaN;
-			self[u8"qnan"_ucus]          = f64_qNaN;
-			self[u8"NaN"_ucus]           = f64_qNaN;
-			self[u8"nan"_ucus]           = f64_qNaN;
-			self[u8"signaling_NaN"_ucus] = f64_sNaN;
-			self[u8"sNaN"_ucus]          = f64_sNaN;
-			self[u8"snan"_ucus]          = f64_sNaN;
-			self[u8"hello"_ucus]         = dev_util::test_string_hello<char_t>(); // not std
-			self[u8"fib_10_list"_ucus]   = dev_util::test_list_fib_10<char_t>();  // not std
-			self[u8"me_object"_ucus]     = dev_util::test_object_me<char_t>();    // not std
+			self[u8"true"_s]          = true;
+			self[u8"false"_s]         = false;
+			self[u8"e"_s]             = e;
+			self[u8"log2e"_s]         = log2e;
+			self[u8"log10e"_s]        = log10e;
+			self[u8"pi"_s]            = pi;
+			self[u8"inv_pi"_s]        = inv_pi;
+			self[u8"inv_sqrtpi"_s]    = inv_sqrtpi;
+			self[u8"ln2"_s]           = ln2;
+			self[u8"ln10"_s]          = ln10;
+			self[u8"sqrt2"_s]         = sqrt2;
+			self[u8"sqrt3"_s]         = sqrt3;
+			self[u8"inv_sqrt3"_s]     = inv_sqrt3;
+			self[u8"egamma"_s]        = egamma;
+			self[u8"phi"_s]           = phi;
+			self[u8"\u03C0"_s]        = pi;     // Greek Small Letter Pi,    not std
+			self[u8"\u03B3"_s]        = egamma; // Greek Small Letter Gamma, not std
+			self[u8"\u03A6"_s]        = phi;    // Greek Capital Letter Phi, not std
+			self[u8"infinity"_s]      = f64_inf;
+			self[u8"inf"_s]           = f64_inf;
+			self[u8"quiet_NaN"_s]     = f64_qNaN;
+			self[u8"qNaN"_s]          = f64_qNaN;
+			self[u8"qnan"_s]          = f64_qNaN;
+			self[u8"NaN"_s]           = f64_qNaN;
+			self[u8"nan"_s]           = f64_qNaN;
+			self[u8"signaling_NaN"_s] = f64_sNaN;
+			self[u8"sNaN"_s]          = f64_sNaN;
+			self[u8"snan"_s]          = f64_sNaN;
+			self[u8"hello"_s]         = dev_util::test_string_hello<char_t>(); // not std
+			self[u8"fib_10_list"_s]   = dev_util::test_list_fib_10<char_t>();  // not std
+			self[u8"me_object"_s]     = dev_util::test_object_me<char_t>();    // not std
 		}
 		static auto instance() -> const constant_table<char_t>&
 		{
@@ -139,7 +139,7 @@ namespace pdn
 	};
 
 	template <typename char_t>
-	inline auto constant_generator_std_function(const unicode::utf_8_code_unit_string& s) -> ::std::optional<entity<char_t>>
+	inline auto constant_generator_std_function(const unicode::u8string& s) -> ::std::optional<entity<char_t>>
 	{
 		if (auto result = constant_table<char_t>::instance().find(s); result != constant_table<char_t>::instance().end())
 		{

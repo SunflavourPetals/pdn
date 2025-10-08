@@ -19,35 +19,35 @@ namespace pdn
 
 			if constexpr (::std::same_as<error_type, unicode::utf_8::decode_error_code>)
 			{
-				return u8"utf-8 decode error"_ucus;
+				return u8"utf-8 decode error"_s;
 			}
 			else if constexpr (::std::same_as<error_type, unicode::utf_8::encode_error_code>)
 			{
-				return u8"utf-8 encode error"_ucus;
+				return u8"utf-8 encode error"_s;
 			}
 			else if constexpr (::std::same_as<error_type, unicode::utf_16::decode_error_code>)
 			{
-				return u8"utf-16 decode error"_ucus;
+				return u8"utf-16 decode error"_s;
 			}
 			else if constexpr (::std::same_as<error_type, unicode::utf_16::encode_error_code>)
 			{
-				return u8"utf-16 encode error"_ucus;
+				return u8"utf-16 encode error"_s;
 			}
 			else if constexpr (::std::same_as<error_type, unicode::utf_32::decode_error_code>)
 			{
-				return u8"utf-32 decode error"_ucus;
+				return u8"utf-32 decode error"_s;
 			}
 			else if constexpr (::std::same_as<error_type, unicode::utf_32::encode_error_code>)
 			{
-				return u8"utf-32 encode error"_ucus;
+				return u8"utf-32 encode error"_s;
 			}
 			else if constexpr (::std::same_as<error_type, lexical_error_code>)
 			{
-				return u8"lexical error"_ucus;
+				return u8"lexical error"_s;
 			}
 			else if constexpr (::std::same_as<error_type, syntax_error_code>)
 			{
-				return u8"syntax error"_ucus;
+				return u8"syntax error"_s;
 			}
 			else
 			{

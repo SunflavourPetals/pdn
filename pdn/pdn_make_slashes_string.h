@@ -57,12 +57,12 @@ namespace pdn
 			s.push_back(char_t('9'));
 			break;
 		default:
-			s += unicode::code_convert<string_t>(unicode::code_point_string_view{ &c, 1 });
+			s += unicode::code_convert<string_t>(unicode::ucpstring_view{ &c, 1 });
 		}
 		return s;
 	}
 	template <typename string_t>
-	constexpr string_t make_slashes_string(unicode::code_point_string_view sv)
+	constexpr string_t make_slashes_string(unicode::ucpstring_view sv)
 	{
 		string_t r{};
 		for (auto c : sv)
@@ -83,7 +83,7 @@ namespace pdn
 		return make_slashes_string<string_t>(c);
 	}
 	template <typename string_t>
-	constexpr string_t make_slashes_id_string(unicode::code_point_string_view sv)
+	constexpr string_t make_slashes_id_string(unicode::ucpstring_view sv)
 	{
 		string_t r{};
 		for (auto c : sv)

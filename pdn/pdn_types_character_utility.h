@@ -11,19 +11,19 @@ namespace pdn::types::dev_util
 	template <typename char_t>
 	struct max_code_unit_count_for_character {};
 	
-	template <::std::same_as<unicode::utf_8_code_unit_t> char_t>
+	template <::std::same_as<unicode::u8char_t> char_t>
 	struct max_code_unit_count_for_character<char_t>
 	{
 		static constexpr ::std::size_t value = 4;
 	};
 	
-	template <::std::same_as<unicode::utf_16_code_unit_t> char_t>
+	template <::std::same_as<unicode::u16char_t> char_t>
 	struct max_code_unit_count_for_character<char_t>
 	{
 		static constexpr ::std::size_t value = 2;
 	};
 	
-	template <::std::same_as<unicode::utf_32_code_unit_t> char_t>
+	template <::std::same_as<unicode::u32char_t> char_t>
 	struct max_code_unit_count_for_character<char_t>
 	{
 		static constexpr ::std::size_t value = 1;

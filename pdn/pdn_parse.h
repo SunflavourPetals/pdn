@@ -23,9 +23,9 @@
 
 namespace pdn
 {
-	inline constexpr unicode::utf_8_code_unit_t  utf_8_tag{};
-	inline constexpr unicode::utf_16_code_unit_t utf_16_tag{};
-	inline constexpr unicode::utf_32_code_unit_t utf_32_tag{};
+	inline constexpr unicode::u8char_t  utf_8_tag{};
+	inline constexpr unicode::u16char_t utf_16_tag{};
+	inline constexpr unicode::u32char_t utf_32_tag{};
 
 	// for token iterator
 	template <unicode::concepts::code_unit                  char_t,

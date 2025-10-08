@@ -76,7 +76,7 @@ namespace pdn::dev_util::err_msg_gen_util
 	namespace raw_details = raw_error_message_type;
 	inline auto make_slashes(error_msg_string_view view) -> error_msg_string
 	{
-		return make_slashes_string<error_msg_string>(unicode::code_convert<unicode::code_point_string>(view));
+		return make_slashes_string<error_msg_string>(unicode::code_convert<unicode::ucpstring>(view));
 	}
 	inline auto token_value_variant_to_s(const token_value_variant<error_msg_char>& variant) -> error_msg_string
 	{

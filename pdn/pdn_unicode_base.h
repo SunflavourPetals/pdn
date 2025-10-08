@@ -8,21 +8,26 @@
 
 namespace pdn::unicode
 {
-#define PDN_Macro_Temp_make_code_type_family(name, type) \
-	using name##_t = type; \
-	template <typename traits = ::std::char_traits<name##_t>, typename alloc = ::std::allocator<name##_t>> \
-	using basic_##name##_string = ::std::basic_string<name##_t, traits, alloc>; \
-	template <typename traits = ::std::char_traits<name##_t>> \
-	using basic_##name##_string_view = ::std::basic_string_view<name##_t, traits>; \
-	using name##_string = basic_##name##_string<>; \
-	using name##_string_view = basic_##name##_string_view<>;
+	using code_point_t = char32_t;
+	using u8char_t  = char8_t;
+	using u16char_t = char16_t;
+	using u32char_t = char32_t;
+	
+	template <typename char_t, typename traits = ::std::char_traits<char_t>, typename alloc = ::std::allocator<char_t>>
+	using basic_string = ::std::basic_string<char_t, traits, alloc>;
 
-	PDN_Macro_Temp_make_code_type_family(code_point,       char32_t)
-	PDN_Macro_Temp_make_code_type_family(utf_8_code_unit,  char8_t)
-	PDN_Macro_Temp_make_code_type_family(utf_16_code_unit, char16_t)
-	PDN_Macro_Temp_make_code_type_family(utf_32_code_unit, char32_t)
+	using ucpstring = basic_string<code_point_t>; // unicode code point string
+	using u8string  = basic_string<u8char_t>;
+	using u16string = basic_string<u16char_t>;
+	using u32string = basic_string<u32char_t>;
 
-#undef PDN_Macro_Temp_make_code_type_family
+	template <typename char_t, typename traits = ::std::char_traits<char_t>>
+	using basic_string_view = ::std::basic_string_view<char_t, traits>;
+
+	using ucpstring_view = basic_string_view<code_point_t>; // unicode code point string view
+	using u8string_view  = basic_string_view<u8char_t>;
+	using u16string_view = basic_string_view<u16char_t>;
+	using u32string_view = basic_string_view<u32char_t>;
 
 	enum class encode_type
 	{
@@ -121,7 +126,7 @@ namespace pdn::unicode::utility
 		case utf_16_be: return big;
 		case utf_32_le: return little;
 		case utf_32_be: return big;
-		default:        return native; // case encode_type::unknown|utf_8
+		default:        return native; // case encode_type::{ unknown | utf_8 }
 		}
 	}
 }
@@ -129,11 +134,11 @@ namespace pdn::unicode::utility
 namespace pdn::unicode::concepts
 {
 	template <typename char_t>
-	concept utf_8_code_unit  = ::std::is_same_v<::std::remove_cv_t<char_t>, utf_8_code_unit_t>;
+	concept utf_8_code_unit  = ::std::is_same_v<::std::remove_cv_t<char_t>, u8char_t>;
 	template <typename char_t>
-	concept utf_16_code_unit = ::std::is_same_v<::std::remove_cv_t<char_t>, utf_16_code_unit_t>;
+	concept utf_16_code_unit = ::std::is_same_v<::std::remove_cv_t<char_t>, u16char_t>;
 	template <typename char_t>
-	concept utf_32_code_unit = ::std::is_same_v<::std::remove_cv_t<char_t>, utf_32_code_unit_t>;
+	concept utf_32_code_unit = ::std::is_same_v<::std::remove_cv_t<char_t>, u32char_t>;
 	template <typename char_t>
 	concept code_unit = utf_8_code_unit<char_t> || utf_16_code_unit<char_t> || utf_32_code_unit<char_t>;
 }
@@ -173,11 +178,11 @@ namespace pdn::unicode::type_traits
 	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf_32_be> = ::std::endian::big;
 
 	template <encode_type> struct code_unit                         { static_assert(false, "unknown encode type"); };
-	template <>            struct code_unit<encode_type::utf_8>     { using type = utf_8_code_unit_t;  };
-	template <>            struct code_unit<encode_type::utf_16_le> { using type = utf_16_code_unit_t; };
-	template <>            struct code_unit<encode_type::utf_16_be> { using type = utf_16_code_unit_t; };
-	template <>            struct code_unit<encode_type::utf_32_le> { using type = utf_32_code_unit_t; };
-	template <>            struct code_unit<encode_type::utf_32_be> { using type = utf_32_code_unit_t; };
+	template <>            struct code_unit<encode_type::utf_8>     { using type = u8char_t;  };
+	template <>            struct code_unit<encode_type::utf_16_le> { using type = u16char_t; };
+	template <>            struct code_unit<encode_type::utf_16_be> { using type = u16char_t; };
+	template <>            struct code_unit<encode_type::utf_32_le> { using type = u32char_t; };
+	template <>            struct code_unit<encode_type::utf_32_be> { using type = u32char_t; };
 
 	template <encode_type e> using code_unit_t = typename code_unit<e>::type;
 }
@@ -211,22 +216,30 @@ namespace pdn::unicode
 
 namespace pdn::inline literals::inline unicode_literals
 {
-#define PDN_Macro_Temp_make_unicode_user_defined_literals(name, suffix_s, suffix_sv) \
-	[[nodiscard]] constexpr unicode::name##_string operator"" suffix_s(const unicode::name##_t* ptr, ::std::size_t length) \
-	{ \
-		return unicode::name##_string{ ptr, length }; \
-	} \
-	[[nodiscard]] constexpr unicode::name##_string_view operator"" suffix_sv(const unicode::name##_t* ptr, ::std::size_t length) \
-	{ \
-		return unicode::name##_string_view{ ptr, length }; \
+	[[nodiscard]] constexpr unicode::u8string operator"" _s(const unicode::u8char_t* ptr, ::std::size_t length)
+	{
+		return unicode::u8string{ ptr, length };
 	}
-
-	PDN_Macro_Temp_make_unicode_user_defined_literals(code_point,       _us,   _usv)
-	PDN_Macro_Temp_make_unicode_user_defined_literals(utf_8_code_unit,  _ucus, _ucusv)
-	PDN_Macro_Temp_make_unicode_user_defined_literals(utf_16_code_unit, _ucus, _ucusv)
-	PDN_Macro_Temp_make_unicode_user_defined_literals(utf_32_code_unit, _ucus, _ucusv)
-
-#undef PDN_Macro_Temp_make_unicode_user_defined_literals
+	[[nodiscard]] constexpr unicode::u16string operator"" _s(const unicode::u16char_t* ptr, ::std::size_t length)
+	{
+		return unicode::u16string{ ptr, length };
+	}
+	[[nodiscard]] constexpr unicode::u32string operator"" _s(const unicode::u32char_t * ptr, ::std::size_t length)
+	{
+		return unicode::u32string{ ptr, length };
+	}
+	[[nodiscard]] constexpr unicode::u8string_view operator"" _sv(const unicode::u8char_t* ptr, ::std::size_t length)
+	{
+		return unicode::u8string_view{ ptr, length };
+	}
+	[[nodiscard]] constexpr unicode::u16string_view operator"" _sv(const unicode::u16char_t * ptr, ::std::size_t length)
+	{
+		return unicode::u16string_view{ ptr, length };
+	}
+	[[nodiscard]] constexpr unicode::u32string_view operator"" _sv(const unicode::u32char_t * ptr, ::std::size_t length)
+	{
+		return unicode::u32string_view{ ptr, length };
+	}
 }
 
 #endif

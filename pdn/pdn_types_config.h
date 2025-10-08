@@ -42,9 +42,9 @@ namespace pdn::types::config
 	struct key_hasher
 	{
 		using is_transparent = void; // enables heterogeneous operations.
-		using u8sv  = unicode::utf_8_code_unit_string_view;
-		using u16sv = unicode::utf_16_code_unit_string_view;
-		using u32sv = unicode::utf_32_code_unit_string_view;
+		using u8sv  = unicode::u8string_view;
+		using u16sv = unicode::u16string_view;
+		using u32sv = unicode::u32string_view;
 
 		auto operator()(const u8sv sv) const -> ::std::size_t
 		{

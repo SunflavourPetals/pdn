@@ -145,7 +145,7 @@ namespace pdn
 		{
 			token<char_t>              result{};
 			types::string<char_t>      text{};   // rename text
-			unicode::code_point_string open_d_seq{};      // delimiter-sequence for raw string
+			unicode::ucpstring open_d_seq{};      // delimiter-sequence for raw string
 			::std::string              number_sequence{}; // Unicode[U+0000, U+007f] -> ASCII -> form_chars
 			::std::size_t              nested_block_comment_layer{};
 			::std::size_t              cont_n_delimiter_count{}; // consecutive number delimiters' count
@@ -204,7 +204,7 @@ namespace pdn
 				{
 					new_dfa_state = dfa_state_objects::start_state();
 					auto cp = unicode::code_point_t(c);
-					auto view = unicode::code_point_string_view{ &cp, 1 };
+					auto view = unicode::ucpstring_view{ &cp, 1 };
 					post_err(get_pos(), lex_ec::unacceptable_character, to_raw_err_str(code_convert<err_ms>(view)));
 					break;
 				}
@@ -311,7 +311,7 @@ namespace pdn
 					goto label_move_iterator;
 				case raw_string_received_right_parentheses:
 				{
-					unicode::code_point_string close_d_seq{};
+					unicode::ucpstring close_d_seq{};
 					++begin;
 					if (get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'"'))
 					{
@@ -350,7 +350,7 @@ namespace pdn
 					goto label_move_iterator;
 				case identifier_raw_string_received_right_parentheses:
 				{
-					unicode::code_point_string close_d_seq{};
+					unicode::ucpstring close_d_seq{};
 					++begin;
 					if (get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'`'))
 					{
@@ -456,13 +456,13 @@ namespace pdn
 				result.value = make_proxy<types::string<char_t>>(::std::move(text));
 				break;
 			case at_identifier:
-				if constexpr (::std::same_as<char_t, unicode::utf_8_code_unit_t>)
+				if constexpr (::std::same_as<char_t, unicode::u8char_t>)
 				{
 					result.value = dev_util::at_iden_string_proxy{ ::std::move(text) };
 				}
 				else
 				{
-					result.value = dev_util::at_iden_string_proxy{ code_convert<unicode::utf_8_code_unit_string>(text) };
+					result.value = dev_util::at_iden_string_proxy{ code_convert<unicode::u8string>(text) };
 				}
 				break;
 			case character_opened: // <<< ERROR STATE
@@ -1076,7 +1076,7 @@ namespace pdn
 				break;
 			}
 			auto cp = unicode::code_point_t(c);
-			auto err_msg = unicode::code_convert<error_msg_string>(unicode::code_point_string_view{ &cp, 1 });
+			auto err_msg = unicode::code_convert<error_msg_string>(unicode::ucpstring_view{ &cp, 1 });
 			post_err(position, escape_error_unknown_escape_sequence, to_raw_err_str(::std::move(err_msg)));
 			return false;
 		}
@@ -1120,7 +1120,7 @@ namespace pdn
 		// or to ')' if it is an empty string.
 		// Returns false when the d_seq is longer than 16 or contains illegal characters,
 		// but '(' will be handled by the function just as normal
-		bool get_raw_string_opening_d_seq(unicode::code_point_string& out_sequence, auto& begin, auto end, bool is_raw_id_s)
+		bool get_raw_string_opening_d_seq(unicode::ucpstring& out_sequence, auto& begin, auto end, bool is_raw_id_s)
 		{
 			// begin pointing:
 			// 
@@ -1182,11 +1182,11 @@ namespace pdn
 		//     begin points to the first character that is not processed
 		// On success, the double/back quote is read in and it is skipped,
 		//     so that begin points to the first character after the double/back quote.
-		bool get_raw_string_closing_d_seq(unicode::code_point_string_view in_sequence, // delimiter sequence for reference
-		                                  unicode::code_point_string&     out_sequence, // closing delimiter sequence we are reading
-		                                  auto&                           begin,
-		                                  auto                            end,
-		                                  unicode::code_point_t           end_quote) const
+		bool get_raw_string_closing_d_seq(unicode::ucpstring_view in_sequence, // delimiter sequence for reference
+		                                  unicode::ucpstring&     out_sequence, // closing delimiter sequence we are reading
+		                                  auto&                   begin,
+		                                  auto                    end,
+		                                  unicode::code_point_t   end_quote) const
 		{
 			for (::std::size_t index{}; begin != end; ++begin, ++index)
 			{
@@ -1264,7 +1264,7 @@ namespace pdn
 			}
 		}
 
-		void process_string_like_error(dfa_state_code dfa_state_c, source_position position, error_msg_string err_s, unicode::code_point_string_view d_seq)
+		void process_string_like_error(dfa_state_code dfa_state_c, source_position position, error_msg_string err_s, unicode::ucpstring_view d_seq)
 		{
 			using lex_ec = lexical_error_code;
 			using enum dfa_state_code;
@@ -1330,7 +1330,7 @@ namespace pdn
 		auto process_char_literal(::std::basic_string_view<char_t> src, const source_position& position) -> types::character<char_t>
 		{
 			using unicode::code_convert;
-			auto cp_s = code_convert<unicode::code_point_string>(src);
+			auto cp_s = code_convert<unicode::ucpstring>(src);
 			if (cp_s.size() == 1) [[likely]]
 			{
 				return types::character<char_t>(src.data(), src.size());

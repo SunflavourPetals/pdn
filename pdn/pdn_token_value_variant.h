@@ -14,8 +14,8 @@ namespace pdn::dev_util
 	class at_iden_string_proxy
 	{
 	public:
-		using id_string = unicode::utf_8_code_unit_string;
-		using id_string_view = unicode::utf_8_code_unit_string_view;
+		using id_string = unicode::u8string;
+		using id_string_view = unicode::u8string_view;
 		auto get_id() const -> const id_string& { return *pr; }
 		auto get_id() -> id_string& { return *pr; };
 		at_iden_string_proxy() = default;

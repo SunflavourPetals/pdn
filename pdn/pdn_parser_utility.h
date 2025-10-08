@@ -34,19 +34,19 @@ namespace pdn::concepts
 	template <typename type>
 	concept utf_8_code_unit_iterator = requires (type it)
 	{
-		{ *it } -> dev_util::remove_cvref_same_as<unicode::utf_8_code_unit_t>;
+		{ *it } -> dev_util::remove_cvref_same_as<unicode::u8char_t>;
 		++it;
 	};
 	template <typename type>
 	concept utf_16_code_unit_iterator = requires (type it)
 	{
-		{ *it } -> dev_util::remove_cvref_same_as<unicode::utf_16_code_unit_t>;
+		{ *it } -> dev_util::remove_cvref_same_as<unicode::u16char_t>;
 		++it;
 	};
 	template <typename type>
 	concept utf_32_code_unit_iterator = requires (type it)
 	{
-		{ *it } -> dev_util::remove_cvref_same_as<unicode::utf_32_code_unit_t>;
+		{ *it } -> dev_util::remove_cvref_same_as<unicode::u32char_t>;
 		++it;
 	};
 	template <typename type>

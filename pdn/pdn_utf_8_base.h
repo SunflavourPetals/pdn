@@ -8,16 +8,9 @@
 
 namespace pdn::unicode::utf_8
 {
-	using code_unit_t = utf_8_code_unit_t;
-
-	template <typename traits = ::std::char_traits<code_unit_t>, typename alloc = ::std::allocator<code_unit_t>>
-	using basic_code_unit_string = basic_utf_8_code_unit_string<traits, alloc>;
-
-	template <typename traits = ::std::char_traits<code_unit_t>>
-	using basic_code_unit_string_view = basic_utf_8_code_unit_string_view<traits>;
-
-	using code_unit_string = basic_code_unit_string<>;
-	using code_unit_string_view = basic_code_unit_string_view<>;
+	using code_unit_t = u8char_t;
+	using string = u8string;
+	using string_view = u8string_view;
 
 	constexpr bool is_trailing(code_unit_t c) noexcept
 	{

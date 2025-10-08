@@ -52,7 +52,7 @@ namespace pdn
 		{
 			return default_error_message_generator::generate_error_message(std::move(raw));
 		}
-		static auto generate_constant(const pdn::unicode::utf_8_code_unit_string& iden) -> ::std::optional<pdn::entity<char_t>>
+		static auto generate_constant(const pdn::unicode::u8string& iden) -> ::std::optional<pdn::entity<char_t>>
 		{
 			return default_constant_generator<char_t>::generate_constant(iden);
 		}

@@ -10,16 +10,9 @@
 
 namespace pdn::unicode::utf_16
 {
-	using code_unit_t = utf_16_code_unit_t;
-
-	template <typename traits = ::std::char_traits<code_unit_t>, typename alloc = ::std::allocator<code_unit_t>>
-	using basic_code_unit_string = basic_utf_16_code_unit_string<traits, alloc>;
-
-	template <typename traits = ::std::char_traits<code_unit_t>>
-	using basic_code_unit_string_view = basic_utf_16_code_unit_string_view<traits>;
-
-	using code_unit_string = basic_code_unit_string<>;
-	using code_unit_string_view = basic_code_unit_string_view<>;
+	using code_unit_t = u16char_t;
+	using string = u16string;
+	using string_view = u32string_view;
 
 	constexpr auto to_le_bytes(code_unit_t code_unit) noexcept -> ::std::array<::std::uint8_t, 2>
 	{

@@ -72,36 +72,36 @@ namespace pdn
 #define PDN_Macro_Temp_make_map_for_typename_to_typecode(prefix) \
 	constexpr auto pl_int  = dev_util::cppint_to_type_code_v<types::auto_int>;   \
 	constexpr auto pl_uint = dev_util::cppuint_to_type_code_v<types::auto_uint>; \
-	self[prefix##"i8"_ucus]        = i8;        \
-	self[prefix##"i16"_ucus]       = i16;       \
-	self[prefix##"i32"_ucus]       = i32;       \
-	self[prefix##"i64"_ucus]       = i64;       \
-	self[prefix##"u8"_ucus]        = u8;        \
-	self[prefix##"u16"_ucus]       = u16;       \
-	self[prefix##"u32"_ucus]       = u32;       \
-	self[prefix##"u64"_ucus]       = u64;       \
-	self[prefix##"f32"_ucus]       = f32;       \
-	self[prefix##"f64"_ucus]       = f64;       \
-	self[prefix##"f"_ucus]         = f32;       \
-	self[prefix##"float"_ucus]     = f32;       \
-	self[prefix##"double"_ucus]    = f64;       \
-	self[prefix##"boolean"_ucus]   = boolean;   \
-	self[prefix##"bool"_ucus]      = boolean;   \
-	self[prefix##"character"_ucus] = character; \
-	self[prefix##"char"_ucus]      = character; \
-	self[prefix##"c"_ucus]         = character; \
-	self[prefix##"string"_ucus]    = string;    \
-	self[prefix##"str"_ucus]       = string;    \
-	self[prefix##"s"_ucus]         = string;    \
-	self[prefix##"list"_ucus]      = list;      \
-	self[prefix##"object"_ucus]    = object;    \
-	self[prefix##"obj"_ucus]       = object;    \
-	self[prefix##"cppint"_ucus]    = pl_int;    \
-	self[prefix##"int"_ucus]       = pl_int;    \
-	self[prefix##"i"_ucus]         = pl_int;    \
-	self[prefix##"cppuint"_ucus]   = pl_uint;   \
-	self[prefix##"uint"_ucus]      = pl_uint;   \
-	self[prefix##"u"_ucus]         = pl_uint;
+	self[prefix##"i8"_s]        = i8;        \
+	self[prefix##"i16"_s]       = i16;       \
+	self[prefix##"i32"_s]       = i32;       \
+	self[prefix##"i64"_s]       = i64;       \
+	self[prefix##"u8"_s]        = u8;        \
+	self[prefix##"u16"_s]       = u16;       \
+	self[prefix##"u32"_s]       = u32;       \
+	self[prefix##"u64"_s]       = u64;       \
+	self[prefix##"f32"_s]       = f32;       \
+	self[prefix##"f64"_s]       = f64;       \
+	self[prefix##"f"_s]         = f32;       \
+	self[prefix##"float"_s]     = f32;       \
+	self[prefix##"double"_s]    = f64;       \
+	self[prefix##"boolean"_s]   = boolean;   \
+	self[prefix##"bool"_s]      = boolean;   \
+	self[prefix##"character"_s] = character; \
+	self[prefix##"char"_s]      = character; \
+	self[prefix##"c"_s]         = character; \
+	self[prefix##"string"_s]    = string;    \
+	self[prefix##"str"_s]       = string;    \
+	self[prefix##"s"_s]         = string;    \
+	self[prefix##"list"_s]      = list;      \
+	self[prefix##"object"_s]    = object;    \
+	self[prefix##"obj"_s]       = object;    \
+	self[prefix##"cppint"_s]    = pl_int;    \
+	self[prefix##"int"_s]       = pl_int;    \
+	self[prefix##"i"_s]         = pl_int;    \
+	self[prefix##"cppuint"_s]   = pl_uint;   \
+	self[prefix##"uint"_s]      = pl_uint;   \
+	self[prefix##"u"_s]         = pl_uint;
 
 	template <typename char_t>
 	class type_table
@@ -109,7 +109,7 @@ namespace pdn
 		static_assert(false, "[pdn] cannot generate type_table for template parameter \"char_t\"");
 	};
 	template <>
-	class type_table<unicode::utf_8_code_unit_t> : public ::std::unordered_map<types::string<unicode::utf_8_code_unit_t>, type_code>
+	class type_table<unicode::u8char_t> : public ::std::unordered_map<types::string<unicode::u8char_t>, type_code>
 	{
 	public:
 		type_table()
@@ -121,7 +121,7 @@ namespace pdn
 		}
 	};
 	template <>
-	class type_table<unicode::utf_16_code_unit_t> : public ::std::unordered_map<types::string<unicode::utf_16_code_unit_t>, type_code>
+	class type_table<unicode::u16char_t> : public ::std::unordered_map<types::string<unicode::u16char_t>, type_code>
 	{
 	public:
 		type_table()
@@ -133,7 +133,7 @@ namespace pdn
 		}
 	};
 	template <>
-	class type_table<unicode::utf_32_code_unit_t> : public ::std::unordered_map<types::string<unicode::utf_32_code_unit_t>, type_code>
+	class type_table<unicode::u32char_t> : public ::std::unordered_map<types::string<unicode::u32char_t>, type_code>
 	{
 	public:
 		type_table()

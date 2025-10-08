@@ -14,19 +14,19 @@ namespace pdn::unicode::dev_util
 	template <typename char_t>
 	struct encoder {};
 	template <>
-	struct encoder<utf_8_code_unit_t>
+	struct encoder<u8char_t>
 	{
 		using result = utf_8::encode_result;
 		static auto encode(code_point_t c) -> result { return utf_8::encode(c); }
 	};
 	template <>
-	struct encoder<utf_16_code_unit_t>
+	struct encoder<u16char_t>
 	{
 		using result = utf_16::encode_result;
 		static auto encode(code_point_t c) -> result { return utf_16::encode(c); }
 	};
 	template <>
-	struct encoder<utf_32_code_unit_t>
+	struct encoder<u32char_t>
 	{
 		using result = utf_32::encode_result;
 		static auto encode(code_point_t c) -> result { return utf_32::encode(c); }
@@ -37,15 +37,15 @@ namespace pdn::unicode::dev_util
 
 namespace pdn::unicode
 {
-	inline auto encode(code_point_t character, utf_8_code_unit_t) -> utf_8::encode_result
+	inline auto encode(code_point_t character, u8char_t) -> utf_8::encode_result
 	{
 		return utf_8::encode(character);
 	}
-	inline auto encode(code_point_t character, utf_16_code_unit_t) -> utf_16::encode_result
+	inline auto encode(code_point_t character, u16char_t) -> utf_16::encode_result
 	{
 		return utf_16::encode(character);
 	}
-	inline auto encode(code_point_t character, utf_32_code_unit_t) -> utf_32::encode_result
+	inline auto encode(code_point_t character, u32char_t) -> utf_32::encode_result
 	{
 		return utf_32::encode(character);
 	}
