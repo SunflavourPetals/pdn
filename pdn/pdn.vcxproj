@@ -198,7 +198,7 @@
     <ClInclude Include="pdn_type_to_type_code.h" />
     <ClInclude Include="pdn_types_character_utility.h" />
     <ClInclude Include="pdn_unicode_base.h" />
-    <ClInclude Include="pdn_unicode_encoder.h" />
+    <ClInclude Include="pdn_utf_encoder.h" />
     <ClInclude Include="pdn_utf_16_encoder.h" />
     <ClInclude Include="pdn_utf_32_encoder.h" />
     <ClInclude Include="pdn_utf_8_base.h" />
@@ -208,7 +208,7 @@
     <ClInclude Include="pdn_utf_16_decoder.h" />
     <ClInclude Include="pdn_utf_32_decoder.h" />
     <ClInclude Include="pdn_utf_32_base.h" />
-    <ClInclude Include="pdn_unicode_decoder.h" />
+    <ClInclude Include="pdn_utf_decoder.h" />
     <ClInclude Include="pdn_unicode.h" />
     <ClInclude Include="pdn_err_msg_gen_en_utf_8_dec.h" />
     <ClInclude Include="pdn_err_msg_gen_en_utf_16_dec.h" />

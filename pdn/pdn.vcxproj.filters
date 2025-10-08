@@ -108,7 +108,7 @@
     <ClInclude Include="pdn_code_convert.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_unicode_encoder.h">
+    <ClInclude Include="pdn_utf_encoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
     <ClInclude Include="pdn_error_message.h">
@@ -198,7 +198,7 @@
     <ClInclude Include="pdn_utf_32_base.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_unicode_decoder.h">
+    <ClInclude Include="pdn_utf_decoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
     <ClInclude Include="pdn_unicode.h">

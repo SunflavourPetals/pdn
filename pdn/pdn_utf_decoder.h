@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_unicode_decoder
-#define PDN_Header_pdn_unicode_decoder
+#ifndef PDN_Header_pdn_utf_decoder
+#define PDN_Header_pdn_utf_decoder
 
 #include <type_traits>
 #include <utility>

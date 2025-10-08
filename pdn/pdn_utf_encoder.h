@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_unicode_encoder
-#define PDN_Header_pdn_unicode_encoder
+#ifndef PDN_Header_pdn_utf_encoder
+#define PDN_Header_pdn_utf_encoder
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf_8_base.h"
