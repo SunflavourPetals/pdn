@@ -81,7 +81,7 @@ namespace pdn
 
 namespace pdn
 {
-	template <typename char_t = unicode::utf_8_code_unit_t>
+	template <typename char_t = unicode::u8char_t>
 	class entity : public types::detail::entity_variant<char_t>
 	{
 	public:
