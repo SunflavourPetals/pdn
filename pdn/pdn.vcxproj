@@ -133,7 +133,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="pdn_bom_reader.h" />
-    <ClInclude Include="pdn_code_convert.h" />
+    <ClInclude Include="pdn_utf_code_convert.h" />
     <ClInclude Include="pdn_code_point_iterator.h" />
     <ClInclude Include="pdn_code_unit_iterator.h" />
     <ClInclude Include="pdn_constant_generator.h" />

@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_code_convert
-#define PDN_Header_pdn_code_convert
+#ifndef PDN_Header_pdn_utf_code_convert
+#define PDN_Header_pdn_utf_code_convert
 
 #include <string>
 #include <utility>

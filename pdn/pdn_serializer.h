@@ -19,7 +19,7 @@
 #include "pdn_type_code_to_error_msg_string.h"
 
 #include "pdn_unicode.h"
-#include "pdn_code_convert.h"
+#include "pdn_utf_code_convert.h"
 
 #include "pdn_proxy.h"
 

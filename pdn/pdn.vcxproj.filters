@@ -105,7 +105,7 @@
     <ClInclude Include="pdn_lexical_error_code.h">
       <Filter>pdn_lexer</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_code_convert.h">
+    <ClInclude Include="pdn_utf_code_convert.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
     <ClInclude Include="pdn_utf_encoder.h">
