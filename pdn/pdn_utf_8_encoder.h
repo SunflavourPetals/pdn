@@ -74,6 +74,8 @@ namespace pdn::unicode::utf_8
 	class encoder
 	{
 	public:
+		using result_type = encode_result;
+
 		static auto encode(code_point_t character) noexcept -> encode_result
 		{
 			encode_result result{};

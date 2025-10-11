@@ -148,7 +148,7 @@ namespace pdn
 							detail::decode_result_to_raw_error_t<result_type>{ result, last, offset }
 						})
 					});
-					if (begin != end && !decision::decoder::template is_reaching_next<false>(result))
+					if (begin != end && !decision::decoder_type::template is_reaching_next<false>(result))
 					{
 						++begin;
 						++offset;

@@ -54,16 +54,23 @@ namespace pdn::unicode
 	{
 		return detail::encoder<char_t>::encode(character);
 	}
+}
 
-	class encoder
-	{
-	public:
-		template <typename char_t>
-		static auto encode(code_point_t character)
-		{
-			return detail::encoder<char_t>::encode(character);
-		}
-	};
+namespace pdn::unicode::detail
+{
+	template <typename char_t> struct suitable_encoder {};
+	template <> struct suitable_encoder<u8char_t>  { using type = utf_8::encoder; };
+	template <> struct suitable_encoder<u16char_t> { using type = utf_16::encoder; };
+	template <> struct suitable_encoder<u32char_t> { using type = utf_32::encoder; };
+
+	template <typename char_t>
+	using suitable_encoder_t = suitable_encoder<char_t>::type;
+}
+
+namespace pdn::unicode
+{
+	template <concepts::code_unit char_t>
+	using encoder = detail::suitable_encoder_t<char_t>;
 }
 
 #endif

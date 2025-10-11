@@ -73,6 +73,8 @@ namespace pdn::unicode::utf_16
 	class encoder
 	{
 	public:
+		using result_type = encode_result;
+
 		static auto encode(code_point_t character) noexcept -> encode_result
 		{
 			using cp_t = code_point_t;

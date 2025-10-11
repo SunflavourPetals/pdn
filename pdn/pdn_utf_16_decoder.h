@@ -57,6 +57,8 @@ namespace pdn::unicode::utf_16
 	class decoder
 	{
 	public:
+		using result_type = decode_result;
+
 		template <bool reach_next_code_point>
 		static constexpr bool is_reaching_next(decode_result r) noexcept
 		{

@@ -9,74 +9,62 @@
 
 #include "pdn_unicode.h"
 
-namespace pdn::unicode
+namespace pdn::unicode::concepts
 {
-	namespace concepts
+	namespace detail
 	{
-#define PDN_Macro_Temp_make_string_src_des_concepts(src_name, des_name, charx_t) \
-		template <typename string> \
-		concept src_name = requires(string source) \
-		{ \
-			typename string::value_type; \
-			typename string::iterator; \
-			requires ::std::same_as<typename string::value_type, charx_t>; \
-			requires ::std::random_access_iterator<typename string::iterator>; \
-		}; \
-		template <typename string> \
-		concept des_name = requires(string destination, ::std::basic_string<charx_t> s) \
-		{ \
-			typename string::value_type; \
-			requires ::std::same_as<typename string::value_type, charx_t>; \
-			destination.append(s.cbegin(), s.cend()); \
+		template <typename string_t, typename code_unit_t>
+		concept convert_src_base = requires(string_t source)
+		{
+			typename string_t::value_type;
+			typename string_t::iterator;
+				requires ::std::same_as<typename string_t::value_type, code_unit_t>;
+				requires ::std::random_access_iterator<typename string_t::iterator>;
 		};
-
-		PDN_Macro_Temp_make_string_src_des_concepts(utf_8_convert_src,  utf_8_convert_des,  char8_t)
-		PDN_Macro_Temp_make_string_src_des_concepts(utf_16_convert_src, utf_16_convert_des, char16_t)
-		PDN_Macro_Temp_make_string_src_des_concepts(utf_32_convert_src, utf_32_convert_des, char32_t)
-
-#undef PDN_Macro_Temp_make_string_src_des_concepts
+		template <typename string_t, typename code_unit_t>
+		concept convert_des_base = requires(string_t destination, ::std::basic_string<code_unit_t> s)
+		{
+			typename string_t::value_type;
+			requires ::std::same_as<typename string_t::value_type, code_unit_t>;
+			destination.append(s.cbegin(), s.cend());
+		};
 	}
 
-	template <typename source_string_view, typename target_string>
+	template <typename string_t> concept utf8_convert_src  = detail::convert_src_base<string_t, u8char_t>;
+	template <typename string_t> concept utf16_convert_src = detail::convert_src_base<string_t, u16char_t>;
+	template <typename string_t> concept utf32_convert_src = detail::convert_src_base<string_t, u32char_t>;
+	template <typename string_t> concept utf8_convert_des  = detail::convert_des_base<string_t, u8char_t>;
+	template <typename string_t> concept utf16_convert_des = detail::convert_des_base<string_t, u16char_t>;
+	template <typename string_t> concept utf32_convert_des = detail::convert_des_base<string_t, u32char_t>;
+
+	template <typename string_t>
+	concept convert_src = utf8_convert_src<string_t> || utf16_convert_src<string_t> || utf32_convert_src<string_t>;
+	template <typename string_t>
+	concept convert_des = utf8_convert_des<string_t> || utf16_convert_des<string_t> || utf32_convert_des<string_t>;
+}
+
+namespace pdn::unicode
+{
+	template <concepts::convert_src source_string_view, concepts::convert_des target_string>
 	struct convert_decision
 	{
-		static_assert(false, "[pdn] cannot generate convert_decision");
+		using source_char        = source_string_view::value_type;
+		using target_char        = target_string::value_type;
+		using decoder_type       = decoder<source_char>;
+		using encoder_type       = encoder<target_char>;
+		using decode_result_type = decoder_type::result_type;
+		using encode_result_type = encoder_type::result_type;
+
+		template <bool reach_next_code_point = false>
+		inline static auto decode(auto&& begin, auto end) -> decode_result_type
+		{
+			return decoder_type::template decode<reach_next_code_point>(begin, end);
+		}
+		inline static auto encode(code_point_t code_point) noexcept -> encode_result_type
+		{
+			return encoder_type::encode(code_point);
+		}
 	};
-
-#define PDN_Macro_Temp_make_convert_decision(src_concept, source_ns, des_concept, target_ns) \
-	template <src_concept src, des_concept des> \
-	struct convert_decision <src, des> \
-	{ \
-		using decode_result = source_ns::decode_result; \
-		using encode_result = target_ns::encode_result; \
-		using source_char   = source_ns::code_unit_t; \
-		using target_char   = target_ns::code_unit_t; \
-		using decoder       = source_ns::decoder; \
-		using encoder       = target_ns::encoder; \
-		template <bool reach_next_code_point = false> \
-		inline static decode_result decode(auto&& begin, auto end) noexcept(noexcept(source_ns::decode<reach_next_code_point>(begin, end))) \
-		{ \
-			return decoder::decode<reach_next_code_point>(begin, end); \
-		} \
-		inline static encode_result encode(code_point_t code_point) noexcept(noexcept(target_ns::encode(code_point))) \
-		{ \
-			return encoder::encode(code_point); \
-		} \
-	};
-
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src,  utf_8,  concepts::utf_8_convert_des,  utf_8)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src,  utf_8,  concepts::utf_16_convert_des, utf_16)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_8_convert_src,  utf_8,  concepts::utf_32_convert_des, utf_32)
-
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_16_convert_src, utf_16, concepts::utf_8_convert_des,  utf_8)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_16_convert_src, utf_16, concepts::utf_16_convert_des, utf_16)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_16_convert_src, utf_16, concepts::utf_32_convert_des, utf_32)
-
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_32_convert_src, utf_32, concepts::utf_8_convert_des,  utf_8)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_32_convert_src, utf_32, concepts::utf_16_convert_des, utf_16)
-	PDN_Macro_Temp_make_convert_decision(concepts::utf_32_convert_src, utf_32, concepts::utf_32_convert_des, utf_32)
-
-#undef PDN_Macro_Temp_make_convert_decision
 }
 
 #endif

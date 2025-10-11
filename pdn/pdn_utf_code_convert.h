@@ -8,13 +8,13 @@
 #include "pdn_unicode.h"
 #include "pdn_convert_decision.h"
 
-namespace pdn::unicode::utility
+namespace pdn::unicode::detail
 {
 	template <typename cvt_src, typename cvt_des>
-	using dec_res = typename convert_decision<cvt_src, cvt_des>::decode_result;
+	using dec_res = typename convert_decision<cvt_src, cvt_des>::decode_result_type;
 
 	template <typename cvt_src, typename cvt_des>
-	using enc_res = typename convert_decision<cvt_src, cvt_des>::encode_result;
+	using enc_res = typename convert_decision<cvt_src, cvt_des>::encode_result_type;
 
 	template <typename cvt_src, typename cvt_des>
 	using dec_char = typename convert_decision<cvt_src, cvt_des>::target_char;
@@ -42,8 +42,8 @@ namespace pdn::unicode::utility
 
 namespace pdn::unicode
 {
-	// param decode_error_handler: see utility::default_decode_error_handler
-	// param encode_error_handler: see utility::default_encode_error_handler
+	// param decode_error_handler: see detail::default_decode_error_handler
+	// param encode_error_handler: see detail::default_encode_error_handler
 	template <typename target_string,
 	          typename source_string_view,
 	          typename decode_error_handler_t,
@@ -87,8 +87,8 @@ namespace pdn::unicode
 	{
 		return code_convert<target_string>(
 			source,
-			&utility::default_decode_error_handler<source_string_view, target_string>,
-			&utility::default_encode_error_handler<source_string_view, target_string>);
+			&detail::default_decode_error_handler<source_string_view, target_string>,
+			&detail::default_encode_error_handler<source_string_view, target_string>);
 	}
 }
 

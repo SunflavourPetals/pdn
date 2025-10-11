@@ -51,25 +51,23 @@ namespace pdn::unicode
 	{
 		return utf_32::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
 	}
+}
 
-	namespace detail
-	{
-		template <bool reach_next_code_point, concepts::code_unit it_begin_t, typename it_end_t>
-		static auto decode_impl(it_begin_t&& begin, it_end_t end)
-		{
-			return decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
-		}
-	}
+namespace pdn::unicode::detail
+{
+	template <typename char_t> struct suitable_decoder {};
+	template <> struct suitable_decoder<u8char_t>  { using type = utf_8 ::decoder; };
+	template <> struct suitable_decoder<u16char_t> { using type = utf_16::decoder; };
+	template <> struct suitable_decoder<u32char_t> { using type = utf_32::decoder; };
 
-	class decoder
-	{
-	public:
-		template <bool reach_next_code_point, concepts::code_unit it_begin_t, typename it_end_t>
-		static auto decode(it_begin_t&& begin, it_end_t end)
-		{
-			return detail::decode_impl<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
-		}
-	};
+	template <typename char_t>
+	using suitable_decoder_t = suitable_decoder<char_t>::type;
+}
+
+namespace pdn::unicode
+{
+	template <concepts::code_unit char_t>
+	using decoder = detail::suitable_decoder_t<char_t>;
 }
 
 #endif
