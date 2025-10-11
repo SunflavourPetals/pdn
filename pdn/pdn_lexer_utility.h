@@ -1,9 +1,6 @@
 #ifndef PDN_Header_pdn_lexer_utility
 #define PDN_Header_pdn_lexer_utility
 
-#include <string>
-#include <cctype>
-
 #include "pdn_unicode_base.h"
 
 // set of tool functions for lexer & dfa that serves pdn
