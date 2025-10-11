@@ -9,7 +9,7 @@
 #include "pdn_types.h"
 #include "pdn_proxy.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	class at_iden_string_proxy
 	{
@@ -37,7 +37,7 @@ namespace pdn
 		types::boolean,
 		types::character<char_t>,
 		proxy<types::string<char_t>>,
-		dev_util::at_iden_string_proxy>;
+		detail::at_iden_string_proxy>;
 }
 
 #endif

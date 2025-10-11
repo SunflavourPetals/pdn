@@ -4,7 +4,7 @@
 #include "pdn_token.h"
 #include "pdn_token_value_variant_convert.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	template <typename target_char_t, typename source_char_t>
 	static constexpr auto token_convert(token<source_char_t> src) -> token<target_char_t>

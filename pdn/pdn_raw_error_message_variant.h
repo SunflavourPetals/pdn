@@ -5,7 +5,7 @@
 
 #include "pdn_raw_error_message_type.h"
 
-namespace pdn::raw_error_message_type::dev_util
+namespace pdn::raw_error_message_type::detail
 {
 	using raw_error_message_variant = ::std::variant<
 		::std::monostate,
@@ -34,7 +34,7 @@ namespace pdn::raw_error_message_type::dev_util
 
 namespace pdn
 {
-	using raw_error_message_type::dev_util::raw_error_message_variant;
+	using raw_error_message_type::detail::raw_error_message_variant;
 }
 
 #endif

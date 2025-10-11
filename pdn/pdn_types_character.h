@@ -13,7 +13,7 @@ namespace pdn::types::impl
 	class character
 	{
 	private:
-		static constexpr auto max_sz = dev_util::max_code_unit_count_for_character_v<char_t>;
+		static constexpr auto max_sz = detail::max_code_unit_count_for_character_v<char_t>;
 		using data_type = ::std::array<char_t, max_sz>;
 		static constexpr auto trunc_size(::std::size_t sz) { return sz > max_sz ? max_sz : sz; }
 	public:

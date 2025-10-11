@@ -24,12 +24,12 @@
 
 #include "pdn_unicode.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	using raw_err_v_cref = const raw_error_message_variant&;
 }
 
-namespace pdn::dev_util::err_msg_gen_util
+namespace pdn::detail::err_msg_gen_util
 {
 	using namespace literals::error_message_literals;
 	inline auto add_quote(error_msg_string_view src) -> error_msg_string
@@ -99,7 +99,7 @@ namespace pdn::dev_util::err_msg_gen_util
 			{
 				return u8"monostate"_em;
 			}
-			else if constexpr (::std::same_as<arg_t, dev_util::at_iden_string_proxy>)
+			else if constexpr (::std::same_as<arg_t, detail::at_iden_string_proxy>)
 			{
 				return add_quote(u8"@"_em.append(arg.get_id()));
 			}
@@ -123,7 +123,7 @@ namespace pdn::dev_util::err_msg_gen_util
 	}
 }
 
-namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
+namespace pdn::detail::err_msg_gen_util::syntax_err_msg_gen_util
 {
 	// for identifier
 	inline auto get_slashes_iden(raw_err_v_cref raw) -> error_msg_string
@@ -269,7 +269,7 @@ namespace pdn::dev_util::err_msg_gen_util::syntax_err_msg_gen_util
 	}
 }
 
-namespace pdn::dev_util::err_msg_gen_util::lexical_err_msg_gen_util
+namespace pdn::detail::err_msg_gen_util::lexical_err_msg_gen_util
 {
 	// for not_unicode_scalar_value
 	inline auto get_code_point_hex(raw_err_v_cref raw) -> error_msg_string

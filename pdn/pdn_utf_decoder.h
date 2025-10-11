@@ -12,7 +12,7 @@
 #include "pdn_utf_32_base.h"
 #include "pdn_utf_32_decoder.h"
 
-namespace pdn::unicode::dev_util
+namespace pdn::unicode::detail
 {
 	template <typename type>
 	concept utf_8_iterator = requires (type it)
@@ -36,23 +36,23 @@ namespace pdn::unicode::dev_util
 
 namespace pdn::unicode
 {
-	template <bool reach_next_code_point, dev_util::utf_8_iterator it_begin_t, typename it_end_t>
+	template <bool reach_next_code_point, detail::utf_8_iterator it_begin_t, typename it_end_t>
 	auto decode(it_begin_t&& begin, it_end_t end)
 	{
 		return utf_8::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
 	}
-	template <bool reach_next_code_point, dev_util::utf_16_iterator it_begin_t, typename it_end_t>
+	template <bool reach_next_code_point, detail::utf_16_iterator it_begin_t, typename it_end_t>
 	auto decode(it_begin_t&& begin, it_end_t end)
 	{
 		return utf_16::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
 	}
-	template <bool reach_next_code_point, dev_util::utf_32_iterator it_begin_t, typename it_end_t>
+	template <bool reach_next_code_point, detail::utf_32_iterator it_begin_t, typename it_end_t>
 	auto decode(it_begin_t&& begin, it_end_t end)
 	{
 		return utf_32::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
 	}
 
-	namespace dev_util
+	namespace detail
 	{
 		template <bool reach_next_code_point, concepts::code_unit it_begin_t, typename it_end_t>
 		static auto decode_impl(it_begin_t&& begin, it_end_t end)
@@ -67,7 +67,7 @@ namespace pdn::unicode
 		template <bool reach_next_code_point, concepts::code_unit it_begin_t, typename it_end_t>
 		static auto decode(it_begin_t&& begin, it_end_t end)
 		{
-			return dev_util::decode_impl<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
+			return detail::decode_impl<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
 		}
 	};
 }

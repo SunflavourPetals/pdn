@@ -647,7 +647,7 @@ namespace pdn
 					assert(0 && "token have no value");
 					return types::auto_int{};
 				}
-				else if constexpr (::std::same_as<arg_t, dev_util::at_iden_string_proxy>)
+				else if constexpr (::std::same_as<arg_t, detail::at_iden_string_proxy>)
 				{
 					if (auto value_opt = func_pkg->generate_constant(arg.get_id()); value_opt)
 					{

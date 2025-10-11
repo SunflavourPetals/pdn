@@ -82,10 +82,10 @@ namespace pdn
 namespace pdn
 {
 	template <typename char_t = unicode::utf_8_code_unit_t>
-	class entity : public types::dev_util::entity_variant<char_t>
+	class entity : public types::detail::entity_variant<char_t>
 	{
 	public:
-		using types::dev_util::entity_variant<char_t>::entity_variant;
+		using types::detail::entity_variant<char_t>::entity_variant;
 		using char_type    = char_t;
 		using index_type   = ::std::size_t;
 		using key_type     = ::std::basic_string_view<char_type>;

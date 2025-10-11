@@ -458,11 +458,11 @@ namespace pdn
 			case at_identifier:
 				if constexpr (::std::same_as<char_t, unicode::u8char_t>)
 				{
-					result.value = dev_util::at_iden_string_proxy{ ::std::move(text) };
+					result.value = detail::at_iden_string_proxy{ ::std::move(text) };
 				}
 				else
 				{
-					result.value = dev_util::at_iden_string_proxy{ code_convert<unicode::u8string>(text) };
+					result.value = detail::at_iden_string_proxy{ code_convert<unicode::u8string>(text) };
 				}
 				break;
 			case character_opened: // <<< ERROR STATE

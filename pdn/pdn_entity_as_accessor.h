@@ -25,67 +25,67 @@ namespace pdn
 	template <typename char_t>
 	[[nodiscard]] auto as_int(const entity<char_t>& e) -> types::i64
 	{
-		return ::std::visit([](const auto& v) { return dev_util::as_int(v); }, e);
+		return ::std::visit([](const auto& v) { return detail::as_int(v); }, e);
 	}
 
 	template <typename char_t, types::concepts::pdn_sint in>
 	[[nodiscard]] auto as_int(const entity<char_t>& e, in) -> in
 	{
-		return ::std::visit([]<typename arg_t>(const arg_t& v) { return dev_util::as_int<arg_t, in>(v); }, e);
+		return ::std::visit([]<typename arg_t>(const arg_t& v) { return detail::as_int<arg_t, in>(v); }, e);
 	}
 
 	template <typename char_t>
 	[[nodiscard]] auto as_uint(const entity<char_t>& e) -> types::u64
 	{
-		return ::std::visit([](const auto& v) { return dev_util::as_uint(v); }, e);
+		return ::std::visit([](const auto& v) { return detail::as_uint(v); }, e);
 	}
 
 	template <typename char_t, types::concepts::pdn_uint un>
 	[[nodiscard]] auto as_uint(const entity<char_t>& e, un) -> un
 	{
-		return ::std::visit([]<typename arg_t>(const arg_t& v) { return dev_util::as_uint<arg_t, un>(v); }, e);
+		return ::std::visit([]<typename arg_t>(const arg_t& v) { return detail::as_uint<arg_t, un>(v); }, e);
 	}
 
 	template <typename char_t>
 	[[nodiscard]] auto as_fp(const entity<char_t>& e) -> types::f64
 	{
-		return ::std::visit([](const auto& v) { return dev_util::as_fp(v); }, e);
+		return ::std::visit([](const auto& v) { return detail::as_fp(v); }, e);
 	}
 
 	template <typename char_t, types::concepts::pdn_fp fn>
 	[[nodiscard]] auto as_fp(const entity<char_t>& e, fn) -> fn
 	{
-		return ::std::visit([]<typename arg_t>(const arg_t& v) { return dev_util::as_fp<arg_t, fn>(v); }, e);
+		return ::std::visit([]<typename arg_t>(const arg_t& v) { return detail::as_fp<arg_t, fn>(v); }, e);
 	}
 
 	template <typename char_t>
 	[[nodiscard]] auto as_bool(const entity<char_t>& e) -> types::boolean
 	{
-		return ::std::visit([](const auto& v) { return dev_util::as_accessor<char_t>::as_bool(v); }, e);
+		return ::std::visit([](const auto& v) { return detail::as_accessor<char_t>::as_bool(v); }, e);
 	}
 
 	template <typename char_t>
 	[[nodiscard]] auto as_char(const entity<char_t>& e) -> types::character<char_t>
 	{
-		return ::std::visit([](const auto& v) { return dev_util::as_accessor<char_t>::as_char(v); }, e);
+		return ::std::visit([](const auto& v) { return detail::as_accessor<char_t>::as_char(v); }, e);
 	}
 
 	template <typename char_t>
 	[[nodiscard]] auto as_string(const entity<char_t>& e) -> const types::string<char_t>&
 	{
-		return ::std::visit([](const auto& v) -> decltype(auto) { return dev_util::as_accessor<char_t>::as_string(v); }, e);
+		return ::std::visit([](const auto& v) -> decltype(auto) { return detail::as_accessor<char_t>::as_string(v); }, e);
 	}
 
 	template <typename char_t>
 	[[nodiscard]] auto as_list(const entity<char_t>& e) -> const types::list<char_t>&
 	{
-		return ::std::visit([](const auto& v) -> decltype(auto) { return dev_util::as_accessor<char_t>::as_list(v); }, e);
+		return ::std::visit([](const auto& v) -> decltype(auto) { return detail::as_accessor<char_t>::as_list(v); }, e);
 	}
 
 	template <typename char_t>
 	[[nodiscard]] auto as_object(const entity<char_t>& e) -> const types::object<char_t>&
 	{
-		return ::std::visit([](const auto& v) -> decltype(auto) { return dev_util::as_accessor<char_t>::as_object(v); }, e);
+		return ::std::visit([](const auto& v) -> decltype(auto) { return detail::as_accessor<char_t>::as_object(v); }, e);
 	}
 
 	template <typename char_t>
@@ -139,19 +139,19 @@ namespace pdn
 	template <typename char_t>
 	[[nodiscard]] auto as_string(const_refer<char_t> e) -> const types::string<char_t>&
 	{
-		return e ? as_string(*e) : dev_util::as_accessor<char_t>::null_string_val();
+		return e ? as_string(*e) : detail::as_accessor<char_t>::null_string_val();
 	}
 
 	template <typename char_t>
 	[[nodiscard]] auto as_list(const_refer<char_t> e) -> const types::list<char_t>&
 	{
-		return e ? as_list(*e) : dev_util::as_accessor<char_t>::null_list_val();
+		return e ? as_list(*e) : detail::as_accessor<char_t>::null_list_val();
 	}
 
 	template <typename char_t>
 	[[nodiscard]] auto as_object(const_refer<char_t> e) -> const types::object<char_t>&
 	{
-		return e ? as_object(*e) : dev_util::as_accessor<char_t>::null_object_val();
+		return e ? as_object(*e) : detail::as_accessor<char_t>::null_object_val();
 	}
 }
 

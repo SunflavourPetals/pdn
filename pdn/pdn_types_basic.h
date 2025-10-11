@@ -19,7 +19,7 @@ namespace pdn::types
 	using config::character;
 }
 
-namespace pdn::types::dev_util
+namespace pdn::types::detail
 {
 	using ::std::same_as;
 
@@ -49,8 +49,8 @@ namespace pdn::types::dev_util
 
 namespace pdn::types
 {
-	using auto_int  = dev_util::simu_int_t <int>;
-	using auto_uint = dev_util::simu_uint_t<unsigned int>;
+	using auto_int  = detail::simu_int_t <int>;
+	using auto_uint = detail::simu_uint_t<unsigned int>;
 }
 
 namespace pdn::types::concepts

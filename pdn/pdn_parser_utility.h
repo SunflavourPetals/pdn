@@ -16,7 +16,7 @@
 #include "pdn_raw_error_message_type.h"
 #include "pdn_source_position.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	template <typename type, typename target_type>
 	concept remove_cvref_same_as = ::std::is_same_v<::std::remove_cvref_t<type>, ::std::remove_cvref_t<target_type>>;
@@ -34,19 +34,19 @@ namespace pdn::concepts
 	template <typename type>
 	concept utf_8_code_unit_iterator = requires (type it)
 	{
-		{ *it } -> dev_util::remove_cvref_same_as<unicode::u8char_t>;
+		{ *it } -> detail::remove_cvref_same_as<unicode::u8char_t>;
 		++it;
 	};
 	template <typename type>
 	concept utf_16_code_unit_iterator = requires (type it)
 	{
-		{ *it } -> dev_util::remove_cvref_same_as<unicode::u16char_t>;
+		{ *it } -> detail::remove_cvref_same_as<unicode::u16char_t>;
 		++it;
 	};
 	template <typename type>
 	concept utf_32_code_unit_iterator = requires (type it)
 	{
-		{ *it } -> dev_util::remove_cvref_same_as<unicode::u32char_t>;
+		{ *it } -> detail::remove_cvref_same_as<unicode::u32char_t>;
 		++it;
 	};
 	template <typename type>
@@ -136,7 +136,7 @@ namespace pdn::parser_utility
 		}
 		else
 		{
-			return raw_error_message_type::error_token{ dev_util::token_convert<error_msg_char>(::std::move(src)) };
+			return raw_error_message_type::error_token{ detail::token_convert<error_msg_char>(::std::move(src)) };
 		}
 	}
 

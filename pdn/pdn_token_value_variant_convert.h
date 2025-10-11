@@ -10,7 +10,7 @@
 #include "pdn_utf_code_convert.h"
 #include "pdn_token_value_variant.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	template <typename target_char_t, typename source_char_t>
 	constexpr auto token_value_variant_convert(token_value_variant<source_char_t> src) -> token_value_variant<target_char_t>

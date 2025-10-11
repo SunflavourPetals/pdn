@@ -8,7 +8,7 @@
 #include "pdn_unicode_base.h"
 #include "pdn_type_generator.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	template <typename>
 	struct cppint_to_type_code
@@ -70,8 +70,8 @@ namespace pdn::dev_util
 namespace pdn
 {
 #define PDN_Macro_Temp_make_map_for_typename_to_typecode(prefix) \
-	constexpr auto pl_int  = dev_util::cppint_to_type_code_v<types::auto_int>;   \
-	constexpr auto pl_uint = dev_util::cppuint_to_type_code_v<types::auto_uint>; \
+	constexpr auto pl_int  = detail::cppint_to_type_code_v<types::auto_int>;   \
+	constexpr auto pl_uint = detail::cppuint_to_type_code_v<types::auto_uint>; \
 	self[prefix##"i8"_s]        = i8;        \
 	self[prefix##"i16"_s]       = i16;       \
 	self[prefix##"i32"_s]       = i32;       \

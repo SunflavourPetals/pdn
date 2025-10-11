@@ -12,7 +12,7 @@
 
 #include "pdn_err_msg_gen_utility.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	using utf_8_decode_error_code = unicode::utf_8::decode_error_code;
 

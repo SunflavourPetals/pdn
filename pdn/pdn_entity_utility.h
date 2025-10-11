@@ -10,7 +10,7 @@
 
 #include "pdn_entity_forward_decl.h"
 
-namespace pdn::types::dev_util
+namespace pdn::types::detail
 {
 	template <typename char_t>
 	using entity_variant = ::std::variant<
@@ -24,7 +24,7 @@ namespace pdn::types::dev_util
 		proxy<object<char_t>>>;
 }
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	template <typename arg_t, types::concepts::pdn_sint tar_int = types::i64>
 	inline auto as_int(const arg_t& arg) -> tar_int
@@ -134,25 +134,25 @@ namespace pdn::dev_util
 		template <typename arg_t, typename in = types::i64>
 		static auto as_int(const arg_t& arg) -> in
 		{
-			return dev_util::as_int<arg_t, in>(arg);
+			return detail::as_int<arg_t, in>(arg);
 		}
 
 		template <typename arg_t, typename un = types::u64>
 		static auto as_uint(const arg_t& arg) -> un
 		{
-			return dev_util::as_uint<arg_t, un>(arg);
+			return detail::as_uint<arg_t, un>(arg);
 		}
 
 		template <typename arg_t, typename fn = types::f64>
 		static auto as_fp(const arg_t& arg) -> fn
 		{
-			return dev_util::as_fp<arg_t, fn>(arg);
+			return detail::as_fp<arg_t, fn>(arg);
 		}
 
 		template <typename arg_t>
 		static auto as_bool(const arg_t& arg) -> types::boolean
 		{
-			return dev_util::as_bool<char_t>(arg);
+			return detail::as_bool<char_t>(arg);
 		}
 
 		template <typename arg_t>
@@ -225,7 +225,7 @@ namespace pdn::dev_util
 	};
 }
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	template <typename t>
 	struct has_proxy

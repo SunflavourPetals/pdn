@@ -12,7 +12,7 @@
 
 #include "pdn_err_msg_gen_utility.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	using utf_16_decode_error_code = unicode::utf_16::decode_error_code;
 	inline auto err_msg_gen_en(utf_16_decode_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string

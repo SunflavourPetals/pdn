@@ -38,7 +38,7 @@
 //     v
 //    parser (provide: parse) ----> pdn document object model
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	static_assert(sizeof(char8_t)  == 1, "please rewrite code_unit_iterator for your platform");
 	static_assert(sizeof(char16_t) == 2, "please rewrite code_unit_iterator for your platform");
@@ -166,7 +166,7 @@ namespace pdn
 		using size_type         = ::std::size_t;
 		using value_type        = char_type;
 	private:
-		using helper            = dev_util::code_unit_iterator_helper<encode_type, it_t>;
+		using helper            = detail::code_unit_iterator_helper<encode_type, it_t>;
 		void first_to_next()
 		{
 			curr_value = helper::first_to_next(begin, [this]() { return begin == end; });
@@ -210,7 +210,7 @@ namespace pdn
 		char_type curr_value{};
 	};
 
-	template <unicode::encode_type encode_type, dev_util::eof_checker it_t>
+	template <unicode::encode_type encode_type, detail::eof_checker it_t>
 	class code_unit_iterator<encode_type, it_t>
 	{
 	public:
@@ -221,7 +221,7 @@ namespace pdn
 		using size_type         = ::std::size_t;
 		using value_type        = char_type;
 	private:
-		using helper            = dev_util::code_unit_iterator_helper<encode_type, it_t>;
+		using helper            = detail::code_unit_iterator_helper<encode_type, it_t>;
 		void first_to_next()
 		{
 			curr_value = helper::first_to_next(begin, [this]() { return begin.eof(); });
@@ -260,7 +260,7 @@ namespace pdn
 		char_type curr_value{};
 	};
 
-	namespace dev_util::for_code_unit_iterator_u8
+	namespace detail::for_code_unit_iterator_u8
 	{
 		template <typename it_t>
 		using deref_t = decltype(*::std::declval<it_t>());
@@ -286,10 +286,10 @@ namespace pdn
 		using char_type         = code_unit_type;
 		using size_type         = ::std::size_t;
 		using value_type        = char_type;
-		using deref_value_type  = ::std::conditional_t<dev_util::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>, ::std::add_const_t<char_type>&, char_type>;
+		using deref_value_type  = ::std::conditional_t<detail::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>, ::std::add_const_t<char_type>&, char_type>;
 		deref_value_type operator*() const noexcept
 		{
-			if constexpr (dev_util::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>)
+			if constexpr (detail::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>)
 			{
 				return reinterpret_cast<::std::add_const_t<char_type>&>(*begin);
 			}

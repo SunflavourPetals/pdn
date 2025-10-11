@@ -51,7 +51,7 @@ namespace pdn::concepts
 		&& concepts::error_message_generator<type>;
 }
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	template <typename type>
 	struct decode_result_to_raw_error {};
@@ -145,7 +145,7 @@ namespace pdn
 						func_pkg->generate_error_message(raw_error_message{
 							result.errc(),
 							func_pkg->position(),
-							dev_util::decode_result_to_raw_error_t<result_type>{ result, last, offset }
+							detail::decode_result_to_raw_error_t<result_type>{ result, last, offset }
 						})
 					});
 					if (begin != end && !decision::decoder::template is_reaching_next<false>(result))

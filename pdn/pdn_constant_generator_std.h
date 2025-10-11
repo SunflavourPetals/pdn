@@ -15,7 +15,7 @@
 #include "pdn_token_value_variant.h"
 #include "pdn_entity.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	struct constant_table_key_hasher
 	{
@@ -85,7 +85,7 @@ namespace pdn::dev_util
 namespace pdn
 {
 	template <typename char_t>
-	class constant_table : public dev_util::constant_table_base<char_t>
+	class constant_table : public detail::constant_table_base<char_t>
 	{
 	public:
 		constant_table()
@@ -127,9 +127,9 @@ namespace pdn
 			self[u8"signaling_NaN"_s] = f64_sNaN;
 			self[u8"sNaN"_s]          = f64_sNaN;
 			self[u8"snan"_s]          = f64_sNaN;
-			self[u8"hello"_s]         = dev_util::test_string_hello<char_t>(); // not std
-			self[u8"fib_10_list"_s]   = dev_util::test_list_fib_10<char_t>();  // not std
-			self[u8"me_object"_s]     = dev_util::test_object_me<char_t>();    // not std
+			self[u8"hello"_s]         = detail::test_string_hello<char_t>(); // not std
+			self[u8"fib_10_list"_s]   = detail::test_list_fib_10<char_t>();  // not std
+			self[u8"me_object"_s]     = detail::test_object_me<char_t>();    // not std
 		}
 		static auto instance() -> const constant_table<char_t>&
 		{

@@ -3,7 +3,7 @@
 
 #include <concepts>
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	template <typename type>
 	concept eof_checker = requires(type o) { { o.eof() } -> ::std::convertible_to<bool>; };

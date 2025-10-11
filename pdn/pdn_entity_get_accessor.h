@@ -16,7 +16,7 @@ namespace pdn
 	template <typename target_t, typename char_t>
 	[[nodiscard]] auto get(const entity<char_t>& e) -> const target_t&
 	{
-		if constexpr (dev_util::has_proxy_v<target_t>)
+		if constexpr (detail::has_proxy_v<target_t>)
 		{
 			return *::std::get<proxy<target_t>>(e);
 		}
@@ -29,7 +29,7 @@ namespace pdn
 	template <typename target_t, typename char_t>
 	[[nodiscard]] auto get(entity<char_t>&& e) -> target_t&&
 	{
-		if constexpr (dev_util::has_proxy_v<target_t>)
+		if constexpr (detail::has_proxy_v<target_t>)
 		{
 			return ::std::move(*::std::get<proxy<target_t>>(e));
 		}
@@ -42,7 +42,7 @@ namespace pdn
 	template <typename target_t, typename char_t>
 	[[nodiscard]] auto get(entity<char_t>& e) -> target_t&
 	{
-		if constexpr (dev_util::has_proxy_v<target_t>)
+		if constexpr (detail::has_proxy_v<target_t>)
 		{
 			return *::std::get<proxy<target_t>>(e);
 		}
@@ -55,7 +55,7 @@ namespace pdn
 	template <typename target_t, typename char_t>
 	[[nodiscard]] auto get_ptr(const entity<char_t>& e) -> const target_t*
 	{
-		if constexpr (dev_util::has_proxy_v<target_t>)
+		if constexpr (detail::has_proxy_v<target_t>)
 		{
 			if (auto p = ::std::get_if<proxy<target_t>>(&e))
 			{
@@ -72,7 +72,7 @@ namespace pdn
 	template <typename target_t, typename char_t>
 	[[nodiscard]] auto get_ptr(entity<char_t>& e) -> target_t*
 	{
-		if constexpr (dev_util::has_proxy_v<target_t>)
+		if constexpr (detail::has_proxy_v<target_t>)
 		{
 			if (auto p = ::std::get_if<proxy<target_t>>(&e))
 			{
@@ -92,7 +92,7 @@ namespace pdn
 	template <typename target_t, typename char_t>
 	[[nodiscard]] auto get_ptr(const_refer<char_t> e) -> const target_t*
 	{
-		if constexpr (dev_util::has_proxy_v<target_t>)
+		if constexpr (detail::has_proxy_v<target_t>)
 		{
 			if (auto p = ::std::get_if<proxy<target_t>>(e.get()))
 			{
@@ -109,7 +109,7 @@ namespace pdn
 	template <typename target_t, typename char_t>
 	[[nodiscard]] auto get_ptr(refer<char_t> e) -> target_t*
 	{
-		if constexpr (dev_util::has_proxy_v<target_t>)
+		if constexpr (detail::has_proxy_v<target_t>)
 		{
 			if (auto p = ::std::get_if<proxy<target_t>>(e.get()))
 			{

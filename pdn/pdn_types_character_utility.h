@@ -6,7 +6,7 @@
 
 #include "pdn_unicode.h"
 
-namespace pdn::types::dev_util
+namespace pdn::types::detail
 {
 	template <typename char_t>
 	struct max_code_unit_count_for_character {};

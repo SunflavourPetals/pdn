@@ -9,7 +9,7 @@
 #include "pdn_utf_32_base.h"
 #include "pdn_utf_32_encoder.h"
 
-namespace pdn::unicode::dev_util
+namespace pdn::unicode::detail
 {
 	template <typename char_t>
 	struct encoder {};
@@ -50,9 +50,9 @@ namespace pdn::unicode
 		return utf_32::encode(character);
 	}
 	template <typename char_t>
-	inline auto encode(code_point_t character) -> dev_util::encode_result_t<char_t>
+	inline auto encode(code_point_t character) -> detail::encode_result_t<char_t>
 	{
-		return dev_util::encoder<char_t>::encode(character);
+		return detail::encoder<char_t>::encode(character);
 	}
 
 	class encoder
@@ -61,7 +61,7 @@ namespace pdn::unicode
 		template <typename char_t>
 		static auto encode(code_point_t character)
 		{
-			return dev_util::encoder<char_t>::encode(character);
+			return detail::encoder<char_t>::encode(character);
 		}
 	};
 }

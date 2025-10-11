@@ -25,7 +25,7 @@
 
 #include "pdn_lexer_utility.h"
 
-namespace pdn::dev_util
+namespace pdn::detail
 {
 	template <typename t>
 	concept can_to_string = types::concepts::pdn_integral<t> || types::concepts::pdn_fp<t>;
@@ -153,7 +153,7 @@ namespace pdn
 			return result;
 		}
 		// to "[`]slashed_iden[`] [: [type]] pdn_form[;]"
-		template <typename src_char_t, dev_util::nonlist_nonobj<src_char_t> value_t>
+		template <typename src_char_t, detail::nonlist_nonobj<src_char_t> value_t>
 		auto serialize(const types::string<src_char_t>& iden, const value_t& val) const -> string_t
 		{
 			using val_t = ::std::decay_t<decltype(val)>;
@@ -254,9 +254,9 @@ namespace pdn
 		}
 		// integral/floating/boolean/character/string to pdn_form
 		template <typename src_char_t>
-		auto serialize_value(dev_util::nonlist_nonobj<src_char_t> auto const& val) const -> string_t
+		auto serialize_value(detail::nonlist_nonobj<src_char_t> auto const& val) const -> string_t
 		{
-			return dev_util::to_pdn_format<char_t>(val);
+			return detail::to_pdn_format<char_t>(val);
 		}
 		// object to "{ ... }"
 		template <typename src_char_t>
@@ -303,7 +303,7 @@ namespace pdn
 			return ::std::visit([&]<typename arg_pr_t>(const arg_pr_t& arg) -> string_t
 			{
 				using arg_t = remove_proxy_t<arg_pr_t>;
-				if constexpr (dev_util::nonlist_nonobj<arg_t, src_char_t>)
+				if constexpr (detail::nonlist_nonobj<arg_t, src_char_t>)
 				{
 					constexpr bool has_proxy = !::std::same_as<arg_t, arg_pr_t>;
 					if constexpr (has_proxy) return serialize(iden, *arg);
@@ -441,7 +441,7 @@ namespace pdn
 		sts_space_around_semi, // " : "
 	};
 
-	namespace dev_util
+	namespace detail
 	{
 		template <typename c, typename e>
 		auto to_string(e serialize_e) -> types::string<c>
@@ -513,12 +513,12 @@ namespace pdn
 	{
 		return serializer
 		{
-			.tab              = dev_util::to_string<char_t>(tab),
-			.last_sep         = dev_util::to_string<char_t>(last),
-			.separator        = dev_util::to_string<char_t>(sep),
-			.separator_for_ts = dev_util::to_string<char_t>(sep_ts),
-			.list_separator   = dev_util::to_string<char_t>(list_sep),
-			.object_separator = dev_util::to_string<char_t>(obj_sep),
+			.tab              = detail::to_string<char_t>(tab),
+			.last_sep         = detail::to_string<char_t>(last),
+			.separator        = detail::to_string<char_t>(sep),
+			.separator_for_ts = detail::to_string<char_t>(sep_ts),
+			.list_separator   = detail::to_string<char_t>(list_sep),
+			.object_separator = detail::to_string<char_t>(obj_sep),
 		};
 	}
 

@@ -20,7 +20,7 @@ namespace pdn
 	{
 		return ::std::visit([&](auto code) -> error_msg_string
 		{
-			return dev_util::err_msg_gen_en(code, src.position, src.raw_error_message);
+			return detail::err_msg_gen_en(code, src.position, src.raw_error_message);
 		}, src.error_code);
 	}
 }
