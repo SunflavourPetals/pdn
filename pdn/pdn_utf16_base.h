@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_utf_16_base
-#define PDN_Header_pdn_utf_16_base
+#ifndef PDN_Header_pdn_utf16_base
+#define PDN_Header_pdn_utf16_base
 
 #include <array>
 #include <string>
@@ -8,7 +8,7 @@
 
 #include "pdn_unicode_base.h"
 
-namespace pdn::unicode::utf_16
+namespace pdn::unicode::utf16
 {
 	using code_unit_t = u16char_t;
 	using string = u16string;

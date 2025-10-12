@@ -32,28 +32,28 @@ namespace pdn::concepts
 	};
 
 	template <typename type>
-	concept utf_8_code_unit_iterator = requires (type it)
+	concept utf8_code_unit_iterator = requires (type it)
 	{
 		{ *it } -> detail::remove_cvref_same_as<unicode::u8char_t>;
 		++it;
 	};
 	template <typename type>
-	concept utf_16_code_unit_iterator = requires (type it)
+	concept utf16_code_unit_iterator = requires (type it)
 	{
 		{ *it } -> detail::remove_cvref_same_as<unicode::u16char_t>;
 		++it;
 	};
 	template <typename type>
-	concept utf_32_code_unit_iterator = requires (type it)
+	concept utf32_code_unit_iterator = requires (type it)
 	{
 		{ *it } -> detail::remove_cvref_same_as<unicode::u32char_t>;
 		++it;
 	};
 	template <typename type>
 	concept utf_code_unit_iterator
-		 = utf_8_code_unit_iterator<type>
-		|| utf_16_code_unit_iterator<type>
-		|| utf_32_code_unit_iterator<type>;
+		 = utf8_code_unit_iterator<type>
+		|| utf16_code_unit_iterator<type>
+		|| utf32_code_unit_iterator<type>;
 	template <typename type>
 	concept utf_code_unit_string_view
 		 = requires(type sv) { sv.cbegin(); sv.cend(); }

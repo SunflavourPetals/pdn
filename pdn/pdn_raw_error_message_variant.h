@@ -10,12 +10,12 @@ namespace pdn::raw_error_message_type::detail
 	using raw_error_message_variant = ::std::variant<
 		::std::monostate,
 		// for code point iterator
-		utf_8_decode_error,
-		utf_8_encode_error,
-		utf_16_decode_error,
-		utf_16_encode_error,
-		utf_32_decode_error,
-		utf_32_encode_error,
+		utf8_decode_error,
+		utf8_encode_error,
+		utf16_decode_error,
+		utf16_encode_error,
+		utf32_decode_error,
+		utf32_encode_error,
 		// for parser
 		identifier,
 		error_token,

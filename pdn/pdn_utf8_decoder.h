@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_utf_8_decoder
-#define PDN_Header_pdn_utf_8_decoder
+#ifndef PDN_Header_pdn_utf8_decoder
+#define PDN_Header_pdn_utf8_decoder
 
 #include <type_traits>
 #include <cstdint>
@@ -10,9 +10,9 @@
 #endif
 
 #include "pdn_unicode_base.h"
-#include "pdn_utf_8_base.h"
+#include "pdn_utf8_base.h"
 
-namespace pdn::unicode::utf_8
+namespace pdn::unicode::utf8
 {
 	enum class decode_error_code : ::std::uint16_t
 	{
@@ -67,7 +67,7 @@ namespace pdn::unicode::utf_8
 	};
 }
 
-namespace pdn::unicode::utf_8::impl_components
+namespace pdn::unicode::utf8::impl_components
 {
 	// decoder::decode dependent code_unit_count.
 	// modifications require corresponding updates to decoder::decode.
@@ -142,7 +142,7 @@ namespace pdn::unicode::utf_8::impl_components
 	};
 }
 
-namespace pdn::unicode::utf_8
+namespace pdn::unicode::utf8
 {
 	class decoder
 	{
@@ -255,7 +255,7 @@ namespace pdn::unicode::utf_8
 						return result;
 					}
 					auto c = ucu_t(*begin);
-					if (utf_8::is_trailing(c)) [[likely]]
+					if (utf8::is_trailing(c)) [[likely]]
 					{
 						result.code_point |= ((value_type(c) & 0x3F) << ((trailing_count - i) * 6));
 					}

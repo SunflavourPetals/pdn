@@ -79,35 +79,35 @@ namespace pdn::unicode
 		switch (bom_size)
 		{
 		case 4:
-			if (my_bom == bom::utf_32_le)
+			if (my_bom == bom::utf32_le)
 			{
-				result = utf_32_le;
+				result = utf32_le;
 				break;
 			}
-			if (my_bom == bom::utf_32_be)
+			if (my_bom == bom::utf32_be)
 			{
-				result = utf_32_be;
+				result = utf32_be;
 				break;
 			}
 			bom_size = 3;
 			[[fallthrough]];
 		case 3:
-			if (::std::equal(bom::utf_8.cbegin(), bom::utf_8.cend(), my_bom.begin()))
+			if (::std::equal(bom::utf8.cbegin(), bom::utf8.cend(), my_bom.begin()))
 			{
-				result = utf_8;
+				result = utf8;
 				break;
 			}
 			bom_size = 2;
 			[[fallthrough]];
 		case 2:
-			if (::std::equal(bom::utf_16_le.cbegin(), bom::utf_16_le.cend(), my_bom.begin()))
+			if (::std::equal(bom::utf16_le.cbegin(), bom::utf16_le.cend(), my_bom.begin()))
 			{
-				result = utf_16_le;
+				result = utf16_le;
 				break;
 			}
-			if (::std::equal(bom::utf_16_be.cbegin(), bom::utf_16_be.cend(), my_bom.begin()))
+			if (::std::equal(bom::utf16_be.cbegin(), bom::utf16_be.cend(), my_bom.begin()))
 			{
-				result = utf_16_be;
+				result = utf16_be;
 				break;
 			}
 			// assign bom_size zero in next step

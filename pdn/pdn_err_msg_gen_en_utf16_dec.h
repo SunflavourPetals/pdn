@@ -1,11 +1,11 @@
-#ifndef PDN_Header_pdn_err_msg_gen_en_utf_16_dec
-#define PDN_Header_pdn_err_msg_gen_en_utf_16_dec
+#ifndef PDN_Header_pdn_err_msg_gen_en_utf16_dec
+#define PDN_Header_pdn_err_msg_gen_en_utf16_dec
 
 #include <cassert>
 #include <variant>
 
 #include "pdn_error_string.h"
-#include "pdn_utf_16_decoder.h"
+#include "pdn_utf16_decoder.h"
 #include "pdn_source_position.h"
 #include "pdn_raw_error_message_type.h"
 #include "pdn_raw_error_message_variant.h"
@@ -14,13 +14,13 @@
 
 namespace pdn::detail
 {
-	using utf_16_decode_error_code = unicode::utf_16::decode_error_code;
-	inline auto err_msg_gen_en(utf_16_decode_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string
+	using utf16_decode_error_code = unicode::utf16::decode_error_code;
+	inline auto err_msg_gen_en(utf16_decode_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string
 	{
 		using namespace err_msg_gen_util;
 		using namespace error_message_literals;
-		using enum utf_16_decode_error_code;
-		const auto& msg = ::std::get<raw_details::utf_16_decode_error>(raw);
+		using enum utf16_decode_error_code;
+		const auto& msg = ::std::get<raw_details::utf16_decode_error>(raw);
 		switch (errc)
 		{
 		case invalid_code_point: // theoretically unreachable, UTF-16 should not make this error

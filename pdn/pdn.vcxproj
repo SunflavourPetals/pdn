@@ -42,7 +42,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>ClangCL</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -199,20 +199,20 @@
     <ClInclude Include="pdn_types_character_utility.h" />
     <ClInclude Include="pdn_unicode_base.h" />
     <ClInclude Include="pdn_utf_encoder.h" />
-    <ClInclude Include="pdn_utf_16_encoder.h" />
-    <ClInclude Include="pdn_utf_32_encoder.h" />
-    <ClInclude Include="pdn_utf_8_base.h" />
-    <ClInclude Include="pdn_utf_8_decoder.h" />
-    <ClInclude Include="pdn_utf_8_encoder.h" />
-    <ClInclude Include="pdn_utf_16_base.h" />
-    <ClInclude Include="pdn_utf_16_decoder.h" />
-    <ClInclude Include="pdn_utf_32_decoder.h" />
-    <ClInclude Include="pdn_utf_32_base.h" />
+    <ClInclude Include="pdn_utf16_encoder.h" />
+    <ClInclude Include="pdn_utf32_encoder.h" />
+    <ClInclude Include="pdn_utf8_base.h" />
+    <ClInclude Include="pdn_utf8_decoder.h" />
+    <ClInclude Include="pdn_utf8_encoder.h" />
+    <ClInclude Include="pdn_utf16_base.h" />
+    <ClInclude Include="pdn_utf16_decoder.h" />
+    <ClInclude Include="pdn_utf32_decoder.h" />
+    <ClInclude Include="pdn_utf32_base.h" />
     <ClInclude Include="pdn_utf_decoder.h" />
     <ClInclude Include="pdn_unicode.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_utf_8_dec.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_utf_16_dec.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_utf_32_dec.h" />
+    <ClInclude Include="pdn_err_msg_gen_en_utf8_dec.h" />
+    <ClInclude Include="pdn_err_msg_gen_en_utf16_dec.h" />
+    <ClInclude Include="pdn_err_msg_gen_en_utf32_dec.h" />
     <ClInclude Include="pdn_err_msg_gen_en_syn.h" />
     <ClInclude Include="pdn_type_code_to_error_msg_string.h" />
     <ClInclude Include="pdn_syntax_error_code.h" />

@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_utf_32_base
-#define PDN_Header_pdn_utf_32_base
+#ifndef PDN_Header_pdn_utf32_base
+#define PDN_Header_pdn_utf32_base
 
 #include <array>
 #include <string>
@@ -8,7 +8,7 @@
 
 #include "pdn_unicode_base.h"
 
-namespace pdn::unicode::utf_32
+namespace pdn::unicode::utf32
 {
 	using code_unit_t = u32char_t;
 	using string = u32string;

@@ -10,9 +10,9 @@
 #include "pdn_raw_error_message.h"
 #include "pdn_err_msg_gen_en_lex.h"
 #include "pdn_err_msg_gen_en_syn.h"
-#include "pdn_err_msg_gen_en_utf_8_dec.h"
-#include "pdn_err_msg_gen_en_utf_16_dec.h"
-#include "pdn_err_msg_gen_en_utf_32_dec.h"
+#include "pdn_err_msg_gen_en_utf8_dec.h"
+#include "pdn_err_msg_gen_en_utf16_dec.h"
+#include "pdn_err_msg_gen_en_utf32_dec.h"
 
 namespace pdn
 {

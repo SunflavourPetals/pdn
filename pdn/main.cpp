@@ -11,7 +11,7 @@
 void serializer_test()
 {
 	using namespace pdn;
-	auto e_opt = parse("../test/features_test.spdn", utf_8_tag);
+	auto e_opt = parse("../test/features_test.spdn", utf8_tag);
 	if (!e_opt)
 	{
 		std::cerr << "failed in parse \"../test/features_test.spdn\"\n";
@@ -30,7 +30,7 @@ void serializer_test()
 		f.write((const char*)s.data(), s.size());
 	}
 
-	auto copied_e_opt = parse("../test/serialize_test.spdn", utf_8_tag);
+	auto copied_e_opt = parse("../test/serialize_test.spdn", utf8_tag);
 	if (!copied_e_opt)
 	{
 		std::cerr << "failed in parse \"../test/serialize_test.spdn\"\n";
@@ -73,7 +73,7 @@ list [
 
 	using namespace pdn;
 
-	const auto& e = parse(src, utf_8_tag);
+	const auto& e = parse(src, utf8_tag);
 	const auto r = e.ref();
 
 	using namespace pdn::types;
@@ -163,7 +163,7 @@ str   : "string";
 	using namespace pdn;
 
 	auto a = entity<char8_t>{};
-	auto dom = parse(pdn_src, utf_8_tag);
+	auto dom = parse(pdn_src, utf8_tag);
 
 	auto cref = const_refer<char8_t>{ dom };
 

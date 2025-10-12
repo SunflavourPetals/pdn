@@ -67,7 +67,7 @@ namespace pdn::detail::err_msg_gen_util
 		result.append(begin, length);
 		return result;
 	}
-	// for utf_8|16|32_decode_error
+	// for utf8|16|32_decode_error
 	inline auto offset_of_leading(const auto& msg, const int multi = 1) -> error_msg_string
 	{
 		return u8"0x"_em.append(to_s<16, 4>((msg.last_code_unit_offset - msg.result.distance()) * multi));

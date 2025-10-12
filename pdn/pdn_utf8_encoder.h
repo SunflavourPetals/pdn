@@ -1,14 +1,14 @@
-#ifndef PDN_Header_pdn_utf_8_encoder
-#define PDN_Header_pdn_utf_8_encoder
+#ifndef PDN_Header_pdn_utf8_encoder
+#define PDN_Header_pdn_utf8_encoder
 
 #include <array>
 #include <utility>
 #include <cstdint>
 
 #include "pdn_unicode_base.h"
-#include "pdn_utf_8_base.h"
+#include "pdn_utf8_base.h"
 
-namespace pdn::unicode::utf_8
+namespace pdn::unicode::utf8
 {
 	enum class encode_error_code : ::std::uint16_t
 	{

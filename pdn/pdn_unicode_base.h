@@ -32,21 +32,21 @@ namespace pdn::unicode
 	enum class encode_type
 	{
 		unknown,
-		utf_8,
-		utf_16_le,
-		utf_16_be,
-		utf_32_le,
-		utf_32_be,
+		utf8,
+		utf16_le,
+		utf16_be,
+		utf32_le,
+		utf32_be,
 	};
 
 	enum class bom_type
 	{
 		no_bom,
-		utf_8,
-		utf_16_le,
-		utf_16_be,
-		utf_32_le,
-		utf_32_be,
+		utf8,
+		utf16_le,
+		utf16_be,
+		utf32_le,
+		utf32_be,
 	};
 
 	inline constexpr auto min_leading_surrogate  = code_point_t(0xD800u);
@@ -93,11 +93,11 @@ namespace pdn::unicode
 namespace pdn::unicode::bom
 {
 	using byte_t = ::std::uint8_t;
-	inline constexpr auto utf_8     = ::std::array<byte_t, 3>{ 0xEF, 0xBB, 0xBF };
-	inline constexpr auto utf_16_le = ::std::array<byte_t, 2>{ 0xFF, 0xFE };
-	inline constexpr auto utf_16_be = ::std::array<byte_t, 2>{ 0xFE, 0xFF };
-	inline constexpr auto utf_32_le = ::std::array<byte_t, 4>{ 0xFF, 0xFE, 0x00, 0x00 };
-	inline constexpr auto utf_32_be = ::std::array<byte_t, 4>{ 0x00, 0x00, 0xFE, 0xFF };
+	inline constexpr auto utf8     = ::std::array<byte_t, 3>{ 0xEF, 0xBB, 0xBF };
+	inline constexpr auto utf16_le = ::std::array<byte_t, 2>{ 0xFF, 0xFE };
+	inline constexpr auto utf16_be = ::std::array<byte_t, 2>{ 0xFE, 0xFF };
+	inline constexpr auto utf32_le = ::std::array<byte_t, 4>{ 0xFF, 0xFE, 0x00, 0x00 };
+	inline constexpr auto utf32_be = ::std::array<byte_t, 4>{ 0x00, 0x00, 0xFE, 0xFF };
 }
 
 namespace pdn::unicode::utility
@@ -107,11 +107,11 @@ namespace pdn::unicode::utility
 		switch (bom_type)
 		{
 		case bom_type::no_bom:
-		case bom_type::utf_8:     return encode_type::utf_8;
-		case bom_type::utf_16_le: return encode_type::utf_16_le;
-		case bom_type::utf_16_be: return encode_type::utf_16_be;
-		case bom_type::utf_32_le: return encode_type::utf_32_le;
-		case bom_type::utf_32_be: return encode_type::utf_32_be;
+		case bom_type::utf8:     return encode_type::utf8;
+		case bom_type::utf16_le: return encode_type::utf16_le;
+		case bom_type::utf16_be: return encode_type::utf16_be;
+		case bom_type::utf32_le: return encode_type::utf32_le;
+		case bom_type::utf32_be: return encode_type::utf32_be;
 		default:                  return encode_type::unknown;
 		}
 	}
@@ -122,11 +122,11 @@ namespace pdn::unicode::utility
 		{
 		using enum pdn::unicode::encode_type;
 		using enum ::std::endian;
-		case utf_16_le: return little;
-		case utf_16_be: return big;
-		case utf_32_le: return little;
-		case utf_32_be: return big;
-		default:        return native; // case encode_type::{ unknown | utf_8 }
+		case utf16_le: return little;
+		case utf16_be: return big;
+		case utf32_le: return little;
+		case utf32_be: return big;
+		default:       return native; // case encode_type::{ unknown | utf8 }
 		}
 	}
 }
@@ -134,55 +134,55 @@ namespace pdn::unicode::utility
 namespace pdn::unicode::concepts
 {
 	template <typename char_t>
-	concept utf_8_code_unit  = ::std::is_same_v<::std::remove_cv_t<char_t>, u8char_t>;
+	concept utf8_code_unit  = ::std::is_same_v<::std::remove_cv_t<char_t>, u8char_t>;
 	template <typename char_t>
-	concept utf_16_code_unit = ::std::is_same_v<::std::remove_cv_t<char_t>, u16char_t>;
+	concept utf16_code_unit = ::std::is_same_v<::std::remove_cv_t<char_t>, u16char_t>;
 	template <typename char_t>
-	concept utf_32_code_unit = ::std::is_same_v<::std::remove_cv_t<char_t>, u32char_t>;
+	concept utf32_code_unit = ::std::is_same_v<::std::remove_cv_t<char_t>, u32char_t>;
 	template <typename char_t>
-	concept code_unit = utf_8_code_unit<char_t> || utf_16_code_unit<char_t> || utf_32_code_unit<char_t>;
+	concept code_unit = utf8_code_unit<char_t> || utf16_code_unit<char_t> || utf32_code_unit<char_t>;
 }
 
 namespace pdn::unicode::type_traits
 {
 	template <typename char_t>
-	inline constexpr bool is_utf_8_code_unit_v  = concepts::utf_8_code_unit<char_t>;
+	inline constexpr bool is_utf8_code_unit_v  = concepts::utf8_code_unit<char_t>;
 	template <typename char_t>
-	inline constexpr bool is_utf_16_code_unit_v = concepts::utf_16_code_unit<char_t>;
+	inline constexpr bool is_utf16_code_unit_v = concepts::utf16_code_unit<char_t>;
 	template <typename char_t>
-	inline constexpr bool is_utf_32_code_unit_v = concepts::utf_32_code_unit<char_t>;
+	inline constexpr bool is_utf32_code_unit_v = concepts::utf32_code_unit<char_t>;
 	template <typename char_t>
 	inline constexpr bool is_code_unit_v = concepts::code_unit<char_t>;
 
 	template <typename char_t>
-	struct is_utf_8_code_unit  : public ::std::bool_constant<is_utf_8_code_unit_v<char_t>> {};
+	struct is_utf8_code_unit  : public ::std::bool_constant<is_utf8_code_unit_v<char_t>> {};
 	template <typename char_t>
-	struct is_utf_16_code_unit : public ::std::bool_constant<is_utf_16_code_unit_v<char_t>> {};
+	struct is_utf16_code_unit : public ::std::bool_constant<is_utf16_code_unit_v<char_t>> {};
 	template <typename char_t>
-	struct is_utf_32_code_unit : public ::std::bool_constant<is_utf_32_code_unit_v<char_t>> {};
+	struct is_utf32_code_unit : public ::std::bool_constant<is_utf32_code_unit_v<char_t>> {};
 	template <typename char_t>
 	struct is_code_unit : public ::std::bool_constant<is_code_unit_v<char_t>> {};
 
-	template <bom_type> inline constexpr encode_type encode_type_from_bom                      = encode_type::unknown;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::no_bom>    = encode_type::utf_8;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf_8>     = encode_type::utf_8;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf_16_le> = encode_type::utf_16_le;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf_16_be> = encode_type::utf_16_be;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf_32_le> = encode_type::utf_32_le;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf_32_be> = encode_type::utf_32_be;
+	template <bom_type> inline constexpr encode_type encode_type_from_bom                     = encode_type::unknown;
+	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::no_bom>   = encode_type::utf8;
+	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf8>     = encode_type::utf8;
+	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf16_le> = encode_type::utf16_le;
+	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf16_be> = encode_type::utf16_be;
+	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf32_le> = encode_type::utf32_le;
+	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf32_be> = encode_type::utf32_be;
 
 	template <encode_type> inline constexpr ::std::endian endian_from_encode_type                         = ::std::endian::native;
-	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf_16_le> = ::std::endian::little;
-	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf_16_be> = ::std::endian::big;
-	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf_32_le> = ::std::endian::little;
-	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf_32_be> = ::std::endian::big;
+	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf16_le> = ::std::endian::little;
+	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf16_be> = ::std::endian::big;
+	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf32_le> = ::std::endian::little;
+	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf32_be> = ::std::endian::big;
 
-	template <encode_type> struct code_unit                         { static_assert(false, "unknown encode type"); };
-	template <>            struct code_unit<encode_type::utf_8>     { using type = u8char_t;  };
-	template <>            struct code_unit<encode_type::utf_16_le> { using type = u16char_t; };
-	template <>            struct code_unit<encode_type::utf_16_be> { using type = u16char_t; };
-	template <>            struct code_unit<encode_type::utf_32_le> { using type = u32char_t; };
-	template <>            struct code_unit<encode_type::utf_32_be> { using type = u32char_t; };
+	template <encode_type> struct code_unit                        { static_assert(false, "unknown encode type"); };
+	template <>            struct code_unit<encode_type::utf8>     { using type = u8char_t;  };
+	template <>            struct code_unit<encode_type::utf16_le> { using type = u16char_t; };
+	template <>            struct code_unit<encode_type::utf16_be> { using type = u16char_t; };
+	template <>            struct code_unit<encode_type::utf32_le> { using type = u32char_t; };
+	template <>            struct code_unit<encode_type::utf32_be> { using type = u32char_t; };
 
 	template <encode_type e> using code_unit_t = typename code_unit<e>::type;
 }
@@ -194,15 +194,15 @@ namespace pdn::unicode
 	{
 		using namespace ::std::literals::string_view_literals;
 		using c = ::std::decay_t<char_t>;
-		if constexpr (unicode::concepts::utf_8_code_unit<c>)
+		if constexpr (unicode::concepts::utf8_code_unit<c>)
 		{
 			return u8"\uFFFD"sv;
 		}
-		else if constexpr (unicode::concepts::utf_16_code_unit<c>)
+		else if constexpr (unicode::concepts::utf16_code_unit<c>)
 		{
 			return u"\uFFFD"sv;
 		}
-		else if constexpr (unicode::concepts::utf_32_code_unit<c>)
+		else if constexpr (unicode::concepts::utf32_code_unit<c>)
 		{
 			return U"\uFFFD"sv;
 		}

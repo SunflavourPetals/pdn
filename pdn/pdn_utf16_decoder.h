@@ -1,12 +1,12 @@
-#ifndef PDN_Header_pdn_utf_16_decoder
-#define PDN_Header_pdn_utf_16_decoder
+#ifndef PDN_Header_pdn_utf16_decoder
+#define PDN_Header_pdn_utf16_decoder
 
 #include <type_traits>
 
 #include "pdn_unicode_base.h"
-#include "pdn_utf_16_base.h"
+#include "pdn_utf16_base.h"
 
-namespace pdn::unicode::utf_16
+namespace pdn::unicode::utf16
 {
 	enum class decode_error_code : ::std::uint16_t
 	{

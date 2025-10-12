@@ -277,12 +277,12 @@ namespace pdn
 	}
 
 	template <typename it_t>
-	class code_unit_iterator<unicode::encode_type::utf_8, it_t>
+	class code_unit_iterator<unicode::encode_type::utf8, it_t>
 	{
 	public:
 		using iterator_concept  = void;
 		using iterator_category = void;
-		using code_unit_type    = unicode::type_traits::code_unit_t<unicode::encode_type::utf_8>;
+		using code_unit_type    = unicode::type_traits::code_unit_t<unicode::encode_type::utf8>;
 		using char_type         = code_unit_type;
 		using size_type         = ::std::size_t;
 		using value_type        = char_type;

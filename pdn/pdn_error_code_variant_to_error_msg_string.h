@@ -17,27 +17,27 @@ namespace pdn
 			using error_type = ::std::decay_t<decltype(c)>;
 			using namespace error_message_literals;
 
-			if constexpr (::std::same_as<error_type, unicode::utf_8::decode_error_code>)
+			if constexpr (::std::same_as<error_type, unicode::utf8::decode_error_code>)
 			{
 				return u8"utf-8 decode error"_s;
 			}
-			else if constexpr (::std::same_as<error_type, unicode::utf_8::encode_error_code>)
+			else if constexpr (::std::same_as<error_type, unicode::utf8::encode_error_code>)
 			{
 				return u8"utf-8 encode error"_s;
 			}
-			else if constexpr (::std::same_as<error_type, unicode::utf_16::decode_error_code>)
+			else if constexpr (::std::same_as<error_type, unicode::utf16::decode_error_code>)
 			{
 				return u8"utf-16 decode error"_s;
 			}
-			else if constexpr (::std::same_as<error_type, unicode::utf_16::encode_error_code>)
+			else if constexpr (::std::same_as<error_type, unicode::utf16::encode_error_code>)
 			{
 				return u8"utf-16 encode error"_s;
 			}
-			else if constexpr (::std::same_as<error_type, unicode::utf_32::decode_error_code>)
+			else if constexpr (::std::same_as<error_type, unicode::utf32::decode_error_code>)
 			{
 				return u8"utf-32 decode error"_s;
 			}
-			else if constexpr (::std::same_as<error_type, unicode::utf_32::encode_error_code>)
+			else if constexpr (::std::same_as<error_type, unicode::utf32::encode_error_code>)
 			{
 				return u8"utf-32 encode error"_s;
 			}

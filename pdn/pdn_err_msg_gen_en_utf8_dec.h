@@ -1,11 +1,11 @@
-#ifndef PDN_Header_pdn_err_msg_gen_en_utf_8_dec
-#define PDN_Header_pdn_err_msg_gen_en_utf_8_dec
+#ifndef PDN_Header_pdn_err_msg_gen_en_utf8_dec
+#define PDN_Header_pdn_err_msg_gen_en_utf8_dec
 
 #include <cassert>
 #include <variant>
 
 #include "pdn_error_string.h"
-#include "pdn_utf_8_decoder.h"
+#include "pdn_utf8_decoder.h"
 #include "pdn_source_position.h"
 #include "pdn_raw_error_message_type.h"
 #include "pdn_raw_error_message_variant.h"
@@ -14,14 +14,14 @@
 
 namespace pdn::detail
 {
-	using utf_8_decode_error_code = unicode::utf_8::decode_error_code;
+	using utf8_decode_error_code = unicode::utf8::decode_error_code;
 
-	inline auto err_msg_gen_en(utf_8_decode_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string
+	inline auto err_msg_gen_en(utf8_decode_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string
 	{
 		using namespace err_msg_gen_util;
 		using namespace error_message_literals;
-		using enum utf_8_decode_error_code;
-		const auto& msg = ::std::get<raw_details::utf_8_decode_error>(raw);
+		using enum utf8_decode_error_code;
+		const auto& msg = ::std::get<raw_details::utf8_decode_error>(raw);
 		switch (errc)
 		{
 		case invalid_code_point:

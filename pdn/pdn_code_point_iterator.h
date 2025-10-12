@@ -56,19 +56,19 @@ namespace pdn::detail
 	template <typename type>
 	struct decode_result_to_raw_error {};
 	template <>
-	struct decode_result_to_raw_error<unicode::utf_8::decode_result>
+	struct decode_result_to_raw_error<unicode::utf8::decode_result>
 	{
-		using type = raw_error_message_type::utf_8_decode_error;
+		using type = raw_error_message_type::utf8_decode_error;
 	};
 	template <>
-	struct decode_result_to_raw_error<unicode::utf_16::decode_result>
+	struct decode_result_to_raw_error<unicode::utf16::decode_result>
 	{
-		using type = raw_error_message_type::utf_16_decode_error;
+		using type = raw_error_message_type::utf16_decode_error;
 	};
 	template <>
-	struct decode_result_to_raw_error<unicode::utf_32::decode_result>
+	struct decode_result_to_raw_error<unicode::utf32::decode_result>
 	{
-		using type = raw_error_message_type::utf_32_decode_error;
+		using type = raw_error_message_type::utf32_decode_error;
 	};
 	template <typename type>
 	using decode_result_to_raw_error_t = decode_result_to_raw_error<type>::type;

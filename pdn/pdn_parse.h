@@ -23,9 +23,9 @@
 
 namespace pdn
 {
-	inline constexpr unicode::u8char_t  utf_8_tag{};
-	inline constexpr unicode::u16char_t utf_16_tag{};
-	inline constexpr unicode::u32char_t utf_32_tag{};
+	inline constexpr unicode::u8char_t  utf8_tag{};
+	inline constexpr unicode::u16char_t utf16_tag{};
+	inline constexpr unicode::u32char_t utf32_tag{};
 
 	// for token iterator
 	template <unicode::concepts::code_unit                  char_t,
@@ -120,11 +120,11 @@ namespace pdn
 
 		switch (enc)
 		{
-		case utf_8:     return parse(make_code_unit_iterator<utf_8>    (sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf_16_le: return parse(make_code_unit_iterator<utf_16_le>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf_16_be: return parse(make_code_unit_iterator<utf_16_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf_32_le: return parse(make_code_unit_iterator<utf_32_le>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf_32_be: return parse(make_code_unit_iterator<utf_32_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf8:     return parse(make_code_unit_iterator<utf8>    (sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_le: return parse(make_code_unit_iterator<utf16_le>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
 		default:        assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type");
 		}
 		return ::std::nullopt;
