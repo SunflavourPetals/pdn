@@ -162,10 +162,9 @@ str   : "string";
 
 	using namespace pdn;
 
-	auto a = entity<char8_t>{};
 	auto dom = parse(pdn_src, utf8_tag);
 
-	auto cref = const_refer<char8_t>{ dom };
+	auto cref = dom.cref();
 
 	for (const auto& s : as_list(cref[u8"I tell U"sv]))
 	{
