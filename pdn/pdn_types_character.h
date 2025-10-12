@@ -7,7 +7,7 @@
 
 #include "pdn_types_character_utility.h"
 
-namespace pdn::types::impl
+namespace pdn::types::detail
 {
 	template <typename char_t>
 	class character

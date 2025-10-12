@@ -67,7 +67,7 @@ namespace pdn::unicode::utf8
 	};
 }
 
-namespace pdn::unicode::utf8::impl_components
+namespace pdn::unicode::utf8::detail
 {
 	// decoder::decode dependent code_unit_count.
 	// modifications require corresponding updates to decoder::decode.
@@ -179,12 +179,12 @@ namespace pdn::unicode::utf8
 				return result;
 			}
 
-			static constexpr impl_components::first_code_units_count_table  cuc1st_tab{};
-			static constexpr impl_components::second_code_units_count_table cuc2nd_tab{};
+			static constexpr detail::first_code_units_count_table  cuc1st_tab{};
+			static constexpr detail::second_code_units_count_table cuc2nd_tab{};
 
 			switch (auto c = ucu_t(*begin); cuc1st_tab[c]) // switch covers all possible enum values.
 			{
-			using enum impl_components::code_unit_count;
+			using enum detail::code_unit_count;
 			case c1:
 				result.code_point = value_type(c);
 				if constexpr (reach_next_code_point) { to_next(begin, result); }
@@ -196,7 +196,7 @@ namespace pdn::unicode::utf8
 			[[unlikely]] case invalid:
 				switch (cuc2nd_tab[c]) // switch covers all possible enum values.
 				{
-				using enum impl_components::code_unit_count_ex;
+				using enum detail::code_unit_count_ex;
 				case c5: process_remaining<4>(result, begin, end, c); break;
 				case c6: process_remaining<5>(result, begin, end, c); break;
 				case invalid:

@@ -11,7 +11,7 @@
 
 #include <deque>
 
-namespace pdn::types::impl
+namespace pdn::types::detail
 {
 	template <typename key_t,
 	          typename val_t,

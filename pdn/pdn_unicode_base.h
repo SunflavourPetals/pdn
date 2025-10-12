@@ -100,7 +100,7 @@ namespace pdn::unicode::bom
 	inline constexpr auto utf32_be = ::std::array<byte_t, 4>{ 0x00, 0x00, 0xFE, 0xFF };
 }
 
-namespace pdn::unicode::utility
+namespace pdn::unicode
 {
 	constexpr auto to_encode_type(bom_type bom_type) noexcept -> encode_type
 	{

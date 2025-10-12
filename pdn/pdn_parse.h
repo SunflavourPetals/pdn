@@ -114,7 +114,7 @@ namespace pdn
 			return ::std::nullopt;
 		}
 		auto bom_t = unicode::read_bom(source_file);
-		auto enc   = unicode::utility::to_encode_type(bom_t);
+		auto enc   = unicode::to_encode_type(bom_t);
 		auto sw    = make_swap_chain(source_file, buffer_size);
 		using enum unicode::encode_type;
 

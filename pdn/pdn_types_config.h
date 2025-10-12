@@ -31,7 +31,7 @@ namespace pdn::types::config
 	using boolean = bool;
 
 	template <typename char_t>
-	using character = impl::character<char_t>;
+	using character = detail::character<char_t>;
 
 	template <typename char_t>
 	using string = ::std::basic_string<char_t>;
@@ -65,7 +65,7 @@ namespace pdn::types::config
 
 	// keep the order in parse
 	// template <typename iden_t, typename entity_t>
-	// using object = impl::ordered_map<iden_t, entity_t>;
+	// using object = detail::ordered_map<iden_t, entity_t>;
 }
 
 #endif
