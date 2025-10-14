@@ -6,7 +6,7 @@
 
 namespace pdn
 {
-	constexpr error_msg_string_view token_code_to_error_msg_string_view(pdn_token_code c) noexcept
+	constexpr auto token_code_to_error_msg_string_view(pdn_token_code c) noexcept -> error_msg_string_view
 	{
 		using namespace error_message_literals;
 		using enum pdn_token_code;
@@ -52,7 +52,7 @@ namespace pdn
 		default:                     return u8"unknown-code"_emv;
 		}
 	}
-	constexpr error_msg_string token_code_to_error_msg_string(pdn_token_code c)
+	constexpr auto token_code_to_error_msg_string(pdn_token_code c) -> error_msg_string
 	{
 		auto sv = token_code_to_error_msg_string_view(c);
 		return { sv.data(), sv.size() };

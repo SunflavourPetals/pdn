@@ -39,7 +39,7 @@ namespace pdn
 	class lexer;
 }
 
-namespace pdn
+namespace pdn::detail
 {
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
 	struct token_iterator_ctrlblk_from_lexer
@@ -54,12 +54,15 @@ namespace pdn
 			return lex.get_token(begin, end); // if begin == end then return eof
 		}
 	};
-	
+}
+
+namespace pdn
+{
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
 	class token_iterator_from_lexer
 	{
 	private:
-		using ctrlblk_t = token_iterator_ctrlblk_from_lexer<char_t, function_package, it_begin_t, it_end_t>;
+		using ctrlblk_t = detail::token_iterator_ctrlblk_from_lexer<char_t, function_package, it_begin_t, it_end_t>;
 		using lexer_t   = lexer<char_t, function_package>;
 		using token_t   = token<char_t>;
 	public:
@@ -118,16 +121,19 @@ namespace pdn
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{ ::std::move(lex), ::std::move(begin), ::std::move(end) };
 	}
+
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
 	auto make_end_token_iterator(const lexer<char_t, func_pkg>&, const it_begin_t&, const it_end_t&)
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
 	}
+
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
 	auto make_end_token_iterator(const token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>&)
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
 	}
+
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
 	auto make_end_token_iterator()
 	{
