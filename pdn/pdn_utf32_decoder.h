@@ -72,6 +72,12 @@ namespace pdn::unicode::utf32
 		template <bool reach_next_code_point>
 		static auto decode(auto&& begin, auto end) -> decode_result
 		{
+			return decode_impl<reach_next_code_point>(begin, end);
+		}
+	private:
+		template <bool reach_next_code_point>
+		static auto decode_impl(auto& begin, auto end) -> decode_result
+		{
 			using enum decode_error_code;
 
 			using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
@@ -95,7 +101,6 @@ namespace pdn::unicode::utf32
 
 			return result;
 		}
-	private:
 		static void to_next(auto& begin, decode_result& result)
 		{
 			++begin;

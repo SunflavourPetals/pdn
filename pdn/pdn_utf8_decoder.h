@@ -165,6 +165,12 @@ namespace pdn::unicode::utf8
 		template <bool reach_next_code_point>
 		static auto decode(auto&& begin, auto end) -> decode_result
 		{
+			return decode_impl<reach_next_code_point>(begin, end);
+		}
+	private:
+		template <bool reach_next_code_point>
+		static auto decode_impl(auto& begin, auto end) -> decode_result
+		{
 			using enum decode_error_code;
 
 			using value_type = decode_result::value_type;
@@ -232,7 +238,6 @@ namespace pdn::unicode::utf8
 
 			return result;
 		}
-	private:
 		class helper final
 		{
 		private:
