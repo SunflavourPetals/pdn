@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_unicode_base
 #define PDN_Header_pdn_unicode_base
 
+#include <cstdint>
 #include <bit>
 #include <array>
 #include <string>
