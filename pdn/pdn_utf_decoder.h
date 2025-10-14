@@ -39,17 +39,17 @@ namespace pdn::unicode
 	template <bool reach_next_code_point, detail::utf8_iterator it_begin_t, typename it_end_t>
 	auto decode(it_begin_t&& begin, it_end_t end)
 	{
-		return utf8::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
+		return utf8::decode<reach_next_code_point>(begin, ::std::move(end));
 	}
 	template <bool reach_next_code_point, detail::utf16_iterator it_begin_t, typename it_end_t>
 	auto decode(it_begin_t&& begin, it_end_t end)
 	{
-		return utf16::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
+		return utf16::decode<reach_next_code_point>(begin, ::std::move(end));
 	}
 	template <bool reach_next_code_point, detail::utf32_iterator it_begin_t, typename it_end_t>
 	auto decode(it_begin_t&& begin, it_end_t end)
 	{
-		return utf32::decode<reach_next_code_point>(::std::forward<it_begin_t>(begin), ::std::move(end));
+		return utf32::decode<reach_next_code_point>(begin, ::std::move(end));
 	}
 }
 
