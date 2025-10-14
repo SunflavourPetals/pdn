@@ -48,7 +48,7 @@ namespace pdn
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::utf_code_unit_iterator                   it_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(it_t               begin,
 	                         auto               end,
@@ -75,7 +75,7 @@ namespace pdn
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::utf_code_unit_string_view                str_view_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(str_view_t         sv,
 	                         fn_pkg_for_cp_it&  cp_it_fp,
@@ -100,7 +100,7 @@ namespace pdn
 	// for file stream
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(::std::ifstream&   source_file,
 	                         fn_pkg_for_cp_it&  cp_it_fp,
@@ -141,7 +141,7 @@ namespace pdn
 	// for filename
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(const ::std::string& filename,
                              fn_pkg_for_cp_it&    cp_it_fp,
@@ -165,7 +165,7 @@ namespace pdn
 	// for filename
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(const char* const    filename,
                              fn_pkg_for_cp_it&    cp_it_fp,
@@ -189,7 +189,7 @@ namespace pdn
 	// for filename
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(const ::std::wstring& filename,
                              fn_pkg_for_cp_it&     cp_it_fp,
@@ -213,7 +213,7 @@ namespace pdn
 	// for filename
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer<char_t>       fn_pkg_for_lexer,
+	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(const wchar_t* const  filename,
 	                         fn_pkg_for_cp_it&     cp_it_fp,
