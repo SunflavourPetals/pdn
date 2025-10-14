@@ -84,8 +84,8 @@ namespace pdn
 	                         char_t             char_tag = {}) -> data_entity<char_t>
 	{
 		lexer<char_t, fn_pkg_for_lexer> lex{ lex_fp };
-		auto cp_it     = make_code_point_iterator(sv.cbegin(), sv.cend(), cp_it_fp);
-		auto token_it  = make_token_iterator(lex, cp_it, sv.cend());
+		auto cp_it     = make_code_point_iterator(::std::cbegin(sv), ::std::cend(sv), cp_it_fp);
+		auto token_it  = make_token_iterator(lex, cp_it, ::std::cend(sv));
 		auto token_end = make_end_token_iterator(token_it);
 		return parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
 	}
@@ -125,14 +125,14 @@ namespace pdn
 		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
 		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
 		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		default:        assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type");
+		default:       assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type");
 		}
 		return ::std::nullopt;
 	}
 	// for file stream
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(::std::ifstream& source_file,
-	                         char_t           char_tag = {},
+	                                char_t    char_tag = {},
 	                         ::std::size_t    buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
