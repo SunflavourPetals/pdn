@@ -9,7 +9,7 @@ int main()
 {
 	using namespace pdn;
 	
-	auto entity_opt = parse("hello.spdn", utf_8_tag);
+	auto entity_opt = parse("hello.spdn", utf8_tag);
 	
 	if (!entity_opt)
 	{

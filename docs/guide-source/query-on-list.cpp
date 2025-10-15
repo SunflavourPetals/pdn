@@ -11,7 +11,7 @@ int main()
 {
     using namespace std::string_view_literals;
     using namespace pdn;
-    auto entity = parse(u8R"(list [1, 2, 3, "hello", 5.0])"sv, utf_8_tag);
+    auto entity = parse(u8R"(list [1, 2, 3, "hello", 5.0])"sv, utf8_tag);
 
     const auto& list = entity[u8"list"];
 
@@ -25,7 +25,11 @@ int main()
 
     try
     {
-        auto& e5 = as_list(list).at(5);
+        auto& e5 = as_list(list).at(5); // throw
+        for (const auto& e : as_list(list))
+        {
+            std::cout << as_int(e) << "\n";
+        }
     }
     catch (std::exception& e)
     {

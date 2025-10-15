@@ -56,18 +56,18 @@ say: "Hello world!"
 // 之后我会将这个函数以 inline 的方式放在头文件 outu8sv.h 中，以后就不再展示。
 std::ostream& operator<<(std::ostream& o, std::u8string_view sv)
 {
-    o << std::string_view{ (const char*)sv.data(), sv.size() };
-    return o;
+    return o << std::string_view{ (const char*)sv.data(), sv.size() };
 }
 
 int main()
 {
+    // 为了方便编写教程代码而使用的 using 指令
     using namespace pdn;
 
     // 使用 pdn::parse 解析 hello.spdn 中的数据
-    // pdn::utf_8_tag 指示以 utf-8 作为解析后的键和字符、字符串的编码方式，表现为用 C++ 的 u8string 类型进行描述
+    // pdn::utf8_tag 指示以 utf-8 作为解析后的键和字符、字符串的编码方式，表现为用 C++ 的 u8string 类型进行描述
     // 该指示与被解析的文件采用什么编码无关，它只作用于解析结果
-    auto entity_opt = parse("hello.spdn", utf_8_tag);
+    auto entity_opt = parse("hello.spdn", utf8_tag);
     
     // 得到一个 entity_opt，它是一个 std::optional<pdn::u8entity> 的对象
     if (!entity_opt) // 判断是否解析成功，若文件不存在或无法打开，则是 nullopt
@@ -81,7 +81,7 @@ int main()
     // 因此它是一个 spdn 中的 object，在 C++ 里的类型则是一个关联容器。
     const auto& entity = *entity_opt;
 
-    // 从中查询 "say" 成员，并引用它(因为我们指定了 utf_8_tag，所以需要使用 u8 字符串作为查询的键)
+    // 从中查询 "say" 成员，并引用它(因为我们指定了 utf8_tag，所以需要使用 u8 字符串作为查询的键)
     const auto& say = entity[u8"say"];
 
     // 将我们查询到的数据以字符串的形式使用，需要用到 pdn::as_string 函数
@@ -108,7 +108,7 @@ g++ -std=c++20 -I../../pdn -o hello-spdn ./hello-spdn.cpp
 
 为什么不用 `std::string` 而是 `std::u8string`？  
 
-`spdn` 基于 Unicode，我想在类型上明确表达使用 `utf_8_tag` 的解析结果是用 UTF-8 编码的，但是也就不能直接用 `std::cout` 进行输出了。不知道这样是不是设计失误。  
+`spdn` 基于 Unicode，我想在类型上明确表达使用 `utf8_tag` 的解析结果是用 UTF-8 编码的，但是也就不能直接用 `std::cout` 进行输出了。不知道这样是不是设计失误。  
 
 如有必要，可以使用 [`c8rtomb`](https://zh.cppreference.com/w/cpp/string/multibyte/c8rtomb "cppreference") 或 boost 库等途径转换编码。  
 此后的教学中就不再讨论这个问题了。  
@@ -203,8 +203,8 @@ list [
 0777
 01'234'567
 
-// 整数后缀
-0U // 想要一个无符号整数 0，但是 spdn 不支持整数后缀，想要指定实体的类型请使用“类型指定”
+// 有关整数后缀的内容
+0U // 错误！想要一个无符号整数 0，但是 spdn 不支持整数后缀，想要指定实体的类型请使用“类型指定”
 ```
 
 [cppreference integer_literal](https://zh.cppreference.com/w/cpp/language/integer_literal)  
@@ -229,8 +229,8 @@ list [
 0x1.p1     // 2
 0x.8p+1     // 1
 
-// 浮点数后缀
-0.F // 想要一个 float 的 0.0，但是 spdn 不支持浮点数后缀，想要指定实体的类型请使用“类型指定”
+// 有关浮点数后缀的内容
+0.F // 错误！想要一个 float 的 0.0，但是 spdn 不支持浮点数后缀，想要指定实体的类型请使用“类型指定”
 ```
 
 [cppreference floating_literal](https://zh.cppreference.com/w/cpp/language/floating_literal)  
@@ -271,14 +271,24 @@ cat: "a" " " @"(string)" "!" // 等效于 "a string!"
 "\"" // 转义序列 \" 表示一个双引号
 ```
 
-参考 [pdn_reference](./pdn-reference.md#字符串字面量)
+[参考 pdn_reference](./pdn-reference.md#字符串字面量)
 
 ### 原始字符串
 
-// todo
+在写正则表达式或 Windows 平台的文件路径等时，我们可能会大量使用某些转义字符，这些转义字符的使用会让字符串的可读性大大降低。  
 
-示例参考：  
-[pdn_reference](./pdn-reference.md#原始字符串)  
+`spdn` 提供了原始字符串以供使用，它的词法除开头是 `@` 而不是 `R` 外，和 C++ 的原始字符串词法一致：字符串由 `@"d_seq(` 和 `)d_seq"` 包围，其中 `d_seq`(delimiter sequence) 为不超过16个的除了圆括号、反斜线和[空白字符](https://zh.cppreference.com/w/cpp/string/byte/isspace.html)的[基本字符集](https://zh.cppreference.com/w/cpp/language/charset.html#Basic_character_set)中字符的序列(`spdn` 已支持 C++26 的基本字符集)。  
+
+原始字符串字面量示例：  
+
+```pdn
+@"(Hello, world!)"
+@"RawStrDS(你好，世界！)RawStrDS"
+@"(C:\Users\)" // 等价于 "C:\\Users\\"
+```
+
+示例来自 [pdn_reference](./pdn-reference.md#原始字符串)  
+
 cppreference：  
 [cppref string_literal](https://zh.cppreference.com/w/cpp/language/string_literal)  
 
@@ -288,13 +298,14 @@ cppreference：
 
 ```spdn
 bool_1: boolean 1       // 非零值被转换为布尔值 true
-bool_2: bool    123.456 // 非零值被转换为布尔值 true，但不太好，bool 和 boolean 等价
+bool_2: bool    123.456 // 非零值被转换为布尔值 true，但不太好 (bool 和 boolean 等价)
 bool_3: bool    0       // 零被转换为布尔值 false
 bool_4 @true  // 布尔值 true
 bool_5 @false // 布尔值 false
 ```
 
-由于 `spdn` 无关键字的设计，`true` 和 `false` 本身是合法的标识符，如果想获得布尔值，要么像 `bool_1` `bool_2` `bool_3` 一样，通过类型指定来进行类型转换，要么就使用 at 常量，它的语法是 `@` 符号后紧跟一个普通的标识符，如 `@true` `@false`。  
+由于 `spdn` 无关键字的设计，`true` 和 `false` 本身是合法的标识符，虽然修改 parser 让它将标识符后的 `true` 和 `false` 解析为布尔值很容易，但又可能会引发混乱。  
+如果想获得布尔值，要么像 `bool_1` `bool_2` `bool_3` 一样，通过类型指定来进行类型转换，要么就使用 at 常量，它的语法是 `@` 符号后紧跟一个普通的标识符，如 `@true` `@false`。  
 [有关 at 常量，后面会做详细教学](#at-常量)。  
 
 ## 标识符的三种表现形式
@@ -327,7 +338,7 @@ _x  // OK
 
 ```spdn
 a_name_without_spaces 123 // OK
-a name with spaces 123 // "a" "name" "with" "spaces" "123" 不符合语法
+a name with spaces 123 // token 序列 "a" "name" "with" "spaces" "123" 不符合语法
 ```
 
 字符串标识符的词法是由反引号 `` ` `` 包围的内容，不能包含换行符(LF)，且支持[转义字符](#转义字符)：  
@@ -355,13 +366,20 @@ linefeed` 123
 // 请不要犯这种错误
 ```
 
-除了 `` \` `` 是 `spdn` 字符串标识符独有的转义序列外，`spdn` 支持 C++ 除了条件转义序列(实现定义)的所有转义序列，形式与目前最新的 C++ 标准(C++26)完全一样，只是 `spdn` 额外要求所有转义结果都必须是 Unicode 标量值，参考 [转义字符](#转义字符)、[`cppreference`](https://zh.cppreference.com/w/cpp/language/escape "escape")。  
+除了 `` \` `` 是 `spdn` 字符串标识符独有的转义序列外，`spdn` 支持 C++ 除了条件转义序列(实现定义)的所有转义序列，形式与目前(我编写这个文档的时间公元2024-2025年)最新的 C++ 标准(C++26)完全一样，只是 `spdn` 额外要求所有转义结果都必须是 Unicode 标量值，参考 [转义字符](#转义字符)、[`cppreference`](https://zh.cppreference.com/w/cpp/language/escape "escape")。  
 
 ### 原始字符串标识符
 
-// todo
+由 `` @`d_seq( `` 和 `` )d_seq` `` 包裹着的字符串，是原始字符串标识符，词法参考[原始字符串](#原始字符串)，不过就是把双引号`"`换成了反引号`` ` ``而已。  
 
-“原始字符串标识符”则是更没有用武之地的特性，我们之后再作讲解，先将精力放在更重要、更有用的地方。  
+这玩意一般来讲没什么用，应该没人会取那种需要大量转义字符的名字吧？  
+
+示例：  
+
+```spdn
+@`abc(hahaha
+blabla)abc` "I have a weird name: hahaha\nblabla"
+```
 
 ## 类型和类型指定
 
@@ -395,11 +413,12 @@ score 100 // 分数的范围为 0 到 100 分
 
 ### 类型转换规则
 
-1. `i8`、`i16`、`i32`、`i64`、`u8`、`u16`、`u32`、`u64` 在不发生溢出的情况下可以相互转换(溢出被视为错误)、可以转换为 `f32`、`f64`、`boolean`；  
+1. `i8`、`i16`、`i32`、`i64`、`u8`、`u16`、`u32`、`u64` 在不发生溢出的情况下可以相互转换(溢出被视为错误)、还可以可以转换为 `f32`、`f64` 和 `boolean`；  
 2. `f32`、`f64` 可以相互转换、可以转换为 `boolean`；  
 3. `boolean` 可以转换为 `i8`、`i16`、`i32`、`i64`、`u8`、`u16`、`u32`、`u64`、`f32`、`f64`，其中 `false` 将被转换为 `0`，`true` 将被转换为 `1`，从其他类型转换到 `boolean` 时，非零值被转换为 `true`，零被转换为 `false`。  
 
-只有在整数类型之间相互转换时可能发生溢出错误，其余转换不会发生错误.  
+只有在整数类型之间相互转换时可能发生溢出错误，其余转换不会发生错误。  
+将整数转换为浮点数时有可能会损失精度。  
 `f64` 转换到 `f32` 时可能会损失精度，但是不允许将浮点数转换为整数，即使浮点数实际上被用来表示一个整数：`num: int 1.0 // 错误`。  
 
 ### 类型系统详解
@@ -429,7 +448,7 @@ score 100 // 分数的范围为 0 到 100 分
 
 通常我们建议使用字符串，除非你有更好的理由使用字符。  
 
-参考 [pdn_reference](./pdn-reference.md#字符字面量)  
+[参考 pdn_reference](./pdn-reference.md#字符字面量)  
 
 #### 其他类型
 
@@ -437,14 +456,21 @@ score 100 // 分数的范围为 0 到 100 分
 
 ## at 常量
 
-// todo
+at 常量用于从解析器提供的常量表中获取值，比如使用 `@true` 表示布尔值 `true`。  
+
+常量表由解析器提供，解析器的实现至少需要保证[这些名字(参考pdn_reference)](./pdn-reference.md#at标识符)可用，并且具有合理的值。  
 
 我推荐使用 `@true` 和 `@false` 表示布尔值。  
 我承认无关键字和标识符的词法设计导致不管是用类型转换还是 at 常量都让人不太舒服，使用类型转换需要输入冒号和写明类型，使用 at 常量又需要输入 `@` 符号，折中的办法是用 `1` 和 `0` 代表 `true` 和 `false`，用自动推导的整数类型代替布尔类型，等在程序中使用时将它们转换为 `bool` 值。  
 
 ## 转义字符
 
-// todo
+`spdn` 的转义字符形式上与 C++ 的一致，但是不支持条件转义序列，另外要求转义的结果是 Unicode 标量值。  
+
+注：本仓库实现的解析器不支持 `\N{NAME}` 形式的转义序列  
+
+[参考 pdn_reference](./pdn-reference.md#转义)  
+[参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/escape)  
 
 ## 解析 spdn 格式的 parse 函数
 
@@ -458,7 +484,7 @@ score 100 // 分数的范围为 0 到 100 分
 
 一份 `spdn` 数据被解析后会被装进一个类型为对象的数据实体里，如 `hello.spdn` 被解析后，得到了一个数据实体，里面含有一个键值对 `say: "Hello world!"`。在 C++ 中我们使用下标运算符 `operator[]` 去查询 `say` 所指代的数据，就像在使用一个关联容器，然而它的语义与关联容器如 `map` 的 `operator[]` 并非相同，它只进行查询，而不包含在查询的键不存在时构造新值的操作。  
 
-当对不是对象类型的数据实体使用键的下标运算符时，会抛出 `std::bad_variant_access` 异常，因为本库就是使用 `variant` 达到动态数据实体类型的目标的；访问不存在的数据时，会抛出 `std::out_of_range` 异常。  
+当对不是对象类型的数据实体使用键的下标运算符时，会抛出 `std::bad_variant_access` 异常，因为本库就是使用 `variant` 达到动态的数据实体类型的目标的；访问不存在的数据时，会抛出 `std::out_of_range` 异常。  
 
 ```C++
 auto& say = entity[u8"say"]; // OK! (entity 来自 hello.spdn)
@@ -477,7 +503,7 @@ entity[u8"name"]; // 抛出 out_of_range 异常！没有一个叫 name 的成员
 auto e_ref = entity.cref();
 ```
 
-实体引用类是用指针实现的，所以通常我们不创建实体引用的 C++ 引用：  
+实体引用类是用指针实现的，复制开销很小，也不持有所有权，所以通常我们不创建实体引用的 C++ 引用：  
 
 ```C++
 const auto& e_ref_ref = entity.cref(); // 最好别这么干
@@ -520,13 +546,14 @@ ref 对象的 `operator bool` 和 `has_value` 具有相同的功能。
 #include "pdn_parse.h"
 #include "pdn_data_entity.h"
 
-#include "../outu8sv.h"
+#include "outu8sv.h"
 
 int main()
 {
     using namespace std::string_view_literals;
     using namespace pdn;
-    auto entity = parse(u8R"(list [1, 2, 3, "hello", 5.0])"sv, utf_8_tag);
+
+    auto entity = parse(u8R"(list [1, 2, 3, "hello", 5.0])"sv, utf8_tag);
     // 直接对 spdn 序列进行解析，返回一个 pdn::u8entity，而不再是一个 optional
 
     const auto& list = entity[u8"list"];
@@ -544,7 +571,7 @@ int main()
     {
         // 将实体 list 当作 list 使用，在 C++ 中对应的类型通常是 std::vector<entity>
         auto& e5 = as_list(list).at(5); // vector 的 at 函数带有越界检查
-        for (auto& e : as_list(list))
+        for (const auto& e : as_list(list))
         {
             std::cout << as_int(e) << "\n";
         }
@@ -583,13 +610,45 @@ int main()
 * `as_object` 的返回值类型通常是 `std::unordered_map<std::basic_string<char_t>, entity<char_t>>`；  
 
 在使用 as 系列函数时，在可能的情况下会尝试类型转换，如实体实际上是浮点数，但我们对它使用了 `as_int`，我们就获得了该实体转换到整数值的结果。  
-在实体和 as 函数返回值类型不一样，但是都在整数、浮点数和布尔这些类型范围内时，会发生这种转换；此外，字符可以转变为布尔值(NUL字符表示 `false`，其余表示 `true`，但布尔值不能转变为字符)，其余类型之间无法进行类型转换，使用 as 函数的结果是一个默认值，如 `0`，空字符串、空列表或空对象。  
+当实体和 as 函数返回值类型不一样，但是都在整数、浮点数和布尔这些类型范围内时，会发生这种转换；此外，字符可以转变为布尔值(NUL字符表示 `false`，其余表示 `true`，但布尔值不能转变为字符)。其余类型之间无法进行类型转换，使用 as 函数的结果是一个默认值，如 `0`，空字符串、空列表或空对象。  
 
 当发生转换时，如果要转换的值超过了目标类型的表示范围，那么会发生“截断”，“截断”到目标类型能表示的最大值或最小值(原因之一是有符号整数溢出是未定义行为)：如将 `@infinity` 使用 `as_int` 转换到 `i64`，会得到 `i64` 能表示的最大值。  
 
 此外，将 `nan` 转换到整数时会得到默认值：0。  
 
-// todo 添加示例
+```C++
+#include <iostream>
+#include <string>
+
+#include "pdn_parse.h"
+#include "pdn_data_entity.h"
+
+#include "outu8sv.h"
+
+int main()
+{
+    using namespace pdn;
+    using namespace std::string_view_literals;
+
+    auto e = parse(u8R"(
+            f   : 1.25
+            inf : @inf
+            c   : '爱'
+            nan : @nan
+            s   : "string"
+        )"sv, utf8_tag);
+
+    std::cout << as_int(e[u8"f"]) << "\n"; // 1
+
+    std::cout << as_int(e[u8"inf"]) << "\n"; // 9223372036854775807
+
+    std::cout << std::boolalpha << as_bool(e[u8"c"]) << "\n"; // true
+
+    std::cout << as_int(e[u8"nan"]) << "\n"; // 0
+
+    std::cout << as_string(e[u8"f"]) << "\n"; // *null string*
+}
+```
 
 #### as 系列函数详解
 

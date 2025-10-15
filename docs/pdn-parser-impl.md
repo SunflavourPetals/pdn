@@ -6,7 +6,7 @@
 
 `pdn::parse` 方法有对 `token` 迭代器、UTF 码元迭代器、UTF 编码的字符串视图、文件流、文件名的重载版本，根据其需求，用户最多需要提供 `function_package_for_parser`、`function_package_for_lexer`、`function_package_for_code_point_iterator` 给 `pdn::parse` 函数。  
 `pdn::parse` 方法对用户提供 `function_package` 和使用默认配置有重载，一般使用默认配置已足够。  
-`pdn::parse` 方法需要用户指定编码方式，在有确定的方案时推荐使用 `pdn::utf_8_tag`、`pdn::utf_16_tag`、`pdn::utf_32_tag` 作为 `pdn::parse` 的 `char_t` 参数来提供。  
+`pdn::parse` 方法需要用户指定编码方式，在有确定的方案时推荐使用 `pdn::utf8_tag`、`pdn::utf16_tag`、`pdn::utf32_tag` 作为 `pdn::parse` 的 `char_t` 参数来提供。  
 
 ``` C++
 #include "pdn_parse.h"
@@ -14,13 +14,13 @@
 template <typename char_t>
 void parse_something()
 {
-    auto dom_1_using_utf_8_opt  = pdn::parse("./example_1.spdn", pdn::utf_8_tag);
-    auto dom_2_using_utf_16_opt = pdn::parse("./example_2.spdn", pdn::utf_16_tag);
-    auto dom_3_using_utf_32_opt = pdn::parse("./example_3.spdn", pdn::utf_32_tag);
+    auto example1_using_utf_8_opt  = pdn::parse("./example1.spdn", pdn::utf8_tag);
+    auto example2_using_utf_16_opt = pdn::parse("./example2.spdn", pdn::utf16_tag);
+    auto example3_using_utf_32_opt = pdn::parse("./example3.spdn", pdn::utf32_tag);
 
-    auto dom_1 = pdn::parse("./example_1.spdn", char_t{});
+    auto example1 = pdn::parse("./example1.spdn", char_t{});
     // 等价于
-    auto dom_2 = pdn::parse<char_t>("./example_1.spdn");
+    auto example2 = pdn::parse<char_t>("./example1.spdn");
 }
 ```
 
@@ -36,7 +36,7 @@ void parse_something()
 1. `get` 系列函数：对代理进行处理的 `std::get` 的封装，不支持 `refer` 和 `const_refer` 版本；  
 2. `get_ptr` 系列函数：获得相应类型的值或得到 nullptr；  
 3. `get_optional` 系列函数：仅对基本类型提供(整数、浮点数、布尔和字符)，获得相应类型的 `optional`，失败时得到 `nullopt`；  
-4. `as_xxx` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值。  
+4. `as` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值。  
 
 `data_entity` 还有如下成员方法：  
 
@@ -95,7 +95,7 @@ list [
 )"sv;
 
     using namespace pdn;
-    const auto& e = parse(src, utf_8_tag);
+    const auto& e = parse(src, utf8_tag);
     const auto r = e.ref();
 
     using namespace pdn::types;
