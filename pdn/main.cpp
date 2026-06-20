@@ -5,7 +5,7 @@
 #include <cassert>
 
 #include "pdn_parse.h"
-#include "pdn_data_entity.h"
+#include "pdn_access.h"
 #include "pdn_serializer.h"
 
 void serializer_test()

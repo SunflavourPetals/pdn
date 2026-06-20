@@ -143,7 +143,7 @@
     <ClInclude Include="pdn_dfa_state_objects.h" />
     <ClInclude Include="pdn_dfa_state_code.h" />
     <ClInclude Include="pdn_dfa_state_object.h" />
-    <ClInclude Include="pdn_data_entity.h" />
+    <ClInclude Include="pdn_access.h" />
     <ClInclude Include="pdn_entity.h" />
     <ClInclude Include="pdn_entity_as_accessor.h" />
     <ClInclude Include="pdn_entity_forward_decl.h" />

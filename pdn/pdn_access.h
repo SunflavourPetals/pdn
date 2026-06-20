@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_data_entity
-#define PDN_Header_pdn_data_entity
+#ifndef PDN_Header_pdn_access
+#define PDN_Header_pdn_access
 
 #include "pdn_types.h"
 #include "pdn_entity.h"

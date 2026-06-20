@@ -234,7 +234,7 @@
     <ClInclude Include="pdn_type_generator_concept.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_data_entity.h">
+    <ClInclude Include="pdn_access.h">
       <Filter>pdn_include</Filter>
     </ClInclude>
     <ClInclude Include="pdn_parse.h">

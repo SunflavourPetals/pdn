@@ -12,7 +12,7 @@
 #include <cmath>
 
 #include "pdn_types.h"
-#include "pdn_data_entity.h"
+#include "pdn_access.h"
 
 #include "pdn_make_slashes_string.h"
 #include "pdn_type_to_type_code.h"
