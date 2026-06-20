@@ -330,6 +330,9 @@
     <ClInclude Include="pdn_convert_decision.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_entity_crtp_accessor.h">
+      <Filter>pdn_entity</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

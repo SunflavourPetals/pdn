@@ -31,7 +31,7 @@ namespace pdn
 	template <unicode::concepts::code_unit                  char_t,
 	          concepts::token_iterator<char_t>              it_t,
 	          concepts::function_package_for_parser<char_t> fn_pkg>
-	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> data_entity<char_t>
+	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> entity<char_t>
 	{
 		parser<char_t, fn_pkg> par{ fp };
 		return par.parse(begin, end);
@@ -39,7 +39,7 @@ namespace pdn
 	// for token iterator
 	template <unicode::concepts::code_unit     char_t,
 	          concepts::token_iterator<char_t> it_t>
-	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> data_entity<char_t>
+	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> entity<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(::std::move(begin), ::std::move(end), fp, char_tag);
@@ -55,7 +55,7 @@ namespace pdn
 	                         fn_pkg_for_cp_it&  cp_it_fp,
 	                         fn_pkg_for_lexer&  lex_fp,
 	                         fn_pkg_for_parser& par_fp,
-	                         char_t             char_tag = {}) -> data_entity<char_t>
+	                         char_t             char_tag = {}) -> entity<char_t>
 	{
 		lexer<char_t, fn_pkg_for_lexer> lex{ lex_fp };
 		auto cp_it     = make_code_point_iterator(begin, end, cp_it_fp);
@@ -66,7 +66,7 @@ namespace pdn
 	// for code_unit iterator
 	template <unicode::concepts::code_unit     char_t,
 	          concepts::utf_code_unit_iterator it_t>
-	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> data_entity<char_t>
+	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> entity<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(::std::move(begin), ::std::move(end), fp, fp, fp, char_tag);
@@ -81,7 +81,7 @@ namespace pdn
 	                         fn_pkg_for_cp_it&  cp_it_fp,
 	                         fn_pkg_for_lexer&  lex_fp,
 	                         fn_pkg_for_parser& par_fp,
-	                         char_t             char_tag = {}) -> data_entity<char_t>
+	                         char_t             char_tag = {}) -> entity<char_t>
 	{
 		lexer<char_t, fn_pkg_for_lexer> lex{ lex_fp };
 		auto cp_it     = make_code_point_iterator(::std::cbegin(sv), ::std::cend(sv), cp_it_fp);
@@ -92,7 +92,7 @@ namespace pdn
 	// for utf_code_unit_string_view
 	template <unicode::concepts::code_unit        char_t,
 	          concepts::utf_code_unit_string_view str_view_t>
-	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> data_entity<char_t>
+	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> entity<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(sv, fp, fp, fp, char_tag);
@@ -107,7 +107,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&  lex_fp,
 	                         fn_pkg_for_parser& par_fp,
 	                         char_t             char_tag = {},
-	                         ::std::size_t      buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t      buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		if (!source_file.is_open() || source_file.bad())
 		{
@@ -133,7 +133,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(::std::ifstream& source_file,
 	                                char_t    char_tag = {},
-	                         ::std::size_t    buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t    buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(source_file, fp, fp, fp, char_tag, buffer_size);
@@ -148,7 +148,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&    lex_fp,
 	                         fn_pkg_for_parser&   par_fp,
 	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t        buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -157,7 +157,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const ::std::string& filename,
 	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t        buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -172,7 +172,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&    lex_fp,
 	                         fn_pkg_for_parser&   par_fp,
 	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t        buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -181,7 +181,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const char* const filename,
 	                         char_t            char_tag = {},
-	                         ::std::size_t     buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t     buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -196,7 +196,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&     lex_fp,
 	                         fn_pkg_for_parser&    par_fp,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -205,7 +205,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const ::std::wstring& filename,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -220,7 +220,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&     lex_fp,
 	                         fn_pkg_for_parser&    par_fp,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -229,7 +229,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const wchar_t* const  filename,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<data_entity<char_t>>
+	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);

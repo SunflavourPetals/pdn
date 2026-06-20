@@ -11,11 +11,12 @@
 #include "pdn_proxy.h"
 #include "pdn_entity_utility.h"
 #include "pdn_entity_forward_decl.h"
+#include "pdn_entity_crtp_accessor.h"
 
 namespace pdn
 {
 	template <typename char_t>
-	class const_refer
+	class const_refer : public detail::crtp_accessor<const_refer<char_t>, char_t>
 	{
 	public:
 		using char_type   = char_t;
@@ -34,6 +35,9 @@ namespace pdn
 		const entity_type* operator->() const noexcept { return get(); }
 		const entity_type& operator*() const noexcept { return *get(); }
 		explicit operator bool() const noexcept { return has_value(); }
+
+		template <typename target_t>
+		[[nodiscard]] auto get_ptr() const -> const target_t*;
 
 		const_refer() = default;
 		const_refer(const const_refer& m) : ptr{ m.ptr } {}
@@ -67,6 +71,9 @@ namespace pdn
 		entity_type& operator*() const noexcept { return *get(); }
 		explicit operator bool() const noexcept { return has_value(); }
 
+		template <typename target_t>
+		[[nodiscard]] auto get_ptr() const -> target_t*;
+
 		refer() = default;
 		refer(const refer& m) : base_type(m) {}
 		refer(entity_type& e) : base_type(e) {}
@@ -77,12 +84,48 @@ namespace pdn
 			return const_cast<entity_type*>(base_type::get());
 		}
 	};
+
+	template <typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto const_refer<char_t>::get_ptr() const -> const target_t*
+	{
+		if constexpr (detail::has_proxy_v<target_t>)
+		{
+			if (auto p = ::std::get_if<proxy<target_t>>(get()))
+			{
+				return p->get();
+			}
+			return nullptr;
+		}
+		else
+		{
+			return ::std::get_if<target_t>(get());
+		}
+	}
+
+	template <typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto refer<char_t>::get_ptr() const -> target_t*
+	{
+		if constexpr (detail::has_proxy_v<target_t>)
+		{
+			if (auto p = ::std::get_if<proxy<target_t>>(get()))
+			{
+				return p->get();
+			}
+			return nullptr;
+		}
+		else
+		{
+			return ::std::get_if<target_t>(get());
+		}
+	}
 }
 
 namespace pdn
 {
 	template <typename char_t = unicode::u8char_t>
-	class entity : public types::detail::entity_variant<char_t>
+	class entity : public detail::crtp_accessor_e<entity<char_t>, char_t>, public types::detail::entity_variant<char_t>
 	{
 	public:
 		using types::detail::entity_variant<char_t>::entity_variant;
@@ -203,6 +246,25 @@ namespace pdn
 			return ::std::move((*this)[key]);
 		}
 	};
+}
+
+namespace pdn
+{
+	template <typename char_t>
+	using entity_ref = refer<char_t>;
+
+	template <typename char_t>
+	using entity_cref = const_refer<char_t>;
+
+	using u8entity       = entity<char8_t>;
+	using u8entity_ref   = entity_ref<char8_t>;
+	using u8entity_cref  = entity_cref<char8_t>;
+	using u16entity      = entity<char16_t>;
+	using u16entity_ref  = entity_ref<char16_t>;
+	using u16entity_cref = entity_cref<char16_t>;
+	using u32entity      = entity<char32_t>;
+	using u32entity_ref  = entity_ref<char32_t>;
+	using u32entity_cref = entity_cref<char32_t>;
 }
 
 #endif

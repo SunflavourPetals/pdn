@@ -133,10 +133,181 @@ struct my_date
 	}
 };
 
+void as_series_member_test()
+{
+	using namespace std::literals;
+	auto content = u8R"( // test as(member) series functions
+int  : int 0;
+i8 : i8 -8;
+i16: i16 -16;
+i32: i32 -32;
+i64: i64 -64;
+uint : uint 1;
+u8 : u8 8;
+u16: u16 16;
+u32: u32 32;
+u64: u64 64;
+f32: f32 1.0;
+f64: f64 2.0;
+bool: @true;
+char: 'C';
+str: "string";
+list: [
+	1,
+	2,
+	3,
+];
+object: {
+	m1 1;
+	m2 "member";
+	m3 [1, 2, 3];
+};
+)"sv;
+	auto ex = pdn::parse(content, pdn::utf8_tag);
+	// auto e = ex.cref();
+	// auto e = ex.ref();
+	auto& e = ex;
+	constexpr auto lf = "\n";
+
+	auto m1_it = e[u8"object"].as_object().find(u8"m1"sv);
+	std::cout
+		<< "as_series_member_test begin" << lf
+		<< e[u8"int"].as_int(pdn::auto_int_tag) << lf
+		<< (int)e[u8"i8"].as_int(pdn::i8_tag) << lf
+		<< e[u8"i16"].as_int(pdn::i16_tag) << lf
+		<< e[u8"i32"].as_int(pdn::i32_tag) << lf
+		<< e[u8"i64"].as_int(pdn::i64_tag) << lf
+		<< e[u8"uint"].as_uint(pdn::auto_uint_tag) << lf
+		<< (unsigned)e[u8"u8"].as_uint(pdn::u8_tag) << lf
+		<< e[u8"u16"].as_uint(pdn::u16_tag) << lf
+		<< e[u8"u32"].as_uint(pdn::u32_tag) << lf
+		<< e[u8"u64"].as_uint(pdn::u64_tag) << lf
+		<< e[u8"f32"].as_fp(pdn::f32_tag) << lf
+		<< e[u8"f64"].as_fp(pdn::f64_tag) << lf
+		<< e[u8"bool"].as_bool() << lf
+		<< (char)e[u8"char"].as_char().data()[0] << lf
+		<< (const char*)e[u8"str"].as_string().c_str() << lf
+		<< e[u8"list"].as_list()[0].as_int() << lf
+		<< ((m1_it == e[u8"object"].as_object().cend()) ? "m1 not found"s : std::to_string(m1_it->second.as_uint())) << lf
+		<< e[u8"object"][u8"m3"][0].as_fp() << lf
+		<< "as_series_member_test end" << lf;
+	[[maybe_unused]] auto test_u8s  = e[u8"str"].as_u8string();
+	[[maybe_unused]] auto test_u16s = e[u8"str"].as_u16string();
+	[[maybe_unused]] auto test_u32s = e[u8"str"].as_u32string();
+}
+
+void get_series_member_test()
+{
+	using namespace std::literals;
+	auto content = u8R"( // test as(member) series functions
+int  : int 0;
+i8 : i8 -8;
+i16: i16 -16;
+i32: i32 -32;
+i64: i64 -64;
+uint : uint 1;
+u8 : u8 8;
+u16: u16 16;
+u32: u32 32;
+u64: u64 64;
+f32: f32 1.0;
+f64: f64 2.0;
+bool: @true;
+char: 'C';
+str: "string";
+list: [
+	1,
+	2,
+	3,
+];
+object: {
+	m1 1;
+	m2 "member";
+	m3 [1, 2, 3];
+};
+)"sv;
+	auto ex = pdn::parse(content, pdn::utf8_tag);
+	// auto& e = ex;
+	// auto e = ex.ref();
+	auto e = ex.cref();
+
+	// for entity
+	//	auto& o = e[u8"object"sv].get<pdn::types::object<char8_t>>();
+	//	o[u8"m1"] = 123;
+
+	// for ref
+	// *e[u8"object"sv][u8"m1"].get_ptr<pdn::types::auto_int>() = 123;
+
+	auto lf = "\n";
+	std::cout
+		<< "get_series_member_test begin" << lf
+		/*
+		<< e[u8"int"].get<pdn::types::auto_int>() << lf
+		<< (int)e[u8"i8"].get<pdn::types::i8>() << lf
+		<< e[u8"i16"].get<pdn::types::i16>() << lf
+		<< e[u8"i32"].get<pdn::types::i32>() << lf
+		<< e[u8"i64"].get<pdn::types::i64>() << lf
+		<< e[u8"uint"].get<pdn::types::auto_uint>() << lf
+		<< (unsigned)e[u8"u8"].get<pdn::types::u8>() << lf
+		<< e[u8"u16"].get<pdn::types::u16>() << lf
+		<< e[u8"u32"].get<pdn::types::u32>() << lf
+		<< e[u8"u64"].get<pdn::types::u64>() << lf
+		<< e[u8"f32"].get<pdn::types::f32>() << lf
+		<< e[u8"f64"].get<pdn::types::f64>() << lf
+		<< e[u8"bool"].get<pdn::types::boolean>() << lf
+		<< (char)e[u8"char"].get<pdn::types::character<char8_t>>().data()[0] << lf
+		<< (const char*)e[u8"str"].get<pdn::types::string<char8_t>>().c_str() << lf
+		<< e[u8"list"].get<pdn::types::list<char8_t>>()[0].get<pdn::types::auto_int>() << lf
+		<< e[u8"object"].get<pdn::types::object<char8_t>>()[u8"m1"].get<pdn::types::auto_int>() << lf
+		*/
+		// get_ptr vvv
+		<< *e[u8"int"].get_ptr<pdn::types::auto_int>() << lf
+		<< (int)*e[u8"i8"].get_ptr<pdn::types::i8>() << lf
+		<< *e[u8"i16"].get_ptr<pdn::types::i16>() << lf
+		<< *e[u8"i32"].get_ptr<pdn::types::i32>() << lf
+		<< *e[u8"i64"].get_ptr<pdn::types::i64>() << lf
+		<< *e[u8"uint"].get_ptr<pdn::types::auto_uint>() << lf
+		<< (unsigned)*e[u8"u8"].get_ptr<pdn::types::u8>() << lf
+		<< *e[u8"u16"].get_ptr<pdn::types::u16>() << lf
+		<< *e[u8"u32"].get_ptr<pdn::types::u32>() << lf
+		<< *e[u8"u64"].get_ptr<pdn::types::u64>() << lf
+		<< *e[u8"f32"].get_ptr<pdn::types::f32>() << lf
+		<< *e[u8"f64"].get_ptr<pdn::types::f64>() << lf
+		<< *e[u8"bool"].get_ptr<pdn::types::boolean>() << lf
+		<< (char)e[u8"char"].get_ptr<pdn::types::character<char8_t>>()->data()[0] << lf
+		<< (const char*)e[u8"str"].get_ptr<pdn::types::string<char8_t>>()->c_str() << lf
+		<< e[u8"list"].get_ptr<pdn::types::list<char8_t>>()->operator[](0).get<pdn::types::auto_int>() << lf
+		<< e[u8"object"].get_ptr<pdn::types::object<char8_t>>() /*->operator[](u8"m1").get<pdn::types::auto_int>()*/ << lf
+		// get_opt vvv
+		<< *e[u8"int"].get_optional<pdn::types::auto_int>() << lf
+		<< (int)*e[u8"i8"].get_optional<pdn::types::i8>() << lf
+		<< *e[u8"i16"].get_optional<pdn::types::i16>() << lf
+		<< *e[u8"i32"].get_optional<pdn::types::i32>() << lf
+		<< *e[u8"i64"].get_optional<pdn::types::i64>() << lf
+		<< *e[u8"uint"].get_optional<pdn::types::auto_uint>() << lf
+		<< (unsigned)*e[u8"u8"].get_optional<pdn::types::u8>() << lf
+		<< *e[u8"u16"].get_optional<pdn::types::u16>() << lf
+		<< *e[u8"u32"].get_optional<pdn::types::u32>() << lf
+		<< *e[u8"u64"].get_optional<pdn::types::u64>() << lf
+		<< *e[u8"f32"].get_optional<pdn::types::f32>() << lf
+		<< *e[u8"f64"].get_optional<pdn::types::f64>() << lf
+		<< *e[u8"bool"].get_optional<pdn::types::boolean>() << lf
+		<< (char)e[u8"char"].get_optional<pdn::types::character<char8_t>>()->data()[0] << lf
+		// other
+		<< ::std::boolalpha << e[u8"object"][u8"m2"].type_test<pdn::types::string<char8_t>>() << lf
+		<< "get_series_member_test end" << lf;
+}
+
 int main() try
 {
+	as_series_member_test();
+	get_series_member_test();
 //	serializer_test();
 	access_test();
+
+	std::cout << "variant & entity size: " << sizeof pdn::types::detail::entity_variant<char8_t> << " " << sizeof pdn::entity<char8_t> << "\n";
+	std::cout << "             ref size: " << sizeof pdn::refer<char8_t> << "\n";
+	std::cout << "            cref size: " << sizeof pdn::const_refer<char8_t> << "\n";
 
 	using namespace std::literals::string_view_literals;
 	auto pdn_src = u8R"(// spdn source

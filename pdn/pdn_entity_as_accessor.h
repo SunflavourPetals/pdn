@@ -8,6 +8,7 @@
 #include "pdn_utf_code_convert.h"
 #include "pdn_entity_utility.h"
 #include "pdn_entity_forward_decl.h"
+#include "pdn_entity_crtp_accessor.h"
 
 namespace pdn
 {
@@ -214,6 +215,96 @@ namespace pdn
 	[[nodiscard]] auto as_object(const_refer<char_t> e) -> const types::object<char_t>&
 	{
 		return e ? as_object(*e) : detail::as_accessor<char_t>::null_object_val();
+	}
+}
+
+namespace pdn::detail
+{
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_int() const -> types::i64
+	{
+		return pdn::as_int(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <types::concepts::pdn_sint in>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_int(in) const -> in
+	{
+		return pdn::as_int(*static_cast<const entity_t*>(this), in{});
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_uint() const -> types::u64
+	{
+		return pdn::as_uint(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <types::concepts::pdn_uint un>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_uint(un) const -> un
+	{
+		return pdn::as_uint(*static_cast<const entity_t*>(this), un{});
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_fp() const -> types::f64
+	{
+		return pdn::as_fp(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <types::concepts::pdn_fp fn>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_fp(fn) const -> fn
+	{
+		return pdn::as_fp(*static_cast<const entity_t*>(this), fn{});
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_bool() const -> types::boolean
+	{
+		return pdn::as_bool(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_char() const -> types::character<char_type>
+	{
+		return pdn::as_char(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_string() const -> const types::string<char_type>&
+	{
+		return pdn::as_string(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u8string() const -> unicode::u8string
+	{
+		return pdn::as_u8string(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u16string() const -> unicode::u16string
+	{
+		return pdn::as_u16string(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u32string() const -> unicode::u32string
+	{
+		return pdn::as_u32string(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_list() const -> const types::list<char_type>&
+	{
+		return pdn::as_list(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_object() const -> const types::object<char_type>&
+	{
+		return pdn::as_object(*static_cast<const entity_t*>(this));
 	}
 }
 

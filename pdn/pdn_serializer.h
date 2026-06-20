@@ -295,7 +295,7 @@ namespace pdn
 		template <typename src_char_t>
 		auto serialize_object_member(
 			const types::string<src_char_t>& iden,
-			const data_entity<src_char_t>& val,
+			const entity<src_char_t>& val,
 			const ::std::size_t layer,
 			const bool use_line_feed = true,
 			const bool use_last_sep_for_lo = true) const -> string_t
@@ -352,7 +352,7 @@ namespace pdn
 		// list element to "[type:] pdn_form,"
 		template <typename src_char_t>
 		auto serialize_list_element(
-			const data_entity<src_char_t>& val,
+			const entity<src_char_t>& val,
 			const ::std::size_t layer,
 			const bool use_line_feed = true,
 			const bool use_last_sep_for_lo = true) const -> string_t
