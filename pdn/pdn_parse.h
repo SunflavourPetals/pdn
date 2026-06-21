@@ -18,7 +18,7 @@
 #include "pdn_lexer.h"
 #include "pdn_parser.h"
 #include "pdn_function_package.h"
-#include "pdn_access.h"
+#include "pdn_entity.h"
 #include "pdn_parser_utility.h"
 
 namespace pdn

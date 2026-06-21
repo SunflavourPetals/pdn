@@ -6,12 +6,92 @@
 #include <variant>
 #include <cstddef>
 #include <string>
+#include <optional>
 
 #include "pdn_types.h"
 #include "pdn_proxy.h"
+#include "pdn_utf_code_convert.h"
 #include "pdn_entity_utility.h"
 #include "pdn_entity_forward_decl.h"
-#include "pdn_entity_crtp_accessor.h"
+
+namespace pdn::detail
+{
+	// common accessor
+	template <typename entity_t, typename char_t>
+	struct crtp_accessor
+	{
+		using entity_type = entity_t;
+		using char_type   = char_t;
+
+		[[nodiscard]] auto as_int() const -> types::i64;
+
+		template <types::concepts::pdn_sint in>
+		[[nodiscard]] auto as_int(in) const -> in;
+
+		[[nodiscard]] auto as_uint() const -> types::u64;
+
+		template <types::concepts::pdn_uint un>
+		[[nodiscard]] auto as_uint(un) const -> un;
+
+		[[nodiscard]] auto as_fp() const -> types::f64;
+
+		template <types::concepts::pdn_fp fn>
+		[[nodiscard]] auto as_fp(fn) const -> fn;
+
+		[[nodiscard]] auto as_bool() const -> types::boolean;
+
+		[[nodiscard]] auto as_char() const -> types::character<char_type>;
+
+		[[nodiscard]] auto as_string() const -> const types::string<char_type>&;
+
+		[[nodiscard]] auto as_u8string() const -> unicode::u8string;
+
+		[[nodiscard]] auto as_u16string() const -> unicode::u16string;
+
+		[[nodiscard]] auto as_u32string() const -> unicode::u32string;
+
+		[[nodiscard]] auto as_list() const -> const types::list<char_type>&;
+
+		[[nodiscard]] auto as_object() const -> const types::object<char_type>&;
+
+		// get_optional is for basic types only, returns std::nullopt if type mismatch or no value
+		template <typename target_t>
+		[[nodiscard]] auto get_optional() const -> ::std::optional<target_t>;
+
+		// test if the entity holds a value of type target_t, returns false if type mismatch or no value
+		template <typename target_t>
+		[[nodiscard]] bool type_test() const;
+	};
+
+	// accessor for entity(get is entity only)
+	template <typename entity_t, typename char_t>
+	struct crtp_accessor_e : crtp_accessor<entity_t, char_t>
+	{
+		using entity_type = entity_t;
+		using char_type   = char_t;
+
+		template <typename target_t>
+		[[nodiscard]] auto get() const& -> const target_t&;
+
+		template <typename target_t>
+		[[nodiscard]] auto get() && ->target_t&&;
+
+		template <typename target_t>
+		[[nodiscard]] auto get() & ->target_t&;
+
+		template <typename target_t>
+		[[nodiscard]] auto get_ptr() const& -> const target_t*;
+
+		template <typename target_t>
+		[[nodiscard]] auto get_ptr() & ->target_t*;
+
+		template <typename target_t>
+		auto get_ptr() && ->target_t* = delete;
+
+		template <typename target_t>
+		auto get_ptr() const&& -> const target_t* = delete;
+	};
+}
 
 namespace pdn
 {
@@ -31,11 +111,12 @@ namespace pdn
 		auto operator[](const key_type key) const -> const_refer { return at(key); }
 
 		bool has_value() const noexcept { return get(); }
+		// get() returns pointer to entity, not pointer to value of entity, nullable if no value
 		const entity_type* get() const noexcept { return ptr; }
 		const entity_type* operator->() const noexcept { return get(); }
 		const entity_type& operator*() const noexcept { return *get(); }
 		explicit operator bool() const noexcept { return has_value(); }
-
+		// get_ptr() returns pointer to value of entity, not pointer to entity, nullable if no value or type mismatch
 		template <typename target_t>
 		[[nodiscard]] auto get_ptr() const -> const target_t*;
 
@@ -66,11 +147,12 @@ namespace pdn
 		auto operator[](const key_type key) const -> refer { return at(key); }
 
 		bool has_value() const noexcept { return get(); }
+		// get() returns pointer to entity, not pointer to value of entity, nullable if no value
 		entity_type* get() const noexcept { return get_from_base(); }
 		entity_type* operator->() const noexcept { return get(); }
 		entity_type& operator*() const noexcept { return *get(); }
 		explicit operator bool() const noexcept { return has_value(); }
-
+		// get_ptr() returns pointer to value of entity, nullable if no value or type mismatch
 		template <typename target_t>
 		[[nodiscard]] auto get_ptr() const -> target_t*;
 
@@ -84,42 +166,6 @@ namespace pdn
 			return const_cast<entity_type*>(base_type::get());
 		}
 	};
-
-	template <typename char_t>
-	template <typename target_t>
-	[[nodiscard]] auto const_refer<char_t>::get_ptr() const -> const target_t*
-	{
-		if constexpr (detail::has_proxy_v<target_t>)
-		{
-			if (auto p = ::std::get_if<proxy<target_t>>(get()))
-			{
-				return p->get();
-			}
-			return nullptr;
-		}
-		else
-		{
-			return ::std::get_if<target_t>(get());
-		}
-	}
-
-	template <typename char_t>
-	template <typename target_t>
-	[[nodiscard]] auto refer<char_t>::get_ptr() const -> target_t*
-	{
-		if constexpr (detail::has_proxy_v<target_t>)
-		{
-			if (auto p = ::std::get_if<proxy<target_t>>(get()))
-			{
-				return p->get();
-			}
-			return nullptr;
-		}
-		else
-		{
-			return ::std::get_if<target_t>(get());
-		}
-	}
 }
 
 namespace pdn
@@ -248,6 +294,7 @@ namespace pdn
 	};
 }
 
+// aliases
 namespace pdn
 {
 	template <typename char_t>
@@ -265,6 +312,528 @@ namespace pdn
 	using u32entity      = entity<char32_t>;
 	using u32entity_ref  = entity_ref<char32_t>;
 	using u32entity_cref = entity_cref<char32_t>;
+}
+
+// as accessors
+namespace pdn
+{
+	inline constexpr auto auto_int_tag = types::auto_int{};
+	inline constexpr auto i8_tag  = types::i8{};
+	inline constexpr auto i16_tag = types::i16{};
+	inline constexpr auto i32_tag = types::i32{};
+	inline constexpr auto i64_tag = types::i64{};
+	inline constexpr auto auto_uint_tag = types::auto_uint{};
+	inline constexpr auto u8_tag  = types::u8{};
+	inline constexpr auto u16_tag = types::u16{};
+	inline constexpr auto u32_tag = types::u32{};
+	inline constexpr auto u64_tag = types::u64{};
+	inline constexpr auto f32_tag = types::f32{};
+	inline constexpr auto f64_tag = types::f64{};
+
+	template <typename char_t>
+	[[nodiscard]] auto as_int(const entity<char_t>& e) -> types::i64
+	{
+		return ::std::visit([](const auto& v) { return detail::as_int(v); }, e);
+	}
+
+	template <typename char_t, types::concepts::pdn_sint in>
+	[[nodiscard]] auto as_int(const entity<char_t>& e, in) -> in
+	{
+		return ::std::visit([]<typename arg_t>(const arg_t& v) { return detail::as_int<arg_t, in>(v); }, e);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_uint(const entity<char_t>& e) -> types::u64
+	{
+		return ::std::visit([](const auto& v) { return detail::as_uint(v); }, e);
+	}
+
+	template <typename char_t, types::concepts::pdn_uint un>
+	[[nodiscard]] auto as_uint(const entity<char_t>& e, un) -> un
+	{
+		return ::std::visit([]<typename arg_t>(const arg_t& v) { return detail::as_uint<arg_t, un>(v); }, e);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_fp(const entity<char_t>& e) -> types::f64
+	{
+		return ::std::visit([](const auto& v) { return detail::as_fp(v); }, e);
+	}
+
+	template <typename char_t, types::concepts::pdn_fp fn>
+	[[nodiscard]] auto as_fp(const entity<char_t>& e, fn) -> fn
+	{
+		return ::std::visit([]<typename arg_t>(const arg_t& v) { return detail::as_fp<arg_t, fn>(v); }, e);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_bool(const entity<char_t>& e) -> types::boolean
+	{
+		return ::std::visit([](const auto& v) { return detail::as_accessor<char_t>::as_bool(v); }, e);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_char(const entity<char_t>& e) -> types::character<char_t>
+	{
+		return ::std::visit([](const auto& v) { return detail::as_accessor<char_t>::as_char(v); }, e);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_string(const entity<char_t>& e) -> const types::string<char_t>&
+	{
+		return ::std::visit([](const auto& v) -> decltype(auto) { return detail::as_accessor<char_t>::as_string(v); }, e);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u8string(const entity<char_t>& e) -> unicode::u8string
+	{
+		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u8char_t>
+			       && ::std::convertible_to<decltype(as_string(e)), unicode::u8string>)
+		{
+			return as_string(e);
+		}
+		else
+		{
+			return unicode::code_convert<unicode::u8string>(as_string(e));
+		}
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u16string(const entity<char_t>& e) -> unicode::u16string
+	{
+		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u16char_t>
+			       && ::std::convertible_to<decltype(as_string(e)), unicode::u16string>)
+		{
+			return as_string(e);
+		}
+		else
+		{
+			return unicode::code_convert<unicode::u16string>(as_string(e));
+		}
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u32string(const entity<char_t>& e) -> unicode::u32string
+	{
+		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u32char_t>
+			       && ::std::convertible_to<decltype(as_string(e)), unicode::u32string>)
+		{
+			return as_string(e);
+		}
+		else
+		{
+			return unicode::code_convert<unicode::u32string>(as_string(e));
+		}
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_list(const entity<char_t>& e) -> const types::list<char_t>&
+	{
+		return ::std::visit([](const auto& v) -> decltype(auto) { return detail::as_accessor<char_t>::as_list(v); }, e);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_object(const entity<char_t>& e) -> const types::object<char_t>&
+	{
+		return ::std::visit([](const auto& v) -> decltype(auto) { return detail::as_accessor<char_t>::as_object(v); }, e);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_int(const_refer<char_t> e) -> types::i64
+	{
+		return e ? as_int(*e) : types::i64{};
+	}
+
+	template <typename char_t, types::concepts::pdn_sint in>
+	[[nodiscard]] auto as_int(const const_refer<char_t>& e, in tag) -> in
+	{
+		return e ? as_int(*e, tag) : in{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_uint(const_refer<char_t> e) -> types::u64
+	{
+		return e ? as_uint(*e) : types::u64{};
+	}
+
+	template <typename char_t, types::concepts::pdn_uint un>
+	[[nodiscard]] auto as_uint(const const_refer<char_t>& e, un tag) -> un
+	{
+		return e ? as_uint(*e, tag) : un{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_fp(const_refer<char_t> e) -> types::f64
+	{
+		return e ? as_fp(*e) : types::f64{};
+	}
+
+	template <typename char_t, types::concepts::pdn_fp fn>
+	[[nodiscard]] auto as_fp(const const_refer<char_t>& e, fn tag) -> fn
+	{
+		return e ? as_fp(*e, tag) : fn{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_bool(const_refer<char_t> e) -> types::boolean
+	{
+		return e ? as_bool(*e) : types::boolean{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] inline auto as_char(const_refer<char_t> e) -> types::character<char_t>
+	{
+		return e ? as_char(*e) : types::character<char_t>{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_string(const_refer<char_t> e) -> const types::string<char_t>&
+	{
+		return e ? as_string(*e) : detail::as_accessor<char_t>::null_string_val();
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u8string(const_refer<char_t> e) -> unicode::u8string
+	{
+		return e ? as_u8string(*e) : unicode::u8string{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u16string(const_refer<char_t> e) -> unicode::u16string
+	{
+		return e ? as_u16string(*e) : unicode::u16string{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u32string(const_refer<char_t> e) -> unicode::u32string
+	{
+		return e ? as_u32string(*e) : unicode::u32string{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_list(const_refer<char_t> e) -> const types::list<char_t>&
+	{
+		return e ? as_list(*e) : detail::as_accessor<char_t>::null_list_val();
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_object(const_refer<char_t> e) -> const types::object<char_t>&
+	{
+		return e ? as_object(*e) : detail::as_accessor<char_t>::null_object_val();
+	}
+}
+
+// get, get_ptr, get_optional, type_test accessors
+namespace pdn
+{
+	template <typename target_t, typename char_t>
+	[[nodiscard]] auto get(const entity<char_t>& e) -> const target_t&
+	{
+		if constexpr (detail::has_proxy_v<target_t>)
+		{
+			return *::std::get<proxy<target_t>>(e);
+		}
+		else
+		{
+			return ::std::get<target_t>(e);
+		}
+	}
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] auto get(entity<char_t>&& e) -> target_t&&
+	{
+		if constexpr (detail::has_proxy_v<target_t>)
+		{
+			return ::std::move(*::std::get<proxy<target_t>>(e));
+		}
+		else
+		{
+			return ::std::get<target_t>(::std::move(e));
+		}
+	}
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] auto get(entity<char_t>& e) -> target_t&
+	{
+		if constexpr (detail::has_proxy_v<target_t>)
+		{
+			return *::std::get<proxy<target_t>>(e);
+		}
+		else
+		{
+			return ::std::get<target_t>(e);
+		}
+	}
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] auto get_ptr(const entity<char_t>& e) -> const target_t*
+	{
+		if constexpr (detail::has_proxy_v<target_t>)
+		{
+			if (auto p = ::std::get_if<proxy<target_t>>(&e))
+			{
+				return p->get();
+			}
+			return nullptr;
+		}
+		else
+		{
+			return ::std::get_if<target_t>(&e);
+		}
+	}
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] auto get_ptr(entity<char_t>& e) -> target_t*
+	{
+		if constexpr (detail::has_proxy_v<target_t>)
+		{
+			if (auto p = ::std::get_if<proxy<target_t>>(&e))
+			{
+				return p->get();
+			}
+			return nullptr;
+		}
+		else
+		{
+			return ::std::get_if<target_t>(&e);
+		}
+	}
+
+	template <typename target_t, typename char_t>
+	auto get_ptr(entity<char_t>&& e) -> target_t* = delete;
+
+	template <typename target_t, typename char_t>
+	auto get_ptr(const entity<char_t>&& e) -> const target_t* = delete;
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] auto get_ptr(const_refer<char_t> e) -> const target_t*
+	{
+		if constexpr (detail::has_proxy_v<target_t>)
+		{
+			if (auto p = ::std::get_if<proxy<target_t>>(e.get()))
+			{
+				return p->get();
+			}
+			return nullptr;
+		}
+		else
+		{
+			return ::std::get_if<target_t>(e.get());
+		}
+	}
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] auto get_ptr(refer<char_t> e) -> target_t*
+	{
+		if constexpr (detail::has_proxy_v<target_t>)
+		{
+			if (auto p = ::std::get_if<proxy<target_t>>(e.get()))
+			{
+				return p->get();
+			}
+			return nullptr;
+		}
+		else
+		{
+			return ::std::get_if<target_t>(e.get());
+		}
+	}
+
+	// just for basic types
+	template <typename target_t, typename char_t>
+	[[nodiscard]] auto get_optional(const entity<char_t>& e) -> ::std::optional<target_t>
+	{
+		static_assert(types::concepts::basic_types<target_t, char_t>, "requires pdn basic types");
+		if (auto p = ::std::get_if<target_t>(&e))
+		{
+			return ::std::make_optional<target_t>(*p);
+		}
+		return ::std::nullopt;
+	}
+
+	// just for basic types
+	template <typename target_t, typename char_t>
+	[[nodiscard]] auto get_optional(const_refer<char_t> e) -> ::std::optional<target_t>
+	{
+		static_assert(types::concepts::basic_types<target_t, char_t>, "requires pdn basic types");
+		if (auto p = ::std::get_if<target_t>(e.get()))
+		{
+			return ::std::make_optional<target_t>(*p);
+		}
+		return ::std::nullopt;
+	}
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] bool type_test(const entity<char_t>& e)
+	{
+		return get_ptr<target_t>(e);
+	}
+
+	template <typename target_t, typename char_t>
+	[[nodiscard]] bool type_test(const_refer<char_t> e)
+	{
+		return get_ptr<target_t>(e);
+	}
+}
+
+namespace pdn
+{
+	template <typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto const_refer<char_t>::get_ptr() const -> const target_t*
+	{
+		return pdn::get_ptr<target_t>(*this);
+	}
+
+	template <typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto refer<char_t>::get_ptr() const -> target_t*
+	{
+		return pdn::get_ptr<target_t>(*this);
+	}
+}
+
+namespace pdn::detail
+{
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_int() const -> types::i64
+	{
+		return pdn::as_int(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <types::concepts::pdn_sint in>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_int(in) const -> in
+	{
+		return pdn::as_int(*static_cast<const entity_t*>(this), in{});
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_uint() const -> types::u64
+	{
+		return pdn::as_uint(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <types::concepts::pdn_uint un>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_uint(un) const -> un
+	{
+		return pdn::as_uint(*static_cast<const entity_t*>(this), un{});
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_fp() const -> types::f64
+	{
+		return pdn::as_fp(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <types::concepts::pdn_fp fn>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_fp(fn) const -> fn
+	{
+		return pdn::as_fp(*static_cast<const entity_t*>(this), fn{});
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_bool() const -> types::boolean
+	{
+		return pdn::as_bool(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_char() const -> types::character<char_type>
+	{
+		return pdn::as_char(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_string() const -> const types::string<char_type>&
+	{
+		return pdn::as_string(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u8string() const -> unicode::u8string
+	{
+		return pdn::as_u8string(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u16string() const -> unicode::u16string
+	{
+		return pdn::as_u16string(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u32string() const -> unicode::u32string
+	{
+		return pdn::as_u32string(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_list() const -> const types::list<char_type>&
+	{
+		return pdn::as_list(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_object() const -> const types::object<char_type>&
+	{
+		return pdn::as_object(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get() const& -> const target_t&
+	{
+		auto& self = *static_cast<const entity_t*>(this);
+		return pdn::get<target_t>(self);
+	}
+
+	template <typename entity_t, typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get() && ->target_t&&
+	{
+		auto& self = *static_cast<entity_t*>(this);
+		return pdn::get<target_t>(::std::move(self));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get() & ->target_t&
+	{
+		auto& self = *static_cast<entity_t*>(this);
+		return pdn::get<target_t>(self);
+	}
+
+	template <typename entity_t, typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get_ptr() const& -> const target_t*
+	{
+		return pdn::get_ptr<target_t>(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get_ptr() & ->target_t*
+	{
+		return pdn::get_ptr<target_t>(*static_cast<entity_t*>(this));
+	}
+
+	// just for basic types
+	template <typename entity_t, typename char_t>
+	template <typename target_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::get_optional() const -> ::std::optional<target_t>
+	{
+		return pdn::get_optional<target_t>(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <typename target_t>
+	[[nodiscard]] bool crtp_accessor<entity_t, char_t>::type_test() const
+	{
+		return pdn::type_test<target_t>(*static_cast<const entity_t*>(this));
+	}
 }
 
 #endif

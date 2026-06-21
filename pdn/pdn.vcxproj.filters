@@ -52,9 +52,6 @@
     <Filter Include="pdn_make_escape_sequence">
       <UniqueIdentifier>{dac397c7-6a75-4c49-80f9-c44a1f606de7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="pdn_include">
-      <UniqueIdentifier>{0eeb7d28-79c0-4a68-8e90-d72961154027}</UniqueIdentifier>
-    </Filter>
     <Filter Include="pdn_function_package">
       <UniqueIdentifier>{e592a64c-1aba-41fc-80bf-bd3d237670d4}</UniqueIdentifier>
     </Filter>
@@ -72,6 +69,12 @@
     </Filter>
     <Filter Include="pdn_ordered_map">
       <UniqueIdentifier>{3e788d19-8bd1-47a7-aab0-4d744f20efc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_serializer">
+      <UniqueIdentifier>{0eeb7d28-79c0-4a68-8e90-d72961154027}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_include">
+      <UniqueIdentifier>{24a2b373-cdd7-419c-a74a-3c1f39bc7e06}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -234,12 +237,6 @@
     <ClInclude Include="pdn_type_generator_concept.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_access.h">
-      <Filter>pdn_include</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_parse.h">
-      <Filter>pdn_include</Filter>
-    </ClInclude>
     <ClInclude Include="pdn_function_package.h">
       <Filter>pdn_function_package</Filter>
     </ClInclude>
@@ -315,14 +312,8 @@
     <ClInclude Include="pdn_entity_utility.h">
       <Filter>pdn_entity</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_entity_as_accessor.h">
-      <Filter>pdn_entity</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_entity_get_accessor.h">
-      <Filter>pdn_entity</Filter>
-    </ClInclude>
     <ClInclude Include="pdn_serializer.h">
-      <Filter>pdn_include</Filter>
+      <Filter>pdn_serializer</Filter>
     </ClInclude>
     <ClInclude Include="pdn_ordered_map.h">
       <Filter>pdn_ordered_map</Filter>
@@ -330,8 +321,11 @@
     <ClInclude Include="pdn_convert_decision.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_entity_crtp_accessor.h">
-      <Filter>pdn_entity</Filter>
+    <ClInclude Include="pdn_parse.h">
+      <Filter>pdn_parser</Filter>
+    </ClInclude>
+    <ClInclude Include="spdn.h">
+      <Filter>pdn_include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

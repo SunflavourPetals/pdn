@@ -133,7 +133,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="pdn_bom_reader.h" />
-    <ClInclude Include="pdn_entity_crtp_accessor.h" />
     <ClInclude Include="pdn_utf_code_convert.h" />
     <ClInclude Include="pdn_code_point_iterator.h" />
     <ClInclude Include="pdn_code_unit_iterator.h" />
@@ -144,11 +143,8 @@
     <ClInclude Include="pdn_dfa_state_objects.h" />
     <ClInclude Include="pdn_dfa_state_code.h" />
     <ClInclude Include="pdn_dfa_state_object.h" />
-    <ClInclude Include="pdn_access.h" />
     <ClInclude Include="pdn_entity.h" />
-    <ClInclude Include="pdn_entity_as_accessor.h" />
     <ClInclude Include="pdn_entity_forward_decl.h" />
-    <ClInclude Include="pdn_entity_get_accessor.h" />
     <ClInclude Include="pdn_entity_utility.h" />
     <ClInclude Include="pdn_eof_checker_concept.h" />
     <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h" />
@@ -218,6 +214,7 @@
     <ClInclude Include="pdn_type_code_to_error_msg_string.h" />
     <ClInclude Include="pdn_syntax_error_code.h" />
     <ClInclude Include="pdn_token_value_variant_convert.h" />
+    <ClInclude Include="spdn.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

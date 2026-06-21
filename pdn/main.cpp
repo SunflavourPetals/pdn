@@ -4,9 +4,7 @@
 #include <fstream>
 #include <cassert>
 
-#include "pdn_parse.h"
-#include "pdn_access.h"
-#include "pdn_serializer.h"
+#include "spdn.h"
 
 void serializer_test()
 {
@@ -227,13 +225,13 @@ object: {
 };
 )"sv;
 	auto ex = pdn::parse(content, pdn::utf8_tag);
-	// auto& e = ex;
+	auto& e = ex;
 	// auto e = ex.ref();
-	auto e = ex.cref();
+	// auto e = ex.cref();
 
 	// for entity
-	//	auto& o = e[u8"object"sv].get<pdn::types::object<char8_t>>();
-	//	o[u8"m1"] = 123;
+	auto& o = e[u8"object"sv].get<pdn::types::object<char8_t>>();
+	o[u8"m1"] = 123;
 
 	// for ref
 	// *e[u8"object"sv][u8"m1"].get_ptr<pdn::types::auto_int>() = 123;
@@ -241,7 +239,7 @@ object: {
 	auto lf = "\n";
 	std::cout
 		<< "get_series_member_test begin" << lf
-		/*
+		
 		<< e[u8"int"].get<pdn::types::auto_int>() << lf
 		<< (int)e[u8"i8"].get<pdn::types::i8>() << lf
 		<< e[u8"i16"].get<pdn::types::i16>() << lf
@@ -259,7 +257,7 @@ object: {
 		<< (const char*)e[u8"str"].get<pdn::types::string<char8_t>>().c_str() << lf
 		<< e[u8"list"].get<pdn::types::list<char8_t>>()[0].get<pdn::types::auto_int>() << lf
 		<< e[u8"object"].get<pdn::types::object<char8_t>>()[u8"m1"].get<pdn::types::auto_int>() << lf
-		*/
+		
 		// get_ptr vvv
 		<< *e[u8"int"].get_ptr<pdn::types::auto_int>() << lf
 		<< (int)*e[u8"i8"].get_ptr<pdn::types::i8>() << lf
@@ -278,6 +276,8 @@ object: {
 		<< (const char*)e[u8"str"].get_ptr<pdn::types::string<char8_t>>()->c_str() << lf
 		<< e[u8"list"].get_ptr<pdn::types::list<char8_t>>()->operator[](0).get<pdn::types::auto_int>() << lf
 		<< e[u8"object"].get_ptr<pdn::types::object<char8_t>>() /*->operator[](u8"m1").get<pdn::types::auto_int>()*/ << lf
+		// for entity test and ref test, comment it out when testing cref
+		<< e[u8"object"].get_ptr<pdn::types::object<char8_t>>()->operator[](u8"m1").get<pdn::types::auto_int>() << lf
 		// get_opt vvv
 		<< *e[u8"int"].get_optional<pdn::types::auto_int>() << lf
 		<< (int)*e[u8"i8"].get_optional<pdn::types::i8>() << lf
