@@ -21,6 +21,11 @@
 #include "pdn_entity.h"
 #include "pdn_parser_utility.h"
 
+namespace pdn::detail
+{
+	inline constexpr ::std::size_t default_buffer_size = 1024;
+}
+
 namespace pdn
 {
 	inline constexpr unicode::u8char_t  utf8_tag{};
@@ -107,7 +112,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&  lex_fp,
 	                         fn_pkg_for_parser& par_fp,
 	                         char_t             char_tag = {},
-	                         ::std::size_t      buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t      buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		if (!source_file.is_open() || source_file.bad())
 		{
@@ -133,7 +138,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(::std::ifstream& source_file,
 	                                char_t    char_tag = {},
-	                         ::std::size_t    buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t    buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(source_file, fp, fp, fp, char_tag, buffer_size);
@@ -148,7 +153,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&    lex_fp,
 	                         fn_pkg_for_parser&   par_fp,
 	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -157,7 +162,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const ::std::string& filename,
 	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -172,7 +177,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&    lex_fp,
 	                         fn_pkg_for_parser&   par_fp,
 	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -181,7 +186,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const char* const filename,
 	                         char_t            char_tag = {},
-	                         ::std::size_t     buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t     buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -196,7 +201,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&     lex_fp,
 	                         fn_pkg_for_parser&    par_fp,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -205,7 +210,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const ::std::wstring& filename,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -220,7 +225,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&     lex_fp,
 	                         fn_pkg_for_parser&    par_fp,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -229,7 +234,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const wchar_t* const  filename,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = 1024) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
