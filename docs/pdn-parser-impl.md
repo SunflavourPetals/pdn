@@ -29,16 +29,19 @@ void parse_something()
 此外，以上三者都需要错误处理和错误信息生成功能，默认的错误处理为打印错误信息到标准错误流，默认的错误信息生成方法生成英文错误信息。  
 最佳实践是组合 `pdn_function_package.h` 内的 `pdn::default_function_package` 和用户需要自定义的内容，使它满足以上三者的需求，然后为它们三个提供同一个`function_package` 对象(将按引用传递)。
 
-## data_entity
+## entity
 
-解析后将得到一个持有 `object` 的 `data_entity` (数据实体) 或 `optional` 的数据实体(取决于使用的 `parse` 函数)，是 `std::variant<pdn_data_types...>` 的派生类，除了可以用 `std::get` `std::get_if` `std::visit` 等方法访问，还提供如下访问函数(头文件 `pdn_data_entity.h`，名称空间 `pdn` 内)：  
+解析后将得到一个持有 `object` 的 `entity` (数据实体) 或 `optional` 的数据实体(取决于使用的 `parse` 函数)，是 `std::variant<pdn_data_types...>` 的派生类，除了可以用 `std::get` `std::get_if` `std::visit` 等方法访问，还提供如下访问函数(头文件 `pdn_entity.h`，名称空间 `pdn` 内)：  
 
 1. `get` 系列函数：对代理进行处理的 `std::get` 的封装，不支持 `refer` 和 `const_refer` 版本；  
 2. `get_ptr` 系列函数：获得相应类型的值或得到 nullptr；  
 3. `get_optional` 系列函数：仅对基本类型提供(整数、浮点数、布尔和字符)，获得相应类型的 `optional`，失败时得到 `nullopt`；  
-4. `as` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值。  
+4. `as` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值；  
+5. `type_test` 系列函数：测试实体持有的值是否为指定类型。  
 
-`data_entity` 还有如下成员方法：  
+以上函数同时提供 `entity` `entity_ref` `entity_cref` 成员函数版本(后两者不含 `get` 函数，其提供的同名 `get` 函数用于取引用的实体的地址)。  
+
+`entity` 还有如下成员方法：  
 
 1. `ref` `cref`：获得 `refer` 或 `const_refer` 类，它们有 `operator[]` 和 `at` 方法，但查询失败时都返回空 `refer|const_refer`。  
 2. `operator[string_view<char_t>]`：获得 Object 的成员数据，如果当前实体不是 Object 或没有相应成员数据，将抛出异常；  
@@ -56,9 +59,7 @@ void parse_something()
 #include <string>
 #include <cassert>
 
-#include "pdn_parse.h"
-#include "pdn_data_entity.h"
-#include "pdn_serializer.h"
+#include "spdn.h"
 
 void access_test()
 {

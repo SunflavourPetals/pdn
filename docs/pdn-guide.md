@@ -576,6 +576,8 @@ int main()
 
 代码见 [`guide-source/learn-parse.cpp`](./guide-source/learn-parse.cpp)。  
 
+[参考 pdn-parser-impl](./pdn-parser-impl.md#parse)  
+
 ## 访问不同类型数据的方法
 
 ### 用键从对象中查询数据
