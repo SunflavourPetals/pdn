@@ -80,26 +80,26 @@ list [
 	(void)get<auto_int>(e[u8"auto_int"]);
 	(void)get<object<char8_t>>(e[u8"object"]);
 
-	auto test_i64 = get<i64>(e[u8"i64"]);
+	[[maybe_unused]] auto test_i64 = get<i64>(e[u8"i64"]);
 	assert(test_i64 == -64);
 	// get_ptr
-	auto test_list_p = get_ptr<list<char8_t>>(e[u8"list"]);
+	[[maybe_unused]] auto test_list_p = get_ptr<list<char8_t>>(e[u8"list"]);
 	assert(test_list_p != nullptr);
-	auto test_nonexistence_p = get_ptr<list<char8_t>>(r[u8"nonexistence"]);
+	[[maybe_unused]] auto test_nonexistence_p = get_ptr<list<char8_t>>(r[u8"nonexistence"]);
 	assert(test_nonexistence_p == nullptr);
 	// get_optional
-	auto test_auto_uint_opt = get_optional<auto_uint>(e[u8"auto_uint"]);
+	[[maybe_unused]] auto test_auto_uint_opt = get_optional<auto_uint>(e[u8"auto_uint"]);
 	assert(test_auto_uint_opt && (*test_auto_uint_opt == 1));
-	auto test_nonexistence_opt = get_optional<i32>(r[u8"nonexistence"]);
+	[[maybe_unused]] auto test_nonexistence_opt = get_optional<i32>(r[u8"nonexistence"]);
 	assert(static_cast<bool>(test_nonexistence_opt) == false);
 	// as
-	auto test_as_u32 = as_uint(e[u8"u32"], u32_tag);
+	[[maybe_unused]] auto test_as_u32 = as_uint(e[u8"u32"], u32_tag);
 	static_assert(::std::same_as<decltype(test_as_u32), u32>);
 	assert(test_as_u32 == 32);
-	auto test_as_i8 = as_int(r[u8"u64"], i8_tag);
+	[[maybe_unused]] auto test_as_i8 = as_int(r[u8"u64"], i8_tag);
 	static_assert(::std::same_as<decltype(test_as_i8), i8>);
 	assert(test_as_i8 == 64);
-	const auto& test_as_string = as_string(r[u8"char"]);
+	[[maybe_unused]] const auto& test_as_string = as_string(r[u8"char"]);
 	assert(test_as_string == string<char8_t>{});
 }
 
@@ -162,6 +162,8 @@ object: {
 };
 )"sv;
 	auto ex = pdn::parse(content, pdn::utf8_tag);
+	auto ex16 = pdn::parse(content, pdn::utf16_tag);
+	auto ex32 = pdn::parse(content, pdn::utf32_tag);
 	// auto e = ex.cref();
 	// auto e = ex.ref();
 	auto& e = ex;
@@ -305,9 +307,9 @@ int main() try
 //	serializer_test();
 	access_test();
 
-	std::cout << "variant & entity size: " << sizeof pdn::types::detail::entity_variant<char8_t> << " " << sizeof pdn::entity<char8_t> << "\n";
-	std::cout << "             ref size: " << sizeof pdn::refer<char8_t> << "\n";
-	std::cout << "            cref size: " << sizeof pdn::const_refer<char8_t> << "\n";
+	std::cout << "variant & entity size: " << sizeof(pdn::types::detail::entity_variant<char8_t>) << " " << sizeof(pdn::entity<char8_t>) << "\n";
+	std::cout << "             ref size: " << sizeof(pdn::refer<char8_t>) << "\n";
+	std::cout << "            cref size: " << sizeof(pdn::const_refer<char8_t>) << "\n";
 
 	using namespace std::literals::string_view_literals;
 	auto pdn_src = u8R"(// spdn source

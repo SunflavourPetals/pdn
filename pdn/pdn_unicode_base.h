@@ -217,27 +217,27 @@ namespace pdn::unicode
 
 namespace pdn::inline literals::inline unicode_literals
 {
-	[[nodiscard]] constexpr unicode::u8string operator"" _s(const unicode::u8char_t* ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u8string operator""_s(const unicode::u8char_t* ptr, ::std::size_t length)
 	{
 		return unicode::u8string{ ptr, length };
 	}
-	[[nodiscard]] constexpr unicode::u16string operator"" _s(const unicode::u16char_t* ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u16string operator""_s(const unicode::u16char_t* ptr, ::std::size_t length)
 	{
 		return unicode::u16string{ ptr, length };
 	}
-	[[nodiscard]] constexpr unicode::u32string operator"" _s(const unicode::u32char_t * ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u32string operator""_s(const unicode::u32char_t * ptr, ::std::size_t length)
 	{
 		return unicode::u32string{ ptr, length };
 	}
-	[[nodiscard]] constexpr unicode::u8string_view operator"" _sv(const unicode::u8char_t* ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u8string_view operator""_sv(const unicode::u8char_t* ptr, ::std::size_t length)
 	{
 		return unicode::u8string_view{ ptr, length };
 	}
-	[[nodiscard]] constexpr unicode::u16string_view operator"" _sv(const unicode::u16char_t * ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u16string_view operator""_sv(const unicode::u16char_t * ptr, ::std::size_t length)
 	{
 		return unicode::u16string_view{ ptr, length };
 	}
-	[[nodiscard]] constexpr unicode::u32string_view operator"" _sv(const unicode::u32char_t * ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u32string_view operator""_sv(const unicode::u32char_t * ptr, ::std::size_t length)
 	{
 		return unicode::u32string_view{ ptr, length };
 	}
