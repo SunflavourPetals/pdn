@@ -14,5 +14,6 @@
 
 ## 使用本项目的 pdn::parse 方法解析 .spdn(Petals Data Notation) 文件
 
-将 `./pdn` 内的所有头文件 `.h` 引入项目包含目录，在使用 `pdn::parse` 的程序中使用 `#include` 预处理指令引入 `pdn_parse.h`，解析结果的类型为模板 `pdn::data_entity` 的实例，并且这个实例一定是 `object`。  
-如果只使用 `pdn::data_entity`，仅引入 `pdn_data_entity.h` 即可。  
+将 `./pdn` 内的所有头文件 `.h` 引入项目包含目录，在使用 `pdn::parse` 的程序中使用 `#include` 预处理指令引入 `pdn_parse.h`，解析结果的类型为模板 `pdn::entity` 的实例，并且这个实例一定是 `object`。  
+如果只使用 `pdn::entity`，仅引入 `pdn_entity.h` 即可。  
+如果不想纠结，可以直接引入 `spdn.h`，它包含 `pdn_entity.h` `pdn_parse.h` `pdn_serializer.h`。  
