@@ -44,8 +44,9 @@ say: "Hello world!"
 ```C++
 #include <iostream>
 
-#include "pdn_parse.h" // 包含解析 spdn 的函数
-#include "pdn_data_entity.h" // 包含 entity 的访问函数如 as_string
+#include "spdn.h" // 包含下两行的头文件
+// #include "pdn_parse.h" // 包含解析 spdn 的函数
+// #include "pdn_entity.h" // 包含 entity 的访问函数如 as_string
 
 // ostream 对象如 std::cout 并不能输出 u8string 的值，
 // 但是每次都进行转换会使程序变得冗长，不利于教学。
@@ -72,7 +73,7 @@ int main()
     // 得到一个 entity_opt，它是一个 std::optional<pdn::u8entity> 的对象
     if (!entity_opt) // 判断是否解析成功，若文件不存在或无法打开，则是 nullopt
     {
-        std::cerr << "failed in parse hello.spdn\n";
+        std::cerr << "failed in open or parse hello.spdn\n";
         return 0;
     }
     
@@ -84,8 +85,8 @@ int main()
     // 从中查询 "say" 成员，并引用它(因为我们指定了 utf8_tag，所以需要使用 u8 字符串作为查询的键)
     const auto& say = entity[u8"say"];
 
-    // 将我们查询到的数据以字符串的形式使用，需要用到 pdn::as_string 函数
-    std::cout << as_string(say) << "\n";
+    // 将我们查询到的数据以字符串的形式使用，需要用到 pdn::as_string 函数，提供成员函数版本
+    std::cout << say.as_string() << "\n";
 }
 
 ```
@@ -207,7 +208,7 @@ list [
 0U // 错误！想要一个无符号整数 0，但是 spdn 不支持整数后缀，想要指定实体的类型请使用“类型指定”
 ```
 
-[cppreference integer_literal](https://zh.cppreference.com/w/cpp/language/integer_literal)  
+[参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/integer_literal "integer_literal")  
 
 ### 浮点数示例
 
@@ -233,7 +234,7 @@ list [
 0.F // 错误！想要一个 float 的 0.0，但是 spdn 不支持浮点数后缀，想要指定实体的类型请使用“类型指定”
 ```
 
-[cppreference floating_literal](https://zh.cppreference.com/w/cpp/language/floating_literal)  
+[参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/floating_literal "floating_literal")  
 
 ### 无整数后缀和浮点数后缀的原因
 
@@ -289,17 +290,16 @@ cat: "a" " " @"(string)" "!" // 等效于 "a string!"
 
 示例来自 [pdn_reference](./pdn-reference.md#原始字符串)  
 
-cppreference：  
-[cppref string_literal](https://zh.cppreference.com/w/cpp/language/string_literal)  
+[参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/string_literal "string_literal")  
 
 ## 布尔数据
 
 `spdn` 的布尔类型数据：  
 
 ```spdn
-bool_1: boolean 1       // 非零值被转换为布尔值 true
-bool_2: bool    123.456 // 非零值被转换为布尔值 true，但不太好 (bool 和 boolean 等价)
-bool_3: bool    0       // 零被转换为布尔值 false
+bool_1: boolean 1 // 非零值被转换为布尔值 true
+bool_2: bool    1 // 非零值被转换为布尔值 true(bool 和 boolean 等价)
+bool_3: bool    0 // 零被转换为布尔值 false
 bool_4 @true  // 布尔值 true
 bool_5 @false // 布尔值 false
 ```
@@ -366,7 +366,7 @@ linefeed` 123
 // 请不要犯这种错误
 ```
 
-除了 `` \` `` 是 `spdn` 字符串标识符独有的转义序列外，`spdn` 支持 C++ 除了条件转义序列(实现定义)的所有转义序列，形式与目前(我编写这个文档的时间公元2024-2025年)最新的 C++ 标准(C++26)完全一样，只是 `spdn` 额外要求所有转义结果都必须是 Unicode 标量值，参考 [转义字符](#转义字符)、[`cppreference`](https://zh.cppreference.com/w/cpp/language/escape "escape")。  
+除了 `` \` `` 是 `spdn` 字符串标识符独有的转义序列外，`spdn` 支持 C++ 除了条件转义序列(实现定义)的所有转义序列，形式与目前(我编写这个文档的时间公元2024-2025年)最新的 C++ 标准(C++26)完全一样，只是 `spdn` 额外要求所有转义结果都必须是 Unicode 标量值，参考 [转义字符](#转义字符)、[`C++ Reference`](https://zh.cppreference.com/w/cpp/language/escape "escape")。  
 
 ### 原始字符串标识符
 
@@ -414,7 +414,7 @@ score 100 // 分数的范围为 0 到 100 分
 ### 类型转换规则
 
 1. `i8`、`i16`、`i32`、`i64`、`u8`、`u16`、`u32`、`u64` 在不发生溢出的情况下可以相互转换(溢出被视为错误)、还可以可以转换为 `f32`、`f64` 和 `boolean`；  
-2. `f32`、`f64` 可以相互转换、可以转换为 `boolean`；  
+2. `f32`、`f64` 可以相互转换、可以转换为 `boolean`，不可以转换为整数类型；  
 3. `boolean` 可以转换为 `i8`、`i16`、`i32`、`i64`、`u8`、`u16`、`u32`、`u64`、`f32`、`f64`，其中 `false` 将被转换为 `0`，`true` 将被转换为 `1`，从其他类型转换到 `boolean` 时，非零值被转换为 `true`，零被转换为 `false`。  
 
 只有在整数类型之间相互转换时可能发生溢出错误，其余转换不会发生错误。  
@@ -425,21 +425,29 @@ score 100 // 分数的范围为 0 到 100 分
 
 `spdn` 有十五种类型：`i8` `i16` `i32` `i64` `u8` `u16` `u32` `u64` `f32` `f64` `boolean` `character` `string` `list` `object`。  
 
+[数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
+
 #### 整数和浮点数类型
 
 可以看到像某些编程语言一样冗杂的有关数字的类型，它们很可能是一种设计失误。设计它们，是为了能更好的对应 C++ 的整数和浮点数类型，通常这些整数类型是 C++ 标准库 `cstdint` 中 `int8_t` 到 `int64_t`、`uint8_t` 到 `uint64_t`。并且，给用户选择的权力，如指定一个实体是 `f32` 类型的：`num:f32 1.0`，如果不使用类型指定，那么 `num` 的类型就是 `f64`，而不是 `f32`。  
   
 `spdn` 中有类型别名 `int` 和 `uint`，在 PC 上它们基本是 `i32` 和 `u32` 的别名，如果对 `int` `uint` 别名的具体类型感兴趣，可以参阅 [`pdn_reference`](./pdn-reference.md#数据类型)。  
-而 `f32` 和 `f64` 就是 C++ 的 `float` 和 `double`，在 `spdn` 中 `float` 是 `f32` 的别名，`double` 是 `f64` 的别名。  
+而 `f32` 和 `f64` 基本就是 C++ 的 `float` 和 `double`，在 `spdn` 中 `float` 是 `f32` 的别名，`double` 是 `f64` 的别名。  
 
 我们在 `spdn` 中写下的整数，绝大部分是 `int` 类型的，如果我们写下的数字超过了 `int` 类型能表示的范围，解析器会为它选择一个合适的整数类型，如果没有能表示这个整数的类型，那么就会产生错误：`1` 的类型是 `int`，`0xffff'ffff'ffff'ffff` 的类型是 `u64`，`0x1'0000'0000'0000'0000` Oops! 现在连 `u64` 都无法表示这个整数，只能报告错误了！  
 其实像这样的情况应该换用字符串(C++的内置整数类型无法满足要求，由程序想办法解析这么大的数)或者浮点数表示了，`0x1p64`，这里使用的是十六进制科学计数法表示。还记得我们说过 `spdn` 参考了 C++ 的字面量词法吗？`spdn` 支持[二进制、八进制、十进制和十六进制的整数](https://zh.cppreference.com/w/cpp/language/integer_literal "cppreference")，以及[十进制、十进制科学计数法、十六进制科学计数法的浮点数](https://zh.cppreference.com/w/cpp/language/floating_literal "cppreference")。  
 
-在 `spdn` 里浮点数形式的的数据都是 `f64` 类型的，想要得到 `f32` 类型的数据只能使用类型指定来转换，将整数转换为 `f32` 浮点数：`num1:f32 123`，将 `f64` 浮点数转换为 `f32` 浮点数：`num2:f32 123.0`。  
+在 `spdn` 里浮点数形式的的数据都是 `f64` 类型的，想要得到 `f32` 类型的数据只能使用[类型指定](#类型指定的语法)来转换，将整数转换为 `f32` 浮点数：`num1:f32 123`，将 `f64` 浮点数转换为 `f32` 浮点数：`num2:f32 123.0`。  
+
+[数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
+[整数字面量参考 pdn_reference](./pdn-reference.md#整数字面量)  
+[浮点数字面量参考 pdn_reference](./pdn-reference.md#浮点数字面量)  
 
 #### 布尔类型
 
 `spdn` 的布尔类型，对应 C++ 的 `bool` 类型。  
+
+[数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
 
 #### 字符类型
 
@@ -448,11 +456,44 @@ score 100 // 分数的范围为 0 到 100 分
 
 通常我们建议使用字符串，除非你有更好的理由使用字符。  
 
-[参考 pdn_reference](./pdn-reference.md#字符字面量)  
+[数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
+[字符字面量参考 pdn_reference](./pdn-reference.md#字符字面量)  
 
-#### 其他类型
+#### 字符串类型
 
-现在还剩下字符串、列表和对象类型，这几个类型我们已经耳熟能详了，也没有什么特别要注意的事情，这里就不再赘述。  
+字符串用于存储文本，其中每个字符必须为 Unicode 标量值，支持转义字符，但是转义结果也必须是 Unicode 标量值。  
+字符串、原始字符串以及字符串拼接的结果都会自动推导为字符串类型。  
+
+[数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
+[字符串字面量参考 pdn_reference](./pdn-reference.md#字符串字面量)  
+
+#### 列表类型
+
+列表是一系列元素的有序集合，其中的元素可以为任意类型。  
+两个相邻元素必须由一个逗号 `,` 隔开，末尾元素可尾随一个逗号(可选)。  
+
+```spdn
+list [
+    1,
+    2.0,
+    "3",
+    @true,
+    '爱',
+    [],
+    {},
+]
+```
+
+[数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
+[列表表达式参考 pdn_reference](./pdn-reference.md#list-表达式)  
+
+#### 对象类型
+
+object 为对象(标识符-数据的映射结构)，其直接成员数据不能同名。  
+每个 `spdn` 序列解析完，就能得到一个 `object` 类型的数据实体。  
+
+[数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
+[对象表达式参考 pdn_reference](./pdn-reference.md#object-表达式)  
 
 ## at 常量
 
@@ -470,7 +511,7 @@ at 常量用于从解析器提供的常量表中获取值，比如使用 `@true`
 注：本仓库实现的解析器不支持 `\N{NAME}` 形式的转义序列  
 
 [参考 pdn_reference](./pdn-reference.md#转义)  
-[参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/escape)  
+[参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/escape "escape")  
 
 ## 解析 spdn 格式的 parse 函数
 
