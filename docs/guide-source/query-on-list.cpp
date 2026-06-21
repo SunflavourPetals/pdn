@@ -2,8 +2,7 @@
 #include <string>
 #include <cassert>
 
-#include "pdn_parse.h"
-#include "pdn_data_entity.h"
+#include "spdn.h"
 
 #include "outu8sv.h"
 

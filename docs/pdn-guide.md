@@ -515,7 +515,66 @@ at 常量用于从解析器提供的常量表中获取值，比如使用 `@true`
 
 ## 解析 spdn 格式的 parse 函数
 
-// todo
+`pdn::parse` 是一系列提供解析 `spdn` 序列功能的函数模板。  
+
+* 提供解析 `pdn::token` 流的版本；  
+* 提供解析 UTF 码元流的版本；  
+* 提供解析 UTF 字符串的版本；  
+* 提供解析文件流的版本；  
+* 提供根据文件名解析 `spdn` 文件的版本。  
+
+`pdn::parse` 的模板参数 `char_t` 用于决定解析后的数据用哪种编码表示，一般使用情况下可以用函数 `char_t` 参数来推导(填入 `pdn::utf8/16/32_tag`)。  
+
+通过 `fn_pkg_for_...` 参数，`pdn::parse` 提供部分自定义配置，根据被解析内容的层次(token 流或是 UTF 码元流包括 UTF 字符串、文件) 配置项有增减。  
+
+用户常用版本：
+
+* 解析 UTF 字符串的版本；  
+* 根据文件名解析 `spdn` 文件的版本。  
+
+```C++
+#include <string>
+
+#include "spdn.h"
+
+int main()
+{
+    using namespace std::literals;
+    
+    auto spdn_text = u8R"(test: "test")"sv;
+    auto spdn_filename = "hello.spdn"s;
+
+    // 解析 UTF8 字符串
+    // 参数类型可以是
+    //     u8string/u8string_view/
+    //     u16string/u16string_view/
+    //     u32string/u32string_view
+    // 不支持c风格字符串
+    auto e1 = pdn::parse(spdn_text, pdn::utf8_tag); // 可以换成 utf16_tag utf32_tag，但是推荐使用 utf8
+
+    // 解析 spdn 文件
+    // 参数类型可以是 string/const char*/wstring/const wchar_t*
+    auto e2 = pdn::parse(spdn_filename, pdn::utf8_tag); // 可以换成 utf16_tag utf32_tag，但是推荐使用 utf8
+
+    // 自定义内容(目前不展开具体可自定义内容)
+    class my_fn_pkg : public pdn::default_function_package<char8_t> {};
+
+    auto fp = my_fn_pkg{};
+
+    // 解析 UTF8 字符串
+    // 为 utf 解码器、词法分析器、解析器填入我们的 fp
+    // 必须使用 utf8_tag，因为我们的 fp 只支持 utf8
+    auto e3 = pdn::parse(spdn_text, fp, fp, fp, pdn::utf8_tag);
+
+    // parse spdn file
+    // 为 utf 解码器、词法分析器、解析器填入我们的 fp
+    // 必须使用 utf8_tag，因为我们的 fp 只支持 utf8
+    auto e4 = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag);
+}
+
+```
+
+代码见 [`guide-source/learn-parse.cpp`](./guide-source/learn-parse.cpp)。  
 
 ## 访问不同类型数据的方法
 
@@ -547,10 +606,10 @@ auto e_ref = entity.cref();
 实体引用类是用指针实现的，复制开销很小，也不持有所有权，所以通常我们不创建实体引用的 C++ 引用：  
 
 ```C++
-const auto& e_ref_ref = entity.cref(); // 最好别这么干
+const auto& e_ref_ref = entity.cref(); // 别这么干
 ```
 
-对 ref 进行的查询不会抛出异常，查询成功时返回相应数据实体的 ref，查询失败(该 ref 为空、该 ref 所指代的实体不是对象或该 ref 指代的对象没有相应成员)时返回空 ref：  
+对 ref 进行的查询不会抛出异常，查询成功时返回相应数据实体的 ref，使用键进行查询失败(该 ref 为空、该 ref 所指代的实体不是对象或该 ref 指代的对象没有相应成员)时返回空 ref：  
 
 ```C++
 auto say_ref = e_ref[u8"say"]; // 查询成功，say_ref 不为空
@@ -584,8 +643,7 @@ ref 对象的 `operator bool` 和 `has_value` 具有相同的功能。
 #include <string>
 #include <cassert>
 
-#include "pdn_parse.h"
-#include "pdn_data_entity.h"
+#include "spdn.h"
 
 #include "outu8sv.h"
 
@@ -637,9 +695,11 @@ int main()
 }
 ```
 
+代码见 [`guide-source/query-on-list.cpp`](./guide-source/query-on-list.cpp)。  
+
 ### as 系列函数
 
-上面我们已经用过了一些 as 系列的函数，如 `as_int` `as_string` `as_list` 等，本库的 as 系列函数分为 8 类：`as_int` `as_uint` `as_fp`(fp 是 floating-point 的缩写) `as_bool` `as_char` `as_string` `as_list` `as_object`，全部在头文件 `pdn_data_entity.h`(间接包含，实际定义在 `pdn_entity_as_accessor.h`)，名称空间 `pdn` 中。  
+上面我们已经用过了一些 as 系列的函数，如 `as_int` `as_string` `as_list` 等，本库的 as 系列函数分为 8 类：`as_int` `as_uint` `as_fp`(fp 是 floating-point 的缩写) `as_bool` `as_char` `as_string` `as_list` `as_object`，全部在头文件 `pdn_entity.h`、名称空间 `pdn` 中，也有 `pdn::entity<char_t>`、`pdn::entity_ref<char_t>` 和 `pdn::entity_cref<char_t>` 成员函数版本供使用。  
 
 * `as_int` 的返回值类型是 `i64`；  
 * `as_uint` 的返回值类型是 `u64`；  
@@ -661,8 +721,7 @@ int main()
 #include <iostream>
 #include <string>
 
-#include "pdn_parse.h"
-#include "pdn_data_entity.h"
+#include "spdn.h"
 
 #include "outu8sv.h"
 
@@ -681,7 +740,7 @@ int main()
 
     std::cout << as_int(e[u8"f"]) << "\n"; // 1
 
-    std::cout << as_int(e[u8"inf"]) << "\n"; // 9223372036854775807
+    std::cout << e[u8"inf"].as_int() << "\n"; // 9223372036854775807
 
     std::cout << std::boolalpha << as_bool(e[u8"c"]) << "\n"; // true
 
@@ -711,6 +770,18 @@ int main()
 对于无法转换的数据，会得到一个默认值：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空字符串。  
 
 ### get 系列函数
+
+// todo
+
+### get_ptr 系列函数
+
+// todo
+
+### get_optional 系列函数
+
+// todo
+
+### type_test 系列函数
 
 // todo
 
