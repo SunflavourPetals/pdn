@@ -30,7 +30,7 @@ namespace pdn::detail
 	template <typename t>
 	concept can_to_string = type::concepts::pdn_integral<t> || type::concepts::pdn_fp<t>;
 	template <typename t, typename char_t>
-	concept nonlist_nonobj = type::concepts::basic_types<t, char_t> || ::std::same_as<t, type::string<char_t>>;
+	concept nonlist_nonobj = type::concepts::basic_type<t, char_t> || ::std::same_as<t, type::string<char_t>>;
 
 	template <typename char_t>
 	auto to_pdn_format(type::concepts::pdn_integral auto val) -> type::string<char_t>

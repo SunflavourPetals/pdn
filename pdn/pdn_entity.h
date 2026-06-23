@@ -54,7 +54,7 @@ namespace pdn::detail
 
 		[[nodiscard]] auto as_object() const -> const type::object<char_type>&;
 
-		// get_opt is for basic types only, returns std::nullopt if type mismatch or no value
+		// get_opt is for basic type only, returns std::nullopt if type mismatch or no value
 		template <typename target_t>
 		[[nodiscard]] auto get_opt() const -> ::std::optional<target_t>;
 
@@ -685,11 +685,11 @@ namespace pdn
 		}
 	}
 
-	// just for basic types
+	// just for basic type
 	template <typename target_t, typename char_t>
 	[[nodiscard]] auto get_opt(const entity<char_t>& e) -> ::std::optional<target_t>
 	{
-		static_assert(type::concepts::basic_types<target_t, char_t>, "requires pdn basic types");
+		static_assert(type::concepts::basic_type<target_t, char_t>, "requires pdn basic type");
 		if (auto p = ::std::get_if<target_t>(&e))
 		{
 			return ::std::make_optional<target_t>(*p);
@@ -697,11 +697,11 @@ namespace pdn
 		return ::std::nullopt;
 	}
 
-	// just for basic types
+	// just for basic type
 	template <typename target_t, typename char_t>
 	[[nodiscard]] auto get_opt(const_refer<char_t> e) -> ::std::optional<target_t>
 	{
-		static_assert(type::concepts::basic_types<target_t, char_t>, "requires pdn basic types");
+		static_assert(type::concepts::basic_type<target_t, char_t>, "requires pdn basic type");
 		if (auto p = ::std::get_if<target_t>(e.get()))
 		{
 			return ::std::make_optional<target_t>(*p);
@@ -866,7 +866,7 @@ namespace pdn::detail
 		return pdn::get_if<target_t>(*static_cast<entity_t*>(this));
 	}
 
-	// just for basic types
+	// just for basic type
 	template <typename entity_t, typename char_t>
 	template <typename target_t>
 	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::get_opt() const -> ::std::optional<target_t>

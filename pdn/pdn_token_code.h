@@ -10,7 +10,7 @@ namespace pdn
 		eof,
 		at_identifier,          // variant(string)
 		identifier,             // variant(string)
-		literal_integer,        // variant(int or other int types)
+		literal_integer,        // variant(int or other int type)
 		literal_floating_point, // variant(f64)
 		literal_string,         // variant(string)
 		literal_character,      // variant(character)

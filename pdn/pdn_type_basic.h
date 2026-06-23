@@ -81,7 +81,7 @@ namespace pdn::type::concepts
 	concept pdn_bool = ::std::same_as<bool_t, boolean>;
 
 	template <typename t, typename char_t>
-	concept basic_types
+	concept basic_type
 		 = concepts::pdn_integral<t>
 		|| concepts::pdn_fp<t>
 		|| concepts::pdn_bool<t>
