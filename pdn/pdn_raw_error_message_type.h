@@ -4,7 +4,7 @@
 #include <system_error>
 #include <cstddef>
 
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_unicode.h"
 #include "pdn_error_string.h"
 #include "pdn_token_value_variant.h"

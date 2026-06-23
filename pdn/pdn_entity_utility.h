@@ -5,12 +5,12 @@
 #include <variant>
 #include <cmath>
 
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_proxy.h"
 
 #include "pdn_entity_forward_decl.h"
 
-namespace pdn::types::detail
+namespace pdn::type::detail
 {
 	template <typename char_t>
 	using entity_variant = ::std::variant<
@@ -26,10 +26,10 @@ namespace pdn::types::detail
 
 namespace pdn::detail
 {
-	template <typename arg_t, types::concepts::pdn_sint tar_int = types::i64>
+	template <typename arg_t, type::concepts::pdn_sint tar_int = type::i64>
 	inline auto as_int(const arg_t& arg) -> tar_int
 	{
-		using namespace types::concepts;
+		using namespace type::concepts;
 		if constexpr (pdn_bool<arg_t>)
 		{
 			return arg;
@@ -45,7 +45,7 @@ namespace pdn::detail
 		else if constexpr (pdn_uint<arg_t>)
 		{
 			constexpr auto max = ::std::numeric_limits<tar_int>::max();
-			return arg > types::u64(max) ? max : tar_int(arg);
+			return arg > type::u64(max) ? max : tar_int(arg);
 		}
 		else if constexpr (pdn_fp<arg_t>)
 		{
@@ -62,10 +62,10 @@ namespace pdn::detail
 		}
 	}
 
-	template <typename arg_t, types::concepts::pdn_uint tar_uint = types::u64>
+	template <typename arg_t, type::concepts::pdn_uint tar_uint = type::u64>
 	inline auto as_uint(const arg_t& arg) -> tar_uint
 	{
-		using namespace types::concepts;
+		using namespace type::concepts;
 		if constexpr (pdn_bool<arg_t>)
 		{
 			return arg;
@@ -80,7 +80,7 @@ namespace pdn::detail
 		{
 			constexpr auto tar_max = ::std::numeric_limits<tar_uint>::max();
 			if (arg < 0) return 0;
-			if (static_cast<types::u64>(arg) > tar_max) return tar_max;
+			if (static_cast<type::u64>(arg) > tar_max) return tar_max;
 			return static_cast<tar_uint>(arg);
 		}
 		else if constexpr (pdn_fp<arg_t>)
@@ -96,10 +96,10 @@ namespace pdn::detail
 		}
 	}
 
-	template <typename arg_t, types::concepts::pdn_fp tar_fp = types::f64>
+	template <typename arg_t, type::concepts::pdn_fp tar_fp = type::f64>
 	inline auto as_fp(const arg_t& arg) -> tar_fp
 	{
-		using namespace types::concepts;
+		using namespace type::concepts;
 		if constexpr (pdn_bool<arg_t> || pdn_integral<arg_t> || pdn_fp<arg_t>)
 		{
 			return static_cast<tar_fp>(arg);
@@ -111,16 +111,16 @@ namespace pdn::detail
 	}
 
 	template <typename char_t, typename arg_t>
-	inline auto as_bool(const arg_t& arg) -> types::boolean
+	inline auto as_bool(const arg_t& arg) -> type::boolean
 	{
-		using namespace types::concepts;
+		using namespace type::concepts;
 		if constexpr (pdn_bool<arg_t> || pdn_integral<arg_t> || pdn_fp<arg_t>)
 		{
 			return static_cast<bool>(arg);
 		}
-		else if constexpr (::std::same_as<arg_t, types::character<char_t>>)
+		else if constexpr (::std::same_as<arg_t, type::character<char_t>>)
 		{
-			return arg != types::character<char_t>{};
+			return arg != type::character<char_t>{};
 		}
 		else
 		{
@@ -131,34 +131,34 @@ namespace pdn::detail
 	template <typename char_t>
 	struct as_accessor
 	{
-		template <typename arg_t, typename in = types::i64>
+		template <typename arg_t, typename in = type::i64>
 		static auto as_int(const arg_t& arg) -> in
 		{
 			return detail::as_int<arg_t, in>(arg);
 		}
 
-		template <typename arg_t, typename un = types::u64>
+		template <typename arg_t, typename un = type::u64>
 		static auto as_uint(const arg_t& arg) -> un
 		{
 			return detail::as_uint<arg_t, un>(arg);
 		}
 
-		template <typename arg_t, typename fn = types::f64>
+		template <typename arg_t, typename fn = type::f64>
 		static auto as_fp(const arg_t& arg) -> fn
 		{
 			return detail::as_fp<arg_t, fn>(arg);
 		}
 
 		template <typename arg_t>
-		static auto as_bool(const arg_t& arg) -> types::boolean
+		static auto as_bool(const arg_t& arg) -> type::boolean
 		{
 			return detail::as_bool<char_t>(arg);
 		}
 
 		template <typename arg_t>
-		static auto as_char(const arg_t& arg) -> types::character<char_t>
+		static auto as_char(const arg_t& arg) -> type::character<char_t>
 		{
-			if constexpr (::std::same_as<arg_t, types::character<char_t>>)
+			if constexpr (::std::same_as<arg_t, type::character<char_t>>)
 			{
 				return arg;
 			}
@@ -169,9 +169,9 @@ namespace pdn::detail
 		}
 
 		template <typename arg_t>
-		static auto as_string(const arg_t& arg) -> const types::string<char_t>&
+		static auto as_string(const arg_t& arg) -> const type::string<char_t>&
 		{
-			if constexpr (::std::same_as<arg_t, proxy<types::string<char_t>>>)
+			if constexpr (::std::same_as<arg_t, proxy<type::string<char_t>>>)
 			{
 				return *arg;
 			}
@@ -182,9 +182,9 @@ namespace pdn::detail
 		}
 
 		template <typename arg_t>
-		static auto as_list(const arg_t& arg) -> const types::list<char_t>&
+		static auto as_list(const arg_t& arg) -> const type::list<char_t>&
 		{
-			if constexpr (::std::same_as<arg_t, proxy<types::list<char_t>>>)
+			if constexpr (::std::same_as<arg_t, proxy<type::list<char_t>>>)
 			{
 				return *arg;
 			}
@@ -195,9 +195,9 @@ namespace pdn::detail
 		}
 
 		template <typename arg_t>
-		static auto as_object(const arg_t& arg) -> const types::object<char_t>&
+		static auto as_object(const arg_t& arg) -> const type::object<char_t>&
 		{
-			if constexpr (::std::same_as<arg_t, proxy<types::object<char_t>>>)
+			if constexpr (::std::same_as<arg_t, proxy<type::object<char_t>>>)
 			{
 				return *arg;
 			}
@@ -207,19 +207,19 @@ namespace pdn::detail
 			}
 		}
 
-		static auto null_string_val() -> const types::string<char_t>&
+		static auto null_string_val() -> const type::string<char_t>&
 		{
-			static const auto null_val = types::string<char_t>{};
+			static const auto null_val = type::string<char_t>{};
 			return null_val;
 		}
-		static auto null_list_val() -> const types::list<char_t>&
+		static auto null_list_val() -> const type::list<char_t>&
 		{
-			static const auto null_val = types::list<char_t>{};
+			static const auto null_val = type::list<char_t>{};
 			return null_val;
 		}
-		static auto null_object_val() -> const types::object<char_t>&
+		static auto null_object_val() -> const type::object<char_t>&
 		{
-			static const auto null_val = types::object<char_t>{};
+			static const auto null_val = type::object<char_t>{};
 			return null_val;
 		}
 	};
@@ -233,17 +233,17 @@ namespace pdn::detail
 		static constexpr bool value = false;
 	};
 	template <typename char_t>
-	struct has_proxy<types::string<char_t>>
+	struct has_proxy<type::string<char_t>>
 	{
 		static constexpr bool value = true;
 	};
 	template <typename char_t>
-	struct has_proxy<types::list<char_t>>
+	struct has_proxy<type::list<char_t>>
 	{
 		static constexpr bool value = true;
 	};
 	template <typename char_t>
-	struct has_proxy<types::object<char_t>>
+	struct has_proxy<type::object<char_t>>
 	{
 		static constexpr bool value = true;
 	};

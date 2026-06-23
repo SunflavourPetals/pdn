@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_types_config
-#define PDN_Header_pdn_types_config
+#ifndef PDN_Header_pdn_type_config
+#define PDN_Header_pdn_type_config
 
 #include <cstdint>
 #include <string>
@@ -8,12 +8,12 @@
 #include <unordered_map>
 
 #include "pdn_unicode_base.h"
-#include "pdn_types_character.h"
+#include "pdn_type_character.h"
 
 // keep the order in parse
 // #include "pdn_ordered_map.h"
 
-namespace pdn::types::config
+namespace pdn::type::config
 {
 	using i8  = ::std::int8_t;
 	using i16 = ::std::int16_t;

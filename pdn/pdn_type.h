@@ -1,11 +1,11 @@
-#ifndef PDN_Header_pdn_types
-#define PDN_Header_pdn_types
+#ifndef PDN_Header_pdn_type
+#define PDN_Header_pdn_type
 
-#include "pdn_types_basic.h"
-#include "pdn_types_config.h"
+#include "pdn_type_basic.h"
+#include "pdn_type_config.h"
 #include "pdn_entity_forward_decl.h"
 
-namespace pdn::types
+namespace pdn::type
 {
 	using config::string;
 

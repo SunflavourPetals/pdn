@@ -11,7 +11,7 @@
 #include <charconv>
 #include <cassert>
 
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_proxy.h"
 #include "pdn_error_string.h"
 #include "pdn_utf_code_convert.h"
@@ -83,15 +83,15 @@ namespace pdn::detail::err_msg_gen_util
 		return ::std::visit([](const auto& arg) -> error_msg_string
 		{
 			using arg_t = ::std::decay_t<decltype(arg)>;
-			if constexpr (::std::same_as<arg_t, types::character<error_msg_char>>)
+			if constexpr (::std::same_as<arg_t, type::character<error_msg_char>>)
 			{
 				return add_single_quote(arg.to_string_view());
 			}
-			else if constexpr (::std::same_as<arg_t, proxy<types::string<error_msg_char>>>)
+			else if constexpr (::std::same_as<arg_t, proxy<type::string<error_msg_char>>>)
 			{
 				return add_quote(make_slashes(*arg));
 			}
-			else if constexpr (::std::same_as<arg_t, types::boolean>)
+			else if constexpr (::std::same_as<arg_t, type::boolean>)
 			{
 				return arg ? u8"true"_em : u8"false"_em;
 			}
@@ -164,7 +164,7 @@ namespace pdn::detail::err_msg_gen_util::syntax_err_msg_gen_util
 	}
 
 	// for casting_msg from casting_domain_error
-	inline auto get_integer_min_value(type_code c) -> types::i64
+	inline auto get_integer_min_value(type_code c) -> type::i64
 	{
 		using char_t = error_msg_char;
 		using enum type_code;
@@ -189,7 +189,7 @@ namespace pdn::detail::err_msg_gen_util::syntax_err_msg_gen_util
 	}
 
 	// for casting_msg from casting_domain_error
-	inline auto get_integer_max_value(type_code c) -> types::u64
+	inline auto get_integer_max_value(type_code c) -> type::u64
 	{
 		using char_t = error_msg_char;
 		using enum type_code;

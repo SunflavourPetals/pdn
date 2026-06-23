@@ -6,7 +6,7 @@
 #include <variant>
 
 #include "pdn_unicode_base.h"
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_proxy.h"
 
 namespace pdn::detail
@@ -31,12 +31,12 @@ namespace pdn
 	template <typename char_t>
 	using token_value_variant = ::std::variant<
 		::std::monostate,
-		types::i8,  types::i16, types::i32, types::i64,
-		types::u8,  types::u16, types::u32, types::u64,
-		types::f32, types::f64,
-		types::boolean,
-		types::character<char_t>,
-		proxy<types::string<char_t>>,
+		type::i8,  type::i16, type::i32, type::i64,
+		type::u8,  type::u16, type::u32, type::u64,
+		type::f32, type::f64,
+		type::boolean,
+		type::character<char_t>,
+		proxy<type::string<char_t>>,
 		detail::at_iden_string_proxy>;
 }
 

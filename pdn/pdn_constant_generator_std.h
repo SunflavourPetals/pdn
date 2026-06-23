@@ -10,7 +10,7 @@
 #include <unordered_map>
 
 #include "pdn_unicode_base.h"
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_proxy.h"
 #include "pdn_token_value_variant.h"
 #include "pdn_entity.h"
@@ -37,19 +37,19 @@ namespace pdn::detail
 	inline auto test_string_hello() -> entity<char_t>
 	{
 		using c = char_t;
-		auto s = types::string<char_t>
+		auto s = type::string<char_t>
 		{
 			c('H'), c('e'), c('l'), c('l'), c('o'), c(','), c(' '),
 			c('w'), c('o'), c('r'), c('l'), c('d'), c('!')
 		};
-		return make_proxy<types::string<char_t>>(::std::move(s));
+		return make_proxy<type::string<char_t>>(::std::move(s));
 	}
 
 	template <typename char_t>
 	inline auto test_list_fib_10() -> entity<char_t>
 	{
 		// 1, 1, 2, 3, 5, 8, 13, 21, 34, 55
-		auto list = types::list<char_t>{};
+		auto list = type::list<char_t>{};
 		list.push_back(1);
 		list.push_back(1);
 		list.push_back(2);
@@ -60,25 +60,25 @@ namespace pdn::detail
 		list.push_back(21);
 		list.push_back(34);
 		list.push_back(55);
-		return make_proxy<types::list<char_t>>(::std::move(list));
+		return make_proxy<type::list<char_t>>(::std::move(list));
 	}
 
 	template <typename char_t>
 	inline auto test_object_me() -> entity<char_t>
 	{
 		using c = char_t;
-		using s = types::string<c>;
+		using s = type::string<c>;
 
-		auto date = types::object<char_t>{};
+		auto date = type::object<char_t>{};
 		date[s{ c('y') }] = 2024;
 		date[s{ c('m') }] = 12;
 		date[s{ c('d') }] = 21;
 
-		auto root = types::object<char_t>{};
-		root[s{ c('n'), c('a'), c('m'), c('e') }] = make_proxy<types::string<char_t>>(s{ c('P'), c('D'), c('N') });
-		root[s{ c('d'), c('a'), c('t'), c('e') }] = make_proxy<types::object<char_t>>(::std::move(date));
+		auto root = type::object<char_t>{};
+		root[s{ c('n'), c('a'), c('m'), c('e') }] = make_proxy<type::string<char_t>>(s{ c('P'), c('D'), c('N') });
+		root[s{ c('d'), c('a'), c('t'), c('e') }] = make_proxy<type::object<char_t>>(::std::move(date));
 
-		return make_proxy<types::object<char_t>>(::std::move(root));
+		return make_proxy<type::object<char_t>>(::std::move(root));
 	}
 }
 
@@ -95,9 +95,9 @@ namespace pdn
 
 			auto& self = *this;
 
-			constexpr auto f64_inf  = ::std::numeric_limits<types::f64>::infinity();
-			constexpr auto f64_qNaN = ::std::numeric_limits<types::f64>::quiet_NaN();
-			constexpr auto f64_sNaN = ::std::numeric_limits<types::f64>::signaling_NaN();
+			constexpr auto f64_inf  = ::std::numeric_limits<type::f64>::infinity();
+			constexpr auto f64_qNaN = ::std::numeric_limits<type::f64>::quiet_NaN();
+			constexpr auto f64_sNaN = ::std::numeric_limits<type::f64>::signaling_NaN();
 
 			self[u8"true"_s]          = true;
 			self[u8"false"_s]         = false;

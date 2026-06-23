@@ -19,9 +19,6 @@
     <Filter Include="pdn_unicode">
       <UniqueIdentifier>{feafdd76-049f-46b8-a2fb-e8a0a445aeff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="pdn_types">
-      <UniqueIdentifier>{6b939eee-1de8-4eb1-8702-065f332f190f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="pdn_error">
       <UniqueIdentifier>{d99ba5a5-d393-441a-a0fa-5852bd4feb7e}</UniqueIdentifier>
     </Filter>
@@ -76,6 +73,9 @@
     <Filter Include="pdn_include">
       <UniqueIdentifier>{24a2b373-cdd7-419c-a74a-3c1f39bc7e06}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pdn_type">
+      <UniqueIdentifier>{6b939eee-1de8-4eb1-8702-065f332f190f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pdn_unicode_base.h">
@@ -102,8 +102,8 @@
     <ClInclude Include="pdn_code_unit_iterator.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_types.h">
-      <Filter>pdn_types</Filter>
+    <ClInclude Include="pdn_type.h">
+      <Filter>pdn_type</Filter>
     </ClInclude>
     <ClInclude Include="pdn_lexical_error_code.h">
       <Filter>pdn_lexer</Filter>
@@ -291,17 +291,17 @@
     <ClInclude Include="pdn_error_message_generator_en.h">
       <Filter>pdn_error_message_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_types_config.h">
-      <Filter>pdn_types</Filter>
+    <ClInclude Include="pdn_type_config.h">
+      <Filter>pdn_type</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_types_character.h">
-      <Filter>pdn_types</Filter>
+    <ClInclude Include="pdn_type_character.h">
+      <Filter>pdn_type</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_types_character_utility.h">
-      <Filter>pdn_types</Filter>
+    <ClInclude Include="pdn_type_character_utility.h">
+      <Filter>pdn_type</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_types_basic.h">
-      <Filter>pdn_types</Filter>
+    <ClInclude Include="pdn_type_basic.h">
+      <Filter>pdn_type</Filter>
     </ClInclude>
     <ClInclude Include="pdn_entity_forward_decl.h">
       <Filter>pdn_entity</Filter>

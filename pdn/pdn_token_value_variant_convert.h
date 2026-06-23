@@ -5,7 +5,7 @@
 #include <concepts>
 #include <variant>
 
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_proxy.h"
 #include "pdn_utf_code_convert.h"
 #include "pdn_token_value_variant.h"
@@ -23,15 +23,15 @@ namespace pdn::detail
 		{
 			return ::std::visit([](auto&& arg) -> token_value_variant<target_char_t>
 			{
-				using target_string = types::string<target_char_t>;
-				using source_string = types::string<source_char_t>;
+				using target_string = type::string<target_char_t>;
+				using source_string = type::string<source_char_t>;
 				using arg_t = ::std::decay_t<decltype(arg)>;
 				using unicode::code_convert;
 
-				if constexpr (::std::same_as<arg_t, types::character<source_char_t>>)
+				if constexpr (::std::same_as<arg_t, type::character<source_char_t>>)
 				{
-					auto converted = code_convert<types::string<target_char_t>>(arg.to_string_view());
-					return types::character<target_char_t>{ converted.cbegin(), converted.size() };
+					auto converted = code_convert<type::string<target_char_t>>(arg.to_string_view());
+					return type::character<target_char_t>{ converted.cbegin(), converted.size() };
 				}
 				else if constexpr (::std::same_as<arg_t, proxy<source_string>>)
 				{

@@ -1,13 +1,13 @@
-#ifndef PDN_Header_pdn_types_character
-#define PDN_Header_pdn_types_character
+#ifndef PDN_Header_pdn_type_character
+#define PDN_Header_pdn_type_character
 
 #include <cstddef>
 #include <cstdint>
 #include <string>
 
-#include "pdn_types_character_utility.h"
+#include "pdn_type_character_utility.h"
 
-namespace pdn::types::detail
+namespace pdn::type::detail
 {
 	template <typename char_t>
 	class character

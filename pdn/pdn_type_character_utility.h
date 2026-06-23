@@ -1,12 +1,12 @@
-#ifndef PDN_Header_pdn_types_character_utility
-#define PDN_Header_pdn_types_character_utility
+#ifndef PDN_Header_pdn_type_character_utility
+#define PDN_Header_pdn_type_character_utility
 
 #include <cstddef>
 #include <concepts>
 
 #include "pdn_unicode.h"
 
-namespace pdn::types::detail
+namespace pdn::type::detail
 {
 	template <typename char_t>
 	struct max_code_unit_count_for_character {};

@@ -220,32 +220,32 @@ namespace pdn::detail
 	}
 
 	template <typename char_t>
-	inline void to_appropriate_int_type(token_value_variant<char_t>& target, types::u64 val)
+	inline void to_appropriate_int_type(token_value_variant<char_t>& target, type::u64 val)
 	{
-		constexpr auto cppint_max = static_cast<types::u64>(::std::numeric_limits<types::auto_int>::max());
-		constexpr auto i8_max     = static_cast<types::u64>(::std::numeric_limits<types::i8> ::max());
-		constexpr auto i16_max    = static_cast<types::u64>(::std::numeric_limits<types::i16>::max());
-		constexpr auto i32_max    = static_cast<types::u64>(::std::numeric_limits<types::i32>::max());
-		constexpr auto i64_max    = static_cast<types::u64>(::std::numeric_limits<types::i64>::max());
+		constexpr auto cppint_max = static_cast<type::u64>(::std::numeric_limits<type::auto_int>::max());
+		constexpr auto i8_max     = static_cast<type::u64>(::std::numeric_limits<type::i8> ::max());
+		constexpr auto i16_max    = static_cast<type::u64>(::std::numeric_limits<type::i16>::max());
+		constexpr auto i32_max    = static_cast<type::u64>(::std::numeric_limits<type::i32>::max());
+		constexpr auto i64_max    = static_cast<type::u64>(::std::numeric_limits<type::i64>::max());
 		if (val <= cppint_max)
 		{
-			target = static_cast<types::auto_int>(val);
+			target = static_cast<type::auto_int>(val);
 		}
 		else if (val <= i8_max)
 		{
-			target = static_cast<types::i8>(val);
+			target = static_cast<type::i8>(val);
 		}
 		else if (val <= i16_max)
 		{
-			target = static_cast<types::i16>(val);
+			target = static_cast<type::i16>(val);
 		}
 		else if (val <= i32_max)
 		{
-			target = static_cast<types::i32>(val);
+			target = static_cast<type::i32>(val);
 		}
 		else if (val <= i64_max)
 		{
-			target = static_cast<types::i64>(val);
+			target = static_cast<type::i64>(val);
 		}
 		else
 		{
@@ -932,13 +932,13 @@ namespace pdn::detail
 	}
 
 	template <typename char_t>
-	inline auto process_char_literal(::std::basic_string_view<char_t> src, const source_position& position, auto helper) -> types::character<char_t>
+	inline auto process_char_literal(::std::basic_string_view<char_t> src, const source_position& position, auto helper) -> type::character<char_t>
 	{
 		using unicode::code_convert;
 		auto cp_s = code_convert<unicode::ucpstring>(src);
 		if (cp_s.size() == 1) [[likely]]
 		{
-			return types::character<char_t>(src.data(), src.size());
+			return type::character<char_t>(src.data(), src.size());
 		}
 		using lex_ec = lexical_error_code;
 		using err_ch = raw_error_message_type::character_length_error;
@@ -946,14 +946,14 @@ namespace pdn::detail
 		{
 			helper.post_err(position, lex_ec::character_literal_length_is_zero, err_ch{ to_err_ms(src), cp_s.size()});
 			using namespace literals::unicode_literals;
-			return types::character<char_t>{};
+			return type::character<char_t>{};
 		}
 		else
 		{
 			helper.post_err(position, lex_ec::character_literal_length_is_greater_than_one, err_ch{ to_err_ms(src), cp_s.size() });
 			cp_s = cp_s.substr(0, 1);
-			auto processed = code_convert<types::string<char_t>>(cp_s);
-			return types::character<char_t>(processed.data(), processed.size());
+			auto processed = code_convert<type::string<char_t>>(cp_s);
+			return type::character<char_t>(processed.data(), processed.size());
 		}
 	}
 
@@ -988,7 +988,7 @@ namespace pdn
 		token<char_t> get_token(auto&& begin, auto end)
 		{
 			token<char_t>              result{};
-			types::string<char_t>      text{};            // rename text
+			type::string<char_t>      text{};            // rename text
 			unicode::ucpstring         open_d_seq{};      // delimiter-sequence for raw string
 			::std::string              number_sequence{}; // Unicode[U+0000, U+007f] -> ASCII -> form_chars
 			::std::size_t              nested_block_comment_layer{};
@@ -997,7 +997,7 @@ namespace pdn
 			auto                       dfa_state = dfa_state_objects::start_state();
 
 			auto num_seq_to_ems = [&]() { return reinterpret_to_err_msg_str(number_sequence); };
-			auto append = [](types::string<char_t>& src, unicode::code_point_t c)
+			auto append = [](type::string<char_t>& src, unicode::code_point_t c)
 			{
 				auto encode_r = unicode::encode<char_t>(c);
 				assert((bool)encode_r && "encode failed");
@@ -1058,7 +1058,7 @@ namespace pdn
 				{
 					using namespace unicode_literals;
 					using ct = char_t;
-					text = types::string<ct>{ ct('i'), ct('n'), ct('f'), ct('i'), ct('n'), ct('i'), ct('t'), ct('y') };
+					text = type::string<ct>{ ct('i'), ct('n'), ct('f'), ct('i'), ct('n'), ct('i'), ct('t'), ct('y') };
 					new_dfa_state.state_code = dfa_state_objects::at_identifier.state_code;
 					new_dfa_state.token_code = dfa_state_objects::at_identifier.token_code;
 					break;
@@ -1166,7 +1166,7 @@ namespace pdn
 					else
 					{
 						text += char_t(')');
-						text += unicode::code_convert<types::string<char_t>>(close_d_seq);
+						text += unicode::code_convert<type::string<char_t>>(close_d_seq);
 						new_dfa_state = dfa_state_objects::raw_string;
 					}
 					goto label_update_dfa_state;
@@ -1205,7 +1205,7 @@ namespace pdn
 					else
 					{
 						text += char_t(')');
-						text += unicode::code_convert<types::string<char_t>>(close_d_seq);
+						text += unicode::code_convert<type::string<char_t>>(close_d_seq);
 						new_dfa_state = dfa_state_objects::identifier_raw_string;
 					}
 					goto label_update_dfa_state;
@@ -1301,7 +1301,7 @@ namespace pdn
 			case string_closed:
 			case raw_string_closed:
 			case identifier_raw_string_closed:
-				result.value = make_proxy<types::string<char_t>>(::std::move(text));
+				result.value = make_proxy<type::string<char_t>>(::std::move(text));
 				break;
 			case at_identifier:
 				if constexpr (::std::same_as<char_t, unicode::u8char_t>)
@@ -1359,7 +1359,7 @@ namespace pdn
 			case fp_dec_part:
 			case fp_exp:
 			{
-				types::f64 fp_value{};
+				type::f64 fp_value{};
 				detail::remove_all_separator(number_sequence);
 				const auto& n_seq = number_sequence;
 				auto from_chars_r = ::std::from_chars(n_seq.data(), n_seq.data() + n_seq.size(), fp_value);
@@ -1410,7 +1410,7 @@ namespace pdn
 			case bin_seq:
 			{
 				assert(detail::check_0b_prefix(number_sequence) && "binary literal without prefix");
-				types::u64 integer_value{};
+				type::u64 integer_value{};
 				detail::remove_all_separator(number_sequence);
 				auto n_seq = ::std::string_view{ number_sequence.begin() + 2, number_sequence.end() };
 				auto from_chars_r = ::std::from_chars(n_seq.data(), n_seq.data() + n_seq.size(), integer_value, 2);
@@ -1439,7 +1439,7 @@ namespace pdn
 			case hex_seq:
 			{
 				assert(detail::check_0x_prefix(number_sequence) && "hexadecimal literal without prefix");
-				types::u64 integer_value{};
+				type::u64 integer_value{};
 				detail::remove_all_separator(number_sequence);
 				auto n_seq = ::std::string_view{ number_sequence.begin() + 2, number_sequence.end() };
 				auto from_chars_r = ::std::from_chars(n_seq.data(), n_seq.data() + n_seq.size(), integer_value, 16);
@@ -1463,7 +1463,7 @@ namespace pdn
 			case hex_fp_exp:
 			{
 				assert(detail::check_0x_prefix(number_sequence) && "hexadecimal literal without prefix");
-				types::f64 fp_value{};
+				type::f64 fp_value{};
 				detail::remove_all_separator(number_sequence);
 				auto n_seq = ::std::string_view{ number_sequence.begin() + 2, number_sequence.end() };
 				auto from_chars_r = ::std::from_chars(n_seq.data(), n_seq.data() + n_seq.size(), fp_value, ::std::chars_format::hex);

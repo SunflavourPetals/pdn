@@ -11,7 +11,7 @@
 #include <variant>
 #include <cmath>
 
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_entity.h"
 
 #include "pdn_make_slashes_string.h"
@@ -28,14 +28,14 @@
 namespace pdn::detail
 {
 	template <typename t>
-	concept can_to_string = types::concepts::pdn_integral<t> || types::concepts::pdn_fp<t>;
+	concept can_to_string = type::concepts::pdn_integral<t> || type::concepts::pdn_fp<t>;
 	template <typename t, typename char_t>
-	concept nonlist_nonobj = types::concepts::basic_types<t, char_t> || ::std::same_as<t, types::string<char_t>>;
+	concept nonlist_nonobj = type::concepts::basic_types<t, char_t> || ::std::same_as<t, type::string<char_t>>;
 
 	template <typename char_t>
-	auto to_pdn_format(types::concepts::pdn_integral auto val) -> types::string<char_t>
+	auto to_pdn_format(type::concepts::pdn_integral auto val) -> type::string<char_t>
 	{
-		auto result = types::string<char_t>{};
+		auto result = type::string<char_t>{};
 		
 		for (const auto c : ::std::format("{}", val))
 		{
@@ -45,20 +45,20 @@ namespace pdn::detail
 	}
 
 	template <typename char_t>
-	auto to_pdn_format(types::concepts::pdn_fp auto val) -> types::string<char_t>
+	auto to_pdn_format(type::concepts::pdn_fp auto val) -> type::string<char_t>
 	{
-		auto result = types::string<char_t>{};
+		auto result = type::string<char_t>{};
 		{
 			using c = char_t;
 			if (::std::isinf(val))
 			{
 				return (::std::signbit(val)) ?
-					types::string<char_t>{ c('-'), c('@'), c('i'), c('n'), c('f') } :
-					types::string<char_t>{ c('@'), c('i'), c('n'), c('f') };
+					type::string<char_t>{ c('-'), c('@'), c('i'), c('n'), c('f') } :
+					type::string<char_t>{ c('@'), c('i'), c('n'), c('f') };
 			}
 			else if (::std::isnan(val))
 			{
-				return types::string<char_t>{ c('@'), c('N'), c('a'), c('N') };
+				return type::string<char_t>{ c('@'), c('N'), c('a'), c('N') };
 			}
 		}
 		bool has_e{};
@@ -78,21 +78,21 @@ namespace pdn::detail
 	}
 
 	template <typename char_t>
-	auto to_pdn_format(types::boolean val) -> types::string<char_t>
+	auto to_pdn_format(type::boolean val) -> type::string<char_t>
 	{
 		using c = char_t;
 		auto result = val ?
-			types::string<c>{ c('@'), c('t'), c('r'), c('u'), c('e') } :
-			types::string<c>{ c('@'), c('f'), c('a'), c('l'), c('s'), c('e') };
+			type::string<c>{ c('@'), c('t'), c('r'), c('u'), c('e') } :
+			type::string<c>{ c('@'), c('f'), c('a'), c('l'), c('s'), c('e') };
 		return result;
 	}
 
 	template <typename char_t, typename src_char_t>
-	auto to_pdn_format(types::character<src_char_t> val) -> types::string<char_t>
+	auto to_pdn_format(type::character<src_char_t> val) -> type::string<char_t>
 	{
-		auto get_quoted = [](::std::basic_string_view<char_t> sv) -> types::string<char_t>
+		auto get_quoted = [](::std::basic_string_view<char_t> sv) -> type::string<char_t>
 		{
-			auto result = types::string<char_t>{};
+			auto result = type::string<char_t>{};
 			result.push_back(char_t('\''));
 			result += sv;
 			result.push_back(char_t('\''));
@@ -104,22 +104,22 @@ namespace pdn::detail
 		{
 			return get_quoted(unicode::get_replace<char_t>());
 		}
-		return get_quoted(make_slashes_string<types::string<char_t>>(decode_result.value()));
+		return get_quoted(make_slashes_string<type::string<char_t>>(decode_result.value()));
 	}
 
 	template <typename char_t, typename src_char_t>
-	auto to_pdn_format(const types::string<src_char_t>& val) -> types::string<char_t>
+	auto to_pdn_format(const type::string<src_char_t>& val) -> type::string<char_t>
 	{
-		auto get_quoted = [](::std::basic_string_view<char_t> sv) -> types::string<char_t>
+		auto get_quoted = [](::std::basic_string_view<char_t> sv) -> type::string<char_t>
 		{
-			auto result = types::string<char_t>{};
+			auto result = type::string<char_t>{};
 			result.push_back(char_t('\"'));
 			result += sv;
 			result.push_back(char_t('\"'));
 			return result;
 		};
 		auto cp_s = unicode::code_convert<unicode::ucpstring>(val);
-		return get_quoted(make_slashes_string<types::string<char_t>>(cp_s));
+		return get_quoted(make_slashes_string<type::string<char_t>>(cp_s));
 	}
 }
 
@@ -130,12 +130,12 @@ namespace pdn
 	{
 	public:
 		using char_t = my_char_t; // target char type
-		using string_t = types::string<char_t>;
+		using string_t = type::string<char_t>;
 		using string_view_t = ::std::basic_string_view<char_t>;
 		// dom to .spdn format
 		template <typename src_char_t>
 		auto serialize(
-			const types::object<src_char_t>& dom,
+			const type::object<src_char_t>& dom,
 			const bool use_line_feed = true,
 			const bool use_last_sep_for_lo = true) const -> string_t
 		{
@@ -154,16 +154,16 @@ namespace pdn
 		}
 		// to "[`]slashed_iden[`] [: [type]] pdn_form[;]"
 		template <typename src_char_t, detail::nonlist_nonobj<src_char_t> value_t>
-		auto serialize(const types::string<src_char_t>& iden, const value_t& val) const -> string_t
+		auto serialize(const type::string<src_char_t>& iden, const value_t& val) const -> string_t
 		{
 			using val_t = ::std::decay_t<decltype(val)>;
 			string_t result = serialize_iden(iden);
 			constexpr auto no_type_spec
-				 = ::std::same_as<val_t, types::auto_int>
-				|| ::std::same_as<val_t, types::f64>
-				|| ::std::same_as<val_t, types::boolean>
-				|| ::std::same_as<val_t, types::character<src_char_t>>
-				|| ::std::same_as<val_t, types::string<src_char_t>>;
+				 = ::std::same_as<val_t, type::auto_int>
+				|| ::std::same_as<val_t, type::f64>
+				|| ::std::same_as<val_t, type::boolean>
+				|| ::std::same_as<val_t, type::character<src_char_t>>
+				|| ::std::same_as<val_t, type::string<src_char_t>>;
 			if constexpr (no_type_spec)
 			{
 				result += separator;
@@ -183,8 +183,8 @@ namespace pdn
 		// to "[`]slashed_iden[`] [: [type]] { pdn_form_of_members }[;]"
 		template <typename src_char_t>
 		auto serialize(
-			const types::string<src_char_t>& iden,
-			const types::object<src_char_t>& val,
+			const type::string<src_char_t>& iden,
+			const type::object<src_char_t>& val,
 			const ::std::size_t layer = 0,
 			const bool use_line_feed = true,
 			const bool use_last_sep_for_lo = true) const -> string_t
@@ -198,8 +198,8 @@ namespace pdn
 		// to "[`]slashed_iden[`] [: [type]] "[" pdn_form_of_elements "]"[;]"
 		template <typename src_char_t>
 		auto serialize(
-			const types::string<src_char_t>& iden,
-			const types::list<src_char_t>& val,
+			const type::string<src_char_t>& iden,
+			const type::list<src_char_t>& val,
 			const ::std::size_t layer = 0,
 			const bool use_line_feed = true,
 			const bool use_last_sep_for_lo = true) const -> string_t
@@ -212,7 +212,7 @@ namespace pdn
 		}
 		// identifier to "[`]slashed[`]"
 		template <typename src_char_t>
-		auto serialize_iden(const types::string<src_char_t>& iden) const -> string_t
+		auto serialize_iden(const type::string<src_char_t>& iden) const -> string_t
 		{
 			string_t result{};
 			auto cp_s = unicode::code_convert<unicode::ucpstring>(iden);
@@ -261,7 +261,7 @@ namespace pdn
 		// object to "{ ... }"
 		template <typename src_char_t>
 		auto serialize_object(
-			const types::object<src_char_t>& val,
+			const type::object<src_char_t>& val,
 			const ::std::size_t layer,
 			const bool use_line_feed = true,
 			const bool use_last_sep_for_lo = true) const -> string_t
@@ -294,7 +294,7 @@ namespace pdn
 		// object member to "name [:[type]] value [;]..."
 		template <typename src_char_t>
 		auto serialize_object_member(
-			const types::string<src_char_t>& iden,
+			const type::string<src_char_t>& iden,
 			const entity<src_char_t>& val,
 			const ::std::size_t layer,
 			const bool use_line_feed = true,
@@ -318,7 +318,7 @@ namespace pdn
 		// list to "[ ..., ]"
 		template <typename src_char_t>
 		auto serialize_list(
-			const types::list<src_char_t>& val,
+			const type::list<src_char_t>& val,
 			const ::std::size_t layer,
 			const bool use_line_feed = true,
 			const bool use_last_sep_for_lo = true) const -> string_t
@@ -360,15 +360,15 @@ namespace pdn
 			return ::std::visit([&]<typename arg_pr_t>(const arg_pr_t& arg) -> string_t
 			{
 				using arg_t = remove_proxy_t<arg_pr_t>;
-				if constexpr (::std::same_as<arg_t, types::object<src_char_t>>)
+				if constexpr (::std::same_as<arg_t, type::object<src_char_t>>)
 				{
 					return serialize_object(*arg, layer, use_line_feed, use_last_sep_for_lo);
 				}
-				else if constexpr (::std::same_as<arg_t, types::list<src_char_t>>)
+				else if constexpr (::std::same_as<arg_t, type::list<src_char_t>>)
 				{
 					return serialize_list(*arg, layer, use_line_feed, use_last_sep_for_lo);
 				}
-				else if constexpr (::std::same_as<arg_t, types::string<src_char_t>>)
+				else if constexpr (::std::same_as<arg_t, type::string<src_char_t>>)
 				{
 					return serialize_value<src_char_t>(*arg);
 				}
@@ -376,11 +376,11 @@ namespace pdn
 				{
 					string_t result{};
 					constexpr auto no_type_spec
-						 = ::std::same_as<arg_t, types::auto_int>
-						|| ::std::same_as<arg_t, types::f64>
-						|| ::std::same_as<arg_t, types::boolean>
-						|| ::std::same_as<arg_t, types::character<src_char_t>>
-						|| ::std::same_as<arg_t, types::string<src_char_t>>;
+						 = ::std::same_as<arg_t, type::auto_int>
+						|| ::std::same_as<arg_t, type::f64>
+						|| ::std::same_as<arg_t, type::boolean>
+						|| ::std::same_as<arg_t, type::character<src_char_t>>
+						|| ::std::same_as<arg_t, type::string<src_char_t>>;
 					if constexpr (no_type_spec)
 					{
 						result += serialize_value<src_char_t>(arg);
@@ -444,9 +444,9 @@ namespace pdn
 	namespace detail
 	{
 		template <typename c, typename e>
-		auto to_string(e serialize_e) -> types::string<c>
+		auto to_string(e serialize_e) -> type::string<c>
 		{
-			using s = types::string<c>;
+			using s = type::string<c>;
 			if constexpr (::std::same_as<e, serialize_tab>)
 			{
 				using enum serialize_tab;

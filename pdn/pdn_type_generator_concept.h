@@ -4,13 +4,13 @@
 #include <concepts>
 #include <utility>
 
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_type_code.h"
 
 namespace pdn::concepts
 {
-	template <typename type, typename char_t>
-	concept type_generator = requires (type type_gen, types::string<char_t> iden)
+	template <typename type_gen_t, typename char_t>
+	concept type_generator = requires (type_gen_t type_gen, type::string<char_t> iden)
 	{
 		{ type_gen.generate_type(iden) } -> ::std::convertible_to<type_code>;
 		{ type_gen.generate_type(::std::move(iden)) } -> ::std::convertible_to<type_code>;

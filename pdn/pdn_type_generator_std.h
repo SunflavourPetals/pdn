@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_type_code.h"
 #include "pdn_unicode_base.h"
 #include "pdn_type_generator.h"
@@ -13,25 +13,25 @@ namespace pdn::detail
 	template <typename>
 	struct cppint_to_type_code
 	{
-		static_assert(false, "[pdn] \"cppint\" is not one pdn i types");
+		static_assert(false, "[pdn] \"cppint\" is not one pdn i type");
 	};
 	template <>
-	struct cppint_to_type_code<types::i8>
+	struct cppint_to_type_code<type::i8>
 	{
 		static constexpr auto value = type_code::i8;
 	};
 	template <>
-	struct cppint_to_type_code<types::i16>
+	struct cppint_to_type_code<type::i16>
 	{
 		static constexpr auto value = type_code::i16;
 	};
 	template <>
-	struct cppint_to_type_code<types::i32>
+	struct cppint_to_type_code<type::i32>
 	{
 		static constexpr auto value = type_code::i32;
 	};
 	template <>
-	struct cppint_to_type_code<types::i64>
+	struct cppint_to_type_code<type::i64>
 	{
 		static constexpr auto value = type_code::i64;
 	};
@@ -41,25 +41,25 @@ namespace pdn::detail
 	template <typename>
 	struct cppuint_to_type_code
 	{
-		static_assert(false, "[pdn] \"cppuint\" is not one pdn u types");
+		static_assert(false, "[pdn] \"cppuint\" is not one pdn u type");
 	};
 	template <>
-	struct cppuint_to_type_code<types::u8>
+	struct cppuint_to_type_code<type::u8>
 	{
 		static constexpr auto value = type_code::u8;
 	};
 	template <>
-	struct cppuint_to_type_code<types::u16>
+	struct cppuint_to_type_code<type::u16>
 	{
 		static constexpr auto value = type_code::u16;
 	};
 	template <>
-	struct cppuint_to_type_code<types::u32>
+	struct cppuint_to_type_code<type::u32>
 	{
 		static constexpr auto value = type_code::u32;
 	};
 	template <>
-	struct cppuint_to_type_code<types::u64>
+	struct cppuint_to_type_code<type::u64>
 	{
 		static constexpr auto value = type_code::u64;
 	};
@@ -70,8 +70,8 @@ namespace pdn::detail
 namespace pdn
 {
 #define PDN_Macro_Temp_make_map_for_typename_to_typecode(prefix) \
-	constexpr auto pl_int  = detail::cppint_to_type_code_v<types::auto_int>;   \
-	constexpr auto pl_uint = detail::cppuint_to_type_code_v<types::auto_uint>; \
+	constexpr auto pl_int  = detail::cppint_to_type_code_v<type::auto_int>;   \
+	constexpr auto pl_uint = detail::cppuint_to_type_code_v<type::auto_uint>; \
 	self[prefix##"i8"_s]        = i8;        \
 	self[prefix##"i16"_s]       = i16;       \
 	self[prefix##"i32"_s]       = i32;       \
@@ -109,7 +109,7 @@ namespace pdn
 		static_assert(false, "[pdn] cannot generate type_table for template parameter \"char_t\"");
 	};
 	template <>
-	class type_table<unicode::u8char_t> : public ::std::unordered_map<types::string<unicode::u8char_t>, type_code>
+	class type_table<unicode::u8char_t> : public ::std::unordered_map<type::string<unicode::u8char_t>, type_code>
 	{
 	public:
 		type_table()
@@ -121,7 +121,7 @@ namespace pdn
 		}
 	};
 	template <>
-	class type_table<unicode::u16char_t> : public ::std::unordered_map<types::string<unicode::u16char_t>, type_code>
+	class type_table<unicode::u16char_t> : public ::std::unordered_map<type::string<unicode::u16char_t>, type_code>
 	{
 	public:
 		type_table()
@@ -133,7 +133,7 @@ namespace pdn
 		}
 	};
 	template <>
-	class type_table<unicode::u32char_t> : public ::std::unordered_map<types::string<unicode::u32char_t>, type_code>
+	class type_table<unicode::u32char_t> : public ::std::unordered_map<type::string<unicode::u32char_t>, type_code>
 	{
 	public:
 		type_table()
@@ -148,7 +148,7 @@ namespace pdn
 #undef PDN_Macro_Temp_make_map_for_typename_to_typecode
 
 	template <typename char_t>
-	type_code type_generator_function(const types::string<char_t>& s)
+	type_code type_generator_function(const type::string<char_t>& s)
 	{
 		static type_table<char_t> table{};
 		if (auto result = table.find(s); result != table.end())

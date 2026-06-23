@@ -6,7 +6,7 @@
 #include <cstddef>
 
 #include "pdn_entity.h"
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_proxy.h"
 #include "pdn_token_code.h"
 #include "pdn_token.h"
@@ -101,29 +101,29 @@ namespace pdn::parser_utility
 	template <typename code_unit_t>
 	constexpr auto default_entity_value(type_code type_c) -> entity<code_unit_t>
 	{
-		using char_t   = types::character<code_unit_t>;
-		using string_t = types::string<code_unit_t>;
-		using list_t   = types::list<code_unit_t>;
-		using object_t = types::object<code_unit_t>;
+		using char_t   = type::character<code_unit_t>;
+		using string_t = type::string<code_unit_t>;
+		using list_t   = type::list<code_unit_t>;
+		using object_t = type::object<code_unit_t>;
 		using enum type_code;
 		switch (type_c)
 		{
-		case i8:        return types::i8{};
-		case i16:       return types::i16{};
-		case i32:       return types::i32{};
-		case i64:       return types::i64{};
-		case u8:        return types::u8{};
-		case u16:       return types::u16{};
-		case u32:       return types::u32{};
-		case u64:       return types::u64{};
-		case f32:       return types::f32{};
-		case f64:       return types::f64{};
-		case boolean:   return types::boolean{};
+		case i8:        return type::i8{};
+		case i16:       return type::i16{};
+		case i32:       return type::i32{};
+		case i64:       return type::i64{};
+		case u8:        return type::u8{};
+		case u16:       return type::u16{};
+		case u32:       return type::u32{};
+		case u64:       return type::u64{};
+		case f32:       return type::f32{};
+		case f64:       return type::f64{};
+		case boolean:   return type::boolean{};
 		case character: return char_t{};
 		case string:    return make_proxy<string_t>();
 		case list:      return make_proxy<list_t>();
 		case object:    return make_proxy<object_t>();
-		default:        return types::auto_int{};
+		default:        return type::auto_int{};
 		}
 	}
 

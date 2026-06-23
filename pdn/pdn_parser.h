@@ -12,7 +12,7 @@
 #include "pdn_unicode_base.h"
 #include "pdn_utf_code_convert.h"
 
-#include "pdn_types.h"
+#include "pdn_type.h"
 #include "pdn_entity.h"
 
 #include "pdn_token_code.h"
@@ -58,7 +58,7 @@ namespace pdn
 	private:
 		using syn_ec = syntax_error_code;
 	public:
-		void parse(concepts::token_iterator<char_t> auto begin, auto end, types::object<char_t>& o)
+		void parse(concepts::token_iterator<char_t> auto begin, auto end, type::object<char_t>& o)
 		{
 			using enum pdn_token_code;
 			parse_start(begin, end, o);
@@ -66,13 +66,13 @@ namespace pdn
 		}
 		auto parse(concepts::token_iterator<char_t> auto begin, auto end) -> entity_type
 		{
-			auto o = types::object<char_t>{};
+			auto o = type::object<char_t>{};
 			parse(begin, end, o);
-			return make_proxy<types::object<char_t>>(::std::move(o));
+			return make_proxy<type::object<char_t>>(::std::move(o));
 		}
 		explicit parser(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
-		void parse_start(auto& begin, auto end, types::object<char_t>& o)
+		void parse_start(auto& begin, auto end, type::object<char_t>& o)
 		{
 			using enum pdn_token_code;
 			using err_ms = error_msg_string;
@@ -83,7 +83,7 @@ namespace pdn
 			{
 				if (tk.code == identifier)
 				{
-					using string_pr = proxy<types::string<char_t>>;
+					using string_pr = proxy<type::string<char_t>>;
 					auto iden_p = ::std::get<string_pr>(::std::move(tk.value));
 					if (auto it = o.find(*iden_p); it == o.end())
 					{
@@ -174,7 +174,7 @@ namespace pdn
 			using unicode::code_convert;
 
 			assert(tk.code == identifier && "generate type from non-identifier");
-			using string_pr = proxy<types::string<char_t>>;
+			using string_pr = proxy<type::string<char_t>>;
 			auto type_c = type_gen(*::std::get<string_pr>(tk.value));
 			if (type_c == type_code::unknown)
 			{
@@ -202,7 +202,7 @@ namespace pdn
 			if (!parser_utility::is_expr_first(tk.code))
 			{
 				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
-				return types::auto_int{};
+				return type::auto_int{};
 			}
 
 			auto result = parse_expr_without_unary(begin, end);
@@ -213,9 +213,9 @@ namespace pdn
 			{
 				using raw_err_unary_op = raw_error_message_type::unary_operation;
 				using arg_t = ::std::decay_t<decltype(arg)>;
-				using types::concepts::pdn_sint;
-				using types::concepts::pdn_uint;
-				using types::concepts::pdn_fp;
+				using type::concepts::pdn_sint;
+				using type::concepts::pdn_uint;
+				using type::concepts::pdn_fp;
 				if constexpr (pdn_fp<arg_t> || pdn_sint<arg_t>) // f32, f64, i8, i16, i32, i64
 				{
 					if (unary_rec.negative_sign_count % 2)
@@ -235,20 +235,20 @@ namespace pdn
 				}
 				else // boolean, character, string, list, object
 				{
-					using types::concepts::pdn_bool;
+					using type::concepts::pdn_bool;
 					auto err_tkv = token_value_variant<error_msg_char>{};
 					if constexpr (pdn_bool<arg_t>)
 					{
 						err_tkv = arg;
 					}
-					else if constexpr (::std::same_as<arg_t, proxy<types::character<char_t>>>)
+					else if constexpr (::std::same_as<arg_t, proxy<type::character<char_t>>>)
 					{
 						auto s = unicode::code_convert<error_msg_string>(arg.to_string_view());
-						err_tkv = types::character<error_msg_char>{ s.data(), s.size() };
+						err_tkv = type::character<error_msg_char>{ s.data(), s.size() };
 					}
-					else if constexpr (::std::same_as<arg_t, proxy<types::string<char_t>>>)
+					else if constexpr (::std::same_as<arg_t, proxy<type::string<char_t>>>)
 					{
-						using err_s_t = types::string<error_msg_char>;
+						using err_s_t = type::string<error_msg_char>;
 						err_tkv = make_proxy<err_s_t>(unicode::code_convert<err_s_t>(*arg));
 					}
 					constexpr auto operand_type = type_to_type_code_v<remove_proxy_t<arg_t>, char_t>;
@@ -275,7 +275,7 @@ namespace pdn
 			{
 			case literal_string:
 			{
-				using string_t = types::string<char_t>;
+				using string_t = type::string<char_t>;
 				using string_pr = proxy<string_t>;
 				auto start_pos = tk.position;
 				auto concat_s = string_t{};
@@ -310,7 +310,7 @@ namespace pdn
 			}
 			default:
 				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
-				return types::auto_int{};
+				return type::auto_int{};
 			}
 		}
 
@@ -344,7 +344,7 @@ namespace pdn
 
 			using parser_utility::is_list_element_first;
 
-			auto result = types::list<char_t>{};
+			auto result = type::list<char_t>{};
 
 			for (bool with_comma{ true }; tk.code != pdn_token_code::right_brackets; )
 			{
@@ -352,7 +352,7 @@ namespace pdn
 				if (tk.code == pdn_token_code::eof)
 				{
 					post_err(left_brackets_pos, syn_ec::missing_right_brackets, {});
-					return make_proxy<types::list<char_t>>(::std::move(result));
+					return make_proxy<type::list<char_t>>(::std::move(result));
 				}
 				if (is_list_element_first(tk.code))
 				{
@@ -372,7 +372,7 @@ namespace pdn
 			// to ... [ ... ] CURRPOS
 			update_token(begin, end);
 
-			return make_proxy<types::list<char_t>>(::std::move(result));
+			return make_proxy<type::list<char_t>>(::std::move(result));
 		}
 
 		auto parse_list_element(auto& begin, auto end, bool& with_comma) -> entity_type
@@ -425,14 +425,14 @@ namespace pdn
 			using unicode::code_convert;
 			using parser_utility::is_expr_first;
 
-			auto result = types::object<char_t>{};
+			auto result = type::object<char_t>{};
 
 			while (tk.code != pdn_token_code::right_curly_brackets)
 			{
 				using parser_utility::to_raw_error_token;
 				if (tk.code == pdn_token_code::identifier)
 				{
-					using string_pr = proxy<types::string<char_t>>;
+					using string_pr = proxy<type::string<char_t>>;
 					auto iden_p = ::std::get<string_pr>(::std::move(tk.value));
 					if (auto it = result.find(*iden_p); it == result.end())
 					{
@@ -457,7 +457,7 @@ namespace pdn
 				else if (tk.code == pdn_token_code::eof)
 				{
 					post_err(left_curly_brackets_pos, syn_ec::missing_right_curly_brackets, {});
-					return make_proxy<types::object<char_t>>(::std::move(result));
+					return make_proxy<type::object<char_t>>(::std::move(result));
 				}
 				else
 				{
@@ -469,7 +469,7 @@ namespace pdn
 			// to ... { ... } CURRPOS
 			update_token(begin, end);
 
-			return make_proxy<types::object<char_t>>(::std::move(result));
+			return make_proxy<type::object<char_t>>(::std::move(result));
 		}
 
 		auto entity_cast(entity_type src, type_code target_type_c, source_position type_pos) -> entity_type
@@ -495,7 +495,7 @@ namespace pdn
 			case unknown:   assert(0 && "cast to unknown type"); break;
 			default:        assert(0 && "type cast unhandled");  break;
 			}
-			return types::auto_int{};
+			return type::auto_int{};
 		}
 
 		template <type_code target_type_c>
@@ -514,7 +514,7 @@ namespace pdn
 				constexpr auto tar_c = type_to_type_code_v<tar_t, char_t>;
 
 				using namespace error_message_literals;
-				using namespace types::concepts;
+				using namespace type::concepts;
 				using enum syntax_error_code;
 
 				using raw_err_casting = raw_error_message_type::casting_msg;
@@ -567,7 +567,7 @@ namespace pdn
 					{
 						using u_tar_t = ::std::make_unsigned_t<tar_t>;
 						// system error, uint::min < 0 or sint::min >= 0 is impossible,
-						// if pdn::types::concept::pdn_uint and pdn_sint work.
+						// if pdn::type::concept::pdn_uint and pdn_sint work.
 						static_assert(::std::numeric_limits<src_t>::min() >= 0, "[pdn] system error");
 						static_assert(::std::numeric_limits<tar_t>::min() < 0,  "[pdn] system error");
 						if (arg > u_tar_t(::std::numeric_limits<tar_t>::max()))
@@ -617,15 +617,15 @@ namespace pdn
 				}
 				else // character|string|list|object
 				{
-					if constexpr (::std::same_as<src_t, types::character<char_t>>)
+					if constexpr (::std::same_as<src_t, type::character<char_t>>)
 					{
 						auto s = unicode::code_convert<error_msg_string>(arg.to_string_view());
-						using err_char_t = types::character<error_msg_char>;
+						using err_char_t = type::character<error_msg_char>;
 						post_err(type_pos, illegal_cast, raw_err_casting{ { err_char_t{ s.data(), s.size() } }, src_c, tar_c });
 					}
-					else if constexpr (::std::same_as<src_t, types::string<char_t>>)
+					else if constexpr (::std::same_as<src_t, type::string<char_t>>)
 					{
-						using err_s_t = types::string<error_msg_char>;
+						using err_s_t = type::string<error_msg_char>;
 						auto sp = make_proxy<err_s_t>(unicode::code_convert<err_s_t>(*arg));
 						post_err(type_pos, illegal_cast, raw_err_casting{ { ::std::move(sp) }, src_c, tar_c});
 					}
@@ -645,7 +645,7 @@ namespace pdn
 				if constexpr (::std::same_as<arg_t, ::std::monostate>)
 				{
 					assert(0 && "token have no value");
-					return types::auto_int{};
+					return type::auto_int{};
 				}
 				else if constexpr (::std::same_as<arg_t, detail::at_iden_string_proxy>)
 				{
@@ -659,7 +659,7 @@ namespace pdn
 						using unicode::code_convert;
 						post_err(src.position, syn_ec::at_value_not_found, raw_err_iden{ code_convert<error_msg_string>(arg.get_id()) });
 					}
-					return types::auto_int{};
+					return type::auto_int{};
 				}
 				else
 				{
@@ -681,7 +681,7 @@ namespace pdn
 			}
 		}
 
-		auto type_gen(const types::string<char_t>& iden) -> type_code
+		auto type_gen(const type::string<char_t>& iden) -> type_code
 		{
 			return func_pkg->generate_type(iden);
 		}

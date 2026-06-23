@@ -5,7 +5,7 @@
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf_code_convert.h"
-#include "pdn_types.h"
+#include "pdn_type.h"
 
 namespace pdn
 {

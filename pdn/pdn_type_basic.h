@@ -1,9 +1,9 @@
-#ifndef PDN_Header_pdn_types_basic
-#define PDN_Header_pdn_types_basic
+#ifndef PDN_Header_pdn_type_basic
+#define PDN_Header_pdn_type_basic
 
-#include "pdn_types_config.h"
+#include "pdn_type_config.h"
 
-namespace pdn::types
+namespace pdn::type
 {
 	using config::i8;
 	using config::i16;
@@ -19,7 +19,7 @@ namespace pdn::types
 	using config::character;
 }
 
-namespace pdn::types::detail
+namespace pdn::type::detail
 {
 	using ::std::same_as;
 
@@ -47,13 +47,13 @@ namespace pdn::types::detail
 	using simu_uint_t = ::std::conditional_t<uint_has_alias_v<int_t>, alias_uint_t<int_t>, u32>;
 }
 
-namespace pdn::types
+namespace pdn::type
 {
 	using auto_int  = detail::simu_int_t <int>;
 	using auto_uint = detail::simu_uint_t<unsigned int>;
 }
 
-namespace pdn::types::concepts
+namespace pdn::type::concepts
 {
 	template <typename int_t>
 	concept pdn_sint
