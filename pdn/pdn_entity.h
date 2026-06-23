@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_entity
 
 #include <type_traits>
+#include <concepts>
 #include <utility>
 #include <variant>
 #include <cstddef>
@@ -42,13 +43,19 @@ namespace pdn::detail
 
 		[[nodiscard]] auto as_char() const -> type::character<char_type>;
 
+		[[nodiscard]] auto as_u8char() const -> type::u8char;
+
+		[[nodiscard]] auto as_u16char() const -> type::u16char;
+
+		[[nodiscard]] auto as_u32char() const -> type::u32char;
+
 		[[nodiscard]] auto as_string() const -> const type::string<char_type>&;
 
-		[[nodiscard]] auto as_u8string() const -> unicode::u8string;
+		[[nodiscard]] auto as_u8string() const -> type::u8string;
 
-		[[nodiscard]] auto as_u16string() const -> unicode::u16string;
+		[[nodiscard]] auto as_u16string() const -> type::u16string;
 
-		[[nodiscard]] auto as_u32string() const -> unicode::u32string;
+		[[nodiscard]] auto as_u32string() const -> type::u32string;
 
 		[[nodiscard]] auto as_list() const -> const type::list<char_type>&;
 
@@ -425,50 +432,95 @@ namespace pdn
 	}
 
 	template <typename char_t>
+	[[nodiscard]] auto as_u8char(const entity<char_t>& e) -> type::u8char
+	{
+		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u8char_t>
+		           && ::std::convertible_to<decltype(as_char(e)), type::u8char>)
+		{
+			return as_char(e);
+		}
+		else
+		{
+			auto converted = unicode::code_convert<type::u8string>(as_char(e).to_string_view());
+			return type::u8char{ converted.cbegin(), converted.size() };
+		}
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u16char(const entity<char_t>& e) -> type::u16char
+	{
+		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u16char_t>
+		           && ::std::convertible_to<decltype(as_char(e)), type::u16char>)
+		{
+			return as_char(e);
+		}
+		else
+		{
+			auto converted = unicode::code_convert<type::u16string>(as_char(e).to_string_view());
+			return type::u16char{ converted.cbegin(), converted.size() };
+		}
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u32char(const entity<char_t>& e) -> type::u32char
+	{
+		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u32char_t>
+		           && ::std::convertible_to<decltype(as_char(e)), type::u32char>)
+		{
+			return as_char(e);
+		}
+		else
+		{
+			auto converted = unicode::code_convert<type::u32string>(as_char(e).to_string_view());
+			return type::u32char{ converted.cbegin(), converted.size() };
+		}
+	}
+
+	template <typename char_t>
 	[[nodiscard]] auto as_string(const entity<char_t>& e) -> const type::string<char_t>&
 	{
 		return ::std::visit([](const auto& v) -> decltype(auto) { return detail::as_accessor<char_t>::as_string(v); }, e);
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u8string(const entity<char_t>& e) -> unicode::u8string
+	[[nodiscard]] auto as_u8string(const entity<char_t>& e) -> type::u8string
 	{
 		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u8char_t>
-			       && ::std::convertible_to<decltype(as_string(e)), unicode::u8string>)
+			       && ::std::convertible_to<decltype(as_string(e)), type::u8string>)
 		{
 			return as_string(e);
 		}
 		else
 		{
-			return unicode::code_convert<unicode::u8string>(as_string(e));
+			return unicode::code_convert<type::u8string>(as_string(e));
 		}
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u16string(const entity<char_t>& e) -> unicode::u16string
+	[[nodiscard]] auto as_u16string(const entity<char_t>& e) -> type::u16string
 	{
 		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u16char_t>
-			       && ::std::convertible_to<decltype(as_string(e)), unicode::u16string>)
+			       && ::std::convertible_to<decltype(as_string(e)), type::u16string>)
 		{
 			return as_string(e);
 		}
 		else
 		{
-			return unicode::code_convert<unicode::u16string>(as_string(e));
+			return unicode::code_convert<type::u16string>(as_string(e));
 		}
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u32string(const entity<char_t>& e) -> unicode::u32string
+	[[nodiscard]] auto as_u32string(const entity<char_t>& e) -> type::u32string
 	{
 		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u32char_t>
-			       && ::std::convertible_to<decltype(as_string(e)), unicode::u32string>)
+			       && ::std::convertible_to<decltype(as_string(e)), type::u32string>)
 		{
 			return as_string(e);
 		}
 		else
 		{
-			return unicode::code_convert<unicode::u32string>(as_string(e));
+			return unicode::code_convert<type::u32string>(as_string(e));
 		}
 	}
 
@@ -527,9 +579,27 @@ namespace pdn
 	}
 
 	template <typename char_t>
-	[[nodiscard]] inline auto as_char(const_refer<char_t> e) -> type::character<char_t>
+	[[nodiscard]] auto as_char(const_refer<char_t> e) -> type::character<char_t>
 	{
 		return e ? as_char(*e) : type::character<char_t>{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u8char(const_refer<char_t> e) -> type::u8char
+	{
+		return e ? as_u8char(*e) : type::u8char{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u16char(const_refer<char_t> e) -> type::u16char
+	{
+		return e ? as_u16char(*e) : type::u16char{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_u32char(const_refer<char_t> e) -> type::u32char
+	{
+		return e ? as_u32char(*e) : type::u32char{};
 	}
 
 	template <typename char_t>
@@ -539,21 +609,21 @@ namespace pdn
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u8string(const_refer<char_t> e) -> unicode::u8string
+	[[nodiscard]] auto as_u8string(const_refer<char_t> e) -> type::u8string
 	{
-		return e ? as_u8string(*e) : unicode::u8string{};
+		return e ? as_u8string(*e) : type::u8string{};
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u16string(const_refer<char_t> e) -> unicode::u16string
+	[[nodiscard]] auto as_u16string(const_refer<char_t> e) -> type::u16string
 	{
-		return e ? as_u16string(*e) : unicode::u16string{};
+		return e ? as_u16string(*e) : type::u16string{};
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u32string(const_refer<char_t> e) -> unicode::u32string
+	[[nodiscard]] auto as_u32string(const_refer<char_t> e) -> type::u32string
 	{
-		return e ? as_u32string(*e) : unicode::u32string{};
+		return e ? as_u32string(*e) : type::u32string{};
 	}
 
 	template <typename char_t>
@@ -793,25 +863,43 @@ namespace pdn::detail
 	}
 
 	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u8char() const -> type::u8char
+	{
+		return pdn::as_u8char(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u16char() const -> type::u16char
+	{
+		return pdn::as_u16char(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u32char() const -> type::u32char
+	{
+		return pdn::as_u32char(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
 	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_string() const -> const type::string<char_type>&
 	{
 		return pdn::as_string(*static_cast<const entity_t*>(this));
 	}
 
 	template <typename entity_t, typename char_t>
-	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u8string() const -> unicode::u8string
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u8string() const -> type::u8string
 	{
 		return pdn::as_u8string(*static_cast<const entity_t*>(this));
 	}
 
 	template <typename entity_t, typename char_t>
-	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u16string() const -> unicode::u16string
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u16string() const -> type::u16string
 	{
 		return pdn::as_u16string(*static_cast<const entity_t*>(this));
 	}
 
 	template <typename entity_t, typename char_t>
-	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u32string() const -> unicode::u32string
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_u32string() const -> type::u32string
 	{
 		return pdn::as_u32string(*static_cast<const entity_t*>(this));
 	}
