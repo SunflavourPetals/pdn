@@ -135,7 +135,7 @@ namespace pdn
 		// dom to .spdn format
 		template <typename src_char_t>
 		auto serialize(
-			const type::object<src_char_t>& dom,
+			const type::object<src_char_t>& dom, // only object is allowed(spdn text is an object)
 			const bool use_line_feed = true,
 			const bool use_last_sep_for_lo = true) const -> string_t
 		{
