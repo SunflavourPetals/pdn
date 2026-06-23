@@ -291,7 +291,53 @@ namespace pdn
 		{
 			return ::std::move((*this)[key]);
 		}
+
 	};
+
+	template <typename char_t>
+	auto operator==(const entity<char_t>& lhs, const entity<char_t>& rhs) -> bool
+	{
+		return ::std::visit([](const auto& v1, const auto& v2)
+		{
+			using v1t = ::std::decay_t<decltype(v1)>;
+			using v2t = ::std::decay_t<decltype(v2)>;
+			if constexpr (::std::same_as<v1t, v2t>)
+			{
+				constexpr auto is_proxy =
+					::std::same_as<v1t, proxy<type::string<char_t>>> ||
+					::std::same_as<v1t, proxy<type::list  <char_t>>> ||
+					::std::same_as<v1t, proxy<type::object<char_t>>>;
+				if constexpr (is_proxy)
+				{
+					return *v1 == *v2;
+				}
+				else
+				{
+					return v1 == v2;
+				}
+			}
+			else
+			{
+				return false; // type mismatch, not equal
+			}
+		}, lhs, rhs);
+	}
+
+	template <typename char_t>
+	auto operator== (const const_refer<char_t>& lhs, const const_refer<char_t>& rhs) -> bool
+	{
+		if (lhs.get() == rhs.get()) return true;
+		if (lhs && rhs) return *lhs == *rhs;
+		return false;
+	}
+
+	template <typename char_t>
+	auto operator== (const entity<char_t>& lhs, const const_refer<char_t>& rhs) -> bool
+	{
+		if (!rhs) return false;
+		if (&lhs == rhs.get()) return true;
+		return lhs == *rhs;
+	}
 }
 
 // aliases
