@@ -82,15 +82,15 @@ list [
 
 	[[maybe_unused]] auto test_i64 = get<i64>(e[u8"i64"]);
 	assert(test_i64 == -64);
-	// get_ptr
-	[[maybe_unused]] auto test_list_p = get_ptr<list<char8_t>>(e[u8"list"]);
+	// get_if
+	[[maybe_unused]] auto test_list_p = get_if<list<char8_t>>(e[u8"list"]);
 	assert(test_list_p != nullptr);
-	[[maybe_unused]] auto test_nonexistence_p = get_ptr<list<char8_t>>(r[u8"nonexistence"]);
+	[[maybe_unused]] auto test_nonexistence_p = get_if<list<char8_t>>(r[u8"nonexistence"]);
 	assert(test_nonexistence_p == nullptr);
-	// get_optional
-	[[maybe_unused]] auto test_auto_uint_opt = get_optional<auto_uint>(e[u8"auto_uint"]);
+	// get_opt
+	[[maybe_unused]] auto test_auto_uint_opt = get_opt<auto_uint>(e[u8"auto_uint"]);
 	assert(test_auto_uint_opt && (*test_auto_uint_opt == 1));
-	[[maybe_unused]] auto test_nonexistence_opt = get_optional<i32>(r[u8"nonexistence"]);
+	[[maybe_unused]] auto test_nonexistence_opt = get_opt<i32>(r[u8"nonexistence"]);
 	assert(static_cast<bool>(test_nonexistence_opt) == false);
 	// as
 	[[maybe_unused]] auto test_as_u32 = as_uint(e[u8"u32"], u32_tag);
@@ -260,41 +260,41 @@ object: {
 		<< e[u8"list"].get<pdn::types::list<char8_t>>()[0].get<pdn::types::auto_int>() << lf
 		<< e[u8"object"].get<pdn::types::object<char8_t>>()[u8"m1"].get<pdn::types::auto_int>() << lf
 		
-		// get_ptr vvv
-		<< *e[u8"int"].get_ptr<pdn::types::auto_int>() << lf
-		<< (int)*e[u8"i8"].get_ptr<pdn::types::i8>() << lf
-		<< *e[u8"i16"].get_ptr<pdn::types::i16>() << lf
-		<< *e[u8"i32"].get_ptr<pdn::types::i32>() << lf
-		<< *e[u8"i64"].get_ptr<pdn::types::i64>() << lf
-		<< *e[u8"uint"].get_ptr<pdn::types::auto_uint>() << lf
-		<< (unsigned)*e[u8"u8"].get_ptr<pdn::types::u8>() << lf
-		<< *e[u8"u16"].get_ptr<pdn::types::u16>() << lf
-		<< *e[u8"u32"].get_ptr<pdn::types::u32>() << lf
-		<< *e[u8"u64"].get_ptr<pdn::types::u64>() << lf
-		<< *e[u8"f32"].get_ptr<pdn::types::f32>() << lf
-		<< *e[u8"f64"].get_ptr<pdn::types::f64>() << lf
-		<< *e[u8"bool"].get_ptr<pdn::types::boolean>() << lf
-		<< (char)e[u8"char"].get_ptr<pdn::types::character<char8_t>>()->data()[0] << lf
-		<< (const char*)e[u8"str"].get_ptr<pdn::types::string<char8_t>>()->c_str() << lf
-		<< e[u8"list"].get_ptr<pdn::types::list<char8_t>>()->operator[](0).get<pdn::types::auto_int>() << lf
-		<< e[u8"object"].get_ptr<pdn::types::object<char8_t>>() /*->operator[](u8"m1").get<pdn::types::auto_int>()*/ << lf
+		// get_if vvv
+		<< *e[u8"int"].get_if<pdn::types::auto_int>() << lf
+		<< (int)*e[u8"i8"].get_if<pdn::types::i8>() << lf
+		<< *e[u8"i16"].get_if<pdn::types::i16>() << lf
+		<< *e[u8"i32"].get_if<pdn::types::i32>() << lf
+		<< *e[u8"i64"].get_if<pdn::types::i64>() << lf
+		<< *e[u8"uint"].get_if<pdn::types::auto_uint>() << lf
+		<< (unsigned)*e[u8"u8"].get_if<pdn::types::u8>() << lf
+		<< *e[u8"u16"].get_if<pdn::types::u16>() << lf
+		<< *e[u8"u32"].get_if<pdn::types::u32>() << lf
+		<< *e[u8"u64"].get_if<pdn::types::u64>() << lf
+		<< *e[u8"f32"].get_if<pdn::types::f32>() << lf
+		<< *e[u8"f64"].get_if<pdn::types::f64>() << lf
+		<< *e[u8"bool"].get_if<pdn::types::boolean>() << lf
+		<< (char)e[u8"char"].get_if<pdn::types::character<char8_t>>()->data()[0] << lf
+		<< (const char*)e[u8"str"].get_if<pdn::types::string<char8_t>>()->c_str() << lf
+		<< e[u8"list"].get_if<pdn::types::list<char8_t>>()->operator[](0).get<pdn::types::auto_int>() << lf
+		<< e[u8"object"].get_if<pdn::types::object<char8_t>>() /*->operator[](u8"m1").get<pdn::types::auto_int>()*/ << lf
 		// for entity test and ref test, comment it out when testing cref
-		<< e[u8"object"].get_ptr<pdn::types::object<char8_t>>()->operator[](u8"m1").get<pdn::types::auto_int>() << lf
+		<< e[u8"object"].get_if<pdn::types::object<char8_t>>()->operator[](u8"m1").get<pdn::types::auto_int>() << lf
 		// get_opt vvv
-		<< *e[u8"int"].get_optional<pdn::types::auto_int>() << lf
-		<< (int)*e[u8"i8"].get_optional<pdn::types::i8>() << lf
-		<< *e[u8"i16"].get_optional<pdn::types::i16>() << lf
-		<< *e[u8"i32"].get_optional<pdn::types::i32>() << lf
-		<< *e[u8"i64"].get_optional<pdn::types::i64>() << lf
-		<< *e[u8"uint"].get_optional<pdn::types::auto_uint>() << lf
-		<< (unsigned)*e[u8"u8"].get_optional<pdn::types::u8>() << lf
-		<< *e[u8"u16"].get_optional<pdn::types::u16>() << lf
-		<< *e[u8"u32"].get_optional<pdn::types::u32>() << lf
-		<< *e[u8"u64"].get_optional<pdn::types::u64>() << lf
-		<< *e[u8"f32"].get_optional<pdn::types::f32>() << lf
-		<< *e[u8"f64"].get_optional<pdn::types::f64>() << lf
-		<< *e[u8"bool"].get_optional<pdn::types::boolean>() << lf
-		<< (char)e[u8"char"].get_optional<pdn::types::character<char8_t>>()->data()[0] << lf
+		<< *e[u8"int"].get_opt<pdn::types::auto_int>() << lf
+		<< (int)*e[u8"i8"].get_opt<pdn::types::i8>() << lf
+		<< *e[u8"i16"].get_opt<pdn::types::i16>() << lf
+		<< *e[u8"i32"].get_opt<pdn::types::i32>() << lf
+		<< *e[u8"i64"].get_opt<pdn::types::i64>() << lf
+		<< *e[u8"uint"].get_opt<pdn::types::auto_uint>() << lf
+		<< (unsigned)*e[u8"u8"].get_opt<pdn::types::u8>() << lf
+		<< *e[u8"u16"].get_opt<pdn::types::u16>() << lf
+		<< *e[u8"u32"].get_opt<pdn::types::u32>() << lf
+		<< *e[u8"u64"].get_opt<pdn::types::u64>() << lf
+		<< *e[u8"f32"].get_opt<pdn::types::f32>() << lf
+		<< *e[u8"f64"].get_opt<pdn::types::f64>() << lf
+		<< *e[u8"bool"].get_opt<pdn::types::boolean>() << lf
+		<< (char)e[u8"char"].get_opt<pdn::types::character<char8_t>>()->data()[0] << lf
 		// other
 		<< ::std::boolalpha << e[u8"object"][u8"m2"].type_test<pdn::types::string<char8_t>>() << lf
 		<< "get_series_member_test end" << lf;
@@ -351,12 +351,12 @@ str   : "string";
 		std::cout << "num = 123\n";
 	}
 
-	if (auto p = get_ptr<types::auto_int>(cref[u8"n_num"]))
+	if (auto p = get_if<types::auto_int>(cref[u8"n_num"]))
 	{
 		std::cout << std::format("n_num = {}\n", *p);
 	}
 
-	if (auto opt = get_optional<types::boolean>(cref[u8"bool"]))
+	if (auto opt = get_opt<types::boolean>(cref[u8"bool"]))
 	{
 		std::cout << std::format("bool = {}\n", *opt);
 	}
