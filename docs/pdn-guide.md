@@ -769,23 +769,43 @@ int main()
 
 对表示 `character` 的实体使用 `as_bool`，如果实体表示 NUL 字符，得到 `false`，否则得到 `true`，字符不能转换成其他类型的值。  
 
-对于无法转换的数据，会得到一个默认值：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空字符串。  
+对于无法转换的数据，会得到一个默认值(通常是零或者默认初始化的值)：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空列表、对他使用 `s.as_int()` 会得到 `0`。  
 
 ### get 系列函数
 
-// todo
+`get` 系列函数是对 `std::get` 的包装，因此只能对 `entity<char_t>` 类使用，`entity_ref<char_t>` 和 `entity_cref<char_t>` 不适用此方法(这两位的成员函数 `get` 的语义是获取指代的 `entity<char_t>` 的地址)。  
 
-### get_ptr 系列函数
+`entity` 是依赖 `std::variant` 实现的，其中常用的 `i32`、`i64`、`u64`、`f64` 等通常只占 8 字节或更少，而 `string`、`object`、`list` 这样的复杂数据的大小则是前者的数倍，为了节省内存开支、避免浪费，本库的 `entity` 在存储上述复杂对象时使用了“代理”，在代码中则是 `pdn::proxy`，它是拥有独占所有权、支持深拷贝(值语义)且保证非空的智能包装器。`pdn::proxy<T>` 只存储指向 `T` 对象的 `std::unique_ptr`，所以对象大小和简单的数据差不多(通常是 8 字节)。但是多了一层代理，使用 `std::get` 时就必须填入 `pdn::proxy<T>` 的名字，对使用者不友好，于是 `spdn` 把 `std::get` 包装成了 `pdn::get`，供用户使用。  
 
-// todo
+注意，使用 `get` 意味着可能抛出异常。  
 
-### get_optional 系列函数
+使用方法如下：  
 
-// todo
+// todo 编写示例代码
+
+### get_if 系列函数
+
+和 [`get 系列函数`](#get-系列函数) 类似，是出于 `pdn::proxy` 的原因对 `std::get_if` 的包装，不同的是它对 `entity_ref` 和 `entity_cref` 提供服务。  
+
+使用方法如下：  
+
+// todo 编写示例代码
+
+### get_opt 系列函数
+
+从 `entity` `entity_ref` `entity_cref` 中安全地提取一个指定基础类型的值，并以 `std::optional` 返回。  
+
+若当前存储的正是指定类型的值，则返回包含该值拷贝的 `optional`，否则返回 `std::nullopt`。  
+
+基础类型指 `i8` `i16` `i32` `i64` `u8` `u16` `u32` `u64` `f32` `f64` `boolean` `character`。  
+
+// todo 编写示例代码
 
 ### type_test 系列函数
 
-// todo
+检查 `entity` `entity_ref` `entity_cref` 当前持有的值是否为目标类型，并返回布尔结果，同样，它帮用户处理了 `pdn::proxy`。
+
+// todo 编写示例代码
 
 ## 解析器的错误处理
 
