@@ -26,12 +26,15 @@ namespace pdn::detail
 	inline constexpr ::std::size_t default_buffer_size = 1024;
 }
 
-namespace pdn
+namespace pdn::inline utf_tag
 {
 	inline constexpr unicode::u8char_t  utf8_tag{};
 	inline constexpr unicode::u16char_t utf16_tag{};
 	inline constexpr unicode::u32char_t utf32_tag{};
+}
 
+namespace pdn
+{
 	// for token iterator
 	template <unicode::concepts::code_unit                  char_t,
 	          concepts::token_iterator<char_t>              it_t,

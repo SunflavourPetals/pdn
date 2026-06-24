@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <string>
 #include <optional>
+#include <stdexcept>
 
 #include "pdn_type.h"
 #include "pdn_proxy.h"
@@ -23,6 +24,12 @@ namespace pdn::detail
 	{
 		using entity_type = entity_t;
 		using char_type   = char_t;
+
+		template <detail::as_tparam_pure<char_t> target_t>
+		[[nodiscard]] auto as() const -> detail::as_rttype_t<target_t, char_t>;
+
+		template <detail::as_tparam target_t>
+		[[nodiscard]] auto as(target_t) const -> detail::as_rttype_t<target_t, char_t>;
 
 		[[nodiscard]] auto as_int() const -> type::i64;
 
@@ -368,55 +375,87 @@ namespace pdn
 }
 
 // as accessors
+namespace pdn::inline type_tag
+{
+	inline constexpr auto auto_int_tag  = detail::auto_int_tag_t{};
+	inline constexpr auto i8_tag        = detail::i8_tag_t{};
+	inline constexpr auto i16_tag       = detail::i16_tag_t{};
+	inline constexpr auto i32_tag       = detail::i32_tag_t{};
+	inline constexpr auto i64_tag       = detail::i64_tag_t{};
+	inline constexpr auto auto_uint_tag = detail::auto_uint_tag_t{};
+	inline constexpr auto u8_tag        = detail::u8_tag_t{};
+	inline constexpr auto u16_tag       = detail::u16_tag_t{};
+	inline constexpr auto u32_tag       = detail::u32_tag_t{};
+	inline constexpr auto u64_tag       = detail::u64_tag_t{};
+	inline constexpr auto f32_tag       = detail::f32_tag_t{};
+	inline constexpr auto f64_tag       = detail::f64_tag_t{};
+	inline constexpr auto bool_tag      = detail::bool_tag_t{};
+	inline constexpr auto char_tag      = detail::character_tag_t{};
+	inline constexpr auto u8char_tag    = detail::u8char_tag_t{};
+	inline constexpr auto u16char_tag   = detail::u16char_tag_t{};
+	inline constexpr auto u32char_tag   = detail::u32char_tag_t{};
+	inline constexpr auto string_tag    = detail::string_tag_t{};
+	inline constexpr auto u8string_tag  = detail::u8string_tag_t{};
+	inline constexpr auto u16string_tag = detail::u16string_tag_t{};
+	inline constexpr auto u32string_tag = detail::u32string_tag_t{};
+	inline constexpr auto list_tag      = detail::list_tag_t{};
+	inline constexpr auto object_tag    = detail::object_tag_t{};
+}
+
 namespace pdn
 {
-	inline constexpr auto auto_int_tag = type::auto_int{};
-	inline constexpr auto i8_tag  = type::i8{};
-	inline constexpr auto i16_tag = type::i16{};
-	inline constexpr auto i32_tag = type::i32{};
-	inline constexpr auto i64_tag = type::i64{};
-	inline constexpr auto auto_uint_tag = type::auto_uint{};
-	inline constexpr auto u8_tag  = type::u8{};
-	inline constexpr auto u16_tag = type::u16{};
-	inline constexpr auto u32_tag = type::u32{};
-	inline constexpr auto u64_tag = type::u64{};
-	inline constexpr auto f32_tag = type::f32{};
-	inline constexpr auto f64_tag = type::f64{};
+	// as_int(entity, pdn::auto_int/i8/i16/i32/i64_tag)
+	// as_int<pdn::type::auto_int/i8/i16/i32/i64>(entity)
+	template <detail::sint_or_tag in, typename char_t>
+	[[nodiscard]] auto as_int(const entity<char_t>& e, in) -> detail::as_rttype_t<in, char_t>
+	{
+		return ::std::visit([]<typename arg_t>(const arg_t& v)
+		{
+			return detail::as_int<arg_t, detail::tag_to_type_t<in, char_t>>(v);
+		}, e);
+	}
 
+	// as_int(entity) -> i64
 	template <typename char_t>
-	[[nodiscard]] auto as_int(const entity<char_t>& e) -> type::i64
+	[[nodiscard]] auto as_int(const entity<char_t>& e) -> detail::as_int_default_t
 	{
-		return ::std::visit([](const auto& v) { return detail::as_int(v); }, e);
+		return as_int(e, detail::as_int_default_t{});
 	}
 
-	template <typename char_t, type::concepts::pdn_sint in>
-	[[nodiscard]] auto as_int(const entity<char_t>& e, in) -> in
+	// as_uint(entity, pdn::auto_uint/u8/u16/u32/u64_tag)
+	// as_uint<pdn::type::auto_uint/u8/u16/u32/u64>(entity)
+	template <detail::uint_or_tag un, typename char_t>
+	[[nodiscard]] auto as_uint(const entity<char_t>& e, un) -> detail::as_rttype_t<un, char_t>
 	{
-		return ::std::visit([]<typename arg_t>(const arg_t& v) { return detail::as_int<arg_t, in>(v); }, e);
+		return ::std::visit([]<typename arg_t>(const arg_t& v)
+		{
+			return detail::as_uint<arg_t, detail::tag_to_type_t<un, char_t>>(v);
+		}, e);
 	}
 
+	// as_uint(entity) -> u64
 	template <typename char_t>
-	[[nodiscard]] auto as_uint(const entity<char_t>& e) -> type::u64
+	[[nodiscard]] auto as_uint(const entity<char_t>& e) -> detail::as_uint_default_t
 	{
-		return ::std::visit([](const auto& v) { return detail::as_uint(v); }, e);
+		return as_uint(e, detail::as_uint_default_t{});
 	}
 
-	template <typename char_t, type::concepts::pdn_uint un>
-	[[nodiscard]] auto as_uint(const entity<char_t>& e, un) -> un
+	// as_fp(entity, pdn::f32/f64_tag)
+	// as_fp<pdn::type::f32/f64>(entity)
+	template <detail::fp_or_tag fn, typename char_t>
+	[[nodiscard]] auto as_fp(const entity<char_t>& e, fn) -> detail::as_rttype_t<fn, char_t>
 	{
-		return ::std::visit([]<typename arg_t>(const arg_t& v) { return detail::as_uint<arg_t, un>(v); }, e);
+		return ::std::visit([]<typename arg_t>(const arg_t& v)
+		{
+			return detail::as_fp<arg_t, detail::tag_to_type_t<fn, char_t>>(v);
+		}, e);
 	}
 
+	// as_fp(entity) -> f64
 	template <typename char_t>
-	[[nodiscard]] auto as_fp(const entity<char_t>& e) -> type::f64
+	[[nodiscard]] auto as_fp(const entity<char_t>& e) -> detail::as_fp_default_t
 	{
-		return ::std::visit([](const auto& v) { return detail::as_fp(v); }, e);
-	}
-
-	template <typename char_t, type::concepts::pdn_fp fn>
-	[[nodiscard]] auto as_fp(const entity<char_t>& e, fn) -> fn
-	{
-		return ::std::visit([]<typename arg_t>(const arg_t& v) { return detail::as_fp<arg_t, fn>(v); }, e);
+		return as_fp(e, detail::as_fp_default_t{});
 	}
 
 	template <typename char_t>
@@ -483,10 +522,9 @@ namespace pdn
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u8string(const entity<char_t>& e) -> type::u8string
+	[[nodiscard]] auto as_u8string(const entity<char_t>& e) -> detail::as_rttype_t<type::u8string, char_t>
 	{
-		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u8char_t>
-			       && ::std::convertible_to<decltype(as_string(e)), type::u8string>)
+		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u8char_t>)
 		{
 			return as_string(e);
 		}
@@ -497,10 +535,9 @@ namespace pdn
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u16string(const entity<char_t>& e) -> type::u16string
+	[[nodiscard]] auto as_u16string(const entity<char_t>& e) -> detail::as_rttype_t<type::u16string, char_t>
 	{
-		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u16char_t>
-			       && ::std::convertible_to<decltype(as_string(e)), type::u16string>)
+		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u16char_t>)
 		{
 			return as_string(e);
 		}
@@ -511,10 +548,9 @@ namespace pdn
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u32string(const entity<char_t>& e) -> type::u32string
+	[[nodiscard]] auto as_u32string(const entity<char_t>& e) -> detail::as_rttype_t<type::u32string, char_t>
 	{
-		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u32char_t>
-			       && ::std::convertible_to<decltype(as_string(e)), type::u32string>)
+		if constexpr (::std::same_as<::std::remove_cv_t<char_t>, unicode::u32char_t>)
 		{
 			return as_string(e);
 		}
@@ -536,40 +572,40 @@ namespace pdn
 		return ::std::visit([](const auto& v) -> decltype(auto) { return detail::as_accessor<char_t>::as_object(v); }, e);
 	}
 
-	template <typename char_t>
-	[[nodiscard]] auto as_int(const_refer<char_t> e) -> type::i64
+	template <detail::sint_or_tag in, typename char_t>
+	[[nodiscard]] auto as_int(const_refer<char_t> e, in tag) -> detail::as_rttype_t<in, char_t>
 	{
-		return e ? as_int(*e) : type::i64{};
-	}
-
-	template <typename char_t, type::concepts::pdn_sint in>
-	[[nodiscard]] auto as_int(const const_refer<char_t>& e, in tag) -> in
-	{
-		return e ? as_int(*e, tag) : in{};
+		return e ? as_int(*e, tag) : detail::as_rttype_t<in, char_t>{};
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_uint(const_refer<char_t> e) -> type::u64
+	[[nodiscard]] auto as_int(const_refer<char_t> e) -> detail::as_int_default_t
 	{
-		return e ? as_uint(*e) : type::u64{};
+		return e ? as_int(*e) : detail::as_int_default_t{};
 	}
 
-	template <typename char_t, type::concepts::pdn_uint un>
-	[[nodiscard]] auto as_uint(const const_refer<char_t>& e, un tag) -> un
+	template <detail::uint_or_tag un, typename char_t>
+	[[nodiscard]] auto as_uint(const_refer<char_t> e, un tag) -> detail::as_rttype_t<un, char_t>
 	{
-		return e ? as_uint(*e, tag) : un{};
+		return e ? as_uint(*e, tag) : detail::as_rttype_t<un, char_t>{};
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_fp(const_refer<char_t> e) -> type::f64
+	[[nodiscard]] auto as_uint(const_refer<char_t> e) -> detail::as_uint_default_t
 	{
-		return e ? as_fp(*e) : type::f64{};
+		return e ? as_uint(*e) : detail::as_uint_default_t{};
 	}
 
-	template <typename char_t, type::concepts::pdn_fp fn>
-	[[nodiscard]] auto as_fp(const const_refer<char_t>& e, fn tag) -> fn
+	template <detail::fp_or_tag fn, typename char_t>
+	[[nodiscard]] auto as_fp(const_refer<char_t> e, fn tag) -> detail::as_rttype_t<fn, char_t>
 	{
-		return e ? as_fp(*e, tag) : fn{};
+		return e ? as_fp(*e, tag) : detail::as_rttype_t<fn, char_t>{};
+	}
+
+	template <typename char_t>
+	[[nodiscard]] auto as_fp(const_refer<char_t> e) -> detail::as_fp_default_t
+	{
+		return e ? as_fp(*e) : detail::as_fp_default_t{};
 	}
 
 	template <typename char_t>
@@ -609,21 +645,21 @@ namespace pdn
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u8string(const_refer<char_t> e) -> type::u8string
+	[[nodiscard]] auto as_u8string(const_refer<char_t> e) -> detail::as_rttype_t<type::u8string, char_t>
 	{
-		return e ? as_u8string(*e) : type::u8string{};
+		return e ? as_u8string(*e) : detail::as_accessor<unicode::u8char_t>::null_string_val();
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u16string(const_refer<char_t> e) -> type::u16string
+	[[nodiscard]] auto as_u16string(const_refer<char_t> e) -> detail::as_rttype_t<type::u16string, char_t>
 	{
-		return e ? as_u16string(*e) : type::u16string{};
+		return e ? as_u16string(*e) : detail::as_accessor<unicode::u16char_t>::null_string_val();
 	}
 
 	template <typename char_t>
-	[[nodiscard]] auto as_u32string(const_refer<char_t> e) -> type::u32string
+	[[nodiscard]] auto as_u32string(const_refer<char_t> e) -> detail::as_rttype_t<type::u32string, char_t>
 	{
-		return e ? as_u32string(*e) : type::u32string{};
+		return e ? as_u32string(*e) : detail::as_accessor<unicode::u32char_t>::null_string_val();
 	}
 
 	template <typename char_t>
@@ -636,6 +672,106 @@ namespace pdn
 	[[nodiscard]] auto as_object(const_refer<char_t> e) -> const type::object<char_t>&
 	{
 		return e ? as_object(*e) : detail::as_accessor<char_t>::null_object_val();
+	}
+
+	template <typename target_t, typename char_t> requires detail::as_tparam_pure<target_t, char_t>
+	[[nodiscard]] auto as(const entity<char_t>& e) -> detail::as_rttype_t<target_t, char_t>
+	{
+		using real_type = detail::tag_to_type_t<target_t, char_t>;
+		if constexpr (type::concepts::pdn_sint<real_type>)
+		{
+			return as_int(e, real_type{});
+		}
+		else if constexpr (type::concepts::pdn_uint<real_type>)
+		{
+			return as_uint(e, real_type{});
+		}
+		else if constexpr (type::concepts::pdn_fp<real_type>)
+		{
+			return as_fp(e, real_type{});
+		}
+		else if constexpr (::std::same_as<real_type, type::boolean>)
+		{
+			return as_bool(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::character<char_t>>)
+		{
+			return as_char(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::u8char>)
+		{
+			return as_u8char(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::u16char>)
+		{
+			return as_u16char(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::u32char>)
+		{
+			return as_u32char(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::string<char_t>>)
+		{
+			return as_string(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::u8string>)
+		{
+			return as_u8string(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::u16string>)
+		{
+			return as_u16string(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::u32string>)
+		{
+			return as_u32string(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::list<char_t>>)
+		{
+			return as_list(e);
+		}
+		else if constexpr (::std::same_as<real_type, type::object<char_t>>)
+		{
+			return as_object(e);
+		}
+		else
+		{
+			static_assert(false, "[pdn] unsupported type for as<T>(entity)");
+		}
+	}
+
+	template <detail::as_tparam tag_t, typename char_t>
+	[[nodiscard]] auto as(const entity<char_t>& e, tag_t) -> detail::as_rttype_t<tag_t, char_t>
+	{
+		return as<tag_t>(e);
+	}
+
+	template <typename target_t, typename char_t> requires detail::as_tparam_pure<target_t, char_t>
+	[[nodiscard]] auto as(const_refer<char_t> e) -> detail::as_rttype_t<target_t, char_t>
+	{
+		using real_type = detail::tag_to_type_t<target_t, char_t>;
+		if constexpr (::std::same_as<real_type, type::string<char_t>>)
+		{
+			return e ? as<target_t>(*e) : detail::as_accessor<char_t>::null_string_val();
+		}
+		else if constexpr (::std::same_as<real_type, type::list<char_t>>)
+		{
+			return e ? as<target_t>(*e) : detail::as_accessor<char_t>::null_list_val();
+		}
+		else if constexpr (::std::same_as<real_type, type::object<char_t>>)
+		{
+			return e ? as<target_t>(*e) : detail::as_accessor<char_t>::null_object_val();
+		}
+		else
+		{
+			return e ? as<target_t>(*e) : detail::as_rttype_t<target_t, char_t>{};
+		}
+	}
+
+	template <detail::as_tparam target_t, typename char_t>
+	[[nodiscard]] auto as(const_refer<char_t> e, target_t) -> detail::as_rttype_t<target_t, char_t>
+	{
+		return as<target_t>(e);
 	}
 }
 
@@ -811,6 +947,20 @@ namespace pdn
 
 namespace pdn::detail
 {
+	template <typename entity_t, typename char_t>
+	template <detail::as_tparam_pure<char_t> target_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as() const -> detail::as_rttype_t<target_t, char_t>
+	{
+		return pdn::as<target_t>(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <detail::as_tparam target_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as(target_t) const -> detail::as_rttype_t<target_t, char_t>
+	{
+		return as<target_t>();
+	}
+
 	template <typename entity_t, typename char_t>
 	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_int() const -> type::i64
 	{
