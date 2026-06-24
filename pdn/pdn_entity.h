@@ -28,8 +28,8 @@ namespace pdn::detail
 		template <detail::as_tparam_pure<char_t> target_t>
 		[[nodiscard]] auto as() const -> detail::as_rttype_t<target_t, char_t>;
 
-		template <detail::as_tparam target_t>
-		[[nodiscard]] auto as(target_t) const -> detail::as_rttype_t<target_t, char_t>;
+		template <detail::as_tparam tag_t>
+		[[nodiscard]] auto as(tag_t) const -> detail::as_rttype_t<tag_t, char_t>;
 
 		[[nodiscard]] auto as_int() const -> type::i64;
 
@@ -768,10 +768,10 @@ namespace pdn
 		}
 	}
 
-	template <detail::as_tparam target_t, typename char_t>
-	[[nodiscard]] auto as(const_refer<char_t> e, target_t) -> detail::as_rttype_t<target_t, char_t>
+	template <detail::as_tparam tag_t, typename char_t>
+	[[nodiscard]] auto as(const_refer<char_t> e, tag_t) -> detail::as_rttype_t<tag_t, char_t>
 	{
-		return as<target_t>(e);
+		return as<tag_t>(e);
 	}
 }
 
@@ -955,10 +955,10 @@ namespace pdn::detail
 	}
 
 	template <typename entity_t, typename char_t>
-	template <detail::as_tparam target_t>
-	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as(target_t) const -> detail::as_rttype_t<target_t, char_t>
+	template <detail::as_tparam tag_t>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as(tag_t) const -> detail::as_rttype_t<tag_t, char_t>
 	{
-		return as<target_t>();
+		return as<tag_t>();
 	}
 
 	template <typename entity_t, typename char_t>
