@@ -404,6 +404,12 @@ namespace pdn::inline type_tag
 	inline constexpr auto int_tag       = auto_int_tag;
 	// same as auto_uint_tag
 	inline constexpr auto uint_tag      = auto_uint_tag;
+
+	template <typename tag_t, typename char_t>
+	using tag_to_type = detail::tag_to_type<tag_t, char_t>;
+
+	template <typename tag_t, typename char_t>
+	using tag_to_type_t = detail::tag_to_type_t<tag_t, char_t>;
 }
 
 namespace pdn
