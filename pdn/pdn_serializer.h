@@ -511,7 +511,7 @@ namespace pdn
 		serialize_separator    list_sep = {},
 		serialize_separator    obj_sep  = {}) -> serializer<char_t>
 	{
-		return serializer
+		return serializer<char_t>
 		{
 			.tab              = detail::to_string<char_t>(tab),
 			.last_sep         = detail::to_string<char_t>(last),
