@@ -933,15 +933,186 @@ int main()
 
 代码见 [`guide-source/type-test-example.cpp`](./guide-source/type-test-example.cpp)。  
 
+## 解析器配置
+
+用户可以配置解析器需要的函数包，以达到定制效果。  
+
+相关说明在 [pdn-parser-impl parse 章节](./pdn-parser-impl.md#parse) 中。  
+  
+根据截取的源码，即可大致了解其作用。  
+
+```C++
+template <typename char_t>
+class default_function_package
+{
+public:
+    using error_count_t = default_threshold_error_handler::error_count_t;
+
+    // 以下四个函数解析器不使用，额外供用户使用的函数
+    // function_package 必需的函数会用注释标明
+
+    // 归零累计的已发生错误数量(默认行为是当错误数量累积到100时结束解析)
+    void clear_error_count() noexcept;
+    // 查询累计的已发生错误数量
+    auto error_count() const noexcept;
+    // 重设结束解析所需的错误数量
+    void reset_error_threshold(const error_count_t max_error_count) noexcept;
+    // 查询结束解析所需的错误数量
+    auto error_threshold() const noexcept;
+
+    // source_position_recorder 相关
+    // function_package 必需品：提供正在解析行与列位置，用户一般无需自定义
+    auto position() const -> pdn::source_position;
+    // function_package 必需品：根据读到的字符更新记录的行列位置，用户一般无需自定义
+    void update(const char32_t c);
+    // pdn_source_position_and_newline_recorder.h 中提供另一个行列记录器版本
+    // 它会记录用户使用的换行类型和各自的数量，但是一般无需统计它们
+
+    // function_package 必需品：处理错误，默认行为是输出错误信息到 std::cerr
+    void handle_error(const pdn::error_message& msg);
+    // 另一个版本，供用户定制非必需
+    void handle_error(const pdn::error_message& msg, ::std::ostream& out);
+
+    // function_package 必需品：生成错误信息文本
+    static auto generate_error_message(pdn::raw_error_message raw) -> pdn::error_msg_string;
+    
+    // function_package 必需品：查询 @常量 对应数据供 parser 使用
+    static auto generate_constant(const pdn::unicode::u8string& iden) -> ::std::optional<pdn::entity<char_t>>;
+    
+    // function_package 必需品：类型指定时生成类型码供 parser 使用
+    static auto generate_type(const type::string<char_t>& iden) -> type_code;
+    
+    // 无需关注
+    default_function_package() = default;
+    explicit default_function_package(error_count_t max_error_count) : err_handler{ max_error_count } {}
+private:
+    source_position_recorder        pos_recorder{};
+    default_threshold_error_handler err_handler{};
+};
+```
+
+[源码参考 pdn_function_package.h](../pdn/pdn_function_package.h)  
+
 ## 解析器的错误处理
+
+在上一章[解析器配置](#解析器配置)中说明过，错误的处理和报告是由 `generate_error_message` 和 `handle_error` 完成的。  
 
 ### 错误信息生成和报告
 
-// todo 国际化和输出错误信息到文件
+从错误信息的原始数据到错误信息文本的处理是由 `generate_error_message` 完成的，默认函数包将调用 `default_error_message_generator::generate_error_message`。  
+
+```C++
+class default_error_message_generator
+{
+public:
+    static auto generate_error_message(raw_error_message src) -> error_msg_string
+    {
+        using namespace literals::error_message_literals;
+        auto errc = src.error_code;
+        auto pos  = src.position;
+        return error_code_variant_to_error_msg_string(errc)
+            .append(u8"("_em)
+            .append(reinterpret_to_err_msg_str(::std::to_string(pos.line)))
+            .append(u8":"_em)
+            .append(reinterpret_to_err_msg_str(::std::to_string(pos.column)))
+            .append(u8") "_em)
+            .append(error_message_generator_en(::std::move(src)));
+    }
+};
+```
+
+[源码参考 pdn_error_message_generator.h](../pdn/pdn_error_message_generator.h)  
+
+在最后调用了 `error_message_generator_en`，它根据原始错误信息生成文本。  
+
+[源码参考 pdn_error_message_generator_en.h](../pdn/pdn_error_message_generator_en.h)  
+
+它根据原始错误信息中的错误码的类型(UTF8/16/32 解码错误、词法错误、语法错误) 分发到 `pdn::detail::err_msg_gen_en` 进行最终处理。  
+
+见：  
+
+* [pdn_err_msg_gen_en_utf8_dec.h](../pdn/pdn_err_msg_gen_en_utf8_dec.h)  
+* [pdn_err_msg_gen_en_utf16_dec.h](../pdn/pdn_err_msg_gen_en_utf16_dec.h)  
+* [pdn_err_msg_gen_en_utf32_dec.h](../pdn/pdn_err_msg_gen_en_utf32_dec.h)  
+* [pdn_err_msg_gen_en_lex.h](../pdn/pdn_err_msg_gen_en_lex.h)  
+* [pdn_err_msg_gen_en_syn.h](../pdn/pdn_err_msg_gen_en_syn.h)  
+* [pdn_err_msg_gen_utility.h](../pdn/pdn_err_msg_gen_utility.h)  
+
+默认函数包使用 `handle_error(e)` 报告错误，默认行为是向 `std::cerr` 打印错误信息。  
+
+```C++
+void handle_error(const error_message& e)
+{
+    handle_error(e, ::std::cerr);
+}
+void handle_error(const error_message& e, ::std::ostream& out)
+{
+    ++error_count;
+    default_error_handler::handle_error(e, out);
+    if (error_count >= limit) throw ::std::runtime_error{ "too many parsing errors" };
+}
+```
+
+如果需要打印到文件，只需要在用户提供的函数包中将 `handle_error(e)` 的行为修改为向文件打印即可。  
+
+```C++
+#include <iostream>
+#include <fstream>
+#include <string>
+
+#include "spdn.h"
+
+class my_function_package
+{
+public:
+    auto position() const -> pdn::source_position
+    {
+        return dfp.position();
+    }
+    void update(const char32_t c)
+    {
+        dfp.update(c);
+    }
+    void handle_error(const pdn::error_message& msg)
+    {
+        dfp.handle_error(msg, out); // 输出到文件
+    }
+    auto generate_error_message(pdn::raw_error_message raw) -> pdn::error_msg_string
+    {
+        return dfp.generate_error_message(std::move(raw));
+    }
+    auto generate_constant(const pdn::unicode::u8string& iden) -> ::std::optional<pdn::u8entity>
+    {
+        return dfp.generate_constant(iden);
+    }
+    auto generate_type(const pdn::type::u8string& iden) -> pdn::type_code
+    {
+        return dfp.generate_type(iden);
+    }
+    my_function_package()
+    {
+        out.open("print-err-msg-to-file.txt");
+    }
+private:
+    pdn::default_function_package<char8_t> dfp{};
+    std::ofstream out;
+};
+
+int main()
+{
+    using namespace std::string_view_literals;
+
+    auto mfp = my_function_package{};
+    auto e = pdn::parse(u8R"(100)"sv, mfp, mfp, mfp, pdn::utf8_tag); // 缺少标识符的错误
+}
+```
+
+代码见 [`guide-source/print-err-msg-to-file.cpp`](./guide-source/print-err-msg-to-file.cpp)。  
 
 ### 利用解析器错误处理终止解析
 
-// todo
+默认函数包的 `error_handler` 会在累计错误达到 `100` 时抛出 `std::runtime_exception`。  
+因此使用 `pdn::parse` 时需要注意异常安全。  
 
 ## 配置自定义的解析器的常量
 

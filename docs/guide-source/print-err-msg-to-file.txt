@@ -1,0 +1,1 @@
+syntax error(1:1) expect entity-name(identifier) but receiving integer-val with value 100 before entity
