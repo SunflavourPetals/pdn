@@ -56,7 +56,7 @@ namespace pdn
 		{
 			return default_constant_generator<char_t>::generate_constant(iden);
 		}
-		static auto generate_type(const type::string<char_t>& iden) -> type_code
+		static auto generate_type(const type::string<char_t>& iden) -> pdn::type_code
 		{
 			return default_type_generator<char_t>::generate_type(iden);
 		}
