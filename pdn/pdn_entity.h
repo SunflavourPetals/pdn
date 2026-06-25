@@ -192,10 +192,12 @@ namespace pdn
 		using char_type    = char_t;
 		using index_type   = ::std::size_t;
 		using key_type     = ::std::basic_string_view<char_type>;
+		using auto_int     = type::auto_int;
 		using i8           = type::i8;
 		using i16          = type::i16;
 		using i32          = type::i32;
 		using i64          = type::i64;
+		using auto_uint    = type::auto_uint;
 		using u8           = type::u8;
 		using u16          = type::u16;
 		using u32          = type::u32;
