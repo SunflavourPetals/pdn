@@ -400,6 +400,8 @@ namespace pdn::inline type_tag
 	inline constexpr auto u32string_tag = detail::u32string_tag_t{};
 	inline constexpr auto list_tag      = detail::list_tag_t{};
 	inline constexpr auto object_tag    = detail::object_tag_t{};
+	inline constexpr auto int_tag       = auto_int_tag;
+	inline constexpr auto uint_tag      = auto_uint_tag;
 }
 
 namespace pdn
