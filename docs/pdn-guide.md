@@ -931,7 +931,7 @@ int main()
 }
 ```
 
-
+代码见 [`guide-source/type-test-example.cpp`](./guide-source/type-test-example.cpp)。  
 
 ## 解析器的错误处理
 
