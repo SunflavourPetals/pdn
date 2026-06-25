@@ -24,7 +24,7 @@ int main()
 
 	std::cout << std::boolalpha << as_bool(e[u8"c"]) << "\n"; // true
 
-	std::cout << as_int(e[u8"nan"]) << "\n"; // 0
+	std::cout << e[u8"nan"].as(int_tag) << "\n"; // 0
 
 	std::cout << as_string(e[u8"f"]) << "\n"; // *null string
 }

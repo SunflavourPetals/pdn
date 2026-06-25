@@ -701,16 +701,23 @@ int main()
 
 ### as 系列函数
 
-上面我们已经用过了一些 as 系列的函数，如 `as_int` `as_string` `as_list` 等，本库的 as 系列函数分为 8 类：`as_int` `as_uint` `as_fp`(fp 是 floating-point 的缩写) `as_bool` `as_char` `as_string` `as_list` `as_object`，全部在头文件 `pdn_entity.h`、名称空间 `pdn` 中，也有 `pdn::entity<char_t>`、`pdn::entity_ref<char_t>` 和 `pdn::entity_cref<char_t>` 成员函数版本供使用。  
+上面我们已经用过了一些 as 系列的函数，如 `as_int` `as_string` `as_list` 等，本库的 as 系列函数大致分为 8 类：`as_int` `as_uint` `as_fp`(fp 是 floating-point 的缩写) `as_bool` `as_char` `as_string` `as_list` `as_object`，全部在头文件 `pdn_entity.h`、名称空间 `pdn` 中，也有 `pdn::entity<char_t>`、`pdn::entity_ref<char_t>` 和 `pdn::entity_cref<char_t>` 成员函数版本供使用。  
+
+另外还有对 `character` 和 `string` 进行编码转换的 `as_unchar` 和 `as_unstring` (n 为 8/16/32)，如果请求的类型使用的编码和 `entity<char_t>` 的编码不一致，则会进行编码的转换，并返回转换后的结果，否则，它和 `as_char` 和 `as_string` 的行为一致。  
+
+最后 `as` 函数对以上函数进行了整合。  
 
 * `as_int` 的返回值类型是 `i64`；  
 * `as_uint` 的返回值类型是 `u64`；  
 * `as_fp` 的返回值类型是 `f64`；  
 * `as_bool` 的返回值类型是 `boolean`，对应 C++ 的 `bool` 类型；  
-* `as_char` 的返回值类型是 `character`；  
-* `as_string` 的返回值类型通常是是 `std::basic_string<char_t>`；  
-* `as_list` 的返回值类型通常是 `std::vector<entity<char_t>>`；  
-* `as_object` 的返回值类型通常是 `std::unordered_map<std::basic_string<char_t>, entity<char_t>>`；  
+* `as_char` 的返回值类型是 `character<char_t>`；  
+* `as_unchar` (n 为 8/16/32) 的返回值类型是 `character<unchar>`；  
+* `as_string` 的返回值类型是 `const string<char_t>&`；  
+* `as_unstring` (n 为 8/16/32) 的返回值类型是 `const string<char_t>&` 或 `string<unchar>`；  
+* `as_list` 的返回值类型是 `const list<char_t>&`；  
+* `as_object` 的返回值类型是 `const object<char_t>&`；  
+* `as` 根据模板参数 `target_t` 或函数参数 `tag` 返回对 `as_...` 函数的调用，是上述所有函数的汇总；  
 
 在使用 as 系列函数时，在可能的情况下会尝试类型转换，如实体实际上是浮点数，但我们对它使用了 `as_int`，我们就获得了该实体转换到整数值的结果。  
 当实体和 as 函数返回值类型不一样，但是都在整数、浮点数和布尔这些类型范围内时，会发生这种转换；此外，字符可以转变为布尔值(NUL字符表示 `false`，其余表示 `true`，但布尔值不能转变为字符)。其余类型之间无法进行类型转换，使用 as 函数的结果是一个默认值，如 `0`，空字符串、空列表或空对象。  
@@ -746,11 +753,13 @@ int main()
 
     std::cout << std::boolalpha << as_bool(e[u8"c"]) << "\n"; // true
 
-    std::cout << as_int(e[u8"nan"]) << "\n"; // 0
+    std::cout << e[u8"nan"].as(int_tag) << "\n"; // 0
 
     std::cout << as_string(e[u8"f"]) << "\n"; // *null string*
 }
 ```
+
+代码见 [`guide-source/as-example.cpp`](./guide-source/as-example.cpp)。  
 
 #### as 系列函数详解
 
@@ -762,18 +771,22 @@ int main()
 
 注：被称为 `f32` `f64` 的类型，实际上对应的 C++ 类型是 `float` 和 `double`，通常情况下，实现是 IEEE-754 的 binary32 和 binary64。  
 
-`as_int` `as_uint` `as_fp` 默认的获取类型分别是 `i64` `u64` `f64`。如果你想指定要获取的类型，可以使用名称空间 `pdn` 内的 `i8_tag` - `i64_tag`、`u8_tag` - `u64_tag` 及 `f32_tag` 和 `f64_tag`。  
-此外，`pdn::types` 名称空间内有类型别名 `auto_int` 和 `auto_uint`。`auto_int` 要么是 `int`，要么是 `pdn::types::i32`；`auto_uint` 要么是 `unsigned int`，要么是 `pdn::types::u32`(当然也很可能两者都是)。它们同样有对应的 `auto_int_tag` 和 `auto_uint_tag`。  
+`as_int` `as_uint` `as_fp` 默认的获取类型分别是 `i64` `u64` `f64`。如果你想指定要获取的类型，可以使用名称空间 `pdn::inline type_tag` 内的 `i8_tag` - `i64_tag`、`int_tag`、`u8_tag` - `u64_tag`、`uint_tag` 及 `f32_tag` 和 `f64_tag`。  
+此外，`pdn::types` 名称空间内有类型别名 `auto_int` 和 `auto_uint`。`auto_int` 要么是 `int`，要么是 `pdn::types::i32`；`auto_uint` 要么是 `unsigned int`，要么是 `pdn::types::u32`(当然也很可能两者都是)。它们对应 `auto_int_tag/int_tag` 和 `auto_uint_tag/uint_tag`。  
 
-使用 as 系列函数时，整数、浮点数和布尔值会被转换到目标类型，如对表示 `100.0` 的数据实体使用 `as_bool`，会得到 `true`，再举一个例子，对表示 `200` 的实体 `e` 使用 `as_int(e, i8_tag)`，那么可能会得到 `127`。  
+使用 as 系列函数时，整数、浮点数和布尔值会被转换到目标类型，如对表示 `100.0` 的数据实体使用 `as_bool`，会得到 `true`，再举一个例子，对表示 `200` 的实体 `e` 使用 `as_int(e, i8_tag)`，那么可能会得到 `127`(clamp 到目标类型 `i8` 的范围)。  
 
-对表示 `character` 的实体使用 `as_bool`，如果实体表示 NUL 字符，得到 `false`，否则得到 `true`，字符不能转换成其他类型的值。  
+对表示 `character` 的实体使用 `as_bool`，如果实体表示 NUL 字符，得到 `false`，否则得到 `true`，除了 `bool` 字符不能转换成其他类型的值。  
+
+`pdn::as` 和 `pdn::entity<char_t>::as` 则是对 `as_...` 函数的汇总，填入模板参数或者想要的 `tag` 来使用。  
 
 对于无法转换的数据，会得到一个默认值(通常是零或者默认初始化的值)：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空列表、对他使用 `s.as_int()` 会得到 `0`。  
 
 ### get 系列函数
 
-`get` 系列函数是对 `std::get` 的包装，因此只能对 `entity<char_t>` 类使用，`entity_ref<char_t>` 和 `entity_cref<char_t>` 不适用此方法(这两位的成员函数 `get` 的语义是获取指代的 `entity<char_t>` 的地址)。  
+`get` 系列函数是对 `std::get` 的包装，因此只能对 `entity<char_t>` 类使用，`entity_ref<char_t>` 和 `entity_cref<char_t>` 不适用此方法(这两位的成员函数 `get` 的语义是获取指代的 `entity<char_t>` 的地址)，该函数同样提供 `entity<char_t>` 的成员函数版本。  
+
+`get` 可以用于读取实体的数据，也能用于修改非 const 实体的数据。  
 
 `entity` 是依赖 `std::variant` 实现的，其中常用的 `i32`、`i64`、`u64`、`f64` 等通常只占 8 字节或更少，而 `string`、`object`、`list` 这样的复杂数据的大小则是前者的数倍，为了节省内存开支、避免浪费，本库的 `entity` 在存储上述复杂对象时使用了“代理”，在代码中则是 `pdn::proxy`，它是拥有独占所有权、支持深拷贝(值语义)且保证非空的智能包装器。`pdn::proxy<T>` 只存储指向 `T` 对象的 `std::unique_ptr`，所以对象大小和简单的数据差不多(通常是 8 字节)。但是多了一层代理，使用 `std::get` 时就必须填入 `pdn::proxy<T>` 的名字，对使用者不友好，于是 `spdn` 把 `std::get` 包装成了 `pdn::get`，供用户使用。  
 
@@ -781,31 +794,144 @@ int main()
 
 使用方法如下：  
 
-// todo 编写示例代码
+```C++
+#include <iostream>
+#include <string>
+#include <exception>
+
+#include "spdn.h"
+
+#include "outu8sv.h"
+
+int main()
+{
+    using namespace pdn;
+    using namespace std::string_view_literals;
+
+    auto e = parse(u8R"(int 1 string "hello")"sv, utf8_tag);
+
+    using et = decltype(e); // entity<char8_t>
+
+    try
+    {
+        auto& int_of_e = e[u8"int"sv].get<et::auto_int>();
+        std::cout << int_of_e << "\n"; // 1
+        int_of_e = -1; // e[u8"int"] <- -1
+        std::cout << e[u8"int"sv].get<et::auto_int>() << "\n"; // -1
+        std::cout << get<et::string>(e[u8"string"sv]) << "\n"; // hello
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what();
+    }
+}
+```
+
+代码见 [`guide-source/get-example.cpp`](./guide-source/get-example.cpp)。  
 
 ### get_if 系列函数
 
-和 [`get 系列函数`](#get-系列函数) 类似，是出于 `pdn::proxy` 的原因对 `std::get_if` 的包装，不同的是它对 `entity_ref` 和 `entity_cref` 提供服务。  
+和 [`get 系列函数`](#get-系列函数) 类似，是出于 `pdn::proxy` 的原因对 `std::get_if` 的包装，不同的是它不需要参数为指针，而且它对 `entity_ref` 和 `entity_cref` 也提供服务。  
 
 使用方法如下：  
 
-// todo 编写示例代码
+```C++
+#include <iostream>
+#include <string>
+
+#include "spdn.h"
+
+#include "outu8sv.h"
+
+int main()
+{
+    using namespace pdn;
+    using namespace std::string_view_literals;
+
+    auto e = parse(u8R"(int 1 string "hello")"sv, utf8_tag);
+
+    using et = decltype(e); // entity<char8_t>
+
+    if (auto int_of_e_p = e[u8"int"sv].get_if<et::auto_int>())
+    {
+        std::cout << *int_of_e_p << "\n"; // 1
+        *int_of_e_p = -1;
+        std::cout << *e[u8"int"sv].get_if<et::auto_int>() << "\n"; // -1
+    }
+    if (auto str_of_e_p = get_if<et::string>(e[u8"string"sv]))
+    {
+        std::cout << *str_of_e_p << "\n"; // hello
+    }
+}
+```
+
+代码见 [`guide-source/get-if-example.cpp`](./guide-source/get-if-example.cpp)。  
 
 ### get_opt 系列函数
 
-从 `entity` `entity_ref` `entity_cref` 中安全地提取一个指定基础类型的值，并以 `std::optional` 返回。  
+从 `entity` `entity_ref` `entity_cref` 中安全地提取一个指定基础类型的值，并以 `std::optional` 返回，因此不能通过 `get_opt` 对实体进行修改。  
 
 若当前存储的正是指定类型的值，则返回包含该值拷贝的 `optional`，否则返回 `std::nullopt`。  
 
 基础类型指 `i8` `i16` `i32` `i64` `u8` `u16` `u32` `u64` `f32` `f64` `boolean` `character`。  
 
-// todo 编写示例代码
+```C++
+#include <iostream>
+#include <string>
+
+#include "spdn.h"
+
+#include "outu8sv.h"
+
+int main()
+{
+    using namespace pdn;
+    using namespace std::string_view_literals;
+
+    auto e = parse(u8R"(int 1 big 0xffff'ffff'ffff'ffff)"sv, utf8_tag);
+
+    using et = decltype(e); // entity<char8_t>
+
+    if (auto opt = e[u8"int"sv].get_opt<et::auto_int>())
+    {
+        std::cout << *opt << "\n"; // 1
+    }
+    if (auto opt = get_opt<et::u64>(e[u8"big"sv])) // not auto_int
+    {
+        std::cout << *opt << "\n"; // 18446744073709551615
+    }
+}
+```
+
+代码见 [`guide-source/get-opt-example.cpp`](./guide-source/get-opt-example.cpp)。  
 
 ### type_test 系列函数
 
 检查 `entity` `entity_ref` `entity_cref` 当前持有的值是否为目标类型，并返回布尔结果，同样，它帮用户处理了 `pdn::proxy`。
 
-// todo 编写示例代码
+```C++
+#include <iostream>
+#include <string>
+
+#include "spdn.h"
+
+#include "outu8sv.h"
+
+int main()
+{
+    using namespace pdn;
+    using namespace std::string_view_literals;
+
+    auto e = parse(u8R"(hello "hello")"sv, utf8_tag);
+
+    using et = decltype(e); // entity<char8_t>
+
+    std::cout << type_test<et::auto_int>(e[u8"hello"sv]) << "\n"; // 0
+    std::cout << type_test<et::string>(e[u8"hello"sv]) << "\n"; // 1
+}
+```
+
+
 
 ## 解析器的错误处理
 
