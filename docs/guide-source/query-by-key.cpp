@@ -1,10 +1,11 @@
 #include <iostream>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
 	using namespace pdn;
 	
@@ -52,4 +53,12 @@ int main()
 			std::cout << "no entity named \"name\"\n";
 		}
 	}
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }

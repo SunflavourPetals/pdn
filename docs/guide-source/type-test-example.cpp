@@ -1,11 +1,12 @@
 #include <iostream>
 #include <string>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
     using namespace pdn;
     using namespace std::string_view_literals;
@@ -16,4 +17,12 @@ int main()
 
     std::cout << type_test<et::auto_int>(e[u8"hello"sv]) << "\n"; // 0
     std::cout << type_test<et::string>(e[u8"hello"sv]) << "\n"; // 1
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }

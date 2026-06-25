@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <cassert>
+#include <exception>
 
 #include "spdn.h"
 
@@ -55,21 +56,21 @@ list [
     const auto& e = parse(src, utf8_tag);
     const auto r = e.ref();
 
-    using namespace pdn::types;
+    using namespace pdn::type;
     // get
     auto unused1 = get<auto_int>(e[u8"auto_int"]);
     auto unused2 = get<object<char8_t>>(e[u8"object"]);
     auto test_i64 = get<i64>(e[u8"i64"]);
     assert(test_i64 == -64);
-    // get_ptr
-    auto test_list_p = get_ptr<list<char8_t>>(e[u8"list"]);
+    // get_if
+    auto test_list_p = get_if<list<char8_t>>(e[u8"list"]);
     assert(test_list_p != nullptr);
-    auto test_nonexistence_p = get_ptr<list<char8_t>>(r[u8"nonexistence"]);
+    auto test_nonexistence_p = get_if<list<char8_t>>(r[u8"nonexistence"]);
     assert(test_nonexistence_p == nullptr);
-    // get_optional
-    auto test_auto_uint_opt = get_optional<auto_uint>(e[u8"auto_uint"]);
+    // get_opt
+    auto test_auto_uint_opt = get_opt<auto_uint>(e[u8"auto_uint"]);
     assert(test_auto_uint_opt && (*test_auto_uint_opt == 1));
-    auto test_nonexistence_opt = get_optional<i32>(r[u8"nonexistence"]);
+    auto test_nonexistence_opt = get_opt<i32>(r[u8"nonexistence"]);
     assert(static_cast<bool>(test_nonexistence_opt) == false);
     // as
     auto test_as_u32 = as_uint(e[u8"u32"], u32_tag);
@@ -82,7 +83,15 @@ list [
     assert(test_as_string == string<char8_t>{});
 }
 
-int main()
+int main() try
 {
     parse_something<char8_t>();
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }

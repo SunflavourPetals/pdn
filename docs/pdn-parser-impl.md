@@ -34,8 +34,8 @@ void parse_something()
 解析后将得到一个持有 `object` 的 `entity` (数据实体) 或 `optional` 的数据实体(取决于使用的 `parse` 函数)，是 `std::variant<pdn_data_types...>` 的派生类，除了可以用 `std::get` `std::get_if` `std::visit` 等方法访问，还提供如下访问函数(头文件 `pdn_entity.h`，名称空间 `pdn` 内)：  
 
 1. `get` 系列函数：对代理进行处理的 `std::get` 的封装，不支持 `refer` 和 `const_refer` 版本；  
-2. `get_ptr` 系列函数：获得相应类型的值或得到 nullptr；  
-3. `get_optional` 系列函数：仅对基本类型提供(整数、浮点数、布尔和字符)，获得相应类型的 `optional`，失败时得到 `nullopt`；  
+2. `get_if` 系列函数：获得相应类型的值或得到 nullptr；  
+3. `get_opt` 系列函数：仅对基本类型提供(整数、浮点数、布尔和字符)，获得相应类型的 `optional`，失败时得到 `nullopt`；  
 4. `as` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值；  
 5. `type_test` 系列函数：测试实体持有的值是否为指定类型。  
 
@@ -99,21 +99,21 @@ list [
     const auto& e = parse(src, utf8_tag);
     const auto r = e.ref();
 
-    using namespace pdn::types;
+    using namespace pdn::type;
     // get
     get<auto_int>(e[u8"auto_int"]);
     get<object<char8_t>>(e[u8"object"]);
     auto test_i64 = get<i64>(e[u8"i64"]);
     assert(test_i64 == -64);
-    // get_ptr
-    auto test_list_p = get_ptr<list<char8_t>>(e[u8"list"]);
+    // get_if
+    auto test_list_p = get_if<list<char8_t>>(e[u8"list"]);
     assert(test_list_p != nullptr);
-    auto test_nonexistence_p = get_ptr<list<char8_t>>(r[u8"nonexistence"]);
+    auto test_nonexistence_p = get_if<list<char8_t>>(r[u8"nonexistence"]);
     assert(test_nonexistence_p == nullptr);
-    // get_optional
-    auto test_auto_uint_opt = get_optional<auto_uint>(e[u8"auto_uint"]);
+    // get_opt
+    auto test_auto_uint_opt = get_opt<auto_uint>(e[u8"auto_uint"]);
     assert(test_auto_uint_opt && (*test_auto_uint_opt == 1));
-    auto test_nonexistence_opt = get_optional<i32>(r[u8"nonexistence"]);
+    auto test_nonexistence_opt = get_opt<i32>(r[u8"nonexistence"]);
     assert(static_cast<bool>(test_nonexistence_opt) == false);
     // as
     auto test_as_u32 = as_uint(e[u8"u32"], u32_tag);

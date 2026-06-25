@@ -1,12 +1,13 @@
 #include <iostream>
 #include <string>
 #include <cassert>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
     using namespace std::string_view_literals;
     using namespace pdn;
@@ -46,4 +47,12 @@ int main()
     assert(!elem_5.has_value());
     auto nullref = elem_5[0];
     assert(!nullref.has_value());
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }

@@ -1,11 +1,12 @@
 #include <iostream>
 #include <string>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
 	using namespace pdn;
 	using namespace std::string_view_literals;
@@ -27,4 +28,12 @@ int main()
 	std::cout << e[u8"nan"].as(int_tag) << "\n"; // 0
 
 	std::cout << as_string(e[u8"f"]) << "\n"; // *null string
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }

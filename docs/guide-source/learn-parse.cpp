@@ -1,8 +1,9 @@
+#include <exception>
 #include <string>
 
 #include "spdn.h"
 
-int main()
+int main() try
 {
     using namespace std::literals;
     
@@ -29,4 +30,12 @@ int main()
     // parse spdn file
     [[maybe_unused]]
     auto e4 = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag); // utf8 only
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }

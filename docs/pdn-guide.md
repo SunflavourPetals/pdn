@@ -43,6 +43,7 @@ say: "Hello world!"
 
 ```C++
 #include <iostream>
+#include <exception>
 
 #include "spdn.h" // 包含下两行的头文件
 // #include "pdn_parse.h" // 包含解析 spdn 的函数
@@ -60,7 +61,7 @@ std::ostream& operator<<(std::ostream& o, std::u8string_view sv)
     return o << std::string_view{ (const char*)sv.data(), sv.size() };
 }
 
-int main()
+int main() try // 发生错误过多时 parse 函数将抛出异常，结束解析
 {
     // 为了方便编写教程代码而使用的 using 指令
     using namespace pdn;
@@ -88,7 +89,14 @@ int main()
     // 将我们查询到的数据以字符串的形式使用，需要用到 pdn::as_string 函数，提供成员函数版本
     std::cout << say.as_string() << "\n";
 }
-
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
+}
 ```
 
 完成代码的编写，现在可以试着编译并运行它。  
@@ -533,11 +541,12 @@ at 常量用于从解析器提供的常量表中获取值，比如使用 `@true`
 * 根据文件名解析 `spdn` 文件的版本。  
 
 ```C++
+#include <exception>
 #include <string>
 
 #include "spdn.h"
 
-int main()
+int main() try
 {
     using namespace std::literals;
     
@@ -571,7 +580,14 @@ int main()
     // 必须使用 utf8_tag，因为我们的 fp 只支持 utf8
     auto e4 = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag);
 }
-
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
+}
 ```
 
 代码见 [`guide-source/learn-parse.cpp`](./guide-source/learn-parse.cpp)。  
@@ -644,12 +660,13 @@ ref 对象的 `operator bool` 和 `has_value` 具有相同的功能。
 #include <iostream>
 #include <string>
 #include <cassert>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
     using namespace std::string_view_literals;
     using namespace pdn;
@@ -695,6 +712,14 @@ int main()
     auto nullref = elem_5[0]; // elem_5 是空 ref，得到空 ref
     assert(!nullref.has_value());
 }
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
+}
 ```
 
 代码见 [`guide-source/query-on-list.cpp`](./guide-source/query-on-list.cpp)。  
@@ -729,12 +754,13 @@ int main()
 ```C++
 #include <iostream>
 #include <string>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
     using namespace pdn;
     using namespace std::string_view_literals;
@@ -756,6 +782,14 @@ int main()
     std::cout << e[u8"nan"].as(int_tag) << "\n"; // 0
 
     std::cout << as_string(e[u8"f"]) << "\n"; // *null string*
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -803,7 +837,7 @@ int main()
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
     using namespace pdn;
     using namespace std::string_view_literals;
@@ -812,18 +846,19 @@ int main()
 
     using et = decltype(e); // entity<char8_t>
 
-    try
-    {
-        auto& int_of_e = e[u8"int"sv].get<et::auto_int>();
-        std::cout << int_of_e << "\n"; // 1
-        int_of_e = -1; // e[u8"int"] <- -1
-        std::cout << e[u8"int"sv].get<et::auto_int>() << "\n"; // -1
-        std::cout << get<et::string>(e[u8"string"sv]) << "\n"; // hello
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << e.what();
-    }
+    auto& int_of_e = e[u8"int"sv].get<et::auto_int>();
+    std::cout << int_of_e << "\n"; // 1
+    int_of_e = -1; // e[u8"int"] <- -1
+    std::cout << e[u8"int"sv].get<et::auto_int>() << "\n"; // -1
+    std::cout << get<et::string>(e[u8"string"sv]) << "\n"; // hello
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -838,12 +873,13 @@ int main()
 ```C++
 #include <iostream>
 #include <string>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
     using namespace pdn;
     using namespace std::string_view_literals;
@@ -863,6 +899,14 @@ int main()
         std::cout << *str_of_e_p << "\n"; // hello
     }
 }
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
+}
 ```
 
 代码见 [`guide-source/get-if-example.cpp`](./guide-source/get-if-example.cpp)。  
@@ -878,12 +922,13 @@ int main()
 ```C++
 #include <iostream>
 #include <string>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
     using namespace pdn;
     using namespace std::string_view_literals;
@@ -901,6 +946,14 @@ int main()
         std::cout << *opt << "\n"; // 18446744073709551615
     }
 }
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
+}
 ```
 
 代码见 [`guide-source/get-opt-example.cpp`](./guide-source/get-opt-example.cpp)。  
@@ -912,12 +965,13 @@ int main()
 ```C++
 #include <iostream>
 #include <string>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
     using namespace pdn;
     using namespace std::string_view_literals;
@@ -928,6 +982,14 @@ int main()
 
     std::cout << type_test<et::auto_int>(e[u8"hello"sv]) << "\n"; // 0
     std::cout << type_test<et::string>(e[u8"hello"sv]) << "\n"; // 1
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -1059,6 +1121,7 @@ void handle_error(const error_message& e, ::std::ostream& out)
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <exception>
 
 #include "spdn.h"
 
@@ -1098,12 +1161,20 @@ private:
     std::ofstream out;
 };
 
-int main()
+int main() try
 {
     using namespace std::string_view_literals;
 
     auto mfp = my_function_package{};
     auto e = pdn::parse(u8R"(100)"sv, mfp, mfp, mfp, pdn::utf8_tag); // 缺少标识符的错误
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -1116,12 +1187,179 @@ int main()
 
 ## 配置自定义的解析器的常量
 
-// todo
+解析器遇到at常量时会从函数包的 `generate_constant` 获取对应的数据，`generate_constant` 最终会调用 [`pdn_constant_generator_std.h`](../pdn/pdn_constant_generator_std.h) 中的 `constant_generator_std_function` 获取常量。  
 
-### 配置动态的常量
+虽然名称叫常量，但是也可以是随机值，下面的示例演示了添加表示解析时间和随机整数的at常量。  
 
-// todo 举例 random
+当需要自定义的at常量时，提供自定义的 `generate_constant` 即可：  
+
+```C++
+#include <iostream>
+#include <string>
+#include <chrono>
+#include <random>
+#include <limits>
+#include <exception>
+
+#include "spdn.h"
+
+// 为了突出重点，本示例直接继承默认函数包
+class my_function_package : public pdn::default_function_package<char8_t>
+{
+public:
+    using base_type = pdn::default_function_package<char8_t>;
+    struct date_time
+    {
+        int year;
+        int month;
+        int day;
+        int hour;
+        int minute;
+        int second;
+        static auto current() -> date_time { ... } // 获取当前 UTC 时间
+    };
+    struct random_int
+    {
+        std::default_random_engine eng;
+        std::uniform_int_distribution<int> dist;
+        auto next() { ... } // 获取随机数
+        random_int() { ... } // 初始化
+    };
+    auto generate_constant(const pdn::unicode::u8string& iden) -> ::std::optional<pdn::u8entity>
+    {
+        using namespace std::string_view_literals;
+        // 匹配标识符
+        // 解析日期和时间
+        if (iden == u8"parse_date_utc_year"sv)
+        {
+            return std::make_optional<pdn::u8entity>(date_time::current().year);
+        }
+        if (iden == u8"parse_date_utc_month"sv)
+        {
+            return std::make_optional<pdn::u8entity>(date_time::current().month);
+        }
+        if (iden == u8"parse_date_utc_day"sv)
+        {
+            return std::make_optional<pdn::u8entity>(date_time::current().day);
+        }
+        if (iden == u8"parse_time_utc_hour"sv)
+        {
+            return std::make_optional<pdn::u8entity>(date_time::current().hour);
+        }
+        if (iden == u8"parse_time_utc_minute"sv)
+        {
+            return std::make_optional<pdn::u8entity>(date_time::current().minute);
+        }
+        if (iden == u8"parse_time_utc_second"sv)
+        {
+            return std::make_optional<pdn::u8entity>(date_time::current().second);
+        }
+        // 随机数
+        if (iden == u8"random"sv)
+        {
+            return std::make_optional<pdn::u8entity>(rd.next());
+        }
+        return base_type::generate_constant(iden);
+    }
+private:
+    inline static random_int rd{};
+};
+```
+
+[完整代码见 ud-at-example.cpp](./guide-source/ud-at-example.cpp)  
 
 ## 使用序列化器及更换 oredered_map
 
-// todo 说明 ordered_map 的不必要性
+### 使用序列化器
+
+序列化器将一个 object 实体序列号为 spdn 文本。  
+
+```C++
+pdn::make_u8serializer(). serialize(entity.as_object()); // 转换为 utf8 编码的文本(u8string)
+pdn::make_u16serializer().serialize(entity.as_object()); // 转换为 utf16 编码的文本(u16string)
+pdn::make_u32serializer().serialize(entity.as_object()); // 转换为 utf32 编码的文本(u32string)
+```
+
+#### 配置序列化器的序列化风格
+
+以 make_u8serializer 为例，对其他类型的序列化器同样适用：  
+
+```C++
+// in namespace pdn
+auto make_u8serializer(
+    serialize_tab          tab      = {}, // 设置缩进风格
+    serialize_last_semi    last     = {}, // 设置是否使用分号
+    serialize_separator    sep      = {}, // 设置数据之间的分隔符
+    serialize_separator_ts sep_ts   = {}, // 设置类型指定时冒号前后是否加入空格
+    serialize_separator    list_sep = {}, // 设置列表名与列表表达式之间的分隔符
+    serialize_separator    obj_sep  = {}  // 设置对象名与对象表达式之间的分隔符
+) -> serializer<char8_t>
+{
+    return make_serializer<char8_t>(tab, last, sep, sep_ts, list_sep, obj_sep);
+}
+enum class serialize_tab
+{
+    table,   // "\t"
+    space_1, // " "
+    space_2, // "  "
+    space_3, // "   "
+    space_4, // "    "
+    space_8, // "        "
+    no_tab,  // ""
+};
+enum class serialize_last_semi
+{
+    semi_yes, // ";"
+    no_semi,  // ""
+};
+enum class serialize_separator
+{
+    sep_semi_with_space, // ": "
+    sep_semi, // ":"
+    sep_space_around_semi, // " : "
+    sep_space, // " "
+};
+enum class serialize_separator_ts
+{
+    sts_semi_with_space, // ": "
+    sts_semi, // ":"
+    sts_space_around_semi, // " : "
+};
+```
+
+在 `make_unserializer` 时填入不同的枚举，即可配置序列化风格。  
+
+如果觉得枚举的自由度不够高，还可以直接操作 `serializer<char_t>` 对象的相关成员属性，但是可能会导致生成的文本不符合 `spdn` 规范，一般不推荐这样使用。  
+
+### 使用 oredered_map 配合解析与序列化
+
+序列化后，对象成员数据的顺序可能会发生改变，这是因为本库的解析器默认使用 `std::unordered_map` 保存对象，本库额外提供了一个基于 `std::deque` 的包装，使用它代替 `std::unordered_map` 可以保证解析时保留数据的顺序，以便序列化时可以得到正确的顺序。  
+
+启用方法 修改 config：  
+
+```C++
+...
+
+// keep the order in parse
+// 取消下一行的注释
+// #include "pdn_ordered_map.h"
+
+namespace pdn::type::config
+{
+    ...
+
+    // 注释掉如下两行
+    template <typename iden_t, typename entity_t>
+    using object = ::std::unordered_map<iden_t, entity_t, key_hasher, ::std::equal_to<>>;
+
+    // keep the order in parse
+    // 取消下两行的注释
+    // template <typename iden_t, typename entity_t>
+    // using object = detail::ordered_map<iden_t, entity_t>;
+}
+
+#endif
+
+```
+
+虽然这样可以保证序列化的顺序，但是对查询性能可能会有影响，建议评估后再做考虑。  

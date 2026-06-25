@@ -1,11 +1,12 @@
 #include <iostream>
 #include <string>
+#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main()
+int main() try
 {
     using namespace pdn;
     using namespace std::string_view_literals;
@@ -22,4 +23,12 @@ int main()
     {
         std::cout << *opt << "\n"; // 18446744073709551615
     }
+}
+catch (std::exception& e)
+{
+    std::cerr << e.what() << "\n";
+}
+catch (...)
+{
+    std::cerr << "unknown exception\n";
 }
