@@ -1335,7 +1335,7 @@ enum class serialize_separator_ts
 
 序列化后，对象成员数据的顺序可能会发生改变，这是因为本库的解析器默认使用 `std::unordered_map` 保存对象，本库额外提供了一个基于 `std::deque` 的包装，使用它代替 `std::unordered_map` 可以保证解析时保留数据的顺序，以便序列化时可以得到正确的顺序。  
 
-启用方法 修改 config：  
+启用方法 修改 `pdn_type_config.h`：  
 
 ```C++
 ...
@@ -1363,3 +1363,5 @@ namespace pdn::type::config
 ```
 
 虽然这样可以保证序列化的顺序，但是对查询性能可能会有影响，建议评估后再做考虑。  
+
+如果需要频繁切换可以使用宏进行控制。  
