@@ -13,6 +13,10 @@
 #include <memory>
 #include <cassert>
 
+#ifdef PDN_NO_EXCEPTIONS
+#error "pdn_swap_chain.h not support PDN_NO_EXCEPTIONS"
+#endif
+
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
 //     +---> BOM reader (provide: get BOM)

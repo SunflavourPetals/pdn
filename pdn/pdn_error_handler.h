@@ -9,6 +9,10 @@
 #include "pdn_error_message.h"
 #include "pdn_error_handler_concept.h"
 
+#ifdef PDN_NO_EXCEPTIONS
+#error "pdn_error_hander.h not support PDN_NO_EXCEPTIONS"
+#endif
+
 namespace pdn
 {
 	class default_error_handler

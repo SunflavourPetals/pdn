@@ -95,7 +95,15 @@ namespace pdn::type::detail
 			auto k_it = find(k);
 			if (k_it == end())
 			{
-				throw ::std::out_of_range{ "out of range" };
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+				PDN_USER_TERMINATE("ordered_map const.at(k)", "out_of_range", k);
+#else
+				::std::terminate();
+#endif
+#else
+				throw ::std::out_of_range{ "out_of_range" };
+#endif
 			}
 			return k_it->second;
 		}
@@ -106,7 +114,15 @@ namespace pdn::type::detail
 			auto k_it = find(k);
 			if (k_it == end())
 			{
-				throw ::std::out_of_range{ "out of range" };
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+				PDN_USER_TERMINATE("ordered_map.at(k)", "out_of_range", k);
+#else
+				::std::terminate();
+#endif
+#else
+				throw ::std::out_of_range{ "out_of_range" };
+#endif
 			}
 			return k_it->second;
 		}
