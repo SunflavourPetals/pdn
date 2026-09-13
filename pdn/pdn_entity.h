@@ -293,9 +293,8 @@ namespace pdn
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
 				PDN_USER_TERMINATE("entity const&[key]", "out_of_range", key);
-#else
-				::std::terminate();
 #endif
+				::std::terminate();
 #else
 				throw ::std::out_of_range{ "out_of_range" };
 #endif
@@ -311,9 +310,8 @@ namespace pdn
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
 				PDN_USER_TERMINATE("entity&[key]", "out_of_range", key);
-#else
-				::std::terminate();
 #endif
+				::std::terminate();
 #else
 				throw ::std::out_of_range{ "out_of_range" };
 #endif
