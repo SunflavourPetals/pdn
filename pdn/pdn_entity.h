@@ -307,7 +307,6 @@ namespace pdn
 		{
 			return ::std::move((*this)[key]);
 		}
-
 	};
 
 	template <typename char_t>
