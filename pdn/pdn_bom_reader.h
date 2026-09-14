@@ -49,6 +49,28 @@ namespace pdn::unicode::concepts
 
 namespace pdn::unicode
 {
+	// check BOM type
+	constexpr auto check_bom(::std::size_t bom_size, ::std::array<bom::byte_t, 4> bom_bytes) -> bom_type
+	{
+		using enum bom_type;
+		switch (bom_size)
+		{
+		case 4:
+			if (bom_bytes == bom::utf32_le) return utf32_le;
+			if (bom_bytes == bom::utf32_be) return utf32_be;
+			[[fallthrough]];
+		case 3:
+			if (::std::equal(bom::utf8.cbegin(), bom::utf8.cend(), bom_bytes.begin())) return utf8;
+			[[fallthrough]];
+		case 2:
+			if (::std::equal(bom::utf16_le.cbegin(), bom::utf16_le.cend(), bom_bytes.begin())) return utf16_le;
+			if (::std::equal(bom::utf16_be.cbegin(), bom::utf16_be.cend(), bom_bytes.begin())) return utf16_be;
+			[[fallthrough]];
+		default:
+			return no_bom;
+		}
+	}
+
 	// read bom from input stream
 	// using input.seekg(...) to sets the input position indicator to the original position when failed in read BOM.
 	template <concepts::ibyte_stream istream_t>
@@ -72,51 +94,9 @@ namespace pdn::unicode
 			input.clear(input.rdstate() & (::std::ios::badbit | ::std::ios::eofbit));
 		}
 		auto read_count = input.gcount();
-		auto bom_size = read_count;
 
-		bom_type result{};
-
-		switch (bom_size)
-		{
-		case 4:
-			if (my_bom == bom::utf32_le)
-			{
-				result = utf32_le;
-				break;
-			}
-			if (my_bom == bom::utf32_be)
-			{
-				result = utf32_be;
-				break;
-			}
-			bom_size = 3;
-			[[fallthrough]];
-		case 3:
-			if (::std::equal(bom::utf8.cbegin(), bom::utf8.cend(), my_bom.begin()))
-			{
-				result = utf8;
-				break;
-			}
-			bom_size = 2;
-			[[fallthrough]];
-		case 2:
-			if (::std::equal(bom::utf16_le.cbegin(), bom::utf16_le.cend(), my_bom.begin()))
-			{
-				result = utf16_le;
-				break;
-			}
-			if (::std::equal(bom::utf16_be.cbegin(), bom::utf16_be.cend(), my_bom.begin()))
-			{
-				result = utf16_be;
-				break;
-			}
-			// assign bom_size zero in next step
-			[[fallthrough]];
-		default:
-			bom_size = 0;
-			result = no_bom;
-			break;
-		}
+		auto result = check_bom(read_count, my_bom);
+		auto bom_size = to_byte_size(result);
 
 		if (read_count != bom_size)
 		{

@@ -130,6 +130,21 @@ namespace pdn::unicode
 		default:       return native; // case encode_type::{ unknown | utf8 }
 		}
 	}
+
+	// get BOM size in { 0, 2, 3, 4 }
+	inline constexpr auto to_byte_size(bom_type bom) -> ::std::size_t
+	{
+		using enum bom_type;
+		switch (bom)
+		{
+		case utf8:     return 3;
+		case utf16_le: return 2;
+		case utf16_be: return 2;
+		case utf32_le: return 4;
+		case utf32_be: return 4;
+		default:       return 0;
+		}
+	}
 }
 
 namespace pdn::unicode::concepts
