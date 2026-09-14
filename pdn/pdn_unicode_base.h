@@ -132,7 +132,7 @@ namespace pdn::unicode
 	}
 
 	// get BOM size in { 0, 2, 3, 4 }
-	inline constexpr auto to_byte_size(bom_type bom) -> ::std::size_t
+	inline constexpr auto to_byte_size(bom_type bom) noexcept -> ::std::size_t
 	{
 		using enum bom_type;
 		switch (bom)
