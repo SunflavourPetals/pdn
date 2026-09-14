@@ -522,7 +522,7 @@ namespace pdn
 		};
 	}
 
-	auto make_u8serializer(
+	inline auto make_u8serializer(
 		serialize_tab          tab      = {},
 		serialize_last_semi    last     = {},
 		serialize_separator    sep      = {},
@@ -533,7 +533,7 @@ namespace pdn
 		return make_serializer<char8_t>(tab, last, sep, sep_ts, list_sep, obj_sep);
 	}
 
-	auto make_u16serializer(
+	inline auto make_u16serializer(
 		serialize_tab          tab      = {},
 		serialize_last_semi    last     = {},
 		serialize_separator    sep      = {},
@@ -544,7 +544,7 @@ namespace pdn
 		return make_serializer<char16_t>(tab, last, sep, sep_ts, list_sep, obj_sep);
 	}
 
-	auto make_u32serializer(
+	inline auto make_u32serializer(
 		serialize_tab          tab      = {},
 		serialize_last_semi    last     = {},
 		serialize_separator    sep      = {},
