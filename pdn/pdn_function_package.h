@@ -81,6 +81,10 @@ namespace pdn
 				err_handler.handle_error(fill_filename(msg), out);
 			}
 		}
+		void handle_error()
+		{
+			err_handler.handle_error();
+		}
 		static auto generate_error_message(pdn::raw_error_message raw) -> pdn::error_msg_string
 		{
 			return default_error_message_generator::generate_error_message(std::move(raw));
