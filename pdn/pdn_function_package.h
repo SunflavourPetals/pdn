@@ -81,6 +81,7 @@ namespace pdn
 				err_handler.handle_error(fill_filename(msg), out);
 			}
 		}
+		// only increase error count by 1, and throw an exception if error count exceeds limit
 		void handle_error()
 		{
 			err_handler.handle_error();

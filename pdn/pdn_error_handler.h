@@ -54,6 +54,7 @@ namespace pdn
 			default_error_handler::handle_error(e, out);
 			if (error_count >= limit) throw ::std::runtime_error{ "too many parsing errors" };
 		}
+		// only increase error count by 1, and throw an exception if error count exceeds limit
 		void handle_error()
 		{
 			++error_count;
