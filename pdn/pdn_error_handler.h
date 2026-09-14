@@ -13,6 +13,16 @@
 #error "pdn_error_hander.h not support PDN_NO_EXCEPTIONS"
 #endif
 
+namespace pdn::detail
+{
+	inline auto error_msg_for_filename(error_msg_string filename, const pdn::error_message& msg) -> pdn::error_message
+	{
+		filename.append(u8": "_em);
+		filename.append(msg.error_message);
+		return { .error_code = msg.error_code, .position = msg.position, .error_message = ::std::move(filename) };
+	}
+}
+
 namespace pdn
 {
 	class default_error_handler
@@ -33,6 +43,7 @@ namespace pdn
 	{
 	public:
 		using error_count_t = unsigned;
+		inline static constexpr auto default_limit = error_count_t{ 100 };
 		void handle_error(const error_message& e)
 		{
 			handle_error(e, ::std::cerr);
@@ -57,7 +68,7 @@ namespace pdn
 		error_count_t error_count{};
 	public:
 		// Throws an exception once accumulated errors reach limit. If limit is 0, handle_error(...) behaves as if limit were 1.
-		error_count_t limit{ 100 };
+		error_count_t limit{ default_limit };
 	};
 	static_assert(concepts::error_handler<default_threshold_error_handler>);
 }

@@ -2,6 +2,8 @@
 #define PDN_Header_pdn_function_package
 
 #include <iosfwd>
+#include <utility>
+#include <type_traits>
 
 #include "pdn_source_position_recorder.h"
 #include "pdn_error_handler.h"
@@ -16,6 +18,23 @@ namespace pdn
 	{
 	public:
 		using error_count_t = default_threshold_error_handler::error_count_t;
+		inline static constexpr auto default_limit = default_threshold_error_handler::default_limit;
+		auto fill_filename(const pdn::error_message& msg) -> pdn::error_message
+		{
+			return detail::error_msg_for_filename(filename(), msg);
+		}
+		void set_filename(pdn::error_msg_string name)
+		{
+			parsing_filename = ::std::move(name);
+		}
+		void clear_filename() noexcept
+		{
+			parsing_filename.clear();
+		}
+		auto filename() const noexcept -> const pdn::error_msg_string&
+		{
+			return parsing_filename;
+		}
 		void clear_error_count() noexcept
 		{
 			err_handler.clear();
@@ -42,11 +61,25 @@ namespace pdn
 		}
 		void handle_error(const pdn::error_message& msg)
 		{
-			err_handler.handle_error(msg);
+			if (filename().empty())
+			{
+				err_handler.handle_error(msg);
+			}
+			else
+			{
+				err_handler.handle_error(fill_filename(msg));
+			}
 		}
 		void handle_error(const pdn::error_message& msg, ::std::ostream& out)
 		{
-			err_handler.handle_error(msg, out);
+			if (filename().empty())
+			{
+				err_handler.handle_error(msg, out);
+			}
+			else
+			{
+				err_handler.handle_error(fill_filename(msg), out);
+			}
 		}
 		static auto generate_error_message(pdn::raw_error_message raw) -> pdn::error_msg_string
 		{
@@ -61,10 +94,15 @@ namespace pdn
 			return default_type_generator<char_t>::generate_type(iden);
 		}
 		default_function_package() = default;
-		explicit default_function_package(error_count_t max_error_count) : err_handler{ max_error_count } {}
+		explicit default_function_package(error_count_t max_error_count) :
+			err_handler{ max_error_count } {}
+		explicit default_function_package(error_msg_string filename, error_count_t max_error_count = default_limit) :
+			err_handler{ max_error_count },
+			parsing_filename{ ::std::move(filename) } {}
 	private:
 		source_position_recorder        pos_recorder{};
 		default_threshold_error_handler err_handler{};
+		error_msg_string                parsing_filename{};
 	};
 }
 

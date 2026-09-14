@@ -8,6 +8,7 @@
 #include <fstream>
 #include <string>
 #include <optional>
+#include <filesystem>
 
 #include "pdn_unicode_base.h"
 
@@ -140,7 +141,7 @@ namespace pdn
 	// for file stream
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(::std::ifstream& source_file,
-	                                char_t    char_tag = {},
+	                         char_t           char_tag = {},
 	                         ::std::size_t    buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
@@ -167,7 +168,7 @@ namespace pdn
 	                         char_t               char_tag = {},
 	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
-		default_function_package<char_t> fp{};
+		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
 	// for filename
@@ -191,7 +192,7 @@ namespace pdn
 	                         char_t            char_tag = {},
 	                         ::std::size_t     buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
-		default_function_package<char_t> fp{};
+		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
 	// for filename
@@ -215,7 +216,7 @@ namespace pdn
 	                         char_t                char_tag = {},
 	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
-		default_function_package<char_t> fp{};
+		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
 	// for filename
@@ -239,7 +240,34 @@ namespace pdn
 	                         char_t                char_tag = {},
 	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
-		default_function_package<char_t> fp{};
+		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
+		return parse(filename, fp, fp, fp, char_tag, buffer_size);
+	}
+
+	// for filename
+	template <unicode::concepts::code_unit                       char_t,
+	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
+	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser,
+	          ::std::same_as<::std::filesystem::path>            path_t>
+	[[nodiscard]] auto parse(const path_t&      filename,
+	                         fn_pkg_for_cp_it&  cp_it_fp,
+	                         fn_pkg_for_lexer&  lex_fp,
+	                         fn_pkg_for_parser& par_fp,
+	                         char_t             char_tag = {},
+	                         ::std::size_t      buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	{
+		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
+		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
+	}
+
+	// for filename
+	template <unicode::concepts::code_unit char_t, ::std::same_as<::std::filesystem::path> path_t>
+	[[nodiscard]] auto parse(const path_t& filename,
+	                         char_t        char_tag = {},
+	                         ::std::size_t buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	{
+		default_function_package<char_t> fp{ filename.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
 }
