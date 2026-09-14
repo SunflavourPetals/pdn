@@ -7,7 +7,6 @@
 #include <utility>
 #include <iterator>
 #include <stdexcept>
-#include <iostream>
 #include <fstream>
 #include <limits>
 #include <memory>
@@ -205,7 +204,6 @@ namespace pdn
 			return get_buff_2_ptr() + size();
 		}
 	public:
-		swap_chain() : swap_chain(::std::cin) {}
 		swap_chain(istream_type&     istream,
 		           size_type         buf_size = 1024, // adjacent_2_buf have (2 * buf_size) char_type object
 		           buffers_manager&& adjacent_2_buf = nullptr) :
