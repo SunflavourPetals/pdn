@@ -51,6 +51,7 @@ namespace pdn::detail
 		using code_unit_type = unicode::type_traits::code_unit_t<encode_type>;
 		using char_type      = code_unit_type;
 		using size_type      = ::std::size_t;
+		using unsigned_it_value_t = ::std::make_unsigned_t<::std::remove_cvref_t<decltype(*::std::declval<it_t>())>>;
 		static constexpr size_type bits_count_of_byte{ 8 }; // requires 1 Byte = 8 bits
 		static constexpr size_type bits_count_of_unit{ sizeof(char_type) * bits_count_of_byte };
 		static_assert(bits_count_of_unit >= bits_count_of_byte); // e.g. sizeof(char16_t) = 1 Byte, 1 Byte >= 16 bits, connot use this impl, assert!
@@ -95,7 +96,7 @@ namespace pdn::detail
 				{
 					break;
 				}
-				curr_value |= (char_type(::std::make_unsigned_t<typename it_t::value_type>(*begin)) << offset);
+				curr_value |= (char_type(unsigned_it_value_t(*begin)) << offset);
 			}
 			return curr_value;
 		}
@@ -112,7 +113,7 @@ namespace pdn::detail
 				{
 					break;
 				}
-				curr_value |= (char_type(::std::make_unsigned_t<typename it_t::value_type>(*begin)) << offset);
+				curr_value |= (char_type(unsigned_it_value_t(*begin)) << offset);
 			}
 			return curr_value;
 		}
@@ -122,7 +123,7 @@ namespace pdn::detail
 			auto curr_value = char_type{};
 			for (size_type offset{}; !is_eof(); )
 			{
-				curr_value |= (char_type(::std::make_unsigned_t<typename it_t::value_type>(*begin)) << offset);
+				curr_value |= (char_type(unsigned_it_value_t(*begin)) << offset);
 				offset += bits_count_of_byte;
 				if (offset < bits_count_of_unit)
 				{
@@ -140,7 +141,7 @@ namespace pdn::detail
 			for (size_type offset{ bits_count_of_unit }; !is_eof(); )
 			{
 				offset -= bits_count_of_byte;
-				curr_value |= (char_type(::std::make_unsigned_t<typename it_t::value_type>(*begin)) << offset);
+				curr_value |= (char_type(unsigned_it_value_t(*begin)) << offset);
 				if (offset > 0)
 				{
 					++begin;
