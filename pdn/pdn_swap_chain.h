@@ -12,10 +12,6 @@
 #include <memory>
 #include <cassert>
 
-#ifdef PDN_NO_EXCEPTIONS
-#error "pdn_swap_chain.h not support PDN_NO_EXCEPTIONS"
-#endif
-
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
 //     +---> BOM reader (provide: get BOM)
@@ -214,23 +210,51 @@ namespace pdn
 			// buffer size in range [16, ::std::numeric_limits<size_type>::max() / 2]
 			if (buffer_size <= 0)
 			{
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+				PDN_USER_TERMINATE("swap_chain(...)", "argument buffer size can not less than or equal to 0");
+#endif
+				::std::terminate();
+#else
 				throw ::std::invalid_argument("argument buffer size can not less than or equal to 0");
+#endif
 			}
 			else if (buffer_size > (::std::numeric_limits<size_type>::max() / 2))
 			{
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+				PDN_USER_TERMINATE("swap_chain(...)", "argument buffer size can not greater than numeric_limits<size_type>::max() / 2");
+#endif
+				::std::terminate();
+#else
 				throw ::std::invalid_argument("argument buffer size can not greater than numeric_limits<size_type>::max() / 2");
+#endif
 			}
 			// istream cannot have bad state
 			// and if it is ifstream then it cannot unopened.
 			if (istream_ptr->bad())
 			{
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+				PDN_USER_TERMINATE("swap_chain(...)", "input_stream badbit can not be true!");
+#endif
+				::std::terminate();
+#else
 				throw ::std::invalid_argument("input_stream badbit can not be true!");
+#endif
 			}
 			if constexpr (::std::same_as<::std::remove_cvref_t<istream_type>, ::std::basic_ifstream<char_type>>)
 			{
 				if (!istream_ptr->is_open())
 				{
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+					PDN_USER_TERMINATE("swap_chain(...)", "istream_ptr is ifstream ptr and file was not opened!");
+#endif
+					::std::terminate();
+#else
 					throw ::std::invalid_argument("istream_ptr is ifstream ptr and file was not opened!");
+#endif
 				}
 			}
 			else
@@ -239,7 +263,14 @@ namespace pdn
 				{
 					if (!ifstream_ptr->is_open())
 					{
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+						PDN_USER_TERMINATE("swap_chain(...)", "istream_ptr is ifstream ptr and file was not opened!");
+#endif
+						::std::terminate();
+#else
 						throw ::std::invalid_argument("istream_ptr is ifstream ptr and file was not opened!");
+#endif
 					}
 				}
 			}

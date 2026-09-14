@@ -97,7 +97,7 @@ namespace pdn::type::detail
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("ordered_map const.at(k)", "out_of_range", k);
+				PDN_USER_TERMINATE("ordered_map const.at(k)", "out_of_range");
 #endif
 				::std::terminate();
 #else
@@ -115,7 +115,7 @@ namespace pdn::type::detail
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("ordered_map.at(k)", "out_of_range", k);
+				PDN_USER_TERMINATE("ordered_map.at(k)", "out_of_range");
 #endif
 				::std::terminate();
 #else

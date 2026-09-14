@@ -9,10 +9,6 @@
 #include "pdn_error_message.h"
 #include "pdn_error_handler_concept.h"
 
-#ifdef PDN_NO_EXCEPTIONS
-#error "pdn_error_hander.h not support PDN_NO_EXCEPTIONS"
-#endif
-
 namespace pdn::detail
 {
 	inline auto error_msg_for_filename(error_msg_string filename, const pdn::error_message& msg) -> pdn::error_message
@@ -52,13 +48,33 @@ namespace pdn
 		{
 			++error_count;
 			default_error_handler::handle_error(e, out);
-			if (error_count >= limit) throw ::std::runtime_error{ "too many parsing errors" };
+			if (error_count >= limit)
+			{
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+				PDN_USER_TERMINATE("default_threshold_error_handler.handle_error(e, out)", "too many parsing errors");
+#endif
+				::std::terminate();
+#else
+				throw ::std::runtime_error{ "too many parsing errors" };
+#endif
+			}
 		}
 		// only increase error count by 1, and throw an exception if error count exceeds limit
 		void handle_error()
 		{
 			++error_count;
-			if (error_count >= limit) throw ::std::runtime_error{ "too many parsing errors" };
+			if (error_count >= limit)
+			{
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+				PDN_USER_TERMINATE("default_threshold_error_handler.handle_error()", "too many parsing errors");
+#endif
+				::std::terminate();
+#else
+				throw ::std::runtime_error{ "too many parsing errors" };
+#endif
+			}
 		}
 		void clear() noexcept
 		{
