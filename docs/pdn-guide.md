@@ -1365,3 +1365,31 @@ namespace pdn::type::config
 虽然这样可以保证序列化的顺序，但是对查询性能可能会有影响，建议评估后再做考虑。  
 
 如果需要频繁切换可以使用宏进行控制。  
+
+## no-exceptions 支持
+
+本库默认使用异常，如果使用环境禁用异常，请参照本节教程。  
+
+本库使用宏定义 `PDN_NO_EXCEPTIONS` 控制是否禁用异常。  
+
+注意不要让不同翻译单元的 `PDN_NO_EXCEPTIONS` 和 `PDN_USER_TERMINATE` 定义不一致，否则可能违反 ODR。  
+
+### 禁用异常设置
+
+编译本库头文件时如果有宏定义 `PDN_NO_EXCEPTIONS`，那么将禁用本库使用的异常，本库内不含 `try-catch`，但是在某些条件下使用 `throw` 报告异常。定义 `PDN_NO_EXCEPTIONS` 禁用异常后，所有 `throw` 将被替换为 `::std::terminate()`。启用异常时，`entity` 访问越界、库内使用的输入流损坏且无法恢复等情况会抛出异常，在禁用异常时被 `terminate` 替代是很合理的，唯一有影响的是本库使用 `throw` 在解析错误过多时退出解析，如果禁用了异常，那么它将直接导致程序终止。本库实现的解析器暂时没有为解析错误数量达到阈值时退出解析预留非异常实现的通道，暂时没有计划支持)。  
+综上所述，在禁用异常时可能需要根据情况提高可承受错误数量阈值(在 `default_function_package` 的 `handle_error` 函数)，或者去除阈值限定，不过这样解析器将可能花费太多时间处理不必要的错误报告，而且去除可承受解析错误数量阈值后有解析器死循环的风险(虽然目前的测试没有发现去除阈值限定情况下死循环的bug)。  
+
+### 提供终止前的用户处理
+
+在宏定义 `PDN_NO_EXCEPTIONS` 和 `PDN_USER_TERMINATE` 同时存在的情况下，将通过 `PDN_USER_TERMINATE` 通知用户应该终止程序，用户可以在 `PDN_USER_TERMINATE` 中报告错误并使用自己终止程序的方式终止程序。`PDN_USER_TERMINATE` 接收两个字符串字面量：终止处所在函数的描述和终止原因，如果 `PDN_USER_TERMINATE` 没有终止程序，那么本库将会调用 `::std::terminate`。  
+
+`PDN_USER_TERMINATE` 定义参考：  
+
+``` C++
+#include <iostream>
+#define PDN_NO_EXCEPTIONS
+#define PDN_USER_TERMINATE(func_name, reason)\
+{ ::std::cerr << "pdn error: " << reason << " in " << func_name << "\n"; }
+#include "spdn.h"
+...
+```
