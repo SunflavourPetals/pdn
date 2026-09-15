@@ -292,7 +292,7 @@ namespace pdn
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("entity const&[key]", "out_of_range");
+				PDN_USER_TERMINATE("pdn::entity<char_t>::operator[](key_type) const&", "out_of_range");
 #endif
 				::std::terminate();
 #else
@@ -309,7 +309,7 @@ namespace pdn
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("entity&[key]", "out_of_range");
+				PDN_USER_TERMINATE("pdn::entity<char_t>::operator[](key_type) &", "out_of_range");
 #endif
 				::std::terminate();
 #else

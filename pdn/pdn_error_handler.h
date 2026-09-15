@@ -52,7 +52,7 @@ namespace pdn
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("default_threshold_error_handler.handle_error(e, out)", "too many parsing errors");
+				PDN_USER_TERMINATE("pdn::default_threshold_error_handler::handle_error(error_message const&, ::std::ostream&)", "too many parsing errors");
 #endif
 				::std::terminate();
 #else
@@ -68,7 +68,7 @@ namespace pdn
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("default_threshold_error_handler.handle_error()", "too many parsing errors");
+				PDN_USER_TERMINATE("pdn::default_threshold_error_handler::handle_error()", "too many parsing errors");
 #endif
 				::std::terminate();
 #else

@@ -207,12 +207,15 @@ namespace pdn
 			istream_ptr{ &istream },
 			buffers_mng{ ::std::move(adjacent_2_buf) }
 		{
+#if defined(PDN_NO_EXCEPTIONS) && defined(PDN_USER_TERMINATE)
+#define PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR "pdn::swap_chain<istream_t, buffer_deleter_t>::swap_chain(istream_type&, size_type, buffers_manager&&)"
+#endif
 			// buffer size in range [16, ::std::numeric_limits<size_type>::max() / 2]
 			if (buffer_size <= 0)
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("swap_chain(...)", "argument buffer size can not less than or equal to 0");
+				PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "argument buffer size can not less than or equal to 0");
 #endif
 				::std::terminate();
 #else
@@ -223,7 +226,7 @@ namespace pdn
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("swap_chain(...)", "argument buffer size can not greater than numeric_limits<size_type>::max() / 2");
+				PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "argument buffer size can not greater than numeric_limits<size_type>::max() / 2");
 #endif
 				::std::terminate();
 #else
@@ -236,7 +239,7 @@ namespace pdn
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("swap_chain(...)", "input_stream badbit can not be true!");
+				PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "input_stream badbit can not be true!");
 #endif
 				::std::terminate();
 #else
@@ -249,7 +252,7 @@ namespace pdn
 				{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-					PDN_USER_TERMINATE("swap_chain(...)", "istream_ptr is ifstream ptr and file was not opened!");
+					PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "istream_ptr is ifstream ptr and file was not opened!");
 #endif
 					::std::terminate();
 #else
@@ -265,7 +268,7 @@ namespace pdn
 					{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-						PDN_USER_TERMINATE("swap_chain(...)", "istream_ptr is ifstream ptr and file was not opened!");
+						PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "istream_ptr is ifstream ptr and file was not opened!");
 #endif
 						::std::terminate();
 #else
@@ -274,6 +277,9 @@ namespace pdn
 					}
 				}
 			}
+#if defined(PDN_NO_EXCEPTIONS) && defined(PDN_USER_TERMINATE)
+#undef PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR
+#endif
 			// clear failbit when it in fail state
 			istream_ptr->clear(istream_ptr->rdstate() & ::std::ios::eofbit);
 			// create buffer
