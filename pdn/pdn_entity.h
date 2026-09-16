@@ -34,18 +34,18 @@ namespace pdn::detail
 
 		[[nodiscard]] auto as_int() const -> type::i64;
 
-		template <type::concepts::pdn_sint in>
-		[[nodiscard]] auto as_int(in) const -> in;
+		template <detail::sint_or_tag in>
+		[[nodiscard]] auto as_int(in) const -> detail::as_rttype_t<in, char_t>;
 
 		[[nodiscard]] auto as_uint() const -> type::u64;
 
-		template <type::concepts::pdn_uint un>
-		[[nodiscard]] auto as_uint(un) const -> un;
+		template <detail::uint_or_tag un>
+		[[nodiscard]] auto as_uint(un) const -> detail::as_rttype_t<un, char_t>;
 
 		[[nodiscard]] auto as_fp() const -> type::f64;
 
-		template <type::concepts::pdn_fp fn>
-		[[nodiscard]] auto as_fp(fn) const -> fn;
+		template <detail::fp_or_tag fn>
+		[[nodiscard]] auto as_fp(fn) const -> detail::as_rttype_t<fn, char_t>;
 
 		[[nodiscard]] auto as_bool() const -> type::boolean;
 
@@ -994,8 +994,8 @@ namespace pdn::detail
 	}
 
 	template <typename entity_t, typename char_t>
-	template <type::concepts::pdn_sint in>
-	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_int(in) const -> in
+	template <detail::sint_or_tag in>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_int(in) const -> detail::as_rttype_t<in, char_t>
 	{
 		return pdn::as_int(*static_cast<const entity_t*>(this), in{});
 	}
@@ -1007,8 +1007,8 @@ namespace pdn::detail
 	}
 
 	template <typename entity_t, typename char_t>
-	template <type::concepts::pdn_uint un>
-	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_uint(un) const -> un
+	template <detail::uint_or_tag un>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_uint(un) const -> detail::as_rttype_t<un, char_t>
 	{
 		return pdn::as_uint(*static_cast<const entity_t*>(this), un{});
 	}
@@ -1020,8 +1020,8 @@ namespace pdn::detail
 	}
 
 	template <typename entity_t, typename char_t>
-	template <type::concepts::pdn_fp fn>
-	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_fp(fn) const -> fn
+	template <detail::fp_or_tag fn>
+	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::as_fp(fn) const -> detail::as_rttype_t<fn, char_t>
 	{
 		return pdn::as_fp(*static_cast<const entity_t*>(this), fn{});
 	}
