@@ -7,7 +7,6 @@
 #include <utility>
 #include <string>
 #include <memory>
-#include <format>
 #include <cstdint>
 
 #include "pdn_unicode.h"

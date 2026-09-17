@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <string>
 #include <memory>
-#include <format>
 #include <limits>
 #include <utility>
 #include <optional>
