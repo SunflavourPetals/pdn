@@ -32,7 +32,7 @@ namespace pdn::unicode::detail
 		static auto encode(code_point_t c) -> result { return utf32::encode(c); }
 	};
 	template <typename char_t>
-	using encode_result_t = encoder<char_t>::result;
+	using encode_result_t = typename encoder<char_t>::result;
 }
 
 namespace pdn::unicode
@@ -64,7 +64,7 @@ namespace pdn::unicode::detail
 	template <> struct suitable_encoder<u32char_t> { using type = utf32::encoder; };
 
 	template <typename char_t>
-	using suitable_encoder_t = suitable_encoder<char_t>::type;
+	using suitable_encoder_t = typename suitable_encoder<char_t>::type;
 }
 
 namespace pdn::unicode

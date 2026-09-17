@@ -48,12 +48,12 @@ namespace pdn::unicode
 	template <concepts::convert_src source_string_view, concepts::convert_des target_string>
 	struct convert_decision
 	{
-		using source_char        = source_string_view::value_type;
-		using target_char        = target_string::value_type;
+		using source_char        = typename source_string_view::value_type;
+		using target_char        = typename target_string::value_type;
 		using decoder_type       = decoder<source_char>;
 		using encoder_type       = encoder<target_char>;
-		using decode_result_type = decoder_type::result_type;
-		using encode_result_type = encoder_type::result_type;
+		using decode_result_type = typename decoder_type::result_type;
+		using encode_result_type = typename encoder_type::result_type;
 
 		template <bool reach_next_code_point = false>
 		inline static auto decode(auto&& begin, auto end) -> decode_result_type

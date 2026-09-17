@@ -28,13 +28,13 @@ namespace pdn::type::detail
 	template <same_as<i16> int_t> struct alias_sint<int_t> { using type = i16;  };
 	template <same_as<i32> int_t> struct alias_sint<int_t> { using type = i32;  };
 	template <same_as<i64> int_t> struct alias_sint<int_t> { using type = i64;  };
-	template <typename     int_t> using  alias_sint_t  =  alias_sint<int_t>::type;
+	template <typename     int_t> using  alias_sint_t  =  typename alias_sint<int_t>::type;
 	template <typename     int_t> struct alias_uint        { using type = void; };
 	template <same_as<u8>  int_t> struct alias_uint<int_t> { using type = u8;   };
 	template <same_as<u16> int_t> struct alias_uint<int_t> { using type = u16;  };
 	template <same_as<u32> int_t> struct alias_uint<int_t> { using type = u32;  };
 	template <same_as<u64> int_t> struct alias_uint<int_t> { using type = u64;  };
-	template <typename     int_t> using  alias_uint_t  =  alias_uint<int_t>::type;
+	template <typename     int_t> using  alias_uint_t  =  typename alias_uint<int_t>::type;
 
 	template <typename int_t>
 	inline constexpr bool sint_has_alias_v = !same_as<alias_sint_t<int_t>, void>;

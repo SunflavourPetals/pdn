@@ -61,7 +61,7 @@ namespace pdn::unicode::detail
 	template <> struct suitable_decoder<u32char_t> { using type = utf32::decoder; };
 
 	template <typename char_t>
-	using suitable_decoder_t = suitable_decoder<char_t>::type;
+	using suitable_decoder_t = typename suitable_decoder<char_t>::type;
 }
 
 namespace pdn::unicode
