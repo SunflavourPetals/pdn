@@ -195,6 +195,7 @@ namespace pdn
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
+#ifdef _WIN32
 	// for filename
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
@@ -243,7 +244,7 @@ namespace pdn
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
-
+#endif
 	// for filename
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
