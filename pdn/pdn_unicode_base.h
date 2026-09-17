@@ -195,7 +195,7 @@ namespace pdn::unicode::type_traits
 	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf32_le> = ::std::endian::little;
 	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf32_be> = ::std::endian::big;
 
-	template <encode_type> struct code_unit                        { static_assert(false, "unknown encode type"); };
+	template <encode_type> struct code_unit                        { static_assert(detail::false_v<encode_type>, "unknown encode type"); };
 	template <>            struct code_unit<encode_type::utf8>     { using type = u8char_t;  };
 	template <>            struct code_unit<encode_type::utf16_le> { using type = u16char_t; };
 	template <>            struct code_unit<encode_type::utf16_be> { using type = u16char_t; };
