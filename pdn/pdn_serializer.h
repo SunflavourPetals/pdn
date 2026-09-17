@@ -25,6 +25,8 @@
 
 #include "pdn_lexer_utility.h"
 
+#include "pdn_false.h"
+
 namespace pdn::detail
 {
 	template <typename t>
@@ -497,7 +499,7 @@ namespace pdn
 			}
 			else
 			{
-				static_assert(false, "param type not match");
+				static_assert(detail::false_v<e>, "param type not match");
 			}
 		}
 	}

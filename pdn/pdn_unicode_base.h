@@ -7,6 +7,8 @@
 #include <string>
 #include <type_traits>
 
+#include "pdn_false.h"
+
 namespace pdn::unicode
 {
 	using code_point_t = char32_t;
@@ -225,7 +227,7 @@ namespace pdn::unicode
 		else
 		{
 			// unreachable
-			static_assert(false, "bad call");
+			static_assert(detail::false_v<char_t>, "bad call");
 		}
 	}
 }

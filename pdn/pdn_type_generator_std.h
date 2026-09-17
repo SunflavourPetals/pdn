@@ -4,16 +4,17 @@
 #include <unordered_map>
 
 #include "pdn_type.h"
+#include "pdn_false.h"
 #include "pdn_type_code.h"
 #include "pdn_unicode_base.h"
 #include "pdn_type_generator.h"
 
 namespace pdn::detail
 {
-	template <typename>
+	template <typename T>
 	struct cppint_to_type_code
 	{
-		static_assert(false, "[pdn] \"cppint\" is not one pdn i type");
+		static_assert(detail::false_v<T>, "[pdn] \"cppint\" is not one pdn i type");
 	};
 	template <>
 	struct cppint_to_type_code<type::i8>
@@ -38,10 +39,10 @@ namespace pdn::detail
 	template <typename cppint_t>
 	inline constexpr auto cppint_to_type_code_v = cppint_to_type_code<cppint_t>::value;
 
-	template <typename>
+	template <typename T>
 	struct cppuint_to_type_code
 	{
-		static_assert(false, "[pdn] \"cppuint\" is not one pdn u type");
+		static_assert(detail::false_v<T>, "[pdn] \"cppuint\" is not one pdn u type");
 	};
 	template <>
 	struct cppuint_to_type_code<type::u8>
@@ -106,7 +107,7 @@ namespace pdn
 	template <typename char_t>
 	class type_table
 	{
-		static_assert(false, "[pdn] cannot generate type_table for template parameter \"char_t\"");
+		static_assert(detail::false_v<char_t>, "[pdn] cannot generate type_table for template parameter \"char_t\"");
 	};
 	template <>
 	class type_table<unicode::u8char_t> : public ::std::unordered_map<type::string<unicode::u8char_t>, type_code>

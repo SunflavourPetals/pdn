@@ -76,6 +76,9 @@
     <Filter Include="pdn_type">
       <UniqueIdentifier>{6b939eee-1de8-4eb1-8702-065f332f190f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pdn_dependent_false">
+      <UniqueIdentifier>{4787452c-43e7-47a2-a185-6d51da189ee8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pdn_unicode_base.h">
@@ -326,6 +329,9 @@
     </ClInclude>
     <ClInclude Include="spdn.h">
       <Filter>pdn_include</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_false.h">
+      <Filter>pdn_dependent_false</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

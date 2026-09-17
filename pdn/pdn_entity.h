@@ -13,6 +13,7 @@
 
 #include "pdn_type.h"
 #include "pdn_proxy.h"
+#include "pdn_false.h"
 #include "pdn_utf_code_convert.h"
 #include "pdn_entity_utility.h"
 #include "pdn_entity_forward_decl.h"
@@ -762,7 +763,7 @@ namespace pdn
 		}
 		else
 		{
-			static_assert(false, "[pdn] unsupported type for as<T>(entity)");
+			static_assert(detail::false_v<target_t>, "[pdn] unsupported type for as<T>(entity)");
 		}
 	}
 

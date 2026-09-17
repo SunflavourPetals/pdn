@@ -5,6 +5,8 @@
 #include <utility>
 #include <memory>
 
+#include "pdn_false.h"
+
 namespace pdn
 {
 	template <typename t>
@@ -58,7 +60,7 @@ namespace pdn
 	template <typename type>
 	class proxy<type[]>
 	{
-		static_assert(false, "[pdn] cannot create proxy class for array");
+		static_assert(detail::false_v<type[]>, "[pdn] cannot create proxy class for array");
 	};
 
 	template <typename type, typename... args_t>

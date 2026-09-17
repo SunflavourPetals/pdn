@@ -5,6 +5,7 @@
 #include <concepts>
 #include <type_traits>
 
+#include "pdn_false.h"
 #include "pdn_error_string.h"
 #include "pdn_error_code_variant.h"
 
@@ -51,7 +52,7 @@ namespace pdn
 			}
 			else
 			{
-				static_assert(false, "[pdn] not all cases are enumerated");
+				static_assert(detail::false_v<error_type>, "[pdn] not all cases are enumerated");
 				return {};
 			}
 		}, err_c);
