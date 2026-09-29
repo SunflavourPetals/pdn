@@ -101,7 +101,7 @@ catch (...)
 
 完成代码的编写，现在可以试着编译并运行它。  
 
-本仓库提供的 PDN 解析器和其他工具都是使用 C++20 标准进行编写的，所以你的编译器必须支持其所用到的特性才行。另外，使用编译命令时需要正确指定包含目录，如果你熟悉 `CMAKE` `xmake` 或是其他构建工具，那这些对你应该不成问题。  
+本仓库提供的 PDN 解析器和其他工具都是使用 C++20 标准进行编写的，所以你的编译器必须支持其所用到的特性才行(如 `std::format`、支持浮点数的 `std::from_chars` 等)。另外，使用编译命令时需要正确指定包含目录，如果你熟悉 `CMAKE` `xmake` 或是其他构建工具，那这些对你应该不成问题。  
 如果不是，这里有一个使用 `g++` 进行编译的模板：  
 `g++ -std=c++20 -I<包含目录> -o <输出文件> <源文件>`  
 
@@ -333,11 +333,11 @@ _x  // OK
 我爱你 // OK. 同样是合法的标识符，我想它代表的数据是布尔值 true (划掉)
 ```
 
-熟悉 C++ 的你可能会问：普通标识符中能包含通用字符名吗？  
-答案是不可以。  
+熟悉 C++ 的你可能会问：`spdn` 支持通用字符名吗？尤其是普通标识符中可以使用通用字符名吗？  
 
-字符、字符串和“字符串标识符”中才可以使用转义序列。  
-标识符中混杂着通用字符名会导致可读性直线下降，直接写出你想要的那个字符就好；如果遇到了不好输入的字符，可以使用“字符串标识符”。  
+`spdn` 只是有条件地支持通用字符名，对于是否能用于普通标识符，答案是不可以。  
+
+在 `spdn` 里，通用字符名只能用于字符、字符串和“字符串标识符”中，作用范围和转义字符一致。标识符中混杂着通用字符名会导致可读性直线下降，直接写出你想要的那个字符就好；如果遇到了不好输入的字符，可以使用“字符串标识符”，在“字符串标识符”里你可以使用通用字符名和其他形式的转义字符。  
 
 ### 字符串标识符
 
@@ -516,7 +516,7 @@ at 常量用于从解析器提供的常量表中获取值，比如使用 `@true`
 
 `spdn` 的转义字符形式上与 C++ 的一致，但是不支持条件转义序列，另外要求转义的结果是 Unicode 标量值。  
 
-注：本仓库实现的解析器不支持 `\N{NAME}` 形式的转义序列  
+注：本仓库实现的解析器目前不支持 `\N{NAME}` 形式的转义序列  
 
 [参考 pdn_reference](./pdn-reference.md#转义)  
 [参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/escape "escape")  
@@ -550,7 +550,7 @@ int main() try
 {
     using namespace std::literals;
     
-    auto spdn_text = u8R"(test: "test")"sv;
+    auto spdn_text = u8R"(test: "test")"sv; // 可以使用 char8_t/char16_t/char32_t 字符串，这里选用 char8_t
     auto spdn_filename = "hello.spdn"s;
 
     // 解析 UTF8 字符串
@@ -562,10 +562,11 @@ int main() try
     auto e1 = pdn::parse(spdn_text, pdn::utf8_tag); // 可以换成 utf16_tag utf32_tag，但是推荐使用 utf8
 
     // 解析 spdn 文件
-    // 参数类型可以是 string/const char*/wstring/const wchar_t*
-    auto e2 = pdn::parse(spdn_filename, pdn::utf8_tag); // 可以换成 utf16_tag utf32_tag，但是推荐使用 utf8
+    // 参数类型可以是 string/const char*/filesystem::path，
+    // 如果你的编译环境支持使用 wstring/const wchar_t* 构造文件流，那么也可以使用 wstring/const wchar_t* 作为参数类型
+    auto e2_opt = pdn::parse(spdn_filename, pdn::utf8_tag); // tag 可以换成 utf16_tag utf32_tag，但是推荐使用 utf8
 
-    // 自定义内容(目前不展开具体可自定义内容)
+    // 自定义内容，仅支持utf8_tag，因为指定了char8_t(目前不展开具体可自定义内容)
     class my_fn_pkg : public pdn::default_function_package<char8_t> {};
 
     auto fp = my_fn_pkg{};
@@ -578,7 +579,7 @@ int main() try
     // parse spdn file
     // 为 utf 解码器、词法分析器、解析器填入我们的 fp
     // 必须使用 utf8_tag，因为我们的 fp 只支持 utf8
-    auto e4 = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag);
+    auto e4_opt = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag);
 }
 catch (std::exception& e)
 {
@@ -1008,11 +1009,30 @@ template <typename char_t>
 class default_function_package
 {
 public:
+    // 表示错误数量的类型
     using error_count_t = default_threshold_error_handler::error_count_t;
+    // 默认的解析错误数量限制，错误超过限制时pdn默认功能包会抛出异常或终止程序(禁用异常情况下)
+    inline static constexpr auto default_limit = default_threshold_error_handler::default_limit;
 
-    // 以下四个函数解析器不使用，额外供用户使用的函数
+
+
+    // 下面这个函数用于 default_function_package 内部实现
     // function_package 必需的函数会用注释标明
 
+    // 将文件名写入返回值的error_message字段
+    auto fill_filename(const pdn::error_message& msg) -> pdn::error_message;
+
+
+
+    // 以下七个函数解析器不使用，额外供用户使用的函数
+    // function_package 必需的函数会用注释标明
+
+    // 设置文件名
+    void set_filename(pdn::error_msg_string name);
+    // 清除文件名
+    void clear_filename() noexcept;
+    // 获取文件名
+    auto filename() const noexcept -> const pdn::error_msg_string&;
     // 归零累计的已发生错误数量(默认行为是当错误数量累积到100时结束解析)
     void clear_error_count() noexcept;
     // 查询累计的已发生错误数量
@@ -1022,18 +1042,25 @@ public:
     // 查询结束解析所需的错误数量
     auto error_threshold() const noexcept;
 
-    // source_position_recorder 相关
-    // function_package 必需品：提供正在解析行与列位置，用户一般无需自定义
+
+
+    // function_package 必需品：
+    // source_position_recorder 相关，提供正在解析行与列位置，用户一般无需自定义
     auto position() const -> pdn::source_position;
-    // function_package 必需品：根据读到的字符更新记录的行列位置，用户一般无需自定义
-    void update(const char32_t c);
+    // function_package 必需品：
+    // source_position_recorder 相关，根据读到的字符更新记录的行列位置，用户一般无需自定义
     // pdn_source_position_and_newline_recorder.h 中提供另一个行列记录器版本
     // 它会记录用户使用的换行类型和各自的数量，但是一般无需统计它们
+    void update(const char32_t c);
 
-    // function_package 必需品：处理错误，默认行为是输出错误信息到 std::cerr
+    // function_package 必需品：处理错误，默认行为是输出错误信息到 std::cerr，并检查错误数量是否抵达上限
     void handle_error(const pdn::error_message& msg);
-    // 另一个版本，供用户定制非必需
+    // 另一个版本，供用户定制时使用，非必需
+    // 输出错误信息到 out，并检查错误数量是否抵达上限
     void handle_error(const pdn::error_message& msg, ::std::ostream& out);
+    // 另一个版本，供用户定制时使用，非必需
+    // 检查错误数量是否抵达上限
+    void handle_error();
 
     // function_package 必需品：生成错误信息文本
     static auto generate_error_message(pdn::raw_error_message raw) -> pdn::error_msg_string;
@@ -1046,10 +1073,12 @@ public:
     
     // 无需关注
     default_function_package() = default;
-    explicit default_function_package(error_count_t max_error_count) : err_handler{ max_error_count } {}
+    explicit default_function_package(error_count_t max_error_count);
+    explicit default_function_package(error_msg_string filename, error_count_t max_error_count = default_limit);
 private:
     source_position_recorder        pos_recorder{};
     default_threshold_error_handler err_handler{};
+    error_msg_string                parsing_filename{};
 };
 ```
 
@@ -1111,7 +1140,17 @@ void handle_error(const error_message& e, ::std::ostream& out)
 {
     ++error_count;
     default_error_handler::handle_error(e, out);
-    if (error_count >= limit) throw ::std::runtime_error{ "too many parsing errors" };
+    if (error_count >= limit)
+    {
+#ifdef PDN_NO_EXCEPTIONS
+#ifdef PDN_USER_TERMINATE
+        PDN_USER_TERMINATE("pdn::default_threshold_error_handler::handle_error(error_message const&, ::std::ostream&)", "too many parsing errors");
+#endif
+        ::std::terminate();
+#else
+        throw ::std::runtime_error{ "too many parsing errors" };
+#endif
+    }
 }
 ```
 
@@ -1182,8 +1221,12 @@ catch (...)
 
 ### 利用解析器错误处理终止解析
 
-默认函数包的 `error_handler` 会在累计错误达到 `100` 时抛出 `std::runtime_exception`。  
-因此使用 `pdn::parse` 时需要注意异常安全。  
+在未禁用异常时，默认函数包的 `error_handler` 会在累计错误达到 `100` 时抛出 `std::runtime_exception`。  
+因此使用 `pdn::parse` 时需要注意异常处理和异常安全。  
+
+在禁用异常时，默认函数包的 `error_handler` 会在累计错误达到 `100` 时终止程序，以防止可能出现的死循环(暂未测试出有解析时死循环的情况)。  
+
+禁用异常请参考 [禁用异常设置](#禁用异常设置)。  
 
 ## 配置自定义的解析器的常量
 
@@ -1222,42 +1265,31 @@ public:
     {
         std::default_random_engine eng;
         std::uniform_int_distribution<int> dist;
+        static constexpr auto max = std::numeric_limits<int>::max();
+        static constexpr auto min = std::numeric_limits<int>::min();
         auto next() { ... } // 获取随机数
         random_int() { ... } // 初始化
     };
     auto generate_constant(const pdn::unicode::u8string& iden) -> ::std::optional<pdn::u8entity>
     {
         using namespace std::string_view_literals;
-        // 匹配标识符
-        // 解析日期和时间
-        if (iden == u8"parse_date_utc_year"sv)
+        using namespace pdn::unicode_literals;
+        if (iden == u8"parsing_time"sv)
         {
-            return std::make_optional<pdn::u8entity>(date_time::current().year);
+            using object = pdn::u8entity::object;
+            auto current_date_time = date_time::current();
+            auto obj = object{};
+            obj[u8"year"_s]   = current_date_time.year;
+            obj[u8"month"_s]  = current_date_time.month;
+            obj[u8"day"_s]    = current_date_time.day;
+            obj[u8"hour"_s]   = current_date_time.hour;
+            obj[u8"minute"_s] = current_date_time.minute;
+            obj[u8"second"_s] = current_date_time.second;
+            return pdn::make_proxy<object>(::std::move(obj));
         }
-        if (iden == u8"parse_date_utc_month"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().month);
-        }
-        if (iden == u8"parse_date_utc_day"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().day);
-        }
-        if (iden == u8"parse_time_utc_hour"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().hour);
-        }
-        if (iden == u8"parse_time_utc_minute"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().minute);
-        }
-        if (iden == u8"parse_time_utc_second"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().second);
-        }
-        // 随机数
         if (iden == u8"random"sv)
         {
-            return std::make_optional<pdn::u8entity>(rd.next());
+            return rd.next();
         }
         return base_type::generate_constant(iden);
     }

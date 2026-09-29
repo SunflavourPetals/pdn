@@ -16,9 +16,9 @@ int main() try
 
     // parse spdn file
     [[maybe_unused]]
-    auto e2 = pdn::parse(spdn_filename, pdn::utf8_tag); // utf16_tag utf32_tag
+    auto e2_opt = pdn::parse(spdn_filename, pdn::utf8_tag); // utf16_tag utf32_tag
 
-    // my function package
+    // my function package(only supports utf8)
     class my_fn_pkg : public pdn::default_function_package<char8_t> {};
 
     auto fp = my_fn_pkg{};
@@ -29,7 +29,7 @@ int main() try
 
     // parse spdn file
     [[maybe_unused]]
-    auto e4 = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag); // utf8 only
+    auto e4_opt = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag); // utf8 only
 }
 catch (std::exception& e)
 {

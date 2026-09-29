@@ -21,7 +21,7 @@ int main() try
 	auto& say = entity[u8"say"];
 	try
 	{
-		say[u8""];
+		say[u8""]; // (maybe)std::get: wrong index for variant
 	}
 	catch (std::exception& e)
 	{
@@ -29,7 +29,7 @@ int main() try
 	}
 	try
 	{
-		entity[u8"name"];
+		entity[u8"name"]; // out_of_range
 	}
 	catch (std::exception& e)
 	{

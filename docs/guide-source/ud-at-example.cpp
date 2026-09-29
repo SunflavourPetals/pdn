@@ -55,33 +55,23 @@ public:
     auto generate_constant(const pdn::unicode::u8string& iden) -> ::std::optional<pdn::u8entity>
     {
         using namespace std::string_view_literals;
-        if (iden == u8"parse_date_utc_year"sv)
+        using namespace pdn::unicode_literals;
+        if (iden == u8"parsing_time"sv)
         {
-            return std::make_optional<pdn::u8entity>(date_time::current().year);
-        }
-        if (iden == u8"parse_date_utc_month"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().month);
-        }
-        if (iden == u8"parse_date_utc_day"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().day);
-        }
-        if (iden == u8"parse_time_utc_hour"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().hour);
-        }
-        if (iden == u8"parse_time_utc_minute"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().minute);
-        }
-        if (iden == u8"parse_time_utc_second"sv)
-        {
-            return std::make_optional<pdn::u8entity>(date_time::current().second);
+            using object = pdn::u8entity::object;
+            auto current_date_time = date_time::current();
+            auto obj = object{};
+            obj[u8"year"_s]   = current_date_time.year;
+            obj[u8"month"_s]  = current_date_time.month;
+            obj[u8"day"_s]    = current_date_time.day;
+            obj[u8"hour"_s]   = current_date_time.hour;
+            obj[u8"minute"_s] = current_date_time.minute;
+            obj[u8"second"_s] = current_date_time.second;
+            return pdn::make_proxy<object>(::std::move(obj));
         }
         if (iden == u8"random"sv)
         {
-            return std::make_optional<pdn::u8entity>(rd.next());
+            return rd.next();
         }
         return base_type::generate_constant(iden);
     }
@@ -93,14 +83,7 @@ int main() try
 {
     using namespace std::string_view_literals;
     auto spdn_content = u8R"(
-parse_date_time_utc {
-    year:   @parse_date_utc_year
-    month:  @parse_date_utc_month
-    day:    @parse_date_utc_day
-    hour:   @parse_time_utc_hour
-    minute: @parse_time_utc_minute
-    second: @parse_time_utc_second
-}
+parsing_time: @parsing_time
 random_list [
     @random,
     @random,
@@ -111,9 +94,9 @@ random_list [
 )"sv;
     auto mfp = my_function_package{};
     auto e = pdn::parse(spdn_content, mfp, mfp, mfp, pdn::utf8_tag);
-    const auto& dt = e[u8"parse_date_time_utc"sv];
+    const auto& dt = e[u8"parsing_time"sv];
     std::cout
-        << "parse_date_time_utc:\n"
+        << "parsing_time:\n"
         << "    year   : " << dt[u8"year"sv  ].as_int() << "\n"
         << "    month  : " << dt[u8"month"sv ].as_int() << "\n"
         << "    day    : " << dt[u8"day"sv   ].as_int() << "\n"
