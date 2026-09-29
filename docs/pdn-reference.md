@@ -499,7 +499,7 @@ At 标识符的词法为 `@` 紧跟着[普通标识符](#普通标识符)，其�
 | `@hello`         | `string`  | `"Hello, world!"`                           |
 | `@fib_10_list`   | `list`    | 斐波那契数列前十项元素，类型均为整型        |
 | `@me_object`     | `object`  | 省略                                        |
-| `∞` aka `U+221E` | `f64`     | 同 `@infinity`                                    |
+| `∞` aka `U+221E` | `f64`     | 同 `@infinity`                              |
 
 ## 摘录
 

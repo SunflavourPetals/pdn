@@ -1333,38 +1333,15 @@ enum class serialize_separator_ts
 
 ### 使用 oredered_map 配合解析与序列化
 
-序列化后，对象成员数据的顺序可能会发生改变，这是因为本库的解析器默认使用 `std::unordered_map` 保存对象，本库额外提供了一个基于 `std::deque` 的包装，使用它代替 `std::unordered_map` 可以保证解析时保留数据的顺序，以便序列化时可以得到正确的顺序。  
+本库使用宏定义 `PDN_ENABLE_ORDERED_MAP` 控制是否使用 `oredered_map`。  
 
-启用方法 修改 `pdn_type_config.h`：  
+注意不要让不同翻译单元的 `PDN_ENABLE_ORDERED_MAP` 和 `PDN_ENABLE_ORDERED_MAP` 定义不一致，否则可能违反 ODR。  
 
-```C++
-...
+编译本库头文件时如果有宏定义 `PDN_ENABLE_ORDERED_MAP`，会将 `pdn::type::config::object` 的定义替换为 `detail::ordered_map<iden_t, entity_t>`。  
 
-// keep the order in parse
-// 取消下一行的注释
-// #include "pdn_ordered_map.h"
+不定义 `PDN_ENABLE_ORDERED_MAP` 宏时，序列化 `spdn` 实体后，对象成员数据的顺序可能会发生改变，这是因为本库的解析器默认使用 `std::unordered_map` 保存对象，本库额外提供了一个基于 `std::deque` 的包装 `ordered_map`，使用它代替 `std::unordered_map` 可以保证解析时保留数据的顺序，以便序列化时可以得到正确的顺序。  
 
-namespace pdn::type::config
-{
-    ...
-
-    // 注释掉如下两行
-    template <typename iden_t, typename entity_t>
-    using object = ::std::unordered_map<iden_t, entity_t, key_hasher, ::std::equal_to<>>;
-
-    // keep the order in parse
-    // 取消下两行的注释
-    // template <typename iden_t, typename entity_t>
-    // using object = detail::ordered_map<iden_t, entity_t>;
-}
-
-#endif
-
-```
-
-虽然这样可以保证序列化的顺序，但是对查询性能可能会有影响，建议评估后再做考虑。  
-
-如果需要频繁切换可以使用宏进行控制。  
+虽然这样可以保证序列化的顺序，但是对查询性能可能会有影响，如果程序依赖 `ordered_map` 没有提供的、属于 `std::unordered_map` 的功能，可能导致编译错误或行为改变，建议评估后再做考虑。如无必要，不推荐使用 `ordered_map`。  
 
 ## no-exceptions 支持
 
@@ -1376,7 +1353,7 @@ namespace pdn::type::config
 
 ### 禁用异常设置
 
-编译本库头文件时如果有宏定义 `PDN_NO_EXCEPTIONS`，那么将禁用本库使用的异常，本库内不含 `try-catch`，但是在某些条件下使用 `throw` 报告异常。定义 `PDN_NO_EXCEPTIONS` 禁用异常后，所有 `throw` 将被替换为 `::std::terminate()`。启用异常时，`entity` 访问越界、库内使用的输入流损坏且无法恢复等情况会抛出异常，在禁用异常时被 `terminate` 替代是很合理的，唯一有影响的是本库使用 `throw` 在解析错误过多时退出解析，如果禁用了异常，那么它将直接导致程序终止。本库实现的解析器暂时没有为解析错误数量达到阈值时退出解析预留非异常实现的通道，暂时没有计划支持)。  
+编译本库头文件时如果有宏定义 `PDN_NO_EXCEPTIONS`，那么将禁用本库使用的异常，本库内不含 `try-catch`，但是在某些条件下使用 `throw` 报告异常。定义 `PDN_NO_EXCEPTIONS` 禁用异常后，所有 `throw` 将被替换为 `::std::terminate()`。启用异常时，`entity` 访问越界、库内使用的输入流损坏且无法恢复等情况会抛出异常，在禁用异常时被 `terminate` 替代是很合理的，唯一有影响的是本库使用 `throw` 在解析错误过多时退出解析，如果禁用了异常，那么它将直接导致程序终止。本库实现的解析器没有为解析错误数量达到阈值时退出解析预留非异常实现的通道(暂时没有计划支持)。  
 综上所述，在禁用异常时可能需要根据情况提高可承受错误数量阈值(在 `default_function_package` 的 `handle_error` 函数)，或者去除阈值限定，不过这样解析器将可能花费太多时间处理不必要的错误报告，而且去除可承受解析错误数量阈值后有解析器死循环的风险(虽然目前的测试没有发现去除阈值限定情况下死循环的bug)。  
 
 ### 提供终止前的用户处理
