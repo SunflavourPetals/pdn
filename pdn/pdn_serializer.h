@@ -10,6 +10,9 @@
 #include <cstddef>
 #include <variant>
 #include <cmath>
+#include <numbers>
+#include <algorithm>
+#include <unordered_map>
 
 #include "pdn_type.h"
 #include "pdn_entity.h"
@@ -35,6 +38,71 @@ namespace pdn::detail
 	concept nonlist_nonobj = type::concepts::basic_type<t, char_t> || ::std::same_as<t, type::string<char_t>>;
 
 	template <typename char_t>
+	static auto ascii_to_at_constant_string(unicode::u8string_view sv) -> type::string<char_t>
+	{
+		auto result = type::string<char_t>(sv.size(), char_t{});
+		::std::copy(sv.cbegin(), sv.cend(), result.begin());
+		return result;
+	}
+
+	// inf and nan not support
+	template <typename char_t>
+	class f64_at_constant_string_table : public ::std::unordered_map<type::f64, type::string<char_t>>
+	{
+	public:
+		f64_at_constant_string_table()
+		{
+			using namespace unicode_literals;
+			using namespace ::std::numbers;
+
+			auto& self = *this;
+
+			self[static_cast<type::f32>(e)]          = ascii_to_at_constant_string<char_t>(u8"@e"_sv);
+			self[static_cast<type::f32>(log2e)]      = ascii_to_at_constant_string<char_t>(u8"@log2e"_sv);
+			self[static_cast<type::f32>(log10e)]     = ascii_to_at_constant_string<char_t>(u8"@log10e"_sv);
+			self[static_cast<type::f32>(pi)]         = ascii_to_at_constant_string<char_t>(u8"@pi"_sv);
+			self[static_cast<type::f32>(inv_pi)]     = ascii_to_at_constant_string<char_t>(u8"@inv_pi"_sv);
+			self[static_cast<type::f32>(inv_sqrtpi)] = ascii_to_at_constant_string<char_t>(u8"@inv_sqrtpi"_sv);
+			self[static_cast<type::f32>(ln2)]        = ascii_to_at_constant_string<char_t>(u8"@ln2"_sv);
+			self[static_cast<type::f32>(ln10)]       = ascii_to_at_constant_string<char_t>(u8"@ln10"_sv);
+			self[static_cast<type::f32>(sqrt2)]      = ascii_to_at_constant_string<char_t>(u8"@sqrt2"_sv);
+			self[static_cast<type::f32>(sqrt3)]      = ascii_to_at_constant_string<char_t>(u8"@sqrt3"_sv);
+			self[static_cast<type::f32>(inv_sqrt3)]  = ascii_to_at_constant_string<char_t>(u8"@inv_sqrt3"_sv);
+			self[static_cast<type::f32>(egamma)]     = ascii_to_at_constant_string<char_t>(u8"@egamma"_sv);
+			self[static_cast<type::f32>(phi)]        = ascii_to_at_constant_string<char_t>(u8"@phi"_sv);
+			self[e]          = ascii_to_at_constant_string<char_t>(u8"@e"_sv);
+			self[log2e]      = ascii_to_at_constant_string<char_t>(u8"@log2e"_sv);
+			self[log10e]     = ascii_to_at_constant_string<char_t>(u8"@log10e"_sv);
+			self[pi]         = ascii_to_at_constant_string<char_t>(u8"@pi"_sv);
+			self[inv_pi]     = ascii_to_at_constant_string<char_t>(u8"@inv_pi"_sv);
+			self[inv_sqrtpi] = ascii_to_at_constant_string<char_t>(u8"@inv_sqrtpi"_sv);
+			self[ln2]        = ascii_to_at_constant_string<char_t>(u8"@ln2"_sv);
+			self[ln10]       = ascii_to_at_constant_string<char_t>(u8"@ln10"_sv);
+			self[sqrt2]      = ascii_to_at_constant_string<char_t>(u8"@sqrt2"_sv);
+			self[sqrt3]      = ascii_to_at_constant_string<char_t>(u8"@sqrt3"_sv);
+			self[inv_sqrt3]  = ascii_to_at_constant_string<char_t>(u8"@inv_sqrt3"_sv);
+			self[egamma]     = ascii_to_at_constant_string<char_t>(u8"@egamma"_sv);
+			self[phi]        = ascii_to_at_constant_string<char_t>(u8"@phi"_sv);
+		}
+		static auto instance() -> const f64_at_constant_string_table<char_t>&
+		{
+			static f64_at_constant_string_table<char_t> obj{};
+			return obj;
+		}
+	};
+
+	template <typename char_t>
+	auto f64_at_constant_string_table_function(type::concepts::pdn_fp auto val) -> type::string<char_t>
+	{
+		if (auto result = f64_at_constant_string_table<char_t>::instance().find(val);
+			result != f64_at_constant_string_table<char_t>::instance().end())
+		{
+			return result->second;
+		}
+		return {};
+	}
+
+	template <typename char_t>
 	auto to_pdn_format(type::concepts::pdn_integral auto val) -> type::string<char_t>
 	{
 		auto result = type::string<char_t>{};
@@ -49,20 +117,25 @@ namespace pdn::detail
 	template <typename char_t>
 	auto to_pdn_format(type::concepts::pdn_fp auto val) -> type::string<char_t>
 	{
-		auto result = type::string<char_t>{};
+		using namespace unicode_literals;
+		using c = char_t;
+		if (::std::isinf(val))
 		{
-			using c = char_t;
-			if (::std::isinf(val))
-			{
-				return (::std::signbit(val)) ?
-					type::string<char_t>{ c('-'), c('@'), c('i'), c('n'), c('f') } :
-					type::string<char_t>{ c('@'), c('i'), c('n'), c('f') };
-			}
-			else if (::std::isnan(val))
-			{
-				return type::string<char_t>{ c('@'), c('N'), c('a'), c('N') };
-			}
+			return (::std::signbit(val)) ?
+				ascii_to_at_constant_string<char_t>(u8"-@inf"_sv) :
+				ascii_to_at_constant_string<char_t>(u8"@inf"_sv);
 		}
+		else if (::std::isnan(val))
+		{
+			return ascii_to_at_constant_string<char_t>(u8"@NaN"_sv);
+		}
+		auto at_constant_string = f64_at_constant_string_table_function<char_t>(val);
+		if (!at_constant_string.empty())
+		{
+			return at_constant_string;
+		}
+
+		auto result = type::string<char_t>{};
 		bool has_e{};
 		bool has_dot{};
 		for (const auto c : ::std::format("{}", val))
@@ -82,10 +155,11 @@ namespace pdn::detail
 	template <typename char_t>
 	auto to_pdn_format(type::boolean val) -> type::string<char_t>
 	{
+		using namespace unicode_literals;
 		using c = char_t;
 		auto result = val ?
-			type::string<c>{ c('@'), c('t'), c('r'), c('u'), c('e') } :
-			type::string<c>{ c('@'), c('f'), c('a'), c('l'), c('s'), c('e') };
+			ascii_to_at_constant_string<char_t>(u8"@true"_sv) :
+			ascii_to_at_constant_string<char_t>(u8"@false"_sv);
 		return result;
 	}
 
