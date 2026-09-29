@@ -10,8 +10,10 @@
 #include "pdn_unicode_base.h"
 #include "pdn_type_character.h"
 
+#ifdef PDN_ENABLE_ORDERED_MAP
 // keep the order in parse
-// #include "pdn_ordered_map.h"
+#include "pdn_ordered_map.h"
+#endif
 
 namespace pdn::type::config
 {
@@ -60,12 +62,14 @@ namespace pdn::type::config
 		}
 	};
 
+#ifdef PDN_ENABLE_ORDERED_MAP
+	// keep the order in parse
+	template <typename iden_t, typename entity_t>
+	using object = detail::ordered_map<iden_t, entity_t>;
+#else
 	template <typename iden_t, typename entity_t>
 	using object = ::std::unordered_map<iden_t, entity_t, key_hasher, ::std::equal_to<>>;
-
-	// keep the order in parse
-	// template <typename iden_t, typename entity_t>
-	// using object = detail::ordered_map<iden_t, entity_t>;
+#endif
 }
 
 #endif
