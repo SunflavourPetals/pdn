@@ -396,6 +396,43 @@ at_value_test {
 	}
 }
 
+at_value_test_f32 {
+	true@true;
+	false@false;
+	e:f32@e;
+	log2e:f32@log2e;
+	log10e:f32@log10e;
+	pi:f32@pi;
+	inv_pi:f32@inv_pi;
+	inv_sqrtpi:f32@inv_sqrtpi;
+	ln2:f32@ln2;
+	ln10:f32@ln10;
+	sqrt2:f32@sqrt2;
+	sqrt3:f32@sqrt3;
+	inv_sqrt3:f32@inv_sqrt3;
+	egamma:f32@egamma;
+	phi:f32@phi;
+	inifinity:f32@infinity;
+	inf:f32@inf;
+	quiet_NaN:f32@quiet_NaN;
+	qNaN:f32@qNaN;
+	qnan:f32@qnan;
+	NaN:f32@NaN;
+	nan:f32@nan;
+	signaling_NaN:f32@signaling_NaN;
+	sNaN:f32@sNaN;
+	snan:f32@snan;
+	extra { // not standard
+		π:f32@π;
+		γ:f32@γ;
+		Φ:f32@Φ;
+		hello@hello;
+		inf:f32∞;
+		fib_10_list@fib_10_list;
+		me_object@me_object;
+	}
+}
+
 sign_test [
 	+ 1, ++ 1, +++1, ++++1, ++++++++++++++++1, // 16 +
 	- 1, - -1, ---1, ----1, ----------------1, // 16 -
