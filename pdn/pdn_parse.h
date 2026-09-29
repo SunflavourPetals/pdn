@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_parse
 
 #include <type_traits>
+#include <concepts>
 #include <cassert>
 #include <utility>
 #include <cstddef>
@@ -25,6 +26,18 @@
 namespace pdn::detail
 {
 	inline constexpr ::std::size_t default_buffer_size = 1024;
+
+	template <typename stream>
+	concept stream_constructible_from_wchar_cstring = ::std::constructible_from<stream, const wchar_t*>;
+
+	template <typename stream>
+	concept stream_constructible_from_wchar_string = ::std::constructible_from<stream, const ::std::wstring&>;
+
+	template <stream_constructible_from_wchar_cstring stream, typename dummy>
+	stream open_stream_by_wchar_cstring(const wchar_t* filename, ::std::ios::openmode mode) { return stream(filename, mode); }
+
+	template <stream_constructible_from_wchar_string stream, typename dummy>
+	stream open_stream_by_wchar_string(const ::std::wstring& filename, ::std::ios::openmode mode) { return stream(filename, mode); }
 }
 
 namespace pdn::inline utf_tag
@@ -195,7 +208,6 @@ namespace pdn
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
-#ifdef _WIN32
 	// for filename
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
@@ -208,7 +220,7 @@ namespace pdn
 	                         char_t                char_tag = {},
 	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
-		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
+		auto source_file = detail::open_stream_by_wchar_string<::std::ifstream, char_t>(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
 	}
 	// for filename
@@ -232,7 +244,7 @@ namespace pdn
 	                         char_t                char_tag = {},
 	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
-		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
+		auto source_file = detail::open_stream_by_wchar_cstring<::std::ifstream, char_t>(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
 	}
 	// for filename
@@ -244,7 +256,6 @@ namespace pdn
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
-#endif
 	// for filename
 	template <unicode::concepts::code_unit                       char_t,
 	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
@@ -261,7 +272,6 @@ namespace pdn
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
 	}
-
 	// for filename
 	template <unicode::concepts::code_unit char_t, ::std::same_as<::std::filesystem::path> path_t>
 	[[nodiscard]] auto parse(const path_t& filename,
