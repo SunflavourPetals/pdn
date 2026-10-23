@@ -1402,3 +1402,15 @@ enum class serialize_separator_ts
 #include "spdn.h"
 ...
 ```
+
+## from_chars 替换
+
+本库的 `lexer` 使用 `std::from_chars` 解析数字，但是部分平台或环境暂不支持浮点数版本的 `from_chars`，用户可以使用宏定义 `PDN_USER_FROM_CHARS_FLOAT` 替换实际使用的函数，替换的函数的表现应当与 `std::from_chars` 一致。  
+
+注意不要让不同翻译单元的 `PDN_USER_FROM_CHARS_FLOAT` 定义不一致，否则可能违反 ODR。  
+
+定义参考：  
+
+``` C++
+#define PDN_USER_FROM_CHARS_FLOAT(first, last, value, fmt) ::my_code::from_chars(first, last, value, fmt)
+```

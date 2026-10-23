@@ -1363,7 +1363,11 @@ namespace pdn
 				type::f64 fp_value{};
 				detail::remove_all_separator(number_sequence);
 				const auto& n_seq = number_sequence;
+#ifdef PDN_USER_FROM_CHARS_FLOAT
+				auto from_chars_r = PDN_USER_FROM_CHARS_FLOAT(n_seq.data(), n_seq.data() + n_seq.size(), fp_value, ::std::chars_format::general);
+#else
 				auto from_chars_r = ::std::from_chars(n_seq.data(), n_seq.data() + n_seq.size(), fp_value);
+#endif
 				result.value = fp_value;
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
@@ -1467,7 +1471,11 @@ namespace pdn
 				type::f64 fp_value{};
 				detail::remove_all_separator(number_sequence);
 				auto n_seq = ::std::string_view{ number_sequence.begin() + 2, number_sequence.end() };
+#ifdef PDN_USER_FROM_CHARS_FLOAT
+				auto from_chars_r = PDN_USER_FROM_CHARS_FLOAT(n_seq.data(), n_seq.data() + n_seq.size(), fp_value, ::std::chars_format::hex);
+#else
 				auto from_chars_r = ::std::from_chars(n_seq.data(), n_seq.data() + n_seq.size(), fp_value, ::std::chars_format::hex);
+#endif
 				result.value = fp_value;
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
