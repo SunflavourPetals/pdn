@@ -88,7 +88,8 @@ namespace pdn
 			to_next();
 			return *this;
 		}
-		friend bool operator==(const token_iterator_from_lexer& lhs, const token_iterator_from_lexer& rhs)
+		// just for check eof
+		friend bool operator==(const token_iterator_from_lexer& lhs, const token_iterator_from_lexer& rhs) noexcept
 		{
 			return lhs.ctrl_opt.has_value() == rhs.ctrl_opt.has_value();
 		}
