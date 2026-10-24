@@ -1407,7 +1407,7 @@ enum class serialize_separator_ts
 
 本库的 `lexer` 使用 `std::from_chars` 解析数字，但是部分平台或环境暂不支持浮点数版本的 `from_chars`，用户可以使用宏定义 `PDN_USER_FROM_CHARS_FLOAT` 替换实际使用的函数，替换的函数的行为应当与 C++ 标准一致。  
 
-可以使用 `boost`(如果方便) 或者 `fast_float + 本库提供的 from_chars_hex_float` 替换 `std::from_chars`，后者更加轻量化。  
+可以使用 `boost`(如果方便) 或者 `fast_float` 加本库提供的 `from_chars_hex_float` 替换 `std::from_chars`，后者更加轻量化。  
 
 注意不要让不同翻译单元的 `PDN_USER_FROM_CHARS_FLOAT` 定义不一致，否则可能违反 ODR。  
 
@@ -1415,6 +1415,8 @@ enum class serialize_separator_ts
 
 ``` C++
 #define PDN_USER_FROM_CHARS_FLOAT(first, last, value, fmt) ::my_code::from_chars(first, last, value, fmt)
+#include "spdn.h"
+// ...
 ```
 
 使用 `fast_float` 和本库自带的 `from_chars_hex_float` 的参考：  
@@ -1442,7 +1444,7 @@ namespace user_charconv
             return ::fast_float::chars_format::general;
         }
     }
-    auto from_chars_float(
+    inline auto from_chars_float(
         const char* first,
         const char* last,
         auto& value,
@@ -1464,5 +1466,21 @@ namespace user_charconv
 
 #include "spdn.h"
 
+// ...
+```
+
+## format 替换
+
+在 `pdn_serializer.h` 中使用了两次 `std::format`(底层可能是 `std::to_chars`)，它也可能成为兼容性问题(部分平台或环境可能编译不通过)，这里使用 `format` 只是为了将整数或浮点数转换为字符串的形式，使用方式均为 `format("{}", val)`。用户可以通过提供 `PDN_USER_FORMAT` 来提供替代对 `std::format` 的依赖，推荐引入 `{fmt}` 库。  
+
+如果没有 `format` 的替代品，也可以忽略 `"{}"` 参数，使用其他 `to_string` 等形式的函数替代(可能不如 `format` 精确)，要求返回值是可以 `foreach` 遍历的容器(`for(const auto c : PDN_USER_FORMAT("{}", val))`) 且 `elememt` 可以用于构造目标字符类型(可能是 `char8_t` `char16_t` `char32_t`)。  
+
+注意不要让不同翻译单元的 `PDN_USER_FORMAT` 定义不一致，否则可能违反 ODR。  
+
+定义参考：  
+
+``` C++
+#define PDN_USER_FORMAT(fmt_arg, val) ::fmt::format(fmt_arg, val)
+#include "spdn.h"
 // ...
 ```
