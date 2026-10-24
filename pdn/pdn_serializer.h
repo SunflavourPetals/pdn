@@ -5,7 +5,6 @@
 #include <concepts>
 #include <utility>
 #include <string>
-#include <format>
 #include <limits>
 #include <cstddef>
 #include <variant>
@@ -13,6 +12,10 @@
 #include <numbers>
 #include <algorithm>
 #include <unordered_map>
+
+#ifndef PDN_USER_FORMAT
+#include <format>
+#endif
 
 #include "pdn_type.h"
 #include "pdn_entity.h"
@@ -106,8 +109,12 @@ namespace pdn::detail
 	auto to_pdn_format(type::concepts::pdn_integral auto val) -> type::string<char_t>
 	{
 		auto result = type::string<char_t>{};
-		
-		for (const auto c : ::std::format("{}", val))
+#ifdef PDN_USER_FORMAT
+		auto formatted = PDN_USER_FORMAT("{}", val);
+#else
+		auto formatted = ::std::format("{}", val);
+#endif
+		for (const auto c : formatted)
 		{
 			result += char_t(c);
 		}
@@ -138,7 +145,12 @@ namespace pdn::detail
 		auto result = type::string<char_t>{};
 		bool has_e{};
 		bool has_dot{};
-		for (const auto c : ::std::format("{}", val))
+#ifdef PDN_USER_FORMAT
+		auto formatted = PDN_USER_FORMAT("{}", val);
+#else
+		auto formatted = ::std::format("{}", val);
+#endif
+		for (const auto c : formatted)
 		{
 			result += char_t(c);
 			if (c == 'e') has_e = true;
