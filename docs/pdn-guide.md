@@ -1405,7 +1405,9 @@ enum class serialize_separator_ts
 
 ## from_chars 替换
 
-本库的 `lexer` 使用 `std::from_chars` 解析数字，但是部分平台或环境暂不支持浮点数版本的 `from_chars`，用户可以使用宏定义 `PDN_USER_FROM_CHARS_FLOAT` 替换实际使用的函数，替换的函数的表现应当与 `std::from_chars` 一致。  
+本库的 `lexer` 使用 `std::from_chars` 解析数字，但是部分平台或环境暂不支持浮点数版本的 `from_chars`，用户可以使用宏定义 `PDN_USER_FROM_CHARS_FLOAT` 替换实际使用的函数，替换的函数的行为应当与 C++ 标准一致。  
+
+可以使用 `boost`(如果方便) 或者 `fast_float + 本库提供的 from_chars_hex_float` 替换 `std::from_chars`，后者更加轻量化。  
 
 注意不要让不同翻译单元的 `PDN_USER_FROM_CHARS_FLOAT` 定义不一致，否则可能违反 ODR。  
 
@@ -1413,4 +1415,54 @@ enum class serialize_separator_ts
 
 ``` C++
 #define PDN_USER_FROM_CHARS_FLOAT(first, last, value, fmt) ::my_code::from_chars(first, last, value, fmt)
+```
+
+使用 `fast_float` 和本库自带的 `from_chars_hex_float` 的参考：  
+
+``` C++
+#include <charconv>
+#include "fast_float/fast_float.h" // 假设 fast_float 已经处于包含目录
+#include "pdn_from_chars_hex_float.h"
+
+namespace user_charconv
+{
+    constexpr ::fast_float::chars_format chars_format_conv(::std::chars_format fmt) noexcept
+    {
+        switch (fmt)
+        {
+        case std::chars_format::scientific:
+            return ::fast_float::chars_format::scientific;
+        case std::chars_format::fixed:
+            return ::fast_float::chars_format::fixed;
+        case std::chars_format::hex:
+            return ::fast_float::chars_format::hex;
+        case std::chars_format::general:
+            return ::fast_float::chars_format::general;
+        default:
+            return ::fast_float::chars_format::general;
+        }
+    }
+    auto from_chars_float(
+        const char* first,
+        const char* last,
+        auto& value,
+        ::std::chars_format fmt = ::std::chars_format::general) noexcept -> ::std::from_chars_result
+    {
+        if (fmt == ::std::chars_format::hex)
+        {
+            return pdn::charconv::from_chars_hex_float(first, last, value);
+        }
+        else
+        {
+            auto [ptr, ec] = ::fast_float::from_chars(first, last, value, chars_format_conv(fmt));
+            return { ptr, ec };
+        }
+    }
+}
+
+#define PDN_USER_FROM_CHARS_FLOAT(first, last, value, fmt) ::user_charconv::from_chars_float(first, last, value, fmt)
+
+#include "spdn.h"
+
+// ...
 ```
