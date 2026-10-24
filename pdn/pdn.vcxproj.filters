@@ -333,6 +333,9 @@
     <ClInclude Include="pdn_false.h">
       <Filter>pdn_dependent_false</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_from_chars_hex_float.h">
+      <Filter>pdn_lexer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
