@@ -125,7 +125,6 @@ namespace pdn::detail
 	auto to_pdn_format(type::concepts::pdn_fp auto val) -> type::string<char_t>
 	{
 		using namespace unicode_literals;
-		using c = char_t;
 		if (::std::isinf(val))
 		{
 			return (::std::signbit(val)) ?
@@ -168,7 +167,6 @@ namespace pdn::detail
 	auto to_pdn_format(type::boolean val) -> type::string<char_t>
 	{
 		using namespace unicode_literals;
-		using c = char_t;
 		auto result = val ?
 			ascii_to_at_constant_string<char_t>(u8"@true"_sv) :
 			ascii_to_at_constant_string<char_t>(u8"@false"_sv);
