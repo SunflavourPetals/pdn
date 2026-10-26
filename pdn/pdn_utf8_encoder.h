@@ -76,7 +76,7 @@ namespace pdn::unicode::utf8
 	public:
 		using result_type = encode_result;
 
-		static auto encode(code_point_t character) noexcept -> encode_result
+		static constexpr auto encode(code_point_t character) noexcept -> encode_result
 		{
 			encode_result result{};
 
@@ -120,7 +120,7 @@ namespace pdn::unicode::utf8
 		}
 	};
 
-	inline auto encode(code_point_t character) noexcept -> encode_result
+	constexpr auto encode(code_point_t character) noexcept -> encode_result
 	{
 		return encoder::encode(character);
 	}

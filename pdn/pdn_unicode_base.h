@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_unicode_base
 #define PDN_Header_pdn_unicode_base
 
+#include <cstddef>
 #include <cstdint>
 #include <bit>
 #include <array>
@@ -208,7 +209,7 @@ namespace pdn::unicode::type_traits
 namespace pdn::unicode
 {
 	template <concepts::code_unit char_t>
-	inline auto get_replace() -> ::std::basic_string_view<::std::decay_t<char_t>>
+	constexpr auto get_replace() noexcept -> ::std::basic_string_view<::std::decay_t<char_t>>
 	{
 		using namespace ::std::literals::string_view_literals;
 		using c = ::std::decay_t<char_t>;

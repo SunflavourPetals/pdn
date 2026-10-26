@@ -75,7 +75,7 @@ namespace pdn::unicode::utf16
 	public:
 		using result_type = encode_result;
 
-		static auto encode(code_point_t character) noexcept -> encode_result
+		static constexpr auto encode(code_point_t character) noexcept -> encode_result
 		{
 			using cp_t = code_point_t;
 			using cu_t = code_unit_t;
@@ -105,7 +105,7 @@ namespace pdn::unicode::utf16
 		}
 	};
 
-	inline auto encode(code_point_t character) noexcept -> encode_result
+	constexpr auto encode(code_point_t character) noexcept -> encode_result
 	{
 		return encoder::encode(character);
 	}
