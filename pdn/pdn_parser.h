@@ -254,7 +254,7 @@ namespace pdn
 					constexpr auto operand_type = type_to_type_code_v<remove_proxy_t<arg_t>, char_t>;
 					post_err(unary_rec.is_last_sign_negative ? unary_rec.last_negative_sign_pos : unary_rec.last_positive_sign_pos,
 					         syn_ec::invalid_unary_operation,
-					         raw_err_unary_op{ err_tkv, operand_type, unary_rec.is_last_sign_negative });
+					         raw_err_unary_op{ ::std::move(err_tkv), operand_type, unary_rec.is_last_sign_negative });
 				}
 			}, result);
 
@@ -595,7 +595,7 @@ namespace pdn
 					else if constexpr (pdn_integral<tar_t>)
 					{
 						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
-						return static_cast<tar_t>(arg);
+						return default_entity_value<char_t>(target_type_c);
 					}
 					else // fp -> character|string|list|object
 					{
