@@ -267,14 +267,10 @@ namespace pdn
 		using deref_t = decltype(*::std::declval<it_t>());
 
 		template <typename it_t>
-		using it_value_t = ::std::remove_reference_t<deref_t<it_t>>;
+		using it_value_t = ::std::remove_const_t<::std::remove_reference_t<deref_t<it_t>>>;
 
 		template <typename it_t, typename t>
-		concept can_ret_ref =
-			   ::std::is_trivial_v<t>
-			&& ::std::is_lvalue_reference_v<deref_t<it_t>>
-			&& ::std::is_trivial_v<it_value_t<it_t>>
-			&& sizeof(it_value_t<it_t>) == sizeof(t);
+		concept can_ret_ref = ::std::same_as<it_value_t<it_t>, t>&& ::std::is_lvalue_reference_v<deref_t<it_t>>;
 	}
 
 	template <typename it_t>
@@ -287,17 +283,10 @@ namespace pdn
 		using char_type         = code_unit_type;
 		using size_type         = ::std::size_t;
 		using value_type        = char_type;
-		using deref_value_type  = ::std::conditional_t<detail::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>, ::std::add_const_t<char_type>&, char_type>;
+		using deref_value_type  = ::std::conditional_t<detail::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>, const char_type&, char_type>;
 		deref_value_type operator*() const noexcept
 		{
-			if constexpr (detail::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>)
-			{
-				return reinterpret_cast<::std::add_const_t<char_type>&>(*begin);
-			}
-			else
-			{
-				return *begin; // implicit conversation to code_unit_type
-			}
+			return *begin;
 		}
 		code_unit_iterator& operator++ ()
 		{
