@@ -147,6 +147,7 @@ namespace pdn
 							detail::decode_result_to_raw_error_t<result_type>{ result, last, offset }
 						})
 					});
+					func_pkg->update(U'\uFFFD');
 					if (begin != end && !decision::decoder_type::template is_reaching_next<false>(result))
 					{
 						++begin;
