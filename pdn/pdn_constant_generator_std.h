@@ -99,6 +99,26 @@ namespace pdn
 			constexpr auto f64_qNaN = ::std::numeric_limits<type::f64>::quiet_NaN();
 			constexpr auto f64_sNaN = ::std::numeric_limits<type::f64>::signaling_NaN();
 
+			self[u8"i8_min"_s]        = ::std::numeric_limits<type::i8>::min();
+			self[u8"i8_max"_s]        = ::std::numeric_limits<type::i8>::max();
+			self[u8"i16_min"_s]       = ::std::numeric_limits<type::i16>::min();
+			self[u8"i16_max"_s]       = ::std::numeric_limits<type::i16>::max();
+			self[u8"i32_min"_s]       = ::std::numeric_limits<type::i32>::min();
+			self[u8"i32_max"_s]       = ::std::numeric_limits<type::i32>::max();
+			self[u8"i64_min"_s]       = ::std::numeric_limits<type::i64>::min();
+			self[u8"i64_max"_s]       = ::std::numeric_limits<type::i64>::max();
+			self[u8"u8_min"_s]        = ::std::numeric_limits<type::u8>::min();
+			self[u8"u8_max"_s]        = ::std::numeric_limits<type::u8>::max();
+			self[u8"u16_min"_s]       = ::std::numeric_limits<type::u16>::min();
+			self[u8"u16_max"_s]       = ::std::numeric_limits<type::u16>::max();
+			self[u8"u32_min"_s]       = ::std::numeric_limits<type::u32>::min();
+			self[u8"u32_max"_s]       = ::std::numeric_limits<type::u32>::max();
+			self[u8"u64_min"_s]       = ::std::numeric_limits<type::u64>::min();
+			self[u8"u64_max"_s]       = ::std::numeric_limits<type::u64>::max();
+			self[u8"int_min"_s]       = ::std::numeric_limits<type::auto_int>::min();
+			self[u8"int_max"_s]       = ::std::numeric_limits<type::auto_int>::max();
+			self[u8"uint_min"_s]      = ::std::numeric_limits<type::auto_uint>::min();
+			self[u8"uint_max"_s]      = ::std::numeric_limits<type::auto_uint>::max();
 			self[u8"true"_s]          = true;
 			self[u8"false"_s]         = false;
 			self[u8"e"_s]             = e;
