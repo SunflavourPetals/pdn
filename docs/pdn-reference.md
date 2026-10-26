@@ -481,10 +481,10 @@ At 标识符(at 常量)的词法为 `@` 紧跟着[普通标识符](#普通标识
 | `@u32_max`       | `u32`     | `4'294'967'295`                             |
 | `@u64_min`       | `u64`     | `0`                                         |
 | `@u64_max`       | `u64`     | `18'446'744'073'709'551'615`                |
-| `@int_min`       | `int`     | 通常等价于 `@i32_min`                       |
-| `@int_max`       | `int`     | 通常等价于 `@i32_max`                       |
-| `@uint_min`      | `uint`    | 通常等价于 `@u32_min`                       |
-| `@uint_max`      | `uint`    | 通常等价于 `@u32_max`                       |
+| `@int_min`       | `int`     | 通常等于 `@i32_min`                         |
+| `@int_max`       | `int`     | 通常等于 `@i32_max`                         |
+| `@uint_min`      | `uint`    | `0`                                         |
+| `@uint_max`      | `uint`    | 通常等于 `@u32_max`                         |
 | `@true`          | `boolean` | `true`                                      |
 | `@false`         | `boolean` | `false`                                     |
 | `@e`             | `f64`     | `std::numbers::e`                           |
@@ -511,9 +511,9 @@ At 标识符(at 常量)的词法为 `@` 紧跟着[普通标识符](#普通标识
 | `@sNaN`          | `f64`     | 同 `@signaling_NaN`                         |
 | `@snan`          | `f64`     | 同 `@signaling_NaN`                         |
 
-关于 `@i64_min`，解析器要求 `-9'223'372'036'854'775'808` 能解析成功(它是 `-` `<u64_literal>`)，请使用 `@i64_min`。  
+关于 `@i64_min`，解析器不要求 `-9'223'372'036'854'775'808` 能解析成功(它是 `-` `<u64_literal>`，不符合语法)，请使用 `@i64_min`。  
 
-关于 `@int_min` `@int_max` `@uint_min` `@uint_max`，它们的值及类型取决于 `int` 和 `uint` 实际类型，但是值必须和实际类型对应的 `min` `max` 相同，`int` 和 `uint` 通常是 `i32` 和 `u32`。  
+关于 `@int_min` `@int_max` `@uint_max`，它们的值及类型取决于 `int` 和 `uint` 实际类型，其值必须和实际类型对应的 `min` `max` 相同，`int` 和 `uint` 通常是 `i32` 和 `u32`。  
 
 本仓库的实现额外提供了如下 At 标识符(仅供特性测试)：  
 
