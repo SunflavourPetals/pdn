@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_type_config
 #define PDN_Header_pdn_type_config
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
