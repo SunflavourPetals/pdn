@@ -5,11 +5,15 @@
 #include <concepts>
 
 #include "pdn_unicode.h"
+#include "pdn_false.h"
 
 namespace pdn::type::detail
 {
 	template <typename char_t>
-	struct max_code_unit_count_for_character {};
+	struct max_code_unit_count_for_character
+	{
+		static_assert(pdn::detail::false_v<char_t>, "[pdn] char_t is not one of unicode::u8char_t, u16char_t, u32char_t");
+	};
 	
 	template <::std::same_as<unicode::u8char_t> char_t>
 	struct max_code_unit_count_for_character<char_t>

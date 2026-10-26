@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <type_traits>
 
 #include "pdn_type_character_utility.h"
 
@@ -17,7 +18,7 @@ namespace pdn::type::detail
 		using data_type = ::std::array<char_t, max_sz>;
 		static constexpr auto trunc_size(::std::size_t sz) { return sz > max_sz ? max_sz : sz; }
 	public:
-		using small_size_type = ::std::uint_fast16_t;
+		using small_size_type = ::std::uint32_t;
 		using value_type      = char_t;
 		using size_type       = typename data_type::size_type;
 		using difference_type = ::std::ptrdiff_t;
