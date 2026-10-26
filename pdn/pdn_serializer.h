@@ -60,19 +60,6 @@ namespace pdn::detail
 
 			auto& self = *this;
 
-			self[static_cast<type::f32>(e)]          = ascii_to_at_constant_string<char_t>(u8"@e"_sv);
-			self[static_cast<type::f32>(log2e)]      = ascii_to_at_constant_string<char_t>(u8"@log2e"_sv);
-			self[static_cast<type::f32>(log10e)]     = ascii_to_at_constant_string<char_t>(u8"@log10e"_sv);
-			self[static_cast<type::f32>(pi)]         = ascii_to_at_constant_string<char_t>(u8"@pi"_sv);
-			self[static_cast<type::f32>(inv_pi)]     = ascii_to_at_constant_string<char_t>(u8"@inv_pi"_sv);
-			self[static_cast<type::f32>(inv_sqrtpi)] = ascii_to_at_constant_string<char_t>(u8"@inv_sqrtpi"_sv);
-			self[static_cast<type::f32>(ln2)]        = ascii_to_at_constant_string<char_t>(u8"@ln2"_sv);
-			self[static_cast<type::f32>(ln10)]       = ascii_to_at_constant_string<char_t>(u8"@ln10"_sv);
-			self[static_cast<type::f32>(sqrt2)]      = ascii_to_at_constant_string<char_t>(u8"@sqrt2"_sv);
-			self[static_cast<type::f32>(sqrt3)]      = ascii_to_at_constant_string<char_t>(u8"@sqrt3"_sv);
-			self[static_cast<type::f32>(inv_sqrt3)]  = ascii_to_at_constant_string<char_t>(u8"@inv_sqrt3"_sv);
-			self[static_cast<type::f32>(egamma)]     = ascii_to_at_constant_string<char_t>(u8"@egamma"_sv);
-			self[static_cast<type::f32>(phi)]        = ascii_to_at_constant_string<char_t>(u8"@phi"_sv);
 			self[e]          = ascii_to_at_constant_string<char_t>(u8"@e"_sv);
 			self[log2e]      = ascii_to_at_constant_string<char_t>(u8"@log2e"_sv);
 			self[log10e]     = ascii_to_at_constant_string<char_t>(u8"@log10e"_sv);
@@ -94,13 +81,57 @@ namespace pdn::detail
 		}
 	};
 
+	// inf and nan not support
 	template <typename char_t>
-	auto f64_at_constant_string_table_function(type::concepts::pdn_fp auto val) -> type::string<char_t>
+	class f32_at_constant_string_table : public ::std::unordered_map<type::f32, type::string<char_t>>
 	{
-		if (auto result = f64_at_constant_string_table<char_t>::instance().find(val);
-			result != f64_at_constant_string_table<char_t>::instance().end())
+	public:
+		f32_at_constant_string_table()
 		{
-			return result->second;
+			using namespace unicode_literals;
+			using namespace ::std::numbers;
+
+			auto& self = *this;
+
+			self[static_cast<type::f32>(e)]          = ascii_to_at_constant_string<char_t>(u8"@e"_sv);
+			self[static_cast<type::f32>(log2e)]      = ascii_to_at_constant_string<char_t>(u8"@log2e"_sv);
+			self[static_cast<type::f32>(log10e)]     = ascii_to_at_constant_string<char_t>(u8"@log10e"_sv);
+			self[static_cast<type::f32>(pi)]         = ascii_to_at_constant_string<char_t>(u8"@pi"_sv);
+			self[static_cast<type::f32>(inv_pi)]     = ascii_to_at_constant_string<char_t>(u8"@inv_pi"_sv);
+			self[static_cast<type::f32>(inv_sqrtpi)] = ascii_to_at_constant_string<char_t>(u8"@inv_sqrtpi"_sv);
+			self[static_cast<type::f32>(ln2)]        = ascii_to_at_constant_string<char_t>(u8"@ln2"_sv);
+			self[static_cast<type::f32>(ln10)]       = ascii_to_at_constant_string<char_t>(u8"@ln10"_sv);
+			self[static_cast<type::f32>(sqrt2)]      = ascii_to_at_constant_string<char_t>(u8"@sqrt2"_sv);
+			self[static_cast<type::f32>(sqrt3)]      = ascii_to_at_constant_string<char_t>(u8"@sqrt3"_sv);
+			self[static_cast<type::f32>(inv_sqrt3)]  = ascii_to_at_constant_string<char_t>(u8"@inv_sqrt3"_sv);
+			self[static_cast<type::f32>(egamma)]     = ascii_to_at_constant_string<char_t>(u8"@egamma"_sv);
+			self[static_cast<type::f32>(phi)]        = ascii_to_at_constant_string<char_t>(u8"@phi"_sv);
+		}
+		static auto instance() -> const f32_at_constant_string_table<char_t>&
+		{
+			static f32_at_constant_string_table<char_t> obj{};
+			return obj;
+		}
+	};
+
+	template <typename char_t, type::concepts::pdn_fp fp>
+	auto fp_at_constant_string_table_function(fp val) -> type::string<char_t>
+	{
+		if constexpr (::std::same_as<fp, type::f32>)
+		{
+			if (auto result = f32_at_constant_string_table<char_t>::instance().find(val);
+				result != f32_at_constant_string_table<char_t>::instance().end())
+			{
+				return result->second;
+			}
+		}
+		else
+		{
+			if (auto result = f64_at_constant_string_table<char_t>::instance().find(val);
+				result != f64_at_constant_string_table<char_t>::instance().end())
+			{
+				return result->second;
+			}
 		}
 		return {};
 	}
@@ -135,7 +166,7 @@ namespace pdn::detail
 		{
 			return ascii_to_at_constant_string<char_t>(u8"@NaN"_sv);
 		}
-		auto at_constant_string = f64_at_constant_string_table_function<char_t>(val);
+		auto at_constant_string = fp_at_constant_string_table_function<char_t>(val);
 		if (!at_constant_string.empty())
 		{
 			return at_constant_string;
