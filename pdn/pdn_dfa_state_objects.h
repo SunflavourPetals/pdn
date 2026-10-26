@@ -31,6 +31,8 @@ namespace pdn::dfa_state_objects
 	//     identifier_raw_string_received_CR
 	//     identifier_raw_string_received_right_parentheses
 
+	// (some dfo state objects are redeclared in different group)
+
 	inline extern cdfaso
 		start;
 
