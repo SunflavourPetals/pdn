@@ -675,10 +675,9 @@ namespace pdn::detail
 			{
 				// \n or \nn or \nnn (n is octal number)
 
-				// the function must be implemented correctly to ensure that sequence.size() must be greater than 0
-				get_numeric_escape_sequence(3, sequence, begin, end, lexer_utility::is_oct);
-
-				assert(sequence.size() != 0 && "sequence.size() == 0 never be true, logically");
+				sequence += static_cast<char>(c);
+				++begin;
+				get_numeric_escape_sequence(2, sequence, begin, end, lexer_utility::is_oct);
 
 				::std::uint_least32_t parse_val{};
 				auto from_chars_r = ::std::from_chars(sequence.data(), sequence.data() + sequence.size(), parse_val, 8);
@@ -920,7 +919,7 @@ namespace pdn::detail
 		{
 			helper.post_err(position, lex_ec::invalid_octal_number, to_raw_err_str(::std::move(error_str)));
 		}
-		else if (code == dec_seq_start_with_0_with_quote)
+		if (code == dec_seq_start_with_0_with_quote)
 		{
 			using enum raw_error_message_type::number_type;
 			helper.post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ ::std::move(error_str), oct_integer });
@@ -989,7 +988,7 @@ namespace pdn
 		token<char_t> get_token(auto&& begin, auto end)
 		{
 			token<char_t>              result{};
-			type::string<char_t>      text{};            // rename text
+			type::string<char_t>       text{};            // rename text
 			unicode::ucpstring         open_d_seq{};      // delimiter-sequence for raw string
 			::std::string              number_sequence{}; // Unicode[U+0000, U+007f] -> ASCII -> form_chars
 			::std::size_t              nested_block_comment_layer{};
@@ -1141,17 +1140,26 @@ namespace pdn
 					new_dfa_state = dfa_state_objects::raw_string;
 					goto label_update_dfa_state;
 				case raw_string_received_CR:
-					++begin;
-					if (begin == end)
+					while (true)
 					{
-						text += char_t('\r');
-						new_dfa_state = dfa_state_objects::raw_string;
-						goto label_update_dfa_state;
-					}
-					c = *begin;
-					if (c != U'\n')
-					{
-						text += char_t('\r');
+						++begin;
+						if (begin == end)
+						{
+							text += char_t('\r');
+							new_dfa_state = dfa_state_objects::raw_string;
+							goto label_update_dfa_state;
+						}
+						c = *begin;
+						if (c == U'\r')
+						{
+							text += char_t('\r');
+							continue;
+						}
+						if (c != U'\n')
+						{
+							text += char_t('\r');
+						}
+						break;
 					}
 					append(text, c);
 					new_dfa_state = dfa_state_objects::raw_string;
