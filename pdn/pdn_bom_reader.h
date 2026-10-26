@@ -98,7 +98,7 @@ namespace pdn::unicode
 		auto result = check_bom(read_count, my_bom);
 		auto bom_size = to_byte_size(result);
 
-		if (read_count != bom_size)
+		if (static_cast<::std::size_t>(read_count) != bom_size)
 		{
 			input.seekg(static_cast<::std::streamoff>(bom_size - read_count), ::std::ios_base::cur);
 		}
