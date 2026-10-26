@@ -508,12 +508,25 @@ namespace pdn
 				{
 					string_t result{};
 					constexpr auto no_type_spec
-						 = ::std::same_as<arg_t, type::auto_int>
-						|| ::std::same_as<arg_t, type::f64>
+						 = ::std::same_as<arg_t, type::f64>
 						|| ::std::same_as<arg_t, type::boolean>
 						|| ::std::same_as<arg_t, type::character<src_char_t>>
 						|| ::std::same_as<arg_t, type::string<src_char_t>>;
-					if constexpr (no_type_spec)
+					if constexpr (::std::same_as<arg_t, type::auto_int>)
+					{
+						if (arg == ::std::numeric_limits<type::auto_int>::min()) [[unlikely]]
+						{
+							constexpr auto type_c = type_to_type_code_v<arg_t, src_char_t>;
+							result += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
+							result += separator_for_ts;
+							result += serialize_value<src_char_t>(arg);
+						}
+						else
+						{
+							result += serialize_value<src_char_t>(arg);
+						}
+					}
+					else if constexpr (no_type_spec)
 					{
 						result += serialize_value<src_char_t>(arg);
 					}
