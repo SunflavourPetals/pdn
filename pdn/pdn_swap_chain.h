@@ -47,6 +47,7 @@ namespace pdn
 		using size_type            = ::std::size_t;
 		using char_type            = typename istream_type::char_type;
 		using value_type           = char_type;
+		static_assert(sizeof(value_type) == 1, "[pdn] swap_chain requires byte stream (char)");
 	private:
 		using buffers_manager      = ::std::unique_ptr<char_type[], buffer_deleter_type>;
 		class swap_chain_iterator
@@ -210,7 +211,7 @@ namespace pdn
 #if defined(PDN_NO_EXCEPTIONS) && defined(PDN_USER_TERMINATE)
 #define PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR "pdn::swap_chain<istream_t, buffer_deleter_t>::swap_chain(istream_type&, size_type, buffers_manager&&)"
 #endif
-			// buffer size in range [16, ::std::numeric_limits<size_type>::max() / 2]
+			// buffer size in range [1, ::std::numeric_limits<size_type>::max() / 2]
 			if (buffer_size <= 0)
 			{
 #ifdef PDN_NO_EXCEPTIONS
