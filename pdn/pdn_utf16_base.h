@@ -12,7 +12,7 @@ namespace pdn::unicode::utf16
 {
 	using code_unit_t = u16char_t;
 	using string = u16string;
-	using string_view = u32string_view;
+	using string_view = u16string_view;
 
 	constexpr auto to_le_bytes(code_unit_t code_unit) noexcept -> ::std::array<::std::uint8_t, 2>
 	{
