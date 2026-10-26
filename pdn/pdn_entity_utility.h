@@ -91,7 +91,7 @@ namespace pdn::detail
 		{
 			constexpr auto max = ::std::numeric_limits<tar_uint>::max();
 			if (::std::isnan(arg)) return 0;
-			if (arg > arg_t(max)) return max;
+			if (arg >= arg_t(max)) return max;
 			return arg < 0 ? tar_uint(0) : tar_uint(arg);
 		}
 		else
