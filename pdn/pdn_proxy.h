@@ -36,7 +36,7 @@ namespace pdn
 		}
 		proxy() : proxy(::std::make_unique<t>()) {}
 		proxy(const proxy& o) : proxy(::std::make_unique<t>(*o)) {}
-		proxy(proxy&& o) noexcept : proxy()
+		proxy(proxy&& o) noexcept
 		{
 			*this = ::std::move(o);
 		}
