@@ -62,7 +62,7 @@ namespace pdn::unicode
 			auto decode_result = decision::template decode<true>(begin, ::std::cend(source));
 			if (!decode_result)
 			{
-				if (decode_error_handler(convert_result, decode_result, curr - ::std::cbegin(source)))
+				if (decode_error_handler(convert_result, decode_result, static_cast<::std::size_t>(curr - ::std::cbegin(source))))
 				{
 					break;
 				}
@@ -71,7 +71,7 @@ namespace pdn::unicode
 			auto encode_result = decision::encode(decode_result.value());
 			if (!encode_result)
 			{
-				if (encode_error_handler(convert_result, encode_result, curr - ::std::cbegin(source)))
+				if (encode_error_handler(convert_result, encode_result, static_cast<::std::size_t>(curr - ::std::cbegin(source))))
 				{
 					break;
 				}
