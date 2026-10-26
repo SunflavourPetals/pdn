@@ -807,7 +807,7 @@ catch (...)
 注：被称为 `f32` `f64` 的类型，实际上对应的 C++ 类型是 `float` 和 `double`，通常情况下，实现是 IEEE-754 的 binary32 和 binary64。  
 
 `as_int` `as_uint` `as_fp` 默认的获取类型分别是 `i64` `u64` `f64`。如果你想指定要获取的类型，可以使用名称空间 `pdn::inline type_tag` 内的 `i8_tag` - `i64_tag`、`int_tag`、`u8_tag` - `u64_tag`、`uint_tag` 及 `f32_tag` 和 `f64_tag`。  
-此外，`pdn::types` 名称空间内有类型别名 `auto_int` 和 `auto_uint`。`auto_int` 要么是 `int`，要么是 `pdn::types::i32`；`auto_uint` 要么是 `unsigned int`，要么是 `pdn::types::u32`(当然也很可能两者都是)。它们对应 `auto_int_tag/int_tag` 和 `auto_uint_tag/uint_tag`。  
+此外，`pdn::type` 名称空间内有类型别名 `auto_int` 和 `auto_uint`。`auto_int` 要么是 `int`，要么是 `pdn::type::i32`；`auto_uint` 要么是 `unsigned int`，要么是 `pdn::type::u32`(当然也很可能两者都是)。它们对应 `auto_int_tag/int_tag` 和 `auto_uint_tag/uint_tag`。  
 
 使用 as 系列函数时，整数、浮点数和布尔值会被转换到目标类型，如对表示 `100.0` 的数据实体使用 `as_bool`，会得到 `true`，再举一个例子，对表示 `200` 的实体 `e` 使用 `as_int(e, i8_tag)`，那么可能会得到 `127`(clamp 到目标类型 `i8` 的范围)。  
 
