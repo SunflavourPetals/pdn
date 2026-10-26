@@ -139,12 +139,19 @@ namespace pdn::detail
 	template <typename char_t>
 	auto to_pdn_format(type::concepts::pdn_integral auto val) -> type::string<char_t>
 	{
-		auto result = type::string<char_t>{};
+		if constexpr (::std::same_as<decltype(val), type::i64>)
+		{
+			if (val == ::std::numeric_limits<type::i64>::min())
+			{
+				return ascii_to_at_constant_string<char_t>(u8"@i64_min"_sv);
+			}
+		}
 #ifdef PDN_USER_FORMAT
 		auto formatted = PDN_USER_FORMAT("{}", val);
 #else
 		auto formatted = ::std::format("{}", val);
 #endif
+		auto result = type::string<char_t>{};
 		for (const auto c : formatted)
 		{
 			result += char_t(c);
@@ -293,6 +300,22 @@ namespace pdn
 				else
 				{
 					result += separator;
+					result += serialize_value<src_char_t>(val);
+				}
+			}
+			else if constexpr (::std::same_as<val_t, type::i64>)
+			{
+				if (val == ::std::numeric_limits<type::i64>::min()) [[unlikely]]
+				{
+					result += separator;
+					result += serialize_value<src_char_t>(val);
+				}
+				else
+				{
+					result += separator_for_ts;
+					constexpr auto type_c = type_to_type_code_v<val_t, src_char_t>;
+					result += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
+					result += char_t(' ');
 					result += serialize_value<src_char_t>(val);
 				}
 			}
@@ -523,6 +546,20 @@ namespace pdn
 						}
 						else
 						{
+							result += serialize_value<src_char_t>(arg);
+						}
+					}
+					if constexpr (::std::same_as<arg_t, type::i64>)
+					{
+						if (arg == ::std::numeric_limits<type::i64>::min()) [[unlikely]]
+						{
+							result += serialize_value<src_char_t>(arg);
+						}
+						else
+						{
+							constexpr auto type_c = type_to_type_code_v<arg_t, src_char_t>;
+							result += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
+							result += separator_for_ts;
 							result += serialize_value<src_char_t>(arg);
 						}
 					}
