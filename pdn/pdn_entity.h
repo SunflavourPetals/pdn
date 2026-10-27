@@ -919,10 +919,9 @@ namespace pdn
 	}
 
 	// just for basic type
-	template <typename target_t, typename char_t>
+	template <typename target_t, typename char_t> requires type::concepts::basic_type<target_t, char_t>
 	[[nodiscard]] auto get_opt(const entity<char_t>& e) -> ::std::optional<target_t>
 	{
-		static_assert(type::concepts::basic_type<target_t, char_t>, "requires pdn basic type");
 		if (auto p = ::std::get_if<target_t>(&e))
 		{
 			return ::std::make_optional<target_t>(*p);
@@ -931,10 +930,9 @@ namespace pdn
 	}
 
 	// just for basic type
-	template <typename target_t, typename char_t>
+	template <typename target_t, typename char_t> requires type::concepts::basic_type<target_t, char_t>
 	[[nodiscard]] auto get_opt(const_refer<char_t> e) -> ::std::optional<target_t>
 	{
-		static_assert(type::concepts::basic_type<target_t, char_t>, "requires pdn basic type");
 		if (auto p = ::std::get_if<target_t>(e.get()))
 		{
 			return ::std::make_optional<target_t>(*p);

@@ -31,7 +31,7 @@ namespace pdn::detail
 	using as_fp_default_t   = type::f64;
 
 	template <typename arg_t, type::concepts::pdn_sint tar_int = as_int_default_t>
-	inline auto as_int(const arg_t& arg) -> tar_int
+	constexpr auto as_int(const arg_t& arg) noexcept -> tar_int
 	{
 		using namespace type::concepts;
 		if constexpr (pdn_bool<arg_t>)
@@ -67,7 +67,7 @@ namespace pdn::detail
 	}
 
 	template <typename arg_t, type::concepts::pdn_uint tar_uint = as_uint_default_t>
-	inline auto as_uint(const arg_t& arg) -> tar_uint
+	constexpr auto as_uint(const arg_t& arg) noexcept -> tar_uint
 	{
 		using namespace type::concepts;
 		if constexpr (pdn_bool<arg_t>)
@@ -101,7 +101,7 @@ namespace pdn::detail
 	}
 
 	template <typename arg_t, type::concepts::pdn_fp tar_fp = as_fp_default_t>
-	inline auto as_fp(const arg_t& arg) -> tar_fp
+	constexpr auto as_fp(const arg_t& arg) noexcept -> tar_fp
 	{
 		using namespace type::concepts;
 		if constexpr (pdn_bool<arg_t> || pdn_integral<arg_t> || pdn_fp<arg_t>)
@@ -115,7 +115,7 @@ namespace pdn::detail
 	}
 
 	template <typename char_t, typename arg_t>
-	inline auto as_bool(const arg_t& arg) -> type::boolean
+	constexpr auto as_bool(const arg_t& arg) noexcept -> type::boolean
 	{
 		using namespace type::concepts;
 		if constexpr (pdn_bool<arg_t> || pdn_integral<arg_t> || pdn_fp<arg_t>)
@@ -136,31 +136,31 @@ namespace pdn::detail
 	struct as_accessor
 	{
 		template <typename arg_t, typename in = as_int_default_t>
-		static auto as_int(const arg_t& arg) -> in
+		static constexpr auto as_int(const arg_t& arg) noexcept -> in
 		{
 			return detail::as_int<arg_t, in>(arg);
 		}
 
 		template <typename arg_t, typename un = as_uint_default_t>
-		static auto as_uint(const arg_t& arg) -> un
+		static constexpr auto as_uint(const arg_t& arg) noexcept -> un
 		{
 			return detail::as_uint<arg_t, un>(arg);
 		}
 
 		template <typename arg_t, typename fn = as_fp_default_t>
-		static auto as_fp(const arg_t& arg) -> fn
+		static constexpr auto as_fp(const arg_t& arg) noexcept -> fn
 		{
 			return detail::as_fp<arg_t, fn>(arg);
 		}
 
 		template <typename arg_t>
-		static auto as_bool(const arg_t& arg) -> type::boolean
+		static constexpr auto as_bool(const arg_t& arg) noexcept -> type::boolean
 		{
 			return detail::as_bool<char_t>(arg);
 		}
 
 		template <typename arg_t>
-		static auto as_char(const arg_t& arg) -> type::character<char_t>
+		static constexpr auto as_char(const arg_t& arg) noexcept -> type::character<char_t>
 		{
 			if constexpr (::std::same_as<arg_t, type::character<char_t>>)
 			{
