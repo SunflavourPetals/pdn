@@ -549,7 +549,7 @@ namespace pdn
 							result += serialize_value<src_char_t>(arg);
 						}
 					}
-					if constexpr (::std::same_as<arg_t, type::i64>)
+					else if constexpr (::std::same_as<arg_t, type::i64>)
 					{
 						if (arg == ::std::numeric_limits<type::i64>::min()) [[unlikely]]
 						{
