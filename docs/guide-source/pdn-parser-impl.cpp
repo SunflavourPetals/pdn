@@ -13,8 +13,10 @@ void parse_something()
     // auto example3_using_utf_32_opt = pdn::parse("./example.spdn", pdn::utf32_tag);
     // too many sections
 
+    [[maybe_unused]]
     auto example1 = pdn::parse("./example.spdn", char_t{});
     // equals
+    [[maybe_unused]]
     auto example2 = pdn::parse<char_t>("./example.spdn");
 }
 

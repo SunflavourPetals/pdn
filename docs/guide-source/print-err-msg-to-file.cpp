@@ -46,6 +46,7 @@ int main() try
     using namespace std::string_view_literals;
 
     auto mfp = my_function_package{};
+    [[maybe_unused]]
     auto e = pdn::parse(u8R"(100)"sv, mfp, mfp, mfp, pdn::utf8_tag);
 }
 catch (std::exception& e)
