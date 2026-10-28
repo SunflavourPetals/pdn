@@ -40,29 +40,22 @@ namespace pdn::detail::err_msg_gen_util
 	{
 		return u8"'"_em.append(src).append(u8"'");
 	}
-	template <int base = 10, ::std::size_t width = 1, ::std::size_t buffer_size = 64>
+	template <int base = 10, ::std::size_t width = 1>
 	inline auto to_s(::std::integral auto const val) -> error_msg_string
 	{
-		::std::array<char, buffer_size> buffer{};
+		constexpr ::std::size_t buffer_size = 72;
+		static_assert(base >= 2 && base <= 36, "[pdn] unsupported base");
+		static_assert(::std::numeric_limits<::std::remove_cv_t<decltype(val)>>::digits + 1 < buffer_size, "[pdn] unsupported type");
+		::std::array<char, buffer_size> buffer{}; // int64_min in base 2 = "-" + 64 digits = 65 chars; 72 leaves margin
 		auto to_chars_result = ::std::to_chars(buffer.data(), buffer.data() + buffer.size(), val, base);
-		if (to_chars_result.ec != ::std::errc{})
-		{
-			if (to_chars_result.ec == ::std::errc::value_too_large)
-			{
-				assert(0 && "too large value");
-			}
-			else
-			{
-				assert(0 && "unknown to_chars error");
-			}
-		}
+		assert(to_chars_result.ec == ::std::errc{} && "to_chars error"); // unreachable
 		assert(to_chars_result.ptr > buffer.data());
 		auto begin = reinterpret_cast<error_msg_char*>(buffer.data());
 		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
 		auto result = error_msg_string{};
-		for (auto i = length; i < width; ++i)
+		if (length < width)
 		{
-			result += u8'0';
+			result.append(width - length, u8'0');
 		}
 		result.append(begin, length);
 		return result;
