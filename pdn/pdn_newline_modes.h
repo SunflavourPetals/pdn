@@ -1,6 +1,8 @@
 #ifndef PDN_Header_pdn_newline_modes
 #define PDN_Header_pdn_newline_modes
 
+#include <type_traits>
+
 namespace pdn
 {
 	enum class newline_modes
@@ -16,12 +18,14 @@ namespace pdn
 
 	constexpr newline_modes& operator|=(newline_modes& lhs, newline_modes rhs) noexcept
 	{
-		return lhs = static_cast<newline_modes>(static_cast<int>(lhs) | static_cast<int>(rhs));
+		using ut = ::std::underlying_type_t<newline_modes>;
+		return lhs = static_cast<newline_modes>(static_cast<ut>(lhs) | static_cast<ut>(rhs));
 	}
 
 	constexpr newline_modes& operator&=(newline_modes& lhs, newline_modes rhs) noexcept
 	{
-		return lhs = static_cast<newline_modes>(static_cast<int>(lhs) & static_cast<int>(rhs));
+		using ut = ::std::underlying_type_t<newline_modes>;
+		return lhs = static_cast<newline_modes>(static_cast<ut>(lhs) & static_cast<ut>(rhs));
 	}
 
 	constexpr newline_modes operator|(newline_modes lhs, newline_modes rhs) noexcept

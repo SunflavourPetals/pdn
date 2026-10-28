@@ -13,22 +13,22 @@ namespace pdn
 	class source_position_and_newline_recorder
 	{
 	public:
-		constexpr auto position() const noexcept { return pos; }
-		constexpr auto CRLF()     const noexcept { return CRLF_count; }
-		constexpr auto LF()       const noexcept { return LF_count; }
-		constexpr auto CR()       const noexcept { return CR_count; }
-		constexpr auto NEL()      const noexcept { return NEL_count; }
-		constexpr auto LS()       const noexcept { return LS_count; }
-		constexpr auto PS()       const noexcept { return PS_count; }
+		constexpr auto position()   const noexcept { return pos; }
+		constexpr auto CRLF_count() const noexcept { return CRLF_cnt; }
+		constexpr auto LF_count()   const noexcept { return LF_cnt; }
+		constexpr auto CR_count()   const noexcept { return CR_cnt; }
+		constexpr auto NEL_count()  const noexcept { return NEL_cnt; }
+		constexpr auto LS_count()   const noexcept { return LS_cnt; }
+		constexpr auto PS_count()   const noexcept { return PS_cnt; }
 		constexpr newline_modes newline_mode() const noexcept
 		{
 			newline_modes result{};
-			if (CRLF()) result |= newline_modes::CRLF;
-			if (LF())   result |= newline_modes::LF;
-			if (CR())   result |= newline_modes::CR;
-			if (NEL())  result |= newline_modes::NEL;
-			if (LS())   result |= newline_modes::LS;
-			if (PS())   result |= newline_modes::PS;
+			if (CRLF_count()) result |= newline_modes::CRLF;
+			if (LF_count())   result |= newline_modes::LF;
+			if (CR_count())   result |= newline_modes::CR;
+			if (NEL_count())  result |= newline_modes::NEL;
+			if (LS_count())   result |= newline_modes::LS;
+			if (PS_count())   result |= newline_modes::PS;
 			return result;
 		}
 		constexpr bool is_no_newline() const noexcept
@@ -55,13 +55,13 @@ namespace pdn
 		{
 			return !is_coincident_newline();
 		}
-		constexpr void update(unicode::code_point_t c)
+		constexpr void update(unicode::code_point_t c) noexcept
 		{
 			switch (c)
 			{
 			case U'\r': // CR or CRLF
 				is_last_CR = true;
-				++CR_count; // update CR count
+				++CR_cnt; // update CR count
 				++pos.line;
 				pos.column = 1;
 				break;
@@ -69,32 +69,32 @@ namespace pdn
 				if (!is_last_CR) // LF
 				{
 					++pos.line;
-					++LF_count; // update LF count
+					++LF_cnt; // update LF count
 					pos.column = 1;
 				}
 				else // CRLF
 				{
-					--CR_count; // update CR count (decrease)
-					++CRLF_count; // update CRLF count
+					--CR_cnt; // update CR count (decrease)
+					++CRLF_cnt; // update CRLF count
 				}
 				is_last_CR = false;
 				break;
 			case U'\u0085': // NEL
 				is_last_CR = false;
 				++pos.line;
-				++NEL_count;  // update NEL count
+				++NEL_cnt;  // update NEL count
 				pos.column = 1;
 				break;
 			case U'\u2028': // LS
 				is_last_CR = false;
 				++pos.line;
-				++LS_count;  // update LS count
+				++LS_cnt;  // update LS count
 				pos.column = 1;
 				break;
 			case U'\u2029': // PS
 				is_last_CR = false;
 				++pos.line;
-				++PS_count;  // update PS count
+				++PS_cnt;  // update PS count
 				pos.column = 1;
 				break;
 			default:
@@ -106,12 +106,12 @@ namespace pdn
 		source_position_and_newline_recorder() = default;
 	private:
 		source_position pos{};
-		::std::size_t   CRLF_count{};
-		::std::size_t   LF_count{};
-		::std::size_t   CR_count{};
-		::std::size_t   NEL_count{};
-		::std::size_t   LS_count{};
-		::std::size_t   PS_count{};
+		::std::size_t   CRLF_cnt{};
+		::std::size_t   LF_cnt{};
+		::std::size_t   CR_cnt{};
+		::std::size_t   NEL_cnt{};
+		::std::size_t   LS_cnt{};
+		::std::size_t   PS_cnt{};
 		bool            is_last_CR{};
 	};
 	static_assert(concepts::source_position_recorder<source_position_and_newline_recorder>);
