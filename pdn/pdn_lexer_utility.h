@@ -146,7 +146,7 @@ namespace pdn::lexer_utility
 				case U'\uFE46':
 					return false;
 				default:
-					return !(in_range(c, U'\uFDD0', U'\uFDEF') || in_range(c, U'\uFD20', U'\uFD2F'));
+					return !(in_range(c, U'\uFDD0', U'\uFDEF') || in_range(c, U'\uFE20', U'\uFE2F'));
 				}
 			}
 			return false;
