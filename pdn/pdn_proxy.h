@@ -15,22 +15,35 @@ namespace pdn
 	private:
 		using handle_type = ::std::unique_ptr<t>;
 	public:
-		using element_type = typename handle_type::element_type;
-		using pointer      = typename handle_type::pointer;
-		using deleter_type = typename handle_type::deleter_type;
+		using element_type  = typename handle_type::element_type;
+		using pointer       = typename handle_type::pointer;
+		using const_pointer = typename ::std::pointer_traits<pointer>::template rebind<::std::add_const_t<t>>;
+		using deleter_type  = typename handle_type::deleter_type;
 		explicit operator bool() const noexcept
 		{
 			return static_cast<bool>(handle);
 		}
-		auto get() const noexcept -> pointer
+		auto get() noexcept -> pointer
 		{
 			return handle.get();
 		}
-		auto operator*() const noexcept -> ::std::add_lvalue_reference_t<t>
+		auto get() const noexcept -> const_pointer
+		{
+			return handle.get();
+		}
+		auto operator*() noexcept -> ::std::add_lvalue_reference_t<t>
 		{
 			return *handle;
 		}
-		auto operator->() const noexcept -> pointer
+		auto operator*() const noexcept -> ::std::add_lvalue_reference_t<::std::add_const_t<t>>
+		{
+			return *handle;
+		}
+		auto operator->() noexcept -> pointer
+		{
+			return handle.get();
+		}
+		auto operator->() const noexcept -> const_pointer
 		{
 			return handle.get();
 		}

@@ -227,7 +227,7 @@ namespace pdn
 		{
 			if (auto prp = ::std::get_if<list_proxy>(this); prp) // pointer to proxy of list
 			{
-				if (list& arr = **prp; index < arr.size())
+				if (const list& arr = **prp; index < arr.size())
 				{
 					return const_refer<char_type>{ arr[index] };
 				}
@@ -251,7 +251,7 @@ namespace pdn
 		{
 			if (auto prp = ::std::get_if<object_proxy>(this); prp) // pointer to proxy of object
 			{
-				object& o = **prp;
+				const object& o = **prp;
 				if (auto it = o.find(key); it != o.end())
 				{
 					return const_refer<char_type>{ it->second };
@@ -287,7 +287,7 @@ namespace pdn
 
 		auto operator[](const key_type key) const& -> const entity&
 		{
-			auto& o = get<object>(*this);
+			const auto& o = get<object>(*this);
 			auto it = o.find(key);
 			if (it == o.end())
 			{
