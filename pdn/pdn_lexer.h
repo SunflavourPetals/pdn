@@ -915,13 +915,14 @@ namespace pdn::detail
 		using lex_ec = lexical_error_code;
 		using enum dfa_state_code;
 		using raw_err = raw_error_message_type::number_end_with_separator;
-		if (code == dec_seq_start_with_0 || code == dec_seq_start_with_0_with_quote)
+		if (code == dec_seq_start_with_0)
 		{
 			helper.post_err(position, lex_ec::invalid_octal_number, to_raw_err_str(::std::move(error_str)));
 		}
-		if (code == dec_seq_start_with_0_with_quote)
+		else if (code == dec_seq_start_with_0_with_quote)
 		{
 			using enum raw_error_message_type::number_type;
+			helper.post_err(position, lex_ec::invalid_octal_number, to_raw_err_str(error_str));
 			helper.post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ ::std::move(error_str), oct_integer });
 		}
 		else if (code == dec_seq_with_quote)
@@ -1000,7 +1001,7 @@ namespace pdn
 			auto append = [](type::string<char_t>& src, unicode::code_point_t c)
 			{
 				auto encode_r = unicode::encode<char_t>(c);
-				assert((bool)encode_r && "encode failed");
+				assert(static_cast<bool>(encode_r) && "encode failed");
 				src.append(encode_r.cbegin(), encode_r.cend());
 			};
 
@@ -1493,7 +1494,7 @@ namespace pdn
 				break;
 			}
 			default:
-				// if dfa state is not final-state，then should process error in non-default case
+				// if dfa state is not final-state, then should process error in non-default case
 				assert(dfa_state.is_final() && "error unhandled");
 				break;
 			}
