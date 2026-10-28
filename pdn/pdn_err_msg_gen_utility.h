@@ -50,14 +50,15 @@ namespace pdn::detail::err_msg_gen_util
 		auto to_chars_result = ::std::to_chars(buffer.data(), buffer.data() + buffer.size(), val, base);
 		assert(to_chars_result.ec == ::std::errc{} && "to_chars error"); // unreachable
 		assert(to_chars_result.ptr > buffer.data());
-		auto begin = reinterpret_cast<error_msg_char*>(buffer.data());
-		auto length = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
-		auto result = error_msg_string{};
-		if (length < width)
+		auto n_count = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
+		auto prefix0_count = n_count < width ? width - n_count : 0;
+		auto length = prefix0_count + n_count;
+		auto result = error_msg_string(length, u8'0');
+		auto buf_begin = buffer.cbegin();
+		for (auto i = prefix0_count; i < length; ++i, ++buf_begin)
 		{
-			result.append(width - length, u8'0');
+			result[i] = static_cast<error_msg_char>(*buf_begin);
 		}
-		result.append(begin, length);
 		return result;
 	}
 	// for utf8|16|32_decode_error
