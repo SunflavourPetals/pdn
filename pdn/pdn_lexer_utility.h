@@ -121,7 +121,7 @@ namespace pdn::lexer_utility
 			//	C0000-CFFFD,
 			//	D0000-DFFFD,
 			//	E0000-EFFFD
-			return (c & U'\uFFFE') == U'\uFFFE' ? false : true;
+			return (c & U'\uFFFE') != U'\uFFFE';
 		}
 		if (c >= U'\u3000')
 		{
@@ -146,7 +146,7 @@ namespace pdn::lexer_utility
 				case U'\uFE46':
 					return false;
 				default:
-					return in_range(c, U'\uFDD0', U'\uFDEF') || in_range(c, U'\uFD20', U'\uFD2F') ? false : true;
+					return !(in_range(c, U'\uFDD0', U'\uFDEF') || in_range(c, U'\uFD20', U'\uFD2F'));
 				}
 			}
 			return false;
@@ -246,7 +246,7 @@ namespace pdn::lexer_utility
 	// https://en.cppreference.com/w/cpp/language/charset#Basic_character_set
 	constexpr bool is_in_basic_character_set(code_point_t c) noexcept
 	{
-		return in_range(c, U'\u0020', U'\u007E') || in_range(c, U'\u0009', U'\u000C') ? true : false;
+		return in_range(c, U'\u0020', U'\u007E') || in_range(c, U'\u0009', U'\u000C');
 	}
 	// is c in basic literal character set (ref c++26)
 	// https://en.cppreference.com/w/cpp/language/charset#Basic_literal_character_set
