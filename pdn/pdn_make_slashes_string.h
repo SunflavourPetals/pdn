@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_pdn_make_slashes_string
-#define PDN_Header_pdn_pdn_make_slashes_string
+#ifndef PDN_Header_pdn_make_slashes_string
+#define PDN_Header_pdn_make_slashes_string
 
 #include <type_traits>
 
