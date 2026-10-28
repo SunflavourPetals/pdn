@@ -530,6 +530,7 @@ namespace pdn
 						if (arg > ::std::numeric_limits<tar_t>::max() || arg < ::std::numeric_limits<tar_t>::min())
 						{
 							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
+							return default_entity_value<char_t>(target_type_c);
 						}
 						return static_cast<tar_t>(arg);
 					}
@@ -540,6 +541,7 @@ namespace pdn
 						if (arg < s_tar_t(::std::numeric_limits<tar_t>::min()) || u_src_t(arg) > ::std::numeric_limits<tar_t>::max())
 						{
 							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
+							return default_entity_value<char_t>(target_type_c);
 						}
 						return static_cast<tar_t>(arg);
 					}
@@ -560,6 +562,7 @@ namespace pdn
 						if (arg > ::std::numeric_limits<tar_t>::max() || arg < ::std::numeric_limits<tar_t>::min())
 						{
 							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
+							return default_entity_value<char_t>(target_type_c);
 						}
 						return static_cast<tar_t>(arg);
 					}
@@ -573,6 +576,7 @@ namespace pdn
 						if (arg > u_tar_t(::std::numeric_limits<tar_t>::max()))
 						{
 							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
+							return default_entity_value<char_t>(target_type_c);
 						}
 						return static_cast<tar_t>(arg);
 					}
