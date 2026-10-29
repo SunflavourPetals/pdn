@@ -78,12 +78,12 @@ namespace pdn::unicode
 		return (c & code_point_t(0xFFFF'F800u)) == code_point_t(0xD800u); // ignore the low 11 bits
 	}
 
-	constexpr bool is_non_surrogate(code_point_t c) noexcept(noexcept(is_surrogate({})))
+	constexpr bool is_non_surrogate(code_point_t c) noexcept
 	{
 		return !is_surrogate(c);
 	}
 
-	constexpr bool is_scalar_value(code_point_t c) noexcept(noexcept(is_non_surrogate({})) && noexcept(is_code_point({})))
+	constexpr bool is_scalar_value(code_point_t c) noexcept
 	{
 		return is_code_point(c) && is_non_surrogate(c);
 	}
