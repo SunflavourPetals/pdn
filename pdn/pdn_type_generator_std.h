@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_type_generator_std
 
 #include <unordered_map>
+#include <algorithm>
 
 #include "pdn_type.h"
 #include "pdn_false.h"
@@ -70,40 +71,6 @@ namespace pdn::detail
 
 namespace pdn
 {
-#define PDN_Macro_Temp_make_map_for_typename_to_typecode(prefix) \
-	constexpr auto pl_int  = detail::cppint_to_type_code_v<type::auto_int>;   \
-	constexpr auto pl_uint = detail::cppuint_to_type_code_v<type::auto_uint>; \
-	self[prefix##"i8"_s]        = i8;        \
-	self[prefix##"i16"_s]       = i16;       \
-	self[prefix##"i32"_s]       = i32;       \
-	self[prefix##"i64"_s]       = i64;       \
-	self[prefix##"u8"_s]        = u8;        \
-	self[prefix##"u16"_s]       = u16;       \
-	self[prefix##"u32"_s]       = u32;       \
-	self[prefix##"u64"_s]       = u64;       \
-	self[prefix##"f32"_s]       = f32;       \
-	self[prefix##"f64"_s]       = f64;       \
-	self[prefix##"f"_s]         = f32;       \
-	self[prefix##"float"_s]     = f32;       \
-	self[prefix##"double"_s]    = f64;       \
-	self[prefix##"boolean"_s]   = boolean;   \
-	self[prefix##"bool"_s]      = boolean;   \
-	self[prefix##"character"_s] = character; \
-	self[prefix##"char"_s]      = character; \
-	self[prefix##"c"_s]         = character; \
-	self[prefix##"string"_s]    = string;    \
-	self[prefix##"str"_s]       = string;    \
-	self[prefix##"s"_s]         = string;    \
-	self[prefix##"list"_s]      = list;      \
-	self[prefix##"object"_s]    = object;    \
-	self[prefix##"obj"_s]       = object;    \
-	self[prefix##"cppint"_s]    = pl_int;    \
-	self[prefix##"int"_s]       = pl_int;    \
-	self[prefix##"i"_s]         = pl_int;    \
-	self[prefix##"cppuint"_s]   = pl_uint;   \
-	self[prefix##"uint"_s]      = pl_uint;   \
-	self[prefix##"u"_s]         = pl_uint;
-
 	template <typename char_t>
 	class type_table
 	{
@@ -118,7 +85,43 @@ namespace pdn
 			using namespace literals::unicode_literals;
 			using enum type_code;
 			auto& self = *this;
-			PDN_Macro_Temp_make_map_for_typename_to_typecode(u8);
+			constexpr auto pl_int = detail::cppint_to_type_code_v<type::auto_int>;
+			constexpr auto pl_uint = detail::cppuint_to_type_code_v<type::auto_uint>;
+			self[u8"i8"_s]        = i8;
+			self[u8"i16"_s]       = i16;
+			self[u8"i32"_s]       = i32;
+			self[u8"i64"_s]       = i64;
+			self[u8"u8"_s]        = u8;
+			self[u8"u16"_s]       = u16;
+			self[u8"u32"_s]       = u32;
+			self[u8"u64"_s]       = u64;
+			self[u8"f32"_s]       = f32;
+			self[u8"f64"_s]       = f64;
+			self[u8"f"_s]         = f32;
+			self[u8"float"_s]     = f32;
+			self[u8"double"_s]    = f64;
+			self[u8"boolean"_s]   = boolean;
+			self[u8"bool"_s]      = boolean;
+			self[u8"character"_s] = character;
+			self[u8"char"_s]      = character;
+			self[u8"c"_s]         = character;
+			self[u8"string"_s]    = string;
+			self[u8"str"_s]       = string;
+			self[u8"s"_s]         = string;
+			self[u8"list"_s]      = list;
+			self[u8"object"_s]    = object;
+			self[u8"obj"_s]       = object;
+			self[u8"cppint"_s]    = pl_int;
+			self[u8"int"_s]       = pl_int;
+			self[u8"i"_s]         = pl_int;
+			self[u8"cppuint"_s]   = pl_uint;
+			self[u8"uint"_s]      = pl_uint;
+			self[u8"u"_s]         = pl_uint;
+		}
+		static auto instance() -> const type_table&
+		{
+			static auto table = type_table{};
+			return table;
 		}
 	};
 	template <>
@@ -127,10 +130,20 @@ namespace pdn
 	public:
 		type_table()
 		{
-			using namespace literals::unicode_literals;
-			using enum type_code;
+			const auto& u8instance = type_table<unicode::u8char_t>::instance();
 			auto& self = *this;
-			PDN_Macro_Temp_make_map_for_typename_to_typecode(u);
+			for (const auto& pair : u8instance)
+			{
+				auto key = type::string<unicode::u16char_t>(pair.first.size(), unicode::u16char_t{});
+				// standard has only ascii type name
+				::std::copy(::std::cbegin(pair.first), ::std::cend(pair.first), key.begin());
+				self[::std::move(key)] = pair.second;
+			}
+		}
+		static auto instance() -> const type_table&
+		{
+			static auto table = type_table{};
+			return table;
 		}
 	};
 	template <>
@@ -139,19 +152,27 @@ namespace pdn
 	public:
 		type_table()
 		{
-			using namespace literals::unicode_literals;
-			using enum type_code;
+			const auto& u8instance = type_table<unicode::u8char_t>::instance();
 			auto& self = *this;
-			PDN_Macro_Temp_make_map_for_typename_to_typecode(U);
+			for (const auto& pair : u8instance)
+			{
+				auto key = type::string<unicode::u32char_t>(pair.first.size(), unicode::u32char_t{});
+				// standard has only ascii type name
+				::std::copy(::std::cbegin(pair.first), ::std::cend(pair.first), key.begin());
+				self[::std::move(key)] = pair.second;
+			}
+		}
+		static auto instance() -> const type_table&
+		{
+			static auto table = type_table{};
+			return table;
 		}
 	};
-
-#undef PDN_Macro_Temp_make_map_for_typename_to_typecode
 
 	template <typename char_t>
 	type_code type_generator_function(const type::string<char_t>& s)
 	{
-		static type_table<char_t> table{};
+		const auto& table = type_table<char_t>::instance();
 		if (auto result = table.find(s); result != table.end())
 		{
 			return result->second;
