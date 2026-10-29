@@ -40,6 +40,7 @@ namespace pdn::detail
 	template <typename t, typename char_t>
 	concept nonlist_nonobj = type::concepts::basic_type<t, char_t> || ::std::same_as<t, type::string<char_t>>;
 
+	// only for standard at values
 	template <typename char_t>
 	static auto ascii_to_at_constant_string(unicode::u8string_view sv) -> type::string<char_t>
 	{
@@ -115,7 +116,7 @@ namespace pdn::detail
 	};
 
 	template <typename char_t, type::concepts::pdn_fp fp>
-	auto fp_at_constant_string_table_function(fp val) -> type::string<char_t>
+	auto fp_at_constant_string_table_function(fp val) -> const type::string<char_t>&
 	{
 		if constexpr (::std::same_as<fp, type::f32>)
 		{
@@ -133,17 +134,21 @@ namespace pdn::detail
 				return result->second;
 			}
 		}
-		return {};
+		return as_accessor<char_t>::null_string_val();
 	}
 
 	template <typename char_t>
-	auto to_pdn_format(type::concepts::pdn_integral auto val) -> type::string<char_t>
+	void to_pdn_format(type::string<char_t>& out, type::concepts::pdn_integral auto val)
 	{
 		if constexpr (::std::same_as<decltype(val), type::i64>)
 		{
 			if (val == ::std::numeric_limits<type::i64>::min())
 			{
-				return ascii_to_at_constant_string<char_t>(u8"@i64_min"_sv);
+				for (auto c : u8"@i64_min"_sv)
+				{
+					out += char_t(c);
+				}
+				return;
 			}
 		}
 #ifdef PDN_USER_FORMAT
@@ -151,35 +156,40 @@ namespace pdn::detail
 #else
 		auto formatted = ::std::format("{}", val);
 #endif
-		auto result = type::string<char_t>{};
 		for (const auto c : formatted)
 		{
-			result += char_t(c);
+			out += char_t(c);
 		}
-		return result;
 	}
 
 	template <typename char_t>
-	auto to_pdn_format(type::concepts::pdn_fp auto val) -> type::string<char_t>
+	void to_pdn_format(type::string<char_t>& out, type::concepts::pdn_fp auto val)
 	{
 		using namespace unicode_literals;
 		if (::std::isinf(val))
 		{
-			return (::std::signbit(val)) ?
-				ascii_to_at_constant_string<char_t>(u8"-@inf"_sv) :
-				ascii_to_at_constant_string<char_t>(u8"@inf"_sv);
+			auto formatted = ::std::signbit(val) ? u8"-@inf"_sv : u8"@inf"_sv;
+			for (auto c : formatted)
+			{
+				out += char_t(c);
+			}
+			return;
 		}
 		else if (::std::isnan(val))
 		{
-			return ascii_to_at_constant_string<char_t>(u8"@NaN"_sv);
+			for (auto c : u8"@NaN"_sv)
+			{
+				out += char_t(c);
+			}
+			return;
 		}
-		auto at_constant_string = fp_at_constant_string_table_function<char_t>(val);
+		const auto& at_constant_string = fp_at_constant_string_table_function<char_t>(val);
 		if (!at_constant_string.empty())
 		{
-			return at_constant_string;
+			out += at_constant_string;
+			return;
 		}
 
-		auto result = type::string<char_t>{};
 		bool has_e{};
 		bool has_dot{};
 #ifdef PDN_USER_FORMAT
@@ -189,61 +199,60 @@ namespace pdn::detail
 #endif
 		for (const auto c : formatted)
 		{
-			result += char_t(c);
+			out += char_t(c);
 			if (c == 'e') has_e = true;
 			if (c == '.') has_dot = true;
 		}
 		if (!has_e && !has_dot)
 		{
-			result.push_back(char_t('.')); // make sure that it is a floating-point format
-			result.push_back(char_t('0'));
+			out.push_back(char_t('.')); // make sure that it is a floating-point format
+			out.push_back(char_t('0'));
 		}
-		return result;
 	}
 
 	template <typename char_t>
-	auto to_pdn_format(type::boolean val) -> type::string<char_t>
+	void to_pdn_format(type::string<char_t>& out, type::boolean val)
 	{
 		using namespace unicode_literals;
-		auto result = val ?
-			ascii_to_at_constant_string<char_t>(u8"@true"_sv) :
-			ascii_to_at_constant_string<char_t>(u8"@false"_sv);
-		return result;
+		auto formatted = val ? u8"@true"_sv : u8"@false"_sv;
+		for (auto c : formatted)
+		{
+			out += char_t(c);
+		}
 	}
 
 	template <typename char_t, typename src_char_t>
-	auto to_pdn_format(type::character<src_char_t> val) -> type::string<char_t>
+	void to_pdn_format(type::string<char_t>& out, type::character<src_char_t> val)
 	{
-		auto get_quoted = [](::std::basic_string_view<char_t> sv) -> type::string<char_t>
+		auto append_quoted = [](type::string<char_t>& sink_out, ::std::basic_string_view<char_t> sv)
 		{
-			auto result = type::string<char_t>{};
-			result.push_back(char_t('\''));
-			result += sv;
-			result.push_back(char_t('\''));
-			return result;
+			sink_out.push_back(char_t('\''));
+			sink_out += sv;
+			sink_out.push_back(char_t('\''));
 		};
 		auto src_sv = val.to_string_view();
 		auto decode_result = unicode::decode<true>(src_sv.cbegin(), src_sv.cend());
-		if (!decode_result)
+		if (decode_result)
 		{
-			return get_quoted(unicode::get_replace<char_t>());
+			append_quoted(out, make_slashes_string<type::string<char_t>>(decode_result.value()));
 		}
-		return get_quoted(make_slashes_string<type::string<char_t>>(decode_result.value()));
+		else
+		{
+			append_quoted(out, unicode::get_replace<char_t>());
+		}
 	}
 
 	template <typename char_t, typename src_char_t>
-	auto to_pdn_format(const type::string<src_char_t>& val) -> type::string<char_t>
+	void to_pdn_format(type::string<char_t>& out, const type::string<src_char_t>& val)
 	{
-		auto get_quoted = [](::std::basic_string_view<char_t> sv) -> type::string<char_t>
+		auto append_quoted = [](type::string<char_t>& sink_out, ::std::basic_string_view<char_t> sv)
 		{
-			auto result = type::string<char_t>{};
-			result.push_back(char_t('\"'));
-			result += sv;
-			result.push_back(char_t('\"'));
-			return result;
+			sink_out.push_back(char_t('\"'));
+			sink_out += sv;
+			sink_out.push_back(char_t('\"'));
 		};
 		auto cp_s = unicode::code_convert<unicode::ucpstring>(val);
-		return get_quoted(make_slashes_string<type::string<char_t>>(cp_s));
+		append_quoted(out, make_slashes_string<type::string<char_t>>(cp_s));
 	}
 }
 
@@ -270,18 +279,20 @@ namespace pdn
 			}
 			for (const auto& e : dom)
 			{
-				result += serialize_object_member(e.first, e.second, 0, use_line_feed, use_last_sep_for_lo);
+				serialize_object_member(result, e.first, e.second, 0, use_line_feed, use_last_sep_for_lo);
 				if (use_line_feed) result += char_t('\n');
 				else               result += char_t(' ');
 			}
 			return result;
 		}
+	private:
 		// to "[`]slashed_iden[`] [: [type]] pdn_form[;]"
+		// out argument cannot be an alias of val
 		template <typename src_char_t, detail::nonlist_nonobj<src_char_t> value_t>
-		auto serialize(const type::string<src_char_t>& iden, const value_t& val) const -> string_t
+		void serialize(string_t& out, const type::string<src_char_t>& iden, const value_t& val) const
 		{
 			using val_t = ::std::decay_t<decltype(val)>;
-			string_t result = serialize_iden(iden);
+			serialize_iden(out, iden);
 			constexpr auto no_type_spec
 				 = ::std::same_as<val_t, type::f64>
 				|| ::std::same_as<val_t, type::boolean>
@@ -291,85 +302,83 @@ namespace pdn
 			{
 				if (val == ::std::numeric_limits<type::auto_int>::min()) [[unlikely]]
 				{
-					result += separator_for_ts;
+					out += separator_for_ts;
 					constexpr auto type_c = type_to_type_code_v<val_t, src_char_t>;
-					result += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
-					result += char_t(' ');
-					result += serialize_value<src_char_t>(val);
+					out += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
+					out += char_t(' ');
+					serialize_value<src_char_t>(out, val);
 				}
 				else
 				{
-					result += separator;
-					result += serialize_value<src_char_t>(val);
+					out += separator;
+					serialize_value<src_char_t>(out, val);
 				}
 			}
 			else if constexpr (::std::same_as<val_t, type::i64>)
 			{
 				if (val == ::std::numeric_limits<type::i64>::min()) [[unlikely]]
 				{
-					result += separator;
-					result += serialize_value<src_char_t>(val);
+					out += separator;
+					serialize_value<src_char_t>(out, val);
 				}
 				else
 				{
-					result += separator_for_ts;
+					out += separator_for_ts;
 					constexpr auto type_c = type_to_type_code_v<val_t, src_char_t>;
-					result += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
-					result += char_t(' ');
-					result += serialize_value<src_char_t>(val);
+					out += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
+					out += char_t(' ');
+					serialize_value<src_char_t>(out, val);
 				}
 			}
 			else if constexpr (no_type_spec)
 			{
-				result += separator;
-				result += serialize_value<src_char_t>(val);
+				out += separator;
+				serialize_value<src_char_t>(out, val);
 			}
 			else
 			{
-				result += separator_for_ts;
+				out += separator_for_ts;
 				constexpr auto type_c = type_to_type_code_v<val_t, src_char_t>;
-				result += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
-				result += char_t(' ');
-				result += serialize_value<src_char_t>(val);
+				out += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
+				out += char_t(' ');
+				serialize_value<src_char_t>(out, val);
 			}
-			result += last_sep;
-			return result;
+			out += last_sep;
 		}
 		// to "[`]slashed_iden[`] [: [type]] { pdn_form_of_members }[;]"
 		template <typename src_char_t>
-		auto serialize(
+		void serialize(
+			string_t& out,
 			const type::string<src_char_t>& iden,
 			const type::object<src_char_t>& val,
 			const ::std::size_t layer = 0,
 			const bool use_line_feed = true,
-			const bool use_last_sep_for_lo = true) const -> string_t
+			const bool use_last_sep_for_lo = true) const
 		{
-			string_t result = serialize_iden(iden);
-			result += object_separator;
-			result += serialize_object(val, layer, use_line_feed, use_last_sep_for_lo);
-			if (use_last_sep_for_lo) result += last_sep;
-			return result;
+			serialize_iden(out, iden);
+			out += object_separator;
+			serialize_object(out, val, layer, use_line_feed, use_last_sep_for_lo);
+			if (use_last_sep_for_lo) out += last_sep;
 		}
 		// to "[`]slashed_iden[`] [: [type]] "[" pdn_form_of_elements "]"[;]"
 		template <typename src_char_t>
-		auto serialize(
+		void serialize(
+			string_t& out,
 			const type::string<src_char_t>& iden,
 			const type::list<src_char_t>& val,
 			const ::std::size_t layer = 0,
 			const bool use_line_feed = true,
-			const bool use_last_sep_for_lo = true) const -> string_t
+			const bool use_last_sep_for_lo = true) const
 		{
-			string_t result = serialize_iden(iden);
-			result += list_separator;
-			result += serialize_list(val, layer, use_line_feed, use_last_sep_for_lo);
-			if (use_last_sep_for_lo) result += last_sep;
-			return result;
+			serialize_iden(out, iden);
+			out += list_separator;
+			serialize_list(out, val, layer, use_line_feed, use_last_sep_for_lo);
+			if (use_last_sep_for_lo) out += last_sep;
 		}
 		// identifier to "[`]slashed[`]"
 		template <typename src_char_t>
-		auto serialize_iden(const type::string<src_char_t>& iden) const -> string_t
+		void serialize_iden(string_t& out, const type::string<src_char_t>& iden) const
 		{
-			string_t result{};
 			auto cp_s = unicode::code_convert<unicode::ucpstring>(iden);
 			bool need_quote{};
 			{
@@ -397,139 +406,139 @@ namespace pdn
 			
 			if (need_quote)
 			{
-				result.push_back(char_t('`'));
-				result += slashes;
-				result.push_back(char_t('`'));
+				out.push_back(char_t('`'));
+				out += slashes;
+				out.push_back(char_t('`'));
 			}
 			else
 			{
-				result = ::std::move(slashes);
+				out += ::std::move(slashes);
 			}
-			return result;
 		}
 		// integral/floating/boolean/character/string to pdn_form
 		template <typename src_char_t>
-		auto serialize_value(detail::nonlist_nonobj<src_char_t> auto const& val) const -> string_t
+		void serialize_value(string_t& out, detail::nonlist_nonobj<src_char_t> auto const& val) const
 		{
-			return detail::to_pdn_format<char_t>(val);
+			detail::to_pdn_format<char_t>(out, val);
 		}
 		// object to "{ ... }"
 		template <typename src_char_t>
-		auto serialize_object(
+		void serialize_object(
+			string_t& out,
 			const type::object<src_char_t>& val,
 			const ::std::size_t layer,
 			const bool use_line_feed = true,
-			const bool use_last_sep_for_lo = true) const -> string_t
+			const bool use_last_sep_for_lo = true) const
 		{
-			string_t result{ char_t('{') };
+			out += char_t('{');
 			if (val.empty())
 			{
-				result += char_t('}');
-				return result;
+				out += char_t('}');
+				return;
 			}
 			const auto inner_layer = layer + 1;
 			for (const auto& e : val)
 			{
 				if (use_line_feed)
 				{
-					result += char_t('\n');
-					result += gen_tabs(inner_layer);
+					out += char_t('\n');
+					append_tabs(out, inner_layer);
 				}
-				result += serialize_object_member(e.first, e.second, inner_layer, use_line_feed, use_last_sep_for_lo);
-				if (!use_line_feed) result += char_t(' ');
+				serialize_object_member(out, e.first, e.second, inner_layer, use_line_feed, use_last_sep_for_lo);
+				if (!use_line_feed) out += char_t(' ');
 			}
 			if (use_line_feed)
 			{
-				result += char_t('\n');
-				result += gen_tabs(layer);
+				out += char_t('\n');
+				append_tabs(out, layer);
 			}
-			result += char_t('}');
-			return result;
+			out += char_t('}');
 		}
 		// object member to "name [:[type]] value [;]..."
 		template <typename src_char_t>
-		auto serialize_object_member(
+		void serialize_object_member(
+			string_t& out,
 			const type::string<src_char_t>& iden,
 			const entity<src_char_t>& val,
 			const ::std::size_t layer,
 			const bool use_line_feed = true,
-			const bool use_last_sep_for_lo = true) const -> string_t
+			const bool use_last_sep_for_lo = true) const
 		{
-			return ::std::visit([&]<typename arg_pr_t>(const arg_pr_t& arg) -> string_t
+			::std::visit([&]<typename arg_pr_t>(const arg_pr_t& arg)
 			{
 				using arg_t = remove_proxy_t<arg_pr_t>;
 				if constexpr (detail::nonlist_nonobj<arg_t, src_char_t>)
 				{
 					constexpr bool has_proxy = !::std::same_as<arg_t, arg_pr_t>;
-					if constexpr (has_proxy) return serialize(iden, *arg);
-					else                     return serialize(iden,  arg);
+					if constexpr (has_proxy) serialize(out, iden, *arg);
+					else                     serialize(out, iden,  arg);
 				}
 				else
 				{
-					return serialize(iden, *arg, layer, use_line_feed, use_last_sep_for_lo);
+					serialize(out, iden, *arg, layer, use_line_feed, use_last_sep_for_lo);
 				}
 			}, val);
 		}
 		// list to "[ ..., ]"
 		template <typename src_char_t>
-		auto serialize_list(
+		void serialize_list(
+			string_t& out,
 			const type::list<src_char_t>& val,
 			const ::std::size_t layer,
 			const bool use_line_feed = true,
-			const bool use_last_sep_for_lo = true) const -> string_t
+			const bool use_last_sep_for_lo = true) const
 		{
-			string_t result{ char_t('[') };
+			out += char_t('[');
 			if (val.empty())
 			{
-				result += char_t(']');
-				return result;
+				out += char_t(']');
+				return;
 			}
 			const auto inner_layer = layer + 1;
 			for (const auto& e : val)
 			{
 				if (use_line_feed)
 				{
-					result += char_t('\n');
-					result += gen_tabs(inner_layer);
+					out += char_t('\n');
+					append_tabs(out, inner_layer);
 				}
-				result += serialize_list_element(e, inner_layer, use_line_feed, use_last_sep_for_lo);
-				result += char_t(',');
-				if (!use_line_feed) result += char_t(' ');
+				serialize_list_element(out, e, inner_layer, use_line_feed, use_last_sep_for_lo);
+				out += char_t(',');
+				if (!use_line_feed) out += char_t(' ');
 			}
 			if (use_line_feed)
 			{
-				result += char_t('\n');
-				result += gen_tabs(layer);
+				out += char_t('\n');
+				append_tabs(out, layer);
 			}
-			result += char_t(']');
-			return result;
+			out += char_t(']');
 		}
 		// list element to "[type:] pdn_form,"
 		template <typename src_char_t>
-		auto serialize_list_element(
+		void serialize_list_element(
+			string_t& out,
 			const entity<src_char_t>& val,
 			const ::std::size_t layer,
 			const bool use_line_feed = true,
-			const bool use_last_sep_for_lo = true) const -> string_t
+			const bool use_last_sep_for_lo = true) const
 		{
-			return ::std::visit([&]<typename arg_pr_t>(const arg_pr_t& arg) -> string_t
+			::std::visit([&]<typename arg_pr_t>(const arg_pr_t& arg)
 			{
 				using arg_t = remove_proxy_t<arg_pr_t>;
 				if constexpr (::std::same_as<arg_t, type::object<src_char_t>>)
 				{
-					return serialize_object(*arg, layer, use_line_feed, use_last_sep_for_lo);
+					serialize_object(out, *arg, layer, use_line_feed, use_last_sep_for_lo);
 				}
 				else if constexpr (::std::same_as<arg_t, type::list<src_char_t>>)
 				{
-					return serialize_list(*arg, layer, use_line_feed, use_last_sep_for_lo);
+					serialize_list(out, *arg, layer, use_line_feed, use_last_sep_for_lo);
 				}
 				else if constexpr (::std::same_as<arg_t, type::string<src_char_t>>)
 				{
-					return serialize_value<src_char_t>(*arg);
+					serialize_value<src_char_t>(out, *arg);
 				}
 				else
 				{
-					string_t result{};
 					constexpr auto no_type_spec
 						 = ::std::same_as<arg_t, type::f64>
 						|| ::std::same_as<arg_t, type::boolean>
@@ -540,50 +549,49 @@ namespace pdn
 						if (arg == ::std::numeric_limits<type::auto_int>::min()) [[unlikely]]
 						{
 							constexpr auto type_c = type_to_type_code_v<arg_t, src_char_t>;
-							result += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
-							result += separator_for_ts;
-							result += serialize_value<src_char_t>(arg);
+							out += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
+							out += separator_for_ts;
+							serialize_value<src_char_t>(out, arg);
 						}
 						else
 						{
-							result += serialize_value<src_char_t>(arg);
+							serialize_value<src_char_t>(out, arg);
 						}
 					}
 					else if constexpr (::std::same_as<arg_t, type::i64>)
 					{
 						if (arg == ::std::numeric_limits<type::i64>::min()) [[unlikely]]
 						{
-							result += serialize_value<src_char_t>(arg);
+							serialize_value<src_char_t>(out, arg);
 						}
 						else
 						{
 							constexpr auto type_c = type_to_type_code_v<arg_t, src_char_t>;
-							result += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
-							result += separator_for_ts;
-							result += serialize_value<src_char_t>(arg);
+							out += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
+							out += separator_for_ts;
+							serialize_value<src_char_t>(out, arg);
 						}
 					}
 					else if constexpr (no_type_spec)
 					{
-						result += serialize_value<src_char_t>(arg);
+						serialize_value<src_char_t>(out, arg);
 					}
 					else
 					{
 						constexpr auto type_c = type_to_type_code_v<arg_t, src_char_t>;
-						result += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
-						result += separator_for_ts;
-						result += serialize_value<src_char_t>(arg);
+						out += unicode::code_convert<string_t>(type_code_to_error_msg_string(type_c));
+						out += separator_for_ts;
+						serialize_value<src_char_t>(out, arg);
 					}
-					return result;
 				}
 			}, val);
 		}
-	private:
-		auto gen_tabs(::std::size_t layer) const -> string_t
+		void append_tabs(string_t& out, ::std::size_t layer) const
 		{
-			string_t result{};
-			for (::std::size_t i{}; i != layer; ++i) result += tab;
-			return result;
+			for (::std::size_t i{}; i != layer; ++i)
+			{
+				out += tab;
+			}
 		}
 	public:
 		string_t tab             { char_t('\t') };
