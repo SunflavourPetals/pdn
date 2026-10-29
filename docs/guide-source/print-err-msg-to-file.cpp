@@ -20,6 +20,10 @@ public:
     {
         dfp.handle_error(msg, out);
     }
+    auto error_count() const noexcept
+    {
+        return dfp.error_count();
+    }
     auto generate_error_message(pdn::raw_error_message raw) -> pdn::error_msg_string
     {
         return dfp.generate_error_message(std::move(raw));

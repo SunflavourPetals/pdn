@@ -41,7 +41,7 @@ namespace pdn
 		}
 		auto error_count() const noexcept
 		{
-			return err_handler.count();
+			return err_handler.error_count();
 		}
 		void reset_error_threshold(const error_count_t max_error_count) noexcept
 		{

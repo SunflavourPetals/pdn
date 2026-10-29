@@ -1024,7 +1024,7 @@ public:
 
 
 
-    // 以下七个函数解析器不使用，额外供用户使用的函数
+    // 以下六个函数解析器不使用，额外供用户使用的函数
     // function_package 必需的函数会用注释标明
 
     // 设置文件名
@@ -1035,8 +1035,6 @@ public:
     auto filename() const noexcept -> const pdn::error_msg_string&;
     // 归零累计的已发生错误数量(默认行为是当错误数量累积到100时结束解析)
     void clear_error_count() noexcept;
-    // 查询累计的已发生错误数量
-    auto error_count() const noexcept;
     // 重设结束解析所需的错误数量
     void reset_error_threshold(const error_count_t max_error_count) noexcept;
     // 查询结束解析所需的错误数量
@@ -1053,6 +1051,8 @@ public:
     // 它会记录用户使用的换行类型和各自的数量，但是一般无需统计它们
     void update(const char32_t c);
 
+    // function_package 必需品：查询累计的已发生错误数量
+    auto error_count() const noexcept;
     // function_package 必需品：处理错误，默认行为是输出错误信息到 std::cerr，并检查错误数量是否抵达上限
     void handle_error(const pdn::error_message& msg);
     // 另一个版本，供用户定制时使用，非必需
@@ -1086,7 +1086,7 @@ private:
 
 ## 解析器的错误处理
 
-在上一章[解析器配置](#解析器配置)中说明过，错误的处理和报告是由 `generate_error_message` 和 `handle_error` 完成的。  
+在上一章[解析器配置](#解析器配置)中说明过，错误信息的生成由 `generate_error_message` 完成，错误的处理、报告和计数由 `handle_error` 触发，并可通过 `error_count()` 查询累计数量。  
 
 ### 错误信息生成和报告
 
@@ -1130,6 +1130,7 @@ public:
 * [pdn_err_msg_gen_utility.h](../pdn/pdn_err_msg_gen_utility.h)  
 
 默认函数包使用 `handle_error(e)` 报告错误，默认行为是向 `std::cerr` 打印错误信息。  
+错误计数由内部的 `default_error_handler` 维护；`default_threshold_error_handler` 委托给它输出错误，并检查累计错误数量是否达到阈值。  
 
 ```C++
 void handle_error(const error_message& e)
@@ -1138,9 +1139,8 @@ void handle_error(const error_message& e)
 }
 void handle_error(const error_message& e, ::std::ostream& out)
 {
-    ++error_count;
-    default_error_handler::handle_error(e, out);
-    if (error_count >= limit)
+    err_handler.handle_error(e, out); // default_error_handler：计数并输出
+    if (err_handler.error_count() >= limit)
     {
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
@@ -1154,7 +1154,7 @@ void handle_error(const error_message& e, ::std::ostream& out)
 }
 ```
 
-如果需要打印到文件，只需要在用户提供的函数包中将 `handle_error(e)` 的行为修改为向文件打印即可。  
+如果需要打印到文件，需要在用户提供的函数包中将 `handle_error(e)` 的行为修改为向文件打印，并实现或转发 `error_count()`（`error_handler` 概念要求）。  
 
 ```C++
 #include <iostream>
@@ -1178,6 +1178,10 @@ public:
     void handle_error(const pdn::error_message& msg)
     {
         dfp.handle_error(msg, out); // 输出到文件
+    }
+    auto error_count() const noexcept
+    {
+        return dfp.error_count();
     }
     auto generate_error_message(pdn::raw_error_message raw) -> pdn::error_msg_string
     {
@@ -1221,7 +1225,7 @@ catch (...)
 
 ### 利用解析器错误处理终止解析
 
-在未禁用异常时，默认函数包的 `error_handler` 会在累计错误达到 `100` 时抛出 `std::runtime_exception`。  
+在未禁用异常时，默认函数包在累计错误达到 `100` 时抛出 `std::runtime_error`。  
 因此使用 `pdn::parse` 时需要注意异常处理和异常安全。  
 
 在禁用异常时，默认函数包的 `error_handler` 会在累计错误达到 `100` 时终止程序，以防止可能出现的死循环(暂未测试出有解析时死循环的情况)。  

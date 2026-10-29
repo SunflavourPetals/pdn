@@ -2,6 +2,8 @@
 #define PDN_Header_pdn_error_handler_concept
 
 #include <utility>
+#include <cstddef>
+#include <concepts>
 
 #include "pdn_error_message.h"
 
@@ -12,6 +14,7 @@ namespace pdn::concepts
 	{
 		err_handler.handle_error(err_msg);
 		err_handler.handle_error(::std::move(err_msg));
+		{ err_handler.error_count() } -> ::std::convertible_to<::std::size_t>;
 	};
 }
 

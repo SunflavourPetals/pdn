@@ -26,7 +26,7 @@ void parse_something()
 
 用户提供 `function_package`，可参考 `pdn::concepts::function_package_for...` 等概念实现(分别定义于 `pdn_parser.h`、`pdn_lexer.h`、`pdn_code_point_iterator.h`)。  
 记录行列位置信息的功能由 `function_package_for_code_point_iterator` 提供；`function_package_for_lexer` 需要获得解析点行列位置；`pdn` 的 `@val` 常量和类型名由 `function_package_for_parser` 提供。  
-此外，以上三者都需要错误处理和错误信息生成功能，默认的错误处理为打印错误信息到标准错误流，默认的错误信息生成方法生成英文错误信息。  
+此外，以上三者都需要错误处理、错误信息生成和错误数量查询功能；`error_handler` 概念要求提供 `handle_error(err_msg)` 和 `error_count()`。默认的错误处理为打印错误信息到标准错误流，默认的错误信息生成方法生成英文错误信息；自定义函数包需要实现或转发 `error_count()`。  
 最佳实践是组合 `pdn_function_package.h` 内的 `pdn::default_function_package` 和用户需要自定义的内容，使它满足以上三者的需求，然后为它们三个提供同一个`function_package` 对象(将按引用传递)。
 
 ## entity
