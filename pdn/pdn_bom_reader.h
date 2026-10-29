@@ -100,7 +100,7 @@ namespace pdn::unicode
 
 		if (static_cast<::std::size_t>(read_count) != bom_size)
 		{
-			input.seekg(static_cast<::std::streamoff>(bom_size - read_count), ::std::ios_base::cur);
+			input.seekg(static_cast<::std::streamoff>(bom_size) - read_count, ::std::ios_base::cur);
 		}
 
 		return result;
