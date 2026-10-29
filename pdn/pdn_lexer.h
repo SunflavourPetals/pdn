@@ -79,6 +79,10 @@ namespace pdn
 		{
 			to_next_impl();
 		}
+		value_type& operator*() noexcept
+		{
+			return stored_token;
+		}
 		const value_type& operator*() const noexcept
 		{
 			return stored_token;
