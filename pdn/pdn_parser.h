@@ -241,7 +241,7 @@ namespace pdn
 					{
 						err_tkv = arg;
 					}
-					else if constexpr (::std::same_as<arg_t, proxy<type::character<char_t>>>)
+					else if constexpr (::std::same_as<arg_t, type::character<char_t>>)
 					{
 						auto s = unicode::code_convert<error_msg_string>(arg.to_string_view());
 						err_tkv = type::character<error_msg_char>{ s.data(), s.size() };
