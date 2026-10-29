@@ -247,7 +247,7 @@ namespace pdn::detail::err_msg_gen_util::syntax_err_msg_gen_util
 	// for unary_operation
 	inline auto get_unary_operator_s(raw_err_v_cref raw) -> error_msg_string
 	{
-		auto is_negative = ::std::get<raw_details::unary_operation>(raw).negative;
+		const auto is_negative = ::std::get<raw_details::unary_operation>(raw).negative;
 		return is_negative ? u8"operator-"_em : u8"operator+"_em;
 	}
 
