@@ -129,7 +129,7 @@ namespace pdn::type::detail
 		auto operator[](k_t&& k) -> mapped_type&
 		{
 			auto find_r = find(k);
-			if (find_r != cend())
+			if (find_r != end())
 			{
 				return find_r->second;
 			}
