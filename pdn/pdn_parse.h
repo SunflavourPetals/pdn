@@ -9,6 +9,7 @@
 #include <fstream>
 #include <string>
 #include <optional>
+#include <iterator>
 #include <filesystem>
 
 #include "pdn_unicode_base.h"

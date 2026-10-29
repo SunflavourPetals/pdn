@@ -10,6 +10,7 @@
 #include <optional>
 #include <concepts>
 #include <charconv>
+#include <iterator>
 #include <algorithm>
 #include <type_traits>
 
@@ -1141,6 +1142,7 @@ namespace pdn
 					++begin;
 					// @"d_seq()d_seq"
 					//  ^ -> to first d sequence character or '('
+					// not concerned whether this function fails
 					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, false, helper);
 					new_dfa_state = dfa_state_objects::raw_string;
 					goto label_update_dfa_state;
@@ -1189,6 +1191,7 @@ namespace pdn
 					++begin;
 					// @`d_seq()d_seq`
 					//  ^ -> to first d sequence character or '('
+					// not concerned whether this function fails
 					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, true, helper);
 					new_dfa_state = dfa_state_objects::identifier_raw_string;
 					goto label_update_dfa_state;

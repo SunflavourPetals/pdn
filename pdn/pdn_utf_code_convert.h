@@ -3,6 +3,7 @@
 
 #include <string>
 #include <utility>
+#include <iterator>
 #include <type_traits>
 
 #include "pdn_unicode.h"
