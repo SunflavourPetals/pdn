@@ -46,37 +46,37 @@ namespace pdn::type::detail
 			return *this;
 		}
 
-		auto get_allocator() const noexcept -> allocator_type
+		auto get_allocator() const noexcept(noexcept(::std::declval<const bt&>().get_allocator())) -> allocator_type
 		{
 			return bt::get_allocator();
 		}
 
-		auto begin()        { return bt::begin();  }
-		auto end()          { return bt::end();    }
-		auto begin()  const { return bt::begin();  }
-		auto end()    const { return bt::end();    }
-		auto cbegin() const { return bt::cbegin(); }
-		auto cend()   const { return bt::cend();   }
+		auto begin()        noexcept(noexcept(::std::declval<      bt&>().begin()))  { return bt::begin();  }
+		auto end()          noexcept(noexcept(::std::declval<      bt&>().end()))    { return bt::end();    }
+		auto begin()  const noexcept(noexcept(::std::declval<const bt&>().begin()))  { return bt::begin();  }
+		auto end()    const noexcept(noexcept(::std::declval<const bt&>().end()))    { return bt::end();    }
+		auto cbegin() const noexcept(noexcept(::std::declval<const bt&>().cbegin())) { return bt::cbegin(); }
+		auto cend()   const noexcept(noexcept(::std::declval<const bt&>().cend()))   { return bt::cend();   }
+		auto empty()  const noexcept(noexcept(::std::declval<const bt&>().empty()))  { return bt::empty();  }
+		auto size()   const noexcept(noexcept(::std::declval<const bt&>().size()))   { return bt::size();   }
 
-		auto empty() const { return bt::empty(); }
-		auto size()  const { return bt::size();  }
-
-		void clear() noexcept
+		void clear() noexcept(noexcept(::std::declval<bt&>().clear()))
 		{
 			bt::clear();
 		}
 
-		iterator erase(iterator pos)
+		iterator erase(iterator pos) noexcept(noexcept(::std::declval<bt&>().erase(::std::declval<iterator>())))
 		{
 			return bt::erase(pos);
 		}
 
-		iterator erase(const_iterator pos)
+		iterator erase(const_iterator pos) noexcept(noexcept(::std::declval<bt&>().erase(::std::declval<const_iterator>())))
 		{
 			return bt::erase(pos);
 		}
 
 		iterator erase(const_iterator first, const_iterator last)
+			noexcept(noexcept(::std::declval<bt&>().erase(::std::declval<const_iterator>(), ::std::declval<const_iterator>())))
 		{
 			return bt::erase(first, last);
 		}
