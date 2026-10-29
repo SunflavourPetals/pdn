@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <concepts>
 
-#include "pdn_unicode.h"
+#include "pdn_unicode_base.h"
 #include "pdn_false.h"
 
 namespace pdn::type::detail
