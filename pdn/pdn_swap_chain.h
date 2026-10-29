@@ -151,7 +151,6 @@ namespace pdn
 	private:
 		void fill_to(value_type* target_buffer)
 		{
-			// if input_stream not in good state then throw
 			// if eof was reached, then no need to call fill_to anytime
 			assert((bool)*istream_ptr && "istream failed");
 			istream_ptr->read(target_buffer, size() * sizeof(value_type));
@@ -201,91 +200,25 @@ namespace pdn
 			return get_buff_2_ptr() + size();
 		}
 	public:
-		swap_chain(istream_type&     istream,
-		           size_type         buf_size = 1024, // adjacent_2_buf have (2 * buf_size) char_type object
-		           buffers_manager&& adjacent_2_buf = nullptr) :
+		swap_chain(istream_type&     istream, // should be opened(if is ifstream) and not bad or fail but not eof
+		           size_type         buf_size = 1024, // adjacent_2_buf size/2 or new buffer size/2 (new buffer size/2 belong to [128, max_val/2])
+		           buffers_manager&& adjacent_2_buf = nullptr) : // adjacent_2_buf have (2 * buf_size) char_type object
 			buffer_size{ buf_size },
 			istream_ptr{ &istream },
 			buffers_mng{ ::std::move(adjacent_2_buf) }
 		{
-#if defined(PDN_NO_EXCEPTIONS) && defined(PDN_USER_TERMINATE)
-#define PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR "pdn::swap_chain<istream_t, buffer_deleter_t>::swap_chain(istream_type&, size_type, buffers_manager&&)"
-#endif
-			// buffer size in range [1, ::std::numeric_limits<size_type>::max() / 2]
-			if (buffer_size <= 0)
-			{
-#ifdef PDN_NO_EXCEPTIONS
-#ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "argument buffer size can not less than or equal to 0");
-#endif
-				::std::terminate();
-#else
-				throw ::std::invalid_argument("argument buffer size can not less than or equal to 0");
-#endif
-			}
-			else if (buffer_size > (::std::numeric_limits<size_type>::max() / 2))
-			{
-#ifdef PDN_NO_EXCEPTIONS
-#ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "argument buffer size can not greater than numeric_limits<size_type>::max() / 2");
-#endif
-				::std::terminate();
-#else
-				throw ::std::invalid_argument("argument buffer size can not greater than numeric_limits<size_type>::max() / 2");
-#endif
-			}
-			// istream cannot have bad state
-			// and if it is ifstream then it cannot unopened.
-			if (istream_ptr->bad())
-			{
-#ifdef PDN_NO_EXCEPTIONS
-#ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "input_stream badbit can not be true!");
-#endif
-				::std::terminate();
-#else
-				throw ::std::invalid_argument("input_stream badbit can not be true!");
-#endif
-			}
-			if constexpr (::std::same_as<::std::remove_cvref_t<istream_type>, ::std::basic_ifstream<char_type>>)
-			{
-				if (!istream_ptr->is_open())
-				{
-#ifdef PDN_NO_EXCEPTIONS
-#ifdef PDN_USER_TERMINATE
-					PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "istream_ptr is ifstream ptr and file was not opened!");
-#endif
-					::std::terminate();
-#else
-					throw ::std::invalid_argument("istream_ptr is ifstream ptr and file was not opened!");
-#endif
-				}
-			}
-			else
-			{
-				if (auto ifstream_ptr = dynamic_cast<::std::basic_ifstream<char_type>*>(istream_ptr))
-				{
-					if (!ifstream_ptr->is_open())
-					{
-#ifdef PDN_NO_EXCEPTIONS
-#ifdef PDN_USER_TERMINATE
-						PDN_USER_TERMINATE(PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR, "istream_ptr is ifstream ptr and file was not opened!");
-#endif
-						::std::terminate();
-#else
-						throw ::std::invalid_argument("istream_ptr is ifstream ptr and file was not opened!");
-#endif
-					}
-				}
-			}
-#if defined(PDN_NO_EXCEPTIONS) && defined(PDN_USER_TERMINATE)
-#undef PDN_FUNCNAME_SWAPCHAINCONSTRUCTOR
-#endif
-			// clear failbit when it in fail state
-			istream_ptr->clear(istream_ptr->rdstate() & ::std::ios::eofbit);
 			// create buffer
 			if (!buffers_mng)
 			{
+				// buffer size in range [128, ::std::numeric_limits<size_type>::max() / 2]
+				if (buffer_size < 128)
+				{
+					buffer_size = 128;
+				}
+				else if (buffer_size > (::std::numeric_limits<size_type>::max() / 2))
+				{
+					buffer_size = 1024;
+				}
 				buffers_mng = ::std::make_unique<value_type[]>(size() * 2);
 			}
 			// initialization

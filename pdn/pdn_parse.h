@@ -132,15 +132,20 @@ namespace pdn
 	                         char_t             char_tag = {},
 	                         ::std::size_t      buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
-		if (!source_file.is_open() || source_file.bad())
+		if (!source_file.is_open() || source_file.bad()) // !is_open | bad -> nullopt; good | fail | eof -> continue
 		{
 			return ::std::nullopt;
 		}
+		source_file.clear(source_file.rdstate() & std::ios::eofbit); // clear fail bit -> good | eof
 		auto bom_t = unicode::read_bom(source_file);
-		auto enc   = unicode::to_encode_type(bom_t);
-		auto sw    = make_swap_chain(source_file, buffer_size);
+		if (source_file.bad() || (source_file.fail() && !source_file.eof())) // bad | (fail & !eof) -> nullopt; good | (fail & eof) -> continue
+		{
+			return ::std::nullopt;
+		}
+		source_file.clear(source_file.rdstate() & std::ios::eofbit); // clear fail bit -> good | eof
+		auto enc = unicode::to_encode_type(bom_t);
+		auto sw = make_swap_chain(source_file, buffer_size); // requires source_file is opened and not bad
 		using enum unicode::encode_type;
-
 		switch (enc)
 		{
 		case utf8:     return parse(make_code_unit_iterator<utf8>    (sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
