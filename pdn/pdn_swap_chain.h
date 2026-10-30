@@ -48,6 +48,8 @@ namespace pdn
 		using char_type            = typename istream_type::char_type;
 		using value_type           = char_type;
 		static_assert(sizeof(value_type) == 1, "[pdn] swap_chain requires byte stream (char)");
+		inline static constexpr auto default_buffer_size = size_type{ 1024 };
+		inline static constexpr auto min_new_buffer_size = size_type{ 128 };
 	private:
 		using buffers_manager      = ::std::unique_ptr<char_type[], buffer_deleter_type>;
 		class swap_chain_iterator
@@ -151,12 +153,16 @@ namespace pdn
 	private:
 		void fill_to(value_type* target_buffer)
 		{
-			// if eof was reached, then no need to call fill_to anytime
+			// if eof was reached or stream failed, then no need to call fill_to anytime
 			assert((bool)*istream_ptr && "istream failed");
 			istream_ptr->read(target_buffer, size() * sizeof(value_type));
 			if (istream_ptr->eof())
 			{
 				eof_pos = target_buffer + istream_ptr->gcount() / sizeof(value_type);
+			}
+			if (istream_ptr->bad() || (istream_ptr->fail() && !istream_ptr->eof())) [[unlikely]]
+			{
+				// TODO
 			}
 		}
 		value_type* get_buff_1_ptr() noexcept
@@ -201,23 +207,27 @@ namespace pdn
 		}
 	public:
 		swap_chain(istream_type&     istream, // should be opened(if is ifstream) and not bad or fail but not eof
-		           size_type         buf_size = 1024, // adjacent_2_buf size/2 or new buffer size/2 (new buffer size/2 belong to [128, max_val/2])
+		           size_type         buf_size = default_buffer_size, // adjacent_2_buf size/2 or new buffer size/2
 		           buffers_manager&& adjacent_2_buf = nullptr) : // adjacent_2_buf have (2 * buf_size) char_type object
 			buffer_size{ buf_size },
 			istream_ptr{ &istream },
 			buffers_mng{ ::std::move(adjacent_2_buf) }
 		{
+			if (istream_ptr->bad() || (istream_ptr->fail() && !istream_ptr->eof())) [[unlikely]]
+			{
+				// TODO
+			}
 			// create buffer
 			if (!buffers_mng)
 			{
-				// buffer size in range [128, ::std::numeric_limits<size_type>::max() / 2]
-				if (buffer_size < 128)
+				// buffer size in range [min_new_buffer_size, ::std::numeric_limits<size_type>::max() / 2]
+				if (buffer_size < min_new_buffer_size)
 				{
-					buffer_size = 128;
+					buffer_size = min_new_buffer_size;
 				}
 				else if (buffer_size > (::std::numeric_limits<size_type>::max() / 2))
 				{
-					buffer_size = 1024;
+					buffer_size = default_buffer_size;
 				}
 				buffers_mng = ::std::make_unique<value_type[]>(size() * 2);
 			}
@@ -247,8 +257,11 @@ namespace pdn
 	};
 
 	template <typename istream_t = ::std::istream, typename buffer_deleter_t = ::std::default_delete<typename istream_t::char_type[]>>
-	inline auto make_swap_chain(istream_t& istream, ::std::size_t buf_size = 1024, ::std::unique_ptr<typename istream_t::char_type[], buffer_deleter_t>&& adjacent_2_buf = nullptr)
+	inline auto make_swap_chain(istream_t& istream,
+	                            ::std::size_t buf_size = swap_chain<istream_t, buffer_deleter_t>::default_buffer_size,
+	                            ::std::unique_ptr<typename istream_t::char_type[], buffer_deleter_t>&& adjacent_2_buf = nullptr)
 	{
+		
 		return swap_chain{ istream, buf_size,::std::move(adjacent_2_buf) };
 	}
 }

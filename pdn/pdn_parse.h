@@ -54,15 +54,16 @@ namespace pdn
 	template <unicode::concepts::code_unit                  char_t,
 	          concepts::token_iterator<char_t>              it_t,
 	          concepts::function_package_for_parser<char_t> fn_pkg>
-	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> entity<char_t>
+	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> ::std::optional<entity<char_t>>
 	{
 		parser<char_t, fn_pkg> par{ fp };
-		return par.parse(begin, end);
+		auto result = ::std::make_optional<entity<char_t>>(par.parse(begin, end));
+		return fp.error_count() ? ::std::nullopt : result;
 	}
 	// for token iterator
 	template <unicode::concepts::code_unit     char_t,
 	          concepts::token_iterator<char_t> it_t>
-	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> entity<char_t>
+	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(::std::move(begin), ::std::move(end), fp, char_tag);
@@ -78,18 +79,19 @@ namespace pdn
 	                         fn_pkg_for_cp_it&  cp_it_fp,
 	                         fn_pkg_for_lexer&  lex_fp,
 	                         fn_pkg_for_parser& par_fp,
-	                         char_t             char_tag = {}) -> entity<char_t>
+	                         char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
 		lexer<char_t, fn_pkg_for_lexer> lex{ lex_fp };
 		auto cp_it     = make_code_point_iterator(begin, end, cp_it_fp);
 		auto token_it  = make_token_iterator(lex, cp_it, end);
 		auto token_end = make_end_token_iterator(token_it);
-		return parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
+		auto result    = parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
+		return (cp_it_fp.error_count() || lex_fp.error_count()) ? ::std::nullopt : result;
 	}
 	// for code_unit iterator
 	template <unicode::concepts::code_unit     char_t,
 	          concepts::utf_code_unit_iterator it_t>
-	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> entity<char_t>
+	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(::std::move(begin), ::std::move(end), fp, fp, fp, char_tag);
@@ -104,18 +106,14 @@ namespace pdn
 	                         fn_pkg_for_cp_it&  cp_it_fp,
 	                         fn_pkg_for_lexer&  lex_fp,
 	                         fn_pkg_for_parser& par_fp,
-	                         char_t             char_tag = {}) -> entity<char_t>
+	                         char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
-		lexer<char_t, fn_pkg_for_lexer> lex{ lex_fp };
-		auto cp_it     = make_code_point_iterator(::std::cbegin(sv), ::std::cend(sv), cp_it_fp);
-		auto token_it  = make_token_iterator(lex, cp_it, ::std::cend(sv));
-		auto token_end = make_end_token_iterator(token_it);
-		return parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
+		return parse(sv.cbegin(), sv.cend(), cp_it_fp, lex_fp, par_fp, char_tag);
 	}
 	// for utf_code_unit_string_view
 	template <unicode::concepts::code_unit        char_t,
 	          concepts::utf_code_unit_string_view str_view_t>
-	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> entity<char_t>
+	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
 		return parse(sv, fp, fp, fp, char_tag);
