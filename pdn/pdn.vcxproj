@@ -139,6 +139,8 @@
     <ClInclude Include="pdn_bom_reader.h" />
     <ClInclude Include="pdn_false.h" />
     <ClInclude Include="pdn_from_chars_hex_float.h" />
+    <ClInclude Include="pdn_stoppable_concept.h" />
+    <ClInclude Include="pdn_stop_reason.h" />
     <ClInclude Include="pdn_utf_code_convert.h" />
     <ClInclude Include="pdn_code_point_iterator.h" />
     <ClInclude Include="pdn_code_unit_iterator.h" />
@@ -152,7 +154,6 @@
     <ClInclude Include="pdn_entity.h" />
     <ClInclude Include="pdn_entity_forward_decl.h" />
     <ClInclude Include="pdn_entity_utility.h" />
-    <ClInclude Include="pdn_eof_checker_concept.h" />
     <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h" />
     <ClInclude Include="pdn_error_handler_concept.h" />
     <ClInclude Include="pdn_error_message_generator_concept.h" />

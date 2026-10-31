@@ -79,6 +79,9 @@
     <Filter Include="pdn_dependent_false">
       <UniqueIdentifier>{4787452c-43e7-47a2-a185-6d51da189ee8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pdn_stop">
+      <UniqueIdentifier>{155bf27e-2c35-470a-9b99-39441f6758d1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pdn_unicode_base.h">
@@ -231,9 +234,6 @@
     <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_eof_checker_concept.h">
-      <Filter>pdn_filestream_adapter</Filter>
-    </ClInclude>
     <ClInclude Include="pdn_constant_generator_concept.h">
       <Filter>pdn_constants</Filter>
     </ClInclude>
@@ -335,6 +335,12 @@
     </ClInclude>
     <ClInclude Include="pdn_from_chars_hex_float.h">
       <Filter>pdn_lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_stop_reason.h">
+      <Filter>pdn_stop</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_stoppable_concept.h">
+      <Filter>pdn_stop</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
