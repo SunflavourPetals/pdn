@@ -416,7 +416,7 @@ namespace pdn::detail
 	template <typename target_t, typename char_t>
 	struct as_rttype
 	{
-		static_assert(as_tparam_pure<target_t, char_t>, "[pdn] as_rttype requires that target_t is pdn::detail::concepts::as_tparam");
+		static_assert(as_tparam_pure<target_t, char_t>, "[pdn] unsupported target_t in as_rttype");
 	};
 	template <typename target_t, typename char_t> requires as_tparam_pure<target_t, char_t>
 	struct as_rttype<target_t, char_t>
