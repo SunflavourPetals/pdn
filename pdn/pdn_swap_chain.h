@@ -12,6 +12,8 @@
 #include <memory>
 #include <cassert>
 
+#include "pdn_stop_reason.h"
+
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
 //     +---> BOM reader (provide: get BOM)
@@ -96,7 +98,23 @@ namespace pdn
 	public:
 		using const_iterator = swap_chain_iterator;
 		using iterator = const_iterator;
+	private:
+		void request_stop(stop_reason_code reason) noexcept
+		{
+			if (stop_reason_c == stop_reason_code{})
+			{
+				stop_reason_c = reason;
+			}
+		}
 	public:
+		bool stop_requested() const noexcept
+		{
+			return stop_reason_c != stop_reason_code{};
+		}
+		auto stop_reason() const noexcept -> stop_reason_code
+		{
+			return stop_reason_c;
+		}
 		const_iterator current() noexcept
 		{
 			return const_iterator{ *this };
@@ -154,15 +172,19 @@ namespace pdn
 		void fill_to(value_type* target_buffer)
 		{
 			// if eof was reached or stream failed, then no need to call fill_to anytime
-			assert((bool)*istream_ptr && "istream failed");
+			assert(static_cast<bool>(*istream_ptr) && "istream check in swap_chain::fill_to");
 			istream_ptr->read(target_buffer, size() * sizeof(value_type));
 			if (istream_ptr->eof())
 			{
 				eof_pos = target_buffer + istream_ptr->gcount() / sizeof(value_type);
 			}
-			if (istream_ptr->bad() || (istream_ptr->fail() && !istream_ptr->eof())) [[unlikely]]
+			if (istream_ptr->bad()) [[unlikely]]
 			{
-				// TODO
+				request_stop(stop_reason_code::bad_stream);
+			}
+			else if (istream_ptr->fail() && !istream_ptr->eof()) [[unlikely]]
+			{
+				request_stop(stop_reason_code::stream_operation_failed);
 			}
 		}
 		value_type* get_buff_1_ptr() noexcept
@@ -213,9 +235,15 @@ namespace pdn
 			istream_ptr{ &istream },
 			buffers_mng{ ::std::move(adjacent_2_buf) }
 		{
-			if (istream_ptr->bad() || (istream_ptr->fail() && !istream_ptr->eof())) [[unlikely]]
+			if (istream_ptr->bad()) [[unlikely]]
 			{
-				// TODO
+				request_stop(stop_reason_code::bad_stream);
+				return; // eof_pos = current_pos = nullptr -> iterator = eof iterator
+			}
+			else if (istream_ptr->fail() && !istream_ptr->eof()) [[unlikely]]
+			{
+				request_stop(stop_reason_code::stream_operation_failed);
+				return; // eof_pos = current_pos = nullptr -> iterator = eof iterator
 			}
 			// create buffer
 			if (!buffers_mng)
@@ -253,7 +281,8 @@ namespace pdn
 		size_type         identification{}; // id for recognition
 		size_type         buffer_size{};    // size of buffer(each buffer have buffer_size * sizeof(char_type) bytes)
 		istream_type*     istream_ptr{};    // istream pointer
-		buffers_manager   buffers_mng;      // unique_ptr for 2 buffers, size = 2*buffer_size; buffer 1 at x, buffer 2 at x offset buffer_size
+		buffers_manager   buffers_mng{};    // unique_ptr for 2 buffers, size = 2*buffer_size; buffer 1 at x, buffer 2 at x offset buffer_size
+		stop_reason_code  stop_reason_c{};
 	};
 
 	template <typename istream_t = ::std::istream, typename buffer_deleter_t = ::std::default_delete<typename istream_t::char_type[]>>
