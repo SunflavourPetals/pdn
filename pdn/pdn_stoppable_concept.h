@@ -7,14 +7,14 @@
 
 namespace pdn::concepts
 {
-	template <typename t>
-	concept stoppable = requires(t stop)
+	template <typename type>
+	concept stoppable = requires(const type stop)
 	{
 		{ stop.stop_requested() } -> ::std::convertible_to<bool>;
 	};
 
-	template <typename t>
-	concept stop_reasonable = stoppable<t> && requires(t stop)
+	template <typename type>
+	concept stop_reasonable = stoppable<type> && requires(const type stop)
 	{
 		{ stop.stop_reason() } -> ::std::convertible_to<stop_reason_code>;
 	};
