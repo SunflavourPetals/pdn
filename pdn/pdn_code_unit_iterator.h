@@ -42,9 +42,9 @@
 
 namespace pdn::detail
 {
-	static_assert(sizeof(char8_t)  == 1, "please rewrite code_unit_iterator for your platform");
-	static_assert(sizeof(char16_t) == 2, "please rewrite code_unit_iterator for your platform");
-	static_assert(sizeof(char32_t) == 4, "please rewrite code_unit_iterator for your platform");
+	static_assert(sizeof(char8_t)  == 1, "[pdn] please rewrite code_unit_iterator for your platform");
+	static_assert(sizeof(char16_t) == 2, "[pdn] please rewrite code_unit_iterator for your platform");
+	static_assert(sizeof(char32_t) == 4, "[pdn] please rewrite code_unit_iterator for your platform");
 
 	// only for utf16 and utf32
 	template <unicode::encode_type encode_type, typename it_t>
