@@ -11,6 +11,8 @@
 
 #include "pdn_unicode_base.h"
 #include "pdn_false.h"
+#include "pdn_stoppable_concept.h"
+#include "pdn_stop_reason.h"
 
 // requires 1 Byte = 8 bits
 
@@ -218,6 +220,14 @@ namespace pdn
 		{
 			return helper::source_endian();
 		}
+		bool stop_requested() const noexcept requires concepts::stoppable<it_t>
+		{
+			return compressed.begin.stop_requested();
+		}
+		auto stop_reason() const noexcept -> stop_reason_code requires concepts::stop_reasonable<it_t>
+		{
+			return compressed.begin.stop_reason();
+		}
 		const char_type& operator*() const noexcept
 		{
 			return curr_value;
@@ -270,6 +280,14 @@ namespace pdn
 		{
 			return ::std::endian::native;
 		}
+		bool stop_requested() const noexcept requires concepts::stoppable<it_t>
+		{
+			return begin.stop_requested();
+		}
+		auto stop_reason() const noexcept -> stop_reason_code requires concepts::stop_reasonable<it_t>
+		{
+			return begin.stop_reason();
+		}
 		deref_value_type operator*() const noexcept
 		{
 			return *begin;
@@ -279,8 +297,8 @@ namespace pdn
 			++begin;
 			return *this;
 		}
-		template <typename it_other_t>
-		friend bool operator== (const code_unit_iterator& lhs, const it_other_t& rhs) noexcept
+		template <typename original_it_t>
+		friend bool operator== (const code_unit_iterator& lhs, const original_it_t& rhs) noexcept
 		{
 			return lhs.begin == rhs;
 		}
