@@ -1020,53 +1020,16 @@ namespace pdn
 	{
 	private:
 		friend class detail::lexer_helper<lexer>;
-		inline static constexpr bool stoppable = concepts::stoppable<function_package> || concepts::stoppable<cp_it_t>;
-		inline static constexpr bool stoppable_it = concepts::stoppable<cp_it_t>;
-		inline static constexpr bool stoppable_fp_and_it = concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>;
 		auto helper() noexcept -> detail::lexer_helper<lexer>
 		{
 			return detail::lexer_helper<lexer>{ *this };
 		}
-		void request_stop(stop_reason_code reason) noexcept requires (stoppable_it)
+		void request_stop(stop_reason_code reason) noexcept requires concepts::stoppable<cp_it_t>
 		{
+			// this-> is necessary
 			this->request_stop_it(reason);
 		}
 	public:
-		bool stop_requested() const noexcept requires (stoppable)
-		{
-			if constexpr (stoppable_fp_and_it)
-			{
-				// this-> is necessary
-				return this->stop_requested_it() ? true : static_cast<bool>(func_pkg->stop_requested());
-			}
-			else if constexpr (stoppable_it)
-			{
-				// this-> is necessary
-				return this->stop_requested_it();
-			}
-			else
-			{
-				return func_pkg->stop_requested();
-			}
-		}
-		auto stop_reason() const noexcept -> stop_reason_code requires(stoppable)
-		{
-			if constexpr (stoppable_fp_and_it)
-			{
-				// this-> is necessary
-				using rc = stop_reason_code;
-				return this->stop_requested_it() ? static_cast<rc>(this->stop_reason_it()) : static_cast<rc>(func_pkg->stop_reason());
-			}
-			else if constexpr (stoppable_it)
-			{
-				// this-> is necessary
-				return this->stop_reason_it();
-			}
-			else
-			{
-				return func_pkg->stop_reason();
-			}
-		}
 		template <typename cp_end_it_t>
 		token<char_t> get_token(cp_it_t&& begin, cp_end_it_t&& end)
 		{
@@ -1586,7 +1549,72 @@ namespace pdn
 
 			return result;
 		}
-
+		bool stop_requested() noexcept(detail::noexcept_stop_requested_nonconst_v<function_package>)
+			requires (concepts::nonconst_stoppable<function_package> && concepts::nonconst_stoppable<cp_it_t>)
+		{
+			return this->stop_requested_it() ? true : static_cast<bool>(func_pkg->stop_requested());
+		}
+		bool stop_requested() noexcept(detail::noexcept_stop_requested_nonconst_v<function_package>)
+			requires (concepts::nonconst_stoppable<function_package> && !concepts::nonconst_stoppable<cp_it_t>)
+		{
+			return func_pkg->stop_requested();
+		}
+		bool stop_requested() noexcept
+			requires (!concepts::nonconst_stoppable<function_package> && concepts::nonconst_stoppable<cp_it_t>)
+		{
+			return this->stop_requested_it();
+		}
+		bool stop_requested() const noexcept(detail::noexcept_stop_requested_const_v<function_package>)
+			requires (concepts::const_stoppable<function_package> && concepts::const_stoppable<cp_it_t>)
+		{
+			return this->stop_requested_it() ? true : static_cast<bool>(func_pkg->stop_requested());
+		}
+		bool stop_requested() const noexcept(detail::noexcept_stop_requested_const_v<function_package>)
+			requires (concepts::const_stoppable<function_package> && !concepts::const_stoppable<cp_it_t>)
+		{
+			return func_pkg->stop_requested();
+		}
+		bool stop_requested() const noexcept
+			requires (!concepts::const_stoppable<function_package> && concepts::const_stoppable<cp_it_t>)
+		{
+			return this->stop_requested_it();
+		}
+		auto stop_reason() noexcept(detail::noexcept_stop_reasonable_nonconst_v<function_package>) -> stop_reason_code
+			requires (concepts::nonconst_stop_reasonable<function_package> && concepts::nonconst_stop_reasonable<cp_it_t>)
+		{
+			if (this->stop_requested_it())
+				return this->stop_reason_it();
+			else
+				return func_pkg->stop_reason();
+		}
+		auto stop_reason() noexcept(detail::noexcept_stop_reasonable_nonconst_v<function_package>)->stop_reason_code
+			requires (concepts::nonconst_stop_reasonable<function_package> && !concepts::nonconst_stop_reasonable<cp_it_t>)
+		{
+			return func_pkg->stop_reason();
+		}
+		auto stop_reason() noexcept -> stop_reason_code
+			requires (!concepts::nonconst_stop_reasonable<function_package> && concepts::nonconst_stop_reasonable<cp_it_t>)
+		{
+			return this->stop_reason_it();
+		}
+		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_const_v<function_package>) -> stop_reason_code
+			requires (concepts::const_stop_reasonable<function_package> && concepts::const_stop_reasonable<cp_it_t>)
+		{
+			if (this->stop_requested_it())
+				return this->stop_reason_it();
+			else
+				return func_pkg->stop_reason();
+		}
+		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_const_v<function_package>)->stop_reason_code
+			requires (concepts::const_stop_reasonable<function_package> && !concepts::const_stop_reasonable<cp_it_t>)
+		{
+			return func_pkg->stop_reason();
+		}
+		auto stop_reason() const noexcept -> stop_reason_code
+			requires (!concepts::const_stop_reasonable<function_package> && concepts::const_stop_reasonable<cp_it_t>)
+		{
+			return this->stop_reason_it();
+		}
 		explicit lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
 		auto get_pos() -> source_position
