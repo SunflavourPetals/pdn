@@ -50,6 +50,53 @@ namespace pdn::inline utf_tag
 
 namespace pdn
 {
+	enum class parse_failure_code
+	{
+		parse_error = 1,
+		parse_error_limit, // stop requested in parse for error limit
+		open_file_failed, // for input file stream or filename | path
+		bad_stream,
+		stream_operation_failed,
+		user_defined_error, // for user defined function package
+	};
+
+	class parse_result
+	{
+		using char_t = char8_t; // TODO
+	public:
+		bool success() const noexcept
+		{
+			// TODO
+		}
+		bool failed() const noexcept
+		{
+			// TODO
+		}
+		bool has_value() const noexcept
+		{
+			// TODO
+		}
+		auto failure_code() const noexcept
+		{
+			// TODO
+		}
+		auto value() noexcept -> entity<char_t>&
+		{
+			// TODO
+		}
+		auto value() const noexcept -> const entity<char_t>
+		{
+			// TODO
+		}
+		// TODO operator* operator->
+		// see optional
+		explicit parse_result(parse_failure_code f_code) : code{ f_code }, entity_opt{} {}
+		explicit parse_result(entity<char_t>&& ent) : code{}, entity_opt{ ::std::move(ent) } {}
+	private:
+		parse_failure_code code;
+		::std::optional<entity<char_t>> entity_opt;
+	};
+
 	// for token iterator
 	template <unicode::concepts::code_unit                  char_t,
 	          concepts::token_iterator<char_t>              it_t,
@@ -75,22 +122,22 @@ namespace pdn
 	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
 	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(it_t               begin,
-	                         auto               end,
-	                         fn_pkg_for_cp_it&  cp_it_fp,
-	                         fn_pkg_for_lexer&  lex_fp,
-	                         fn_pkg_for_parser& par_fp,
-	                         char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
+		auto               end,
+		fn_pkg_for_cp_it& cp_it_fp,
+		fn_pkg_for_lexer& lex_fp,
+		fn_pkg_for_parser& par_fp,
+		char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
-		lexer<char_t, fn_pkg_for_lexer> lex{ lex_fp };
-		auto cp_it     = make_code_point_iterator(begin, end, cp_it_fp);
-		auto token_it  = make_token_iterator(lex, cp_it, end);
+		auto cp_it = make_code_point_iterator(begin, end, cp_it_fp);
+		lexer<char_t, fn_pkg_for_lexer, decltype(cp_it)> lex{ lex_fp };
+		auto token_it = make_token_iterator(lex, cp_it, end);
 		auto token_end = make_end_token_iterator(token_it);
-		auto result    = parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
+		auto result = parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
 		return (cp_it_fp.error_count() || lex_fp.error_count()) ? ::std::nullopt : result;
 	}
 	// for code_unit iterator
 	template <unicode::concepts::code_unit     char_t,
-	          concepts::utf_code_unit_iterator it_t>
+		concepts::utf_code_unit_iterator it_t>
 	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
@@ -98,21 +145,21 @@ namespace pdn
 	}
 	// for utf_code_unit_string_view
 	template <unicode::concepts::code_unit                       char_t,
-	          concepts::utf_code_unit_string_view                str_view_t,
-	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
-	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+		concepts::utf_code_unit_string_view                str_view_t,
+		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+		concepts::function_package_for_lexer               fn_pkg_for_lexer,
+		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(str_view_t         sv,
-	                         fn_pkg_for_cp_it&  cp_it_fp,
-	                         fn_pkg_for_lexer&  lex_fp,
-	                         fn_pkg_for_parser& par_fp,
-	                         char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
+		fn_pkg_for_cp_it& cp_it_fp,
+		fn_pkg_for_lexer& lex_fp,
+		fn_pkg_for_parser& par_fp,
+		char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
 		return parse(sv.cbegin(), sv.cend(), cp_it_fp, lex_fp, par_fp, char_tag);
 	}
 	// for utf_code_unit_string_view
 	template <unicode::concepts::code_unit        char_t,
-	          concepts::utf_code_unit_string_view str_view_t>
+		concepts::utf_code_unit_string_view str_view_t>
 	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
 		default_function_package<char_t> fp{};
@@ -120,24 +167,44 @@ namespace pdn
 	}
 	// for file stream
 	template <unicode::concepts::code_unit                       char_t,
-	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
-	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	[[nodiscard]] auto parse(::std::ifstream&   source_file,
-	                         fn_pkg_for_cp_it&  cp_it_fp,
-	                         fn_pkg_for_lexer&  lex_fp,
-	                         fn_pkg_for_parser& par_fp,
-	                         char_t             char_tag = {},
-	                         ::std::size_t      buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+		concepts::function_package_for_lexer               fn_pkg_for_lexer,
+		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(::std::ifstream& source_file,
+		fn_pkg_for_cp_it& cp_it_fp,
+		fn_pkg_for_lexer& lex_fp,
+		fn_pkg_for_parser& par_fp,
+		char_t             char_tag = {},
+		::std::size_t      buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
 	{
-		if (!source_file.is_open() || source_file.bad()) // !is_open | bad -> nullopt; good | fail | eof -> continue
+		// !is_open | bad -> nullopt; good | fail | eof -> continue
+		if (!source_file.is_open()) [[unlikely]]
 		{
+			// TODO open_file_failed
+			// ...
 			return ::std::nullopt;
 		}
-		source_file.clear(source_file.rdstate() & std::ios::eofbit); // clear fail bit -> good | eof
-		auto bom_t = unicode::read_bom(source_file);
-		if (source_file.bad() || (source_file.fail() && !source_file.eof())) // bad | (fail & !eof) -> nullopt; good | (fail & eof) -> continue
+		else if (source_file.bad()) [[unlikely]]
 		{
+			// TODO bad_stream
+			// ...
+			return ::std::nullopt;
+		}
+		// clear fail bit -> good | eof
+		source_file.clear(source_file.rdstate() & std::ios::eofbit);
+		auto bom_t = unicode::read_bom(source_file); // read source_file and maybe seekg
+		// TODO move to swapchain
+		// bad | (fail & !eof) -> nullopt; good | (fail & eof) -> continue
+		if (source_file.bad()) [[unlikely]]
+		{
+			// TODO bad_stream
+			// ...
+			return ::std::nullopt;
+		}
+		else if (source_file.fail() && !source_file.eof()) [[unlikely]]
+		{
+			// TODO stream_failed
+			// ...
 			return ::std::nullopt;
 		}
 		source_file.clear(source_file.rdstate() & std::ios::eofbit); // clear fail bit -> good | eof

@@ -36,7 +36,7 @@ namespace pdn::concepts
 
 namespace pdn
 {
-	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package>
+	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
 	class lexer;
 }
 
@@ -45,7 +45,7 @@ namespace pdn::detail
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
 	struct token_iterator_ctrlblk_from_lexer
 	{
-		using lexer_t = lexer<char_t, function_package>;
+		using lexer_t = lexer<char_t, function_package, it_begin_t>;
 		using token_t = token<char_t>;
 		lexer_t    lex;
 		it_begin_t begin;
@@ -64,7 +64,7 @@ namespace pdn
 	{
 	private:
 		using ctrlblk_t = detail::token_iterator_ctrlblk_from_lexer<char_t, function_package, it_begin_t, it_end_t>;
-		using lexer_t   = lexer<char_t, function_package>;
+		using lexer_t   = lexer<char_t, function_package, it_begin_t>;
 		using token_t   = token<char_t>;
 	public:
 		using iterator_concept  = void;
@@ -123,13 +123,13 @@ namespace pdn
 	};
 
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
-	auto make_token_iterator(lexer<char_t, func_pkg> lex, it_begin_t begin, it_end_t end)
+	auto make_token_iterator(lexer<char_t, func_pkg, it_begin_t> lex, it_begin_t begin, it_end_t end)
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{ ::std::move(lex), ::std::move(begin), ::std::move(end) };
 	}
 
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
-	auto make_end_token_iterator(const lexer<char_t, func_pkg>&, const it_begin_t&, const it_end_t&)
+	auto make_end_token_iterator(const lexer<char_t, func_pkg, it_begin_t>&, const it_begin_t&, const it_end_t&)
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
 	}
@@ -987,11 +987,15 @@ namespace pdn::detail
 
 namespace pdn
 {
-	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package>
+	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
 	class lexer
 	{
 	public:
-		token<char_t> get_token(auto&& begin, auto end)
+		token<char_t> get_token(cp_it_t&& begin, auto end)
+		{
+			return get_token(begin, end);
+		}
+		token<char_t> get_token(cp_it_t& begin, auto end)
 		{
 			token<char_t>              result{};
 			type::string<char_t>       text{};            // rename text
