@@ -25,6 +25,9 @@
 #include "pdn_utf_code_convert.h"
 #include "pdn_lexical_error_code.h"
 
+#include "pdn_stoppable_concept.h"
+#include "pdn_stop_reason.h"
+
 namespace pdn::concepts
 {
 	template <typename type>
@@ -963,34 +966,104 @@ namespace pdn::detail
 		}
 	}
 
-	template <concepts::function_package_for_lexer function_package>
+	template <typename lexer_t>
 	class lexer_helper
 	{
 	public:
-		explicit lexer_helper(function_package& function_pkg) : func_pkg{ &function_pkg } {}
+		explicit lexer_helper(lexer_t& lexer) : lexer_p{ &lexer } {}
 		auto get_pos() -> source_position
 		{
-			return func_pkg->position();
+			return lexer_p->func_pkg->position();
 		}
 		auto err_msg_gen(source_position pos, auto err_c, raw_error_message_variant raw_msg) -> error_msg_string
 		{
-			return func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
+			return lexer_p->func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
 		}
 		void post_err(source_position pos, auto err_c, raw_error_message_variant&& raw_msg)
 		{
-			func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
+			lexer_p->func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
 		}
 	private:
-		function_package* func_pkg{};
+		lexer_t* lexer_p{};
+	};
+
+	template <typename type>
+	class lexer_base_it_stoppable {};
+
+	template <concepts::stoppable type>
+	class lexer_base_it_stoppable<type>
+	{
+	public:
+		void request_stop_it(stop_reason_code reason) noexcept
+		{
+			if (stop_reason_c == stop_reason_code{})
+			{
+				stop_reason_c = reason;
+			}
+		}
+		bool stop_requested_it() const noexcept
+		{
+			return stop_reason_c != stop_reason_code{};
+		}
+		auto stop_reason_it() const noexcept -> stop_reason_code
+		{
+			return stop_reason_c;
+		}
+		stop_reason_code stop_reason_c{};
 	};
 }
 
 namespace pdn
 {
 	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
-	class lexer
+	class lexer : private detail::lexer_base_it_stoppable<cp_it_t>
 	{
+	private:
+		friend class detail::lexer_helper<lexer>;
+		inline static constexpr bool stoppable = concepts::stoppable<function_package> || concepts::stoppable<cp_it_t>;
+		inline static constexpr bool stoppable_it = concepts::stoppable<cp_it_t>;
+		inline static constexpr bool stoppable_fp_and_it = concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>;
+		auto helper() noexcept -> detail::lexer_helper<lexer>
+		{
+			return detail::lexer_helper<lexer>{ *this };
+		}
+		void request_stop(stop_reason_code reason) noexcept requires (stoppable_it)
+		{
+			this->request_stop_it(reason);
+		}
 	public:
+		bool stop_requested() const noexcept requires (stoppable)
+		{
+			if constexpr (stoppable_fp_and_it)
+			{
+				// this-> is necessary
+				return this->stop_requested_it() ? true : static_cast<bool>(func_pkg->stop_requested());
+			}
+			else if constexpr (stoppable_it)
+			{
+				return this->stop_requested_it(); // this-> is necessary
+			}
+			else
+			{
+				return func_pkg->stop_requested();
+			}
+		}
+		auto stop_reason() const noexcept -> stop_reason_code requires(stoppable)
+		{
+			if constexpr (stoppable_fp_and_it)
+			{
+				// this-> is necessary
+				return this->stop_requested_it() ? static_cast<bool>(this->stop_reason_it()) : static_cast<bool>(func_pkg->stop_reason());
+			}
+			else if constexpr (stoppable_it)
+			{
+				return this->stop_reason_it(); // this-> is necessary
+			}
+			else
+			{
+				return func_pkg->stop_reason();
+			}
+		}
 		template <typename cp_end_it_t>
 		token<char_t> get_token(cp_it_t&& begin, cp_end_it_t&& end)
 		{
@@ -1005,7 +1078,7 @@ namespace pdn
 			::std::string              number_sequence{}; // Unicode[U+0000, U+007f] -> ASCII -> form_chars
 			::std::size_t              nested_block_comment_layer{};
 			::std::size_t              cont_n_delimiter_count{}; // consecutive number delimiters' count
-			source_position            position{ helper.get_pos() };
+			source_position            position{ get_pos() };
 			auto                       dfa_state = dfa_state_objects::start_state();
 
 			auto num_seq_to_ems = [&]() { return reinterpret_to_err_msg_str(number_sequence); };
@@ -1027,7 +1100,7 @@ namespace pdn
 				if (!unicode::is_scalar_value(c))
 				{
 					using raw_err = raw_error_message_type::not_unicode_scalar_value;
-					helper.post_err(helper.get_pos(), lex_ec::not_unicode_scalar_value, raw_err{ c });
+					post_err(get_pos(), lex_ec::not_unicode_scalar_value, raw_err{ c });
 					++begin;
 					continue;
 				}
@@ -1040,7 +1113,7 @@ namespace pdn
 					auto next = new_dfa_state.state_code;
 					if (detail::is_non_token_state(prev) && detail::is_token_state(next))
 					{
-						position = helper.get_pos();
+						position = get_pos();
 					}
 				};
 
@@ -1061,9 +1134,7 @@ namespace pdn
 					new_dfa_state = dfa_state_objects::start_state();
 					auto cp = unicode::code_point_t(c);
 					auto view = unicode::ucpstring_view{ &cp, 1 };
-					helper.post_err(helper.get_pos(),
-					                lex_ec::unacceptable_character,
-					                detail::to_raw_err_str(code_convert<err_ms>(view)));
+					post_err(get_pos(), lex_ec::unacceptable_character, detail::to_raw_err_str(code_convert<err_ms>(view)));
 					break;
 				}
 				case infinity:
@@ -1078,19 +1149,19 @@ namespace pdn
 				case identifier_string_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::identifier_string_closed;
-					helper.post_err(position, lex_ec::identifier_string_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)));
+					post_err(position, lex_ec::identifier_string_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)));
 					goto label_update_dfa_state;
 				}
 				case string_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::string_closed;
-					helper.post_err(position, lex_ec::string_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)));
+					post_err(position, lex_ec::string_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)));
 					goto label_update_dfa_state;
 				}
 				case character_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::character_closed;
-					helper.post_err(position, lex_ec::character_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)));
+					post_err(position, lex_ec::character_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)));
 					goto label_update_dfa_state;
 				}
 				case start:
@@ -1123,7 +1194,7 @@ namespace pdn
 				case identifier_string_escape:
 					++begin;
 					new_dfa_state = dfa_state_objects::identifier_string;
-					if (detail::get_escape(c, begin, end, true, helper))
+					if (detail::get_escape(c, begin, end, true, helper()))
 					{
 						append(text, c);
 					}
@@ -1131,7 +1202,7 @@ namespace pdn
 				case string_escape:
 					++begin;
 					new_dfa_state = dfa_state_objects::string;
-					if (detail::get_escape(c, begin, end, false, helper))
+					if (detail::get_escape(c, begin, end, false, helper()))
 					{
 						append(text, c);
 					}
@@ -1139,7 +1210,7 @@ namespace pdn
 				case character_escape:
 					++begin;
 					new_dfa_state = dfa_state_objects::character;
-					if (detail::get_escape(c, begin, end, false, helper))
+					if (detail::get_escape(c, begin, end, false, helper()))
 					{
 						append(text, c);
 					}
@@ -1149,7 +1220,7 @@ namespace pdn
 					// @"d_seq()d_seq"
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
-					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, false, helper);
+					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, false, helper());
 					new_dfa_state = dfa_state_objects::raw_string;
 					goto label_update_dfa_state;
 				case raw_string_received_CR:
@@ -1198,7 +1269,7 @@ namespace pdn
 					// @`d_seq()d_seq`
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
-					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, true, helper);
+					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, true, helper());
 					new_dfa_state = dfa_state_objects::identifier_raw_string;
 					goto label_update_dfa_state;
 				case identifier_raw_string_received_CR:
@@ -1256,9 +1327,7 @@ namespace pdn
 					number_sequence += char(c);
 					if (cont_n_delimiter_count > 1)
 					{
-						helper.post_err(helper.get_pos(),
-						                lex_ec::more_than_one_separators_between_numbers,
-						                detail::to_raw_err_str(num_seq_to_ems()));
+						post_err(get_pos(), lex_ec::more_than_one_separators_between_numbers, detail::to_raw_err_str(num_seq_to_ems()));
 					}
 					cont_n_delimiter_count = 0;
 					break;
@@ -1301,14 +1370,14 @@ namespace pdn
 				// ERROR STATES vvv
 			case block_comment:
 			case block_comment_closing:
-				helper.post_err(position, lexical_error_code::unterminated_block_comment, {});
+				post_err(position, lexical_error_code::unterminated_block_comment, {});
 				break;
 			case nested_block_comment:
 			case nested_block_comment_nesting:
 			case nested_block_comment_nested:
 			case nested_block_comment_closing:
 			case nested_block_comment_closed:
-				helper.post_err(position, lex_ec::unterminated_nested_block_comment, {});
+				post_err(position, lex_ec::unterminated_nested_block_comment, {});
 				break;
 			case identifier_string_opened:
 			case identifier_string:
@@ -1316,7 +1385,7 @@ namespace pdn
 			case string:
 			case identifier_raw_string:
 			case raw_string:
-				detail::process_string_like_error(dfa_state.state_code, position, detail::to_err_ms<char_t>(text), open_d_seq, helper);
+				detail::process_string_like_error(dfa_state.state_code, position, detail::to_err_ms<char_t>(text), open_d_seq, helper());
 				[[fallthrough]];
 				// ERROR STATES ^^^
 			case identifier:
@@ -1338,15 +1407,15 @@ namespace pdn
 				break;
 			case character_opened: // <<< ERROR STATE
 			case character:        // <<< ERROR STATE
-				detail::process_char_missing_quote_error(position, detail::to_err_ms<char_t>(text), helper);
+				detail::process_char_missing_quote_error(position, detail::to_err_ms<char_t>(text), helper());
 				[[fallthrough]];
 			case character_closed:
-				result.value = detail::process_char_literal<char_t>(text, position, helper);
+				result.value = detail::process_char_literal<char_t>(text, position, helper());
 				break;
 			case dec_seq_start_with_0:             // <<< ERROR STATE
 			case dec_seq_start_with_0_with_quote:  // <<< ERROR STATE
 			case dec_seq_with_quote:               // <<< ERROR STATE
-				detail::process_dec_seq_error(dfa_state.state_code, position, num_seq_to_ems(), helper);
+				detail::process_dec_seq_error(dfa_state.state_code, position, num_seq_to_ems(), helper());
 				[[fallthrough]];
 			case dec_seq:
 			{
@@ -1358,7 +1427,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_integer, false, helper);
+					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_integer, false, helper());
 				}
 				break;
 			}
@@ -1368,14 +1437,14 @@ namespace pdn
 			case fp_exp_with_quote:       // <<< ERROR STATE
 				if (dfa_state.state_code == fp_exp_sign_or_first || dfa_state.state_code == fp_exp_first)
 				{
-					helper.post_err(position, lex_ec::fp_dec_expect_exponent, detail::to_raw_err_str(num_seq_to_ems()));
+					post_err(position, lex_ec::fp_dec_expect_exponent, detail::to_raw_err_str(num_seq_to_ems()));
 					number_sequence += '0'; // add 0 for exponent
 				}
 				else if (dfa_state.state_code == fp_dec_part_with_quote || dfa_state.state_code == fp_exp_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
 					using enum raw_error_message_type::number_type;
-					helper.post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), dec_floating });
+					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), dec_floating });
 				}
 				[[fallthrough]];
 			case fp_dec_part_first_after_dec_with_dot:
@@ -1394,7 +1463,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_floating, false, helper);
+					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_floating, false, helper());
 				}
 				break;
 			}
@@ -1402,7 +1471,7 @@ namespace pdn
 			{
 				using raw_err = raw_error_message_type::number_end_with_separator;
 				using enum raw_error_message_type::number_type;
-				helper.post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), oct_integer });
+				post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), oct_integer });
 				[[fallthrough]];
 			}
 			case zero:
@@ -1416,7 +1485,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, oct_integer, false, helper);
+					detail::process_from_chars_error(from_chars_r, n_seq, position, oct_integer, false, helper());
 				}
 			}
 			break;
@@ -1424,14 +1493,14 @@ namespace pdn
 			case bin_seq_with_quote:  // <<< ERROR STATE
 				if (dfa_state.state_code == bin_seq_first)
 				{
-					helper.post_err(position, lex_ec::bin_prefix_expect_bin_number_sequence, detail::to_raw_err_str(num_seq_to_ems()));
+					post_err(position, lex_ec::bin_prefix_expect_bin_number_sequence, detail::to_raw_err_str(num_seq_to_ems()));
 					number_sequence += '0';
 				}
 				else if (dfa_state.state_code == bin_seq_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
 					using enum raw_error_message_type::number_type;
-					helper.post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), bin_integer });
+					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), bin_integer });
 				}
 				[[fallthrough]];
 			case bin_seq:
@@ -1445,7 +1514,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, bin_integer, false, helper);
+					detail::process_from_chars_error(from_chars_r, n_seq, position, bin_integer, false, helper());
 				}
 				break;
 			}
@@ -1453,14 +1522,14 @@ namespace pdn
 			case hex_seq_with_quote:  // <<< ERROR STATE
 				if (dfa_state.state_code == hex_seq_first)
 				{
-					helper.post_err(position, lex_ec::hex_prefix_expect_hex_number_sequence, detail::to_raw_err_str(num_seq_to_ems()));
+					post_err(position, lex_ec::hex_prefix_expect_hex_number_sequence, detail::to_raw_err_str(num_seq_to_ems()));
 					number_sequence += '0';
 				}
 				else if (dfa_state.state_code == hex_seq_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
 					using enum raw_error_message_type::number_type;
-					helper.post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_integer });
+					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_integer });
 				}
 				[[fallthrough]];
 			case hex_seq:
@@ -1474,7 +1543,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_integer, false, helper);
+					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_integer, false, helper());
 				}
 				break;
 			}
@@ -1485,7 +1554,7 @@ namespace pdn
 			case hex_fp_exp_first:                         // <<< ERROR STATE
 			case hex_fp_exp_with_quote:                    // <<< ERROR STATE
 			case hex_fp_seq_start_with_0x_dot:             // <<< ERROR STATE
-				detail::process_hex_fp_errors(dfa_state.state_code, number_sequence, position, helper);
+				detail::process_hex_fp_errors(dfa_state.state_code, number_sequence, position, helper());
 				[[fallthrough]];
 			case hex_fp_exp:
 			{
@@ -1502,7 +1571,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_floating, false, helper);
+					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_floating, false, helper());
 				}
 				break;
 			}
@@ -1515,9 +1584,21 @@ namespace pdn
 			return result;
 		}
 
-		explicit lexer(function_package& function_pkg) : helper{ function_pkg } {}
+		explicit lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
-		detail::lexer_helper<function_package> helper{};
+		auto get_pos() -> source_position
+		{
+			return func_pkg->position();
+		}
+		auto err_msg_gen(source_position pos, auto err_c, raw_error_message_variant raw_msg) -> error_msg_string
+		{
+			return func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
+		}
+		void post_err(source_position pos, auto err_c, raw_error_message_variant&& raw_msg)
+		{
+			func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
+		}
+		function_package* func_pkg{};
 	};
 }
 
