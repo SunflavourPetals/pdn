@@ -991,11 +991,13 @@ namespace pdn
 	class lexer
 	{
 	public:
-		token<char_t> get_token(cp_it_t&& begin, auto end)
+		template <typename cp_end_it_t>
+		token<char_t> get_token(cp_it_t&& begin, cp_end_it_t&& end)
 		{
-			return get_token(begin, end);
+			return get_token(begin, ::std::forward<cp_end_it_t>(end));
 		}
-		token<char_t> get_token(cp_it_t& begin, auto end)
+		template <typename cp_end_it_t>
+		token<char_t> get_token(cp_it_t& begin, cp_end_it_t&& end)
 		{
 			token<char_t>              result{};
 			type::string<char_t>       text{};            // rename text
