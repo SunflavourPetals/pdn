@@ -1041,7 +1041,8 @@ namespace pdn
 			}
 			else if constexpr (stoppable_it)
 			{
-				return this->stop_requested_it(); // this-> is necessary
+				// this-> is necessary
+				return this->stop_requested_it();
 			}
 			else
 			{
@@ -1053,11 +1054,13 @@ namespace pdn
 			if constexpr (stoppable_fp_and_it)
 			{
 				// this-> is necessary
-				return this->stop_requested_it() ? static_cast<bool>(this->stop_reason_it()) : static_cast<bool>(func_pkg->stop_reason());
+				using rc = stop_reason_code;
+				return this->stop_requested_it() ? static_cast<rc>(this->stop_reason_it()) : static_cast<rc>(func_pkg->stop_reason());
 			}
 			else if constexpr (stoppable_it)
 			{
-				return this->stop_reason_it(); // this-> is necessary
+				// this-> is necessary
+				return this->stop_reason_it();
 			}
 			else
 			{
