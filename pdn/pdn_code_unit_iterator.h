@@ -220,11 +220,23 @@ namespace pdn
 		{
 			return helper::source_endian();
 		}
-		bool stop_requested() const noexcept requires concepts::stoppable<it_t>
+		bool stop_requested() noexcept(detail::noexcept_stop_requested_nonconst_v<it_t>)
+			requires concepts::nonconst_stoppable<it_t>
 		{
 			return compressed.begin.stop_requested();
 		}
-		auto stop_reason() const noexcept -> stop_reason_code requires concepts::stop_reasonable<it_t>
+		bool stop_requested() const noexcept(detail::noexcept_stop_requested_const_v<it_t>)
+			requires concepts::const_stoppable<it_t>
+		{
+			return compressed.begin.stop_requested();
+		}
+		auto stop_reason() noexcept(detail::noexcept_stop_reasonable_nonconst_v<it_t>) -> stop_reason_code
+			requires concepts::nonconst_stop_reasonable<it_t>
+		{
+			return compressed.begin.stop_reason();
+		}
+		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_const_v<it_t>) -> stop_reason_code
+			requires concepts::const_stop_reasonable<it_t>
 		{
 			return compressed.begin.stop_reason();
 		}
