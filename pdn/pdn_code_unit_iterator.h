@@ -21,7 +21,7 @@
 //     +---> BOM reader (provide: get BOM)
 //     |         extra: requires byte input stream has operation seekg
 //     v
-//    swap chain (provide: get byte)
+//    byte iterator and swap chain (provide: get byte)
 //     |
 //     v
 // >> code unit iterator (provide: get code unit, move backward(++it), check EOF)
@@ -292,11 +292,23 @@ namespace pdn
 		{
 			return ::std::endian::native;
 		}
-		bool stop_requested() const noexcept requires concepts::stoppable<it_t>
+		bool stop_requested() noexcept(detail::noexcept_stop_requested_nonconst_v<it_t>)
+			requires concepts::nonconst_stoppable<it_t>
 		{
 			return begin.stop_requested();
 		}
-		auto stop_reason() const noexcept -> stop_reason_code requires concepts::stop_reasonable<it_t>
+		bool stop_requested() const noexcept(detail::noexcept_stop_requested_const_v<it_t>)
+			requires concepts::const_stoppable<it_t>
+		{
+			return begin.stop_requested();
+		}
+		auto stop_reason() noexcept(detail::noexcept_stop_reasonable_nonconst_v<it_t>) -> stop_reason_code
+			requires concepts::nonconst_stop_reasonable<it_t>
+		{
+			return begin.stop_reason();
+		}
+		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_const_v<it_t>) -> stop_reason_code
+			requires concepts::const_stop_reasonable<it_t>
 		{
 			return begin.stop_reason();
 		}

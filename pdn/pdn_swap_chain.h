@@ -19,7 +19,7 @@
 //     +---> BOM reader (provide: get BOM)
 //     |         extra: requires byte input stream has operation seekg
 //     v
-// >> swap chain (provide: get byte)
+// >> byte iterator and swap chain (provide: get byte)
 //     |
 //     v
 //    code unit iterator (provide: get code unit, move backward(++it), check EOF)
@@ -41,6 +41,72 @@
 namespace pdn
 {
 	template <typename istream_t = ::std::istream, typename buffer_deleter_t = ::std::default_delete<typename istream_t::char_type[]>>
+	class swap_chain;
+
+	template <typename istream_t, typename buffer_deleter_t>
+	class byte_iterator_from_swap_chain
+	{
+	private:
+		using swap_chain_type = swap_chain<istream_t, buffer_deleter_t>;
+	public:
+		using iterator_concept = void;
+		using iterator_category = void;
+		using size_type = typename swap_chain_type::size_type;
+		using value_type = typename swap_chain_type::value_type;
+		bool stop_requested() const noexcept
+		{
+			if (swap_ptr)
+			{
+				return origin().stop_requested();
+			}
+			return false;
+		}
+		auto stop_reason() const noexcept -> stop_reason_code
+		{
+			if (swap_ptr)
+			{
+				return origin().stop_reason();
+			}
+			return stop_reason_code{};
+		}
+		swap_chain_type& origin()
+		{
+			return *swap_ptr;
+		}
+		const swap_chain_type& origin() const
+		{
+			return *swap_ptr;
+		}
+		bool eof() const
+		{
+			return *this == byte_iterator_from_swap_chain{};
+		}
+		const value_type& operator*() const // cannot dereference end
+		{
+			return origin().get();
+		}
+		byte_iterator_from_swap_chain& operator++ () // cannot ++end
+		{
+			origin().to_next();
+			// TODO
+			//if (origin().stop_requested())
+			//{
+			//	return *this; // stop requested miss eof because mutually exclusive
+			//}
+			if (origin().eof())
+			{
+				swap_ptr = nullptr; // swap_ptr == nullptr -> end
+			}
+			return *this;
+		}
+		friend bool operator==(const byte_iterator_from_swap_chain&, const byte_iterator_from_swap_chain&) = default;
+		byte_iterator_from_swap_chain() = default; // default constructor make itself be end iterator
+		explicit byte_iterator_from_swap_chain(swap_chain_type& swap) : swap_ptr{ swap.eof() ? nullptr : &swap } {}
+	private:
+		swap_chain_type* swap_ptr{ nullptr }; // swap_ptr == nullptr means it is end
+	};
+
+	template <typename istream_t, typename buffer_deleter_t>
 	class swap_chain
 	{
 	public:
@@ -49,54 +115,14 @@ namespace pdn
 		using size_type            = ::std::size_t;
 		using char_type            = typename istream_type::char_type;
 		using value_type           = char_type;
-		static_assert(sizeof(value_type) == 1, "[pdn] swap_chain requires byte stream (char)");
+		static_assert(sizeof(value_type) == 1, "[pdn] swap_chain requires byte(char) stream");
 		inline static constexpr auto default_buffer_size = size_type{ 1024 };
 		inline static constexpr auto min_new_buffer_size = size_type{ 128 };
 	private:
 		using buffers_manager      = ::std::unique_ptr<char_type[], buffer_deleter_type>;
-		class swap_chain_iterator
-		{
-		private:
-			using swap_chain_type = swap_chain;
-		public:
-			using iterator_concept  = void;
-			using iterator_category = void;
-			using size_type         = typename swap_chain_type::size_type;
-			using value_type        = typename swap_chain_type::value_type;
-			swap_chain_type& origin()
-			{
-				return *swap_ptr;
-			}
-			const swap_chain_type& origin() const
-			{
-				return *swap_ptr;
-			}
-			bool eof() const
-			{
-				return *this == swap_chain_iterator{};
-			}
-			const value_type& operator*() const // cannot dereference end
-			{
-				return origin().get();
-			}
-			swap_chain_iterator& operator++ () // cannot ++end
-			{
-				origin().to_next();
-				if (origin().eof())
-				{
-					swap_ptr = nullptr; // swap_ptr == nullptr -> end
-				}
-				return *this;
-			}
-			friend bool operator==(swap_chain_iterator, swap_chain_iterator) = default;
-			swap_chain_iterator() = default; // default constructor make itself be end iterator
-			explicit swap_chain_iterator(swap_chain& swap) : swap_ptr{ swap.eof() ? nullptr : &swap} {}
-		private:
-			swap_chain_type* swap_ptr{ nullptr }; // swap_ptr == nullptr means it is end
-		};
-		friend class swap_chain_iterator;
+		friend class byte_iterator_from_swap_chain<istream_t, buffer_deleter_t>;
 	public:
-		using const_iterator = swap_chain_iterator;
+		using const_iterator = byte_iterator_from_swap_chain<istream_t, buffer_deleter_t>;
 		using iterator = const_iterator;
 	private:
 		void request_stop(stop_reason_code reason) noexcept
@@ -172,7 +198,7 @@ namespace pdn
 		void fill_to(value_type* target_buffer)
 		{
 			// if eof was reached or stream failed, then no need to call fill_to anytime
-			assert(static_cast<bool>(*istream_ptr) && "istream check in swap_chain::fill_to");
+			assert(static_cast<bool>(*istream_ptr) && "istream check failed in swap_chain::fill_to");
 			istream_ptr->read(target_buffer, size() * sizeof(value_type));
 			if (istream_ptr->eof())
 			{

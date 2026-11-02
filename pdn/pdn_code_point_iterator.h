@@ -22,7 +22,7 @@
 //     +---> BOM reader (provide: get BOM)
 //     |         extra: requires byte input stream has operation seekg
 //     v
-//    swap chain (provide: get byte)
+//    byte iterator and swap chain (provide: get byte)
 //     |
 //     v
 //    code unit iterator (provide: get code unit, move backward(++it), check EOF)
