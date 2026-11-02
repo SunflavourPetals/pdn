@@ -152,9 +152,53 @@ void serialization_test()
 	std::cout << "serialization_test end\n";
 }
 
+template <typename t, bool stop_reasonable_v = true>
+void inner_stoppable_static_assert_test()
+{
+	static_assert(pdn::concepts::stoppable<t>);
+	static_assert(pdn::concepts::const_stoppable<t>);
+	static_assert(!pdn::concepts::nonconst_stoppable<t>);
+
+	if constexpr (stop_reasonable_v)
+	{
+		static_assert(pdn::concepts::stop_reasonable<t>);
+		static_assert(pdn::concepts::const_stop_reasonable<t>);
+		static_assert(!pdn::concepts::nonconst_stop_reasonable<t>);
+	}
+}
+
 int main() try
 {
-	error_test();
+	inner_stoppable_static_assert_test<pdn::swap_chain<>>();
+	inner_stoppable_static_assert_test<pdn::swap_chain<std::ifstream>>();
+	using byte_it_i = pdn::byte_iterator_from_swap_chain<std::istream, std::default_delete<char[]>>;
+	inner_stoppable_static_assert_test<byte_it_i>();
+	using byte_it_if = pdn::byte_iterator_from_swap_chain<std::ifstream, std::default_delete<char[]>>;
+	inner_stoppable_static_assert_test<byte_it_if>();
+	using cu_it_iu8 = pdn::code_unit_iterator<pdn::unicode::encode_type::utf8, byte_it_i>;
+	using cu_it_iu16le = pdn::code_unit_iterator<pdn::unicode::encode_type::utf16_le, byte_it_i>;
+	using cu_it_iu16be = pdn::code_unit_iterator<pdn::unicode::encode_type::utf16_be, byte_it_i>;
+	using cu_it_iu32le = pdn::code_unit_iterator<pdn::unicode::encode_type::utf32_le, byte_it_i>;
+	using cu_it_iu32be = pdn::code_unit_iterator<pdn::unicode::encode_type::utf32_be, byte_it_i>;
+	//using cu_it_iunknown = pdn::code_unit_iterator<pdn::unicode::encode_type::unknown, byte_it_i>;
+	using cu_it_ifu8 = pdn::code_unit_iterator<pdn::unicode::encode_type::utf8, byte_it_if>;
+	using cu_it_ifu16le = pdn::code_unit_iterator<pdn::unicode::encode_type::utf16_le, byte_it_if>;
+	using cu_it_ifu16be = pdn::code_unit_iterator<pdn::unicode::encode_type::utf16_be, byte_it_if>;
+	using cu_it_ifu32le = pdn::code_unit_iterator<pdn::unicode::encode_type::utf32_le, byte_it_if>;
+	using cu_it_ifu32be = pdn::code_unit_iterator<pdn::unicode::encode_type::utf32_be, byte_it_if>;
+	//using cu_it_ifunknown = pdn::code_unit_iterator<pdn::unicode::encode_type::unknown, byte_it_if>;
+	inner_stoppable_static_assert_test<cu_it_iu8>();
+	inner_stoppable_static_assert_test<cu_it_iu16le>();
+	inner_stoppable_static_assert_test<cu_it_iu16be>();
+	inner_stoppable_static_assert_test<cu_it_iu32le>();
+	inner_stoppable_static_assert_test<cu_it_iu32be>();
+	inner_stoppable_static_assert_test<cu_it_ifu8>();
+	inner_stoppable_static_assert_test<cu_it_ifu16le>();
+	inner_stoppable_static_assert_test<cu_it_ifu16be>();
+	inner_stoppable_static_assert_test<cu_it_ifu32le>();
+	inner_stoppable_static_assert_test<cu_it_ifu32be>();
+
+	// error_test();
 	serialization_test();
 	using namespace std::string_view_literals;
 	auto spdn_content = u8R"(hello: "Hello world!")"sv;
