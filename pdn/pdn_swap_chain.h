@@ -177,8 +177,6 @@ namespace pdn
 
 					current_end = calc_end_of_current_buffer(); // update end flag
 
-					++identification; // update identification
-
 					if (current_pos >= calc_end_of_whole_buffers()) // reset current pos
 					{
 						current_pos = get_buff_1_ptr();
@@ -189,10 +187,6 @@ namespace pdn
 		size_type size() const noexcept
 		{
 			return buffer_size;
-		}
-		size_type id() const noexcept
-		{
-			return identification;
 		}
 	private:
 		void fill_to(value_type* target_buffer)
@@ -304,7 +298,6 @@ namespace pdn
 		value_type*       current_pos{};    // current position
 		const value_type* current_end{};    // end of current buffer
 		const value_type* eof_pos{};        // eof position that is mapped to buffer position
-		size_type         identification{}; // id for recognition
 		size_type         buffer_size{};    // size of buffer(each buffer have buffer_size * sizeof(char_type) bytes)
 		istream_type*     istream_ptr{};    // istream pointer
 		buffers_manager   buffers_mng{};    // unique_ptr for 2 buffers, size = 2*buffer_size; buffer 1 at x, buffer 2 at x offset buffer_size
