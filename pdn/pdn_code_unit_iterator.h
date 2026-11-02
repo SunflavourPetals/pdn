@@ -11,8 +11,12 @@
 
 #include "pdn_unicode_base.h"
 #include "pdn_false.h"
-#include "pdn_stoppable_concept.h"
+#include "pdn_source_position_recorder_concept.h"
+#include "pdn_error_handler_concept.h"
+#include "pdn_error_message_generator_concept.h"
 #include "pdn_stop_reason.h"
+#include "pdn_stoppable_concept.h"
+#include "pdn_stoppable_utility.h"
 
 // requires 1 Byte = 8 bits
 
@@ -40,15 +44,24 @@
 //     v
 //    parser (provide: parse) ----> pdn document object model
 
+namespace pdn::concepts
+{
+	template <typename type>
+	concept function_package_for_code_unit_iterator
+		 = concepts::source_position_recorder<type>
+		&& concepts::error_handler<type>
+		&& concepts::error_message_generator<type>;
+}
+
 namespace pdn::detail
 {
-	static_assert(sizeof(char8_t)  == 1, "[pdn] please rewrite code_unit_iterator for your platform");
-	static_assert(sizeof(char16_t) == 2, "[pdn] please rewrite code_unit_iterator for your platform");
-	static_assert(sizeof(char32_t) == 4, "[pdn] please rewrite code_unit_iterator for your platform");
+	static_assert(sizeof(unicode::u8char_t)  == 1, "[pdn] please rewrite code_unit_iterator for your platform");
+	static_assert(sizeof(unicode::u16char_t) == 2, "[pdn] please rewrite code_unit_iterator for your platform");
+	static_assert(sizeof(unicode::u32char_t) == 4, "[pdn] please rewrite code_unit_iterator for your platform");
 
 	// only for utf16 and utf32
-	template <unicode::encode_type encode_type, typename it_t>
-	class code_unit_iterator_helper final
+	template <unicode::encode_type encode_type, typename it_t, concepts::function_package_for_code_unit_iterator function_package>
+	class mb_code_unit_iterator_base
 	{
 	public:
 		static_assert(encode_type != unicode::encode_type::unknown && encode_type != unicode::encode_type::utf8,
@@ -56,7 +69,7 @@ namespace pdn::detail
 		using code_unit_type = unicode::type_traits::code_unit_t<encode_type>;
 		using char_type      = code_unit_type;
 		using size_type      = ::std::size_t;
-		using unsigned_it_value_t = ::std::make_unsigned_t<::std::remove_cvref_t<decltype(*::std::declval<it_t>())>>;
+		using unsigned_it_value_t = ::std::make_unsigned_t<::std::remove_cvref_t<decltype(*::std::declval<it_t&>())>>;
 		static constexpr size_type bits_count_of_byte{ 8 }; // requires 1 Byte = 8 bits
 		static constexpr size_type bits_count_of_unit{ sizeof(char_type) * bits_count_of_byte };
 		static constexpr ::std::endian source_endian() noexcept
@@ -155,6 +168,9 @@ namespace pdn::detail
 			}
 			return curr_value;
 		}
+	public:
+		mb_code_unit_iterator_base(function_package& fp) : func_pkg{ &fp } {}
+		function_package* func_pkg{};
 	};
 	
 	template <typename type>
@@ -184,7 +200,87 @@ namespace pdn::detail
 		}
 	};
 
-	namespace for_code_unit_iterator_u8
+	// for multi-byte code unit type(utf16 or utf32)
+	template <unicode::encode_type encode_type, typename it_t, concepts::function_package_for_code_unit_iterator function_package>
+	class mb_code_unit_iterator : private mb_code_unit_iterator_base<encode_type, it_t, function_package>
+	{
+	public:
+		using iterator_concept  = void;
+		using iterator_category = void;
+		using code_unit_type    = unicode::type_traits::code_unit_t<encode_type>;
+		using char_type         = code_unit_type;
+		using size_type         = ::std::size_t;
+		using value_type        = char_type;
+	private:
+		using helper            = mb_code_unit_iterator_base<encode_type, it_t, function_package>;
+		void first_to_next()
+		{
+			curr_value = helper::first_to_next(compressed.begin, [this]() { return compressed.eof(); });
+		}
+	public:
+		static constexpr ::std::endian source_endian() noexcept
+		{
+			return helper::source_endian();
+		}
+		bool stop_requested() const noexcept(noexcept_stop_requested_v<it_t>)
+			requires concepts::stoppable<it_t>
+		{
+			return compressed.begin.stop_requested();
+		}
+		auto stop_reason() const noexcept(noexcept_stop_reasonable_v<it_t>) -> stop_reason_code
+			requires concepts::stop_reasonable<it_t>
+		{
+			return compressed.begin.stop_reason();
+		}
+		const char_type& operator*() const noexcept
+		{
+			return curr_value;
+		}
+		mb_code_unit_iterator& operator++ ()
+		{
+			curr_value = helper::to_next(compressed.begin, [this]() { return compressed.eof(); });
+			return *this;
+		}
+		template <typename original_it_t>
+		friend bool operator== (const mb_code_unit_iterator& lhs, const original_it_t& rhs) noexcept
+		{
+			return lhs.compressed.begin == rhs;
+		}
+		mb_code_unit_iterator(it_t bytes_begin, function_package& fp)  requires eof_checker<it_t> :
+			helper(fp),
+			compressed{ ::std::move(bytes_begin) }
+		{
+			first_to_next();
+		}
+		mb_code_unit_iterator(it_t bytes_begin, auto&&, function_package& fp) requires eof_checker<it_t> :
+			mb_code_unit_iterator(::std::move(bytes_begin), fp)
+		{
+			first_to_next();
+		}
+		mb_code_unit_iterator(it_t bytes_begin, it_t bytes_end, function_package& fp) requires (!eof_checker<it_t>) :
+			helper(fp),
+			compressed{ ::std::move(bytes_begin), ::std::move(bytes_end) }
+		{
+			first_to_next();
+		}
+	private:
+		code_unit_iterator_compressed<it_t> compressed{};
+		char_type curr_value{};
+	};
+
+	template <typename it_t, typename fp>
+	class mb_code_unit_iterator<unicode::encode_type::unknown, it_t, fp>
+	{
+		static_assert(false_v<it_t>, "[pdn] unknown encode type for mb_code_unit_iterator");
+	};
+
+	template <typename it_t, typename fp>
+	class mb_code_unit_iterator<unicode::encode_type::utf8, it_t, fp>
+	{
+		static_assert(false_v<it_t>, "[pdn] unsupported encode utf8 for mb_code_unit_iterator, see u8_code_unit_iterator");
+	};
+
+	namespace for_u8_code_unit_iterator
 	{
 		template <typename it_t>
 		using deref_t = decltype(*::std::declval<it_t>());
@@ -195,90 +291,10 @@ namespace pdn::detail
 		template <typename it_t, typename t>
 		concept can_ret_ref = ::std::same_as<it_value_t<it_t>, t>&& ::std::is_lvalue_reference_v<deref_t<it_t>>;
 	}
-}
 
-namespace pdn
-{
-	template <unicode::encode_type encode_type, typename it_t>
-	class code_unit_iterator
-	{
-	public:
-		using iterator_concept  = void;
-		using iterator_category = void;
-		using code_unit_type    = unicode::type_traits::code_unit_t<encode_type>;
-		using char_type         = code_unit_type;
-		using size_type         = ::std::size_t;
-		using value_type        = char_type;
-	private:
-		using helper            = detail::code_unit_iterator_helper<encode_type, it_t>;
-		void first_to_next()
-		{
-			curr_value = helper::first_to_next(compressed.begin, [this]() { return compressed.eof(); });
-		}
-	public:
-		static constexpr ::std::endian source_endian() noexcept
-		{
-			return helper::source_endian();
-		}
-		bool stop_requested() noexcept(detail::noexcept_stop_requested_nonconst_v<it_t>)
-			requires concepts::nonconst_stoppable<it_t>
-		{
-			return compressed.begin.stop_requested();
-		}
-		bool stop_requested() const noexcept(detail::noexcept_stop_requested_const_v<it_t>)
-			requires concepts::const_stoppable<it_t>
-		{
-			return compressed.begin.stop_requested();
-		}
-		auto stop_reason() noexcept(detail::noexcept_stop_reasonable_nonconst_v<it_t>) -> stop_reason_code
-			requires concepts::nonconst_stop_reasonable<it_t>
-		{
-			return compressed.begin.stop_reason();
-		}
-		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_const_v<it_t>) -> stop_reason_code
-			requires concepts::const_stop_reasonable<it_t>
-		{
-			return compressed.begin.stop_reason();
-		}
-		const char_type& operator*() const noexcept
-		{
-			return curr_value;
-		}
-		code_unit_iterator& operator++ ()
-		{
-			curr_value = helper::to_next(compressed.begin, [this]() { return compressed.eof(); });
-			return *this;
-		}
-		template <typename original_it_t>
-		friend bool operator== (const code_unit_iterator& lhs, const original_it_t& rhs) noexcept
-		{
-			return lhs.compressed.begin == rhs;
-		}
-		explicit code_unit_iterator(it_t bytestream_begin)
-			requires detail::eof_checker<it_t> :
-				compressed{ ::std::move(bytestream_begin) }
-		{
-			first_to_next();
-		}
-		code_unit_iterator(it_t bytestream_begin, const it_t&)
-			requires detail::eof_checker<it_t> :
-				compressed{ ::std::move(bytestream_begin) }
-		{
-			first_to_next();
-		}
-		code_unit_iterator(it_t bytestream_begin, it_t bytestream_end)
-			requires (!detail::eof_checker<it_t>) :
-			compressed{ ::std::move(bytestream_begin), ::std::move(bytestream_end) }
-		{
-			first_to_next();
-		}
-	private:
-		detail::code_unit_iterator_compressed<it_t> compressed{};
-		char_type curr_value{};
-	};
 
 	template <typename it_t>
-	class code_unit_iterator<unicode::encode_type::utf8, it_t>
+	class u8_code_unit_iterator
 	{
 	public:
 		using iterator_concept  = void;
@@ -287,28 +303,18 @@ namespace pdn
 		using char_type         = code_unit_type;
 		using size_type         = ::std::size_t;
 		using value_type        = char_type;
-		using deref_value_type  = ::std::conditional_t<detail::for_code_unit_iterator_u8::can_ret_ref<it_t, char_type>, const char_type&, char_type>;
+		using deref_value_type  = ::std::conditional_t<for_u8_code_unit_iterator::can_ret_ref<it_t, char_type>, const char_type&, char_type>;
 		static constexpr ::std::endian source_endian() noexcept
 		{
 			return ::std::endian::native;
 		}
-		bool stop_requested() noexcept(detail::noexcept_stop_requested_nonconst_v<it_t>)
-			requires concepts::nonconst_stoppable<it_t>
+		bool stop_requested() const noexcept(noexcept_stop_requested_v<it_t>)
+			requires concepts::stoppable<it_t>
 		{
 			return begin.stop_requested();
 		}
-		bool stop_requested() const noexcept(detail::noexcept_stop_requested_const_v<it_t>)
-			requires concepts::const_stoppable<it_t>
-		{
-			return begin.stop_requested();
-		}
-		auto stop_reason() noexcept(detail::noexcept_stop_reasonable_nonconst_v<it_t>) -> stop_reason_code
-			requires concepts::nonconst_stop_reasonable<it_t>
-		{
-			return begin.stop_reason();
-		}
-		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_const_v<it_t>) -> stop_reason_code
-			requires concepts::const_stop_reasonable<it_t>
+		auto stop_reason() const noexcept(noexcept_stop_reasonable_v<it_t>) -> stop_reason_code
+			requires concepts::stop_reasonable<it_t>
 		{
 			return begin.stop_reason();
 		}
@@ -316,32 +322,34 @@ namespace pdn
 		{
 			return *begin;
 		}
-		code_unit_iterator& operator++ ()
+		u8_code_unit_iterator& operator++ ()
 		{
 			++begin;
 			return *this;
 		}
 		template <typename original_it_t>
-		friend bool operator== (const code_unit_iterator& lhs, const original_it_t& rhs) noexcept
+		friend bool operator== (const u8_code_unit_iterator& lhs, const original_it_t& rhs) noexcept
 		{
 			return lhs.begin == rhs;
 		}
-		explicit code_unit_iterator(it_t bytestream_begin) : begin{ ::std::move(bytestream_begin) } {}
-		code_unit_iterator(it_t bytestream_begin, const it_t&) : code_unit_iterator(::std::move(bytestream_begin)) {}
+		explicit u8_code_unit_iterator(it_t bytes_begin) : begin{ ::std::move(bytes_begin) } {}
+		u8_code_unit_iterator(it_t bytes_begin, auto&&, auto&&) : u8_code_unit_iterator(::std::move(bytes_begin)) {}
 	private:
 		it_t begin;
 	};
+}
 
-	template <typename it_t>
-	class code_unit_iterator<unicode::encode_type::unknown, it_t>
-	{
-		static_assert(detail::false_v<it_t>, "[pdn] unknown encode type for code unit iterator");
-	};
+namespace pdn
+{
+	template <unicode::encode_type encode_type, typename it_t, concepts::function_package_for_code_unit_iterator function_package>
+	using code_unit_iterator = ::std::conditional_t<encode_type == unicode::encode_type::utf8,
+		detail::u8_code_unit_iterator<it_t>,
+		detail::mb_code_unit_iterator<encode_type, it_t, function_package>>;
 
-	template <unicode::encode_type encode_type, typename it_t>
-	inline auto make_code_unit_iterator(it_t bytestream_begin, it_t bytestream_end)
+	template <unicode::encode_type encode_type, typename it_t, concepts::function_package_for_code_unit_iterator function_package>
+	inline auto make_code_unit_iterator(it_t bytestream_begin, it_t bytestream_end, function_package& fp)
 	{
-		return code_unit_iterator<encode_type, it_t>{ ::std::move(bytestream_begin), ::std::move(bytestream_end) };
+		return code_unit_iterator<encode_type, it_t, function_package>{ ::std::move(bytestream_begin), ::std::move(bytestream_end), fp };
 	}
 }
 

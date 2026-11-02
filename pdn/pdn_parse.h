@@ -213,11 +213,11 @@ namespace pdn
 		using enum unicode::encode_type;
 		switch (enc)
 		{
-		case utf8:     return parse(make_code_unit_iterator<utf8>    (sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf16_le: return parse(make_code_unit_iterator<utf16_le>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(sw.current(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf8:     return parse(make_code_unit_iterator<utf8>    (sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_le: return parse(make_code_unit_iterator<utf16_le>(sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
 		default:       assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type"); // unreachable
 		}
 		return ::std::nullopt;

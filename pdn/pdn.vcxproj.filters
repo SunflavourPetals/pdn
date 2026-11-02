@@ -342,6 +342,9 @@
     <ClInclude Include="pdn_stoppable_concept.h">
       <Filter>pdn_stop</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_stoppable_utility.h">
+      <Filter>pdn_stop</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

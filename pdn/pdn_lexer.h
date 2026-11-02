@@ -25,8 +25,9 @@
 #include "pdn_utf_code_convert.h"
 #include "pdn_lexical_error_code.h"
 
-#include "pdn_stoppable_concept.h"
 #include "pdn_stop_reason.h"
+#include "pdn_stoppable_concept.h"
+#include "pdn_stoppable_utility.h"
 
 namespace pdn::concepts
 {
@@ -1551,69 +1552,36 @@ namespace pdn
 
 			return result;
 		}
-		bool stop_requested() noexcept(detail::noexcept_stop_requested_nonconst_v<function_package>)
-			requires (concepts::nonconst_stoppable<function_package> && concepts::nonconst_stoppable<cp_it_t>)
+		bool stop_requested() const noexcept(detail::noexcept_stop_requested_v<function_package>)
+			requires (concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>)
 		{
 			return this->stop_requested_it() ? true : static_cast<bool>(func_pkg->stop_requested());
 		}
-		bool stop_requested() noexcept(detail::noexcept_stop_requested_nonconst_v<function_package>)
-			requires (concepts::nonconst_stoppable<function_package> && !concepts::nonconst_stoppable<cp_it_t>)
-		{
-			return func_pkg->stop_requested();
-		}
-		bool stop_requested() noexcept
-			requires (!concepts::nonconst_stoppable<function_package> && concepts::nonconst_stoppable<cp_it_t>)
-		{
-			return this->stop_requested_it();
-		}
-		bool stop_requested() const noexcept(detail::noexcept_stop_requested_const_v<function_package>)
-			requires (concepts::const_stoppable<function_package> && concepts::const_stoppable<cp_it_t>)
-		{
-			return this->stop_requested_it() ? true : static_cast<bool>(func_pkg->stop_requested());
-		}
-		bool stop_requested() const noexcept(detail::noexcept_stop_requested_const_v<function_package>)
-			requires (concepts::const_stoppable<function_package> && !concepts::const_stoppable<cp_it_t>)
+		bool stop_requested() const noexcept(detail::noexcept_stop_requested_v<function_package>)
+			requires (concepts::stoppable<function_package> && !concepts::stoppable<cp_it_t>)
 		{
 			return func_pkg->stop_requested();
 		}
 		bool stop_requested() const noexcept
-			requires (!concepts::const_stoppable<function_package> && concepts::const_stoppable<cp_it_t>)
+			requires (!concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>)
 		{
 			return this->stop_requested_it();
 		}
-		auto stop_reason() noexcept(detail::noexcept_stop_reasonable_nonconst_v<function_package>) -> stop_reason_code
-			requires (concepts::nonconst_stop_reasonable<function_package> && concepts::nonconst_stop_reasonable<cp_it_t>)
+		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_v<function_package>) -> stop_reason_code
+			requires (concepts::stop_reasonable<function_package> && concepts::stop_reasonable<cp_it_t>)
 		{
 			if (this->stop_requested_it())
 				return this->stop_reason_it();
 			else
 				return func_pkg->stop_reason();
 		}
-		auto stop_reason() noexcept(detail::noexcept_stop_reasonable_nonconst_v<function_package>)->stop_reason_code
-			requires (concepts::nonconst_stop_reasonable<function_package> && !concepts::nonconst_stop_reasonable<cp_it_t>)
-		{
-			return func_pkg->stop_reason();
-		}
-		auto stop_reason() noexcept -> stop_reason_code
-			requires (!concepts::nonconst_stop_reasonable<function_package> && concepts::nonconst_stop_reasonable<cp_it_t>)
-		{
-			return this->stop_reason_it();
-		}
-		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_const_v<function_package>) -> stop_reason_code
-			requires (concepts::const_stop_reasonable<function_package> && concepts::const_stop_reasonable<cp_it_t>)
-		{
-			if (this->stop_requested_it())
-				return this->stop_reason_it();
-			else
-				return func_pkg->stop_reason();
-		}
-		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_const_v<function_package>)->stop_reason_code
-			requires (concepts::const_stop_reasonable<function_package> && !concepts::const_stop_reasonable<cp_it_t>)
+		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_v<function_package>)->stop_reason_code
+			requires (concepts::stop_reasonable<function_package> && !concepts::stop_reasonable<cp_it_t>)
 		{
 			return func_pkg->stop_reason();
 		}
 		auto stop_reason() const noexcept -> stop_reason_code
-			requires (!concepts::const_stop_reasonable<function_package> && concepts::const_stop_reasonable<cp_it_t>)
+			requires (!concepts::stop_reasonable<function_package> && concepts::stop_reasonable<cp_it_t>)
 		{
 			return this->stop_reason_it();
 		}
