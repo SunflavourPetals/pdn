@@ -1061,11 +1061,13 @@ namespace pdn
 
 			while (begin != end)
 			{
+				// TODO make a helper ++begin returns is_failed (attempt_to_increase/attempt_to_dereference)
 				auto c = *begin;
 
 				if (!unicode::is_scalar_value(c))
 				{
 					using raw_err = raw_error_message_type::not_unicode_scalar_value;
+					// TODO make post_err like attempt_to_increase
 					post_err(get_pos(), lex_ec::not_unicode_scalar_value, raw_err{ c });
 					++begin;
 					continue;
