@@ -15,7 +15,7 @@
 #include "pdn_unicode_base.h"
 
 #include "pdn_bom_reader.h"
-#include "pdn_swap_chain.h"
+#include "pdn_byte_swap_chain.h"
 #include "pdn_code_unit_iterator.h"
 #include "pdn_code_point_iterator.h"
 #include "pdn_lexer.h"
@@ -26,7 +26,7 @@
 
 namespace pdn::detail
 {
-	inline constexpr ::std::size_t default_buffer_size = 1024;
+	inline constexpr ::std::size_t default_buffer_size = 16 * 1024;
 
 	template <typename stream>
 	concept stream_constructible_from_wchar_cstring = ::std::constructible_from<stream, const wchar_t*>;
@@ -209,15 +209,15 @@ namespace pdn
 		}
 		source_file.clear(source_file.rdstate() & std::ios::eofbit); // clear fail bit -> good | eof
 		auto enc = unicode::to_encode_type(bom_t);
-		auto sw = make_swap_chain(source_file, buffer_size); // requires source_file is opened and not bad
+		auto sw = make_byte_swap_chain(source_file, buffer_size); // requires source_file is opened and not bad
 		using enum unicode::encode_type;
 		switch (enc)
 		{
-		case utf8:     return parse(make_code_unit_iterator<utf8>    (sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf16_le: return parse(make_code_unit_iterator<utf16_le>(sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(sw.current(), sw.end(), cp_it_fp), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf8:     return parse(make_code_unit_iterator<utf8>    (sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_le: return parse(make_code_unit_iterator<utf16_le>(sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
 		default:       assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type"); // unreachable
 		}
 		return ::std::nullopt;

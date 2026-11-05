@@ -136,6 +136,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="pdn_adjacent_2_buffer.h" />
     <ClInclude Include="pdn_bom_reader.h" />
     <ClInclude Include="pdn_false.h" />
     <ClInclude Include="pdn_from_chars_hex_float.h" />
@@ -188,7 +189,7 @@
     <ClInclude Include="pdn_source_position_and_newline_recorder.h" />
     <ClInclude Include="pdn_source_position.h" />
     <ClInclude Include="pdn_source_position_recorder.h" />
-    <ClInclude Include="pdn_swap_chain.h" />
+    <ClInclude Include="pdn_byte_swap_chain.h" />
     <ClInclude Include="pdn_token.h" />
     <ClInclude Include="pdn_serializer.h" />
     <ClInclude Include="pdn_type.h" />
@@ -223,6 +224,7 @@
     <ClInclude Include="pdn_syntax_error_code.h" />
     <ClInclude Include="pdn_token_value_variant_convert.h" />
     <ClInclude Include="spdn.h" />
+    <ClInclude Include="swap_chain.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

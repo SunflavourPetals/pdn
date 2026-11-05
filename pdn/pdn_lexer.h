@@ -1567,21 +1567,21 @@ namespace pdn
 		{
 			return this->stop_requested_it();
 		}
-		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_v<function_package>) -> stop_reason_code
-			requires (concepts::stop_reasonable<function_package> && concepts::stop_reasonable<cp_it_t>)
+		auto stop_reason() const noexcept(detail::noexcept_stop_reason_v<function_package>) -> stop_reason_code
+			requires (concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>)
 		{
 			if (this->stop_requested_it())
 				return this->stop_reason_it();
 			else
 				return func_pkg->stop_reason();
 		}
-		auto stop_reason() const noexcept(detail::noexcept_stop_reasonable_v<function_package>)->stop_reason_code
-			requires (concepts::stop_reasonable<function_package> && !concepts::stop_reasonable<cp_it_t>)
+		auto stop_reason() const noexcept(detail::noexcept_stop_reason_v<function_package>)->stop_reason_code
+			requires (concepts::stoppable<function_package> && !concepts::stoppable<cp_it_t>)
 		{
 			return func_pkg->stop_reason();
 		}
 		auto stop_reason() const noexcept -> stop_reason_code
-			requires (!concepts::stop_reasonable<function_package> && concepts::stop_reasonable<cp_it_t>)
+			requires (!concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>)
 		{
 			return this->stop_reason_it();
 		}
