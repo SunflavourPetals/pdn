@@ -1025,6 +1025,8 @@ namespace pdn
 			auto append = [](type::string<char_t>& src, unicode::code_point_t c)
 			{
 				auto encode_r = unicode::encode<char_t>(c);
+				// TODO to en
+				// lexer 保证了 c 是 Unicode 标量值，encode 不会失败
 				assert(static_cast<bool>(encode_r) && "encode failed");
 				src.append(encode_r.cbegin(), encode_r.cend());
 			};
@@ -1147,7 +1149,7 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::identifier_string;
-					if (detail::get_escape(c, begin, end, true, helper()))
+					if (detail::get_escape(c, begin, end, true, helper())) // BGMARK
 					{
 						append(text, c);
 					}
@@ -1160,7 +1162,7 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::string;
-					if (detail::get_escape(c, begin, end, false, helper()))
+					if (detail::get_escape(c, begin, end, false, helper())) // BGMARK
 					{
 						append(text, c);
 					}
@@ -1173,7 +1175,7 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::character;
-					if (detail::get_escape(c, begin, end, false, helper()))
+					if (detail::get_escape(c, begin, end, false, helper())) // BGMARK
 					{
 						append(text, c);
 					}
@@ -1188,7 +1190,7 @@ namespace pdn
 					// @"d_seq()d_seq"
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
-					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, false, helper());
+					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, false, helper()); // BGMARK
 					new_dfa_state = dfa_state_objects::raw_string;
 					goto label_update_dfa_state;
 				case raw_string_received_CR:
@@ -1230,7 +1232,7 @@ namespace pdn
 						request_stop(begin.stop_reason());
 						return result;
 					}
-					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'"'))
+					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'"')) // BGMARK
 					{
 						new_dfa_state = dfa_state_objects::raw_string_closed;
 					}
@@ -1252,7 +1254,7 @@ namespace pdn
 					// @`d_seq()d_seq`
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
-					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, true, helper());
+					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, true, helper()); // BGMARK
 					new_dfa_state = dfa_state_objects::identifier_raw_string;
 					goto label_update_dfa_state;
 				case identifier_raw_string_received_CR:
@@ -1285,7 +1287,7 @@ namespace pdn
 						request_stop(begin.stop_reason());
 						return result;
 					}
-					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'`'))
+					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'`')) // BGMARK
 					{
 						new_dfa_state = dfa_state_objects::identifier_raw_string_closed;
 					}
