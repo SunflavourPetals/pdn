@@ -345,9 +345,6 @@
     <ClInclude Include="pdn_adjacent_2_buffer.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="swap_chain.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="pdn_stoppable_concept.h">
       <Filter>pdn_stop</Filter>
     </ClInclude>

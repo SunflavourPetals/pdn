@@ -9,6 +9,7 @@ namespace pdn
 		open_file_failed, // for input file stream
 		bad_stream,
 		stream_operation_failed,
+		incomplete_code_unit,
 		user_cancelled, // for user defined function package
 	};
 }

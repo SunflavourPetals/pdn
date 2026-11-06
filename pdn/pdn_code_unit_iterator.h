@@ -51,118 +51,212 @@ namespace pdn::detail
 	static_assert(sizeof(unicode::u32char_t) == 4, "[pdn] code_unit_iterator: unsupported platform");
 
 	// only for utf16 and utf32
+	// requires it_t::operator* and eof never request stop
+	// only for mb_code_unit_iterator inner usage
 	template <unicode::encode_type encode_type, typename it_t>
-	class mb_code_unit_iterator_base
+	class mb_code_unit_iterator_helper
 	{
 	public:
 		static_assert(encode_type != unicode::encode_type::unknown && encode_type != unicode::encode_type::utf8,
 			"[pdn] code_unit_iterator_helper: unsupported encode");
 		using code_unit_type = unicode::type_traits::code_unit_t<encode_type>;
-		using char_type      = code_unit_type;
-		using size_type      = ::std::size_t;
-		using unsigned_it_value_t = ::std::make_unsigned_t<::std::remove_cvref_t<decltype(*::std::declval<it_t&>())>>;
+		using char_type = code_unit_type;
+		using size_type = ::std::size_t;
+		using it_value_t = ::std::remove_cvref_t<decltype(*::std::declval<it_t&>())>;
+		using unsigned_it_value_t = ::std::make_unsigned_t<it_value_t>;
 		static constexpr size_type bits_count_of_byte{ 8 }; // requires 1 Byte = 8 bits
 		static constexpr size_type bits_count_of_unit{ sizeof(char_type) * bits_count_of_byte };
+		bool stop_requested() const noexcept
+		{
+			return stop_reason_c != stop_reason_code{};
+		}
+		auto stop_reason() const noexcept -> stop_reason_code
+		{
+			return stop_reason_c;
+		}
 		static constexpr ::std::endian source_endian() noexcept
 		{
 			return unicode::type_traits::endian_from_encode_type<encode_type>;
 		}
 		template <typename pred>
-		static char_type to_next(it_t& begin, pred&& is_eof)
+		char_type to_next(it_t& begin, pred&& is_eof)
 		{
-			if constexpr (source_endian() == ::std::endian::little) // little endian
+			if constexpr (source_endian() == ::std::endian::little)
 			{
 				return le_next(begin, ::std::forward<pred>(is_eof));
 			}
-			else // big endian
+			else
 			{
 				return be_next(begin, ::std::forward<pred>(is_eof));
 			}
 		}
 		template <typename pred>
-		static char_type first_to_next(it_t& begin, pred&& is_eof)
+		char_type first_to_next(it_t& begin, pred&& is_eof)
 		{
-			if constexpr (source_endian() == ::std::endian::little) // little endian
+			if constexpr (source_endian() == ::std::endian::little)
 			{
 				return first_le_next(begin, ::std::forward<pred>(is_eof));
 			}
-			else // big endian
+			else
 			{
 				return first_be_next(begin, ::std::forward<pred>(is_eof));
 			}
 		}
 	private:
+		static char_type left_move(it_value_t value, size_type offset) noexcept
+		{
+			using uct = ::std::make_unsigned_t<char_type>;
+			return static_cast<uct>(static_cast<unsigned_it_value_t>(value)) << offset;
+		}
 		template <typename pred> requires (source_endian() == ::std::endian::little)
-		static char_type le_next(it_t& begin, pred&& is_eof)
+		char_type le_next(it_t& begin, pred&& is_eof)
 		{
 			auto curr_value = char_type{};
-			for (size_type offset{}; offset < bits_count_of_unit; offset += bits_count_of_byte)
+			for (auto offset = size_type{}; offset != bits_count_of_unit; offset += bits_count_of_byte)
 			{
 				// 0x12345678 le -> 0:0x78, 1:0x56, 2:0x34, 3:0x12
 				++begin;
+				if constexpr (concepts::stoppable<it_t>)
+				{
+					if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						break;
+					}
+				}
 				if (is_eof()) [[unlikely]]
 				{
+					if (offset) [[unlikely]]
+					{
+						request_stop(stop_reason_code::incomplete_code_unit);
+					}
 					break;
 				}
-				curr_value |= (char_type(unsigned_it_value_t(*begin)) << offset);
+				curr_value |= left_move(*begin, offset);
 			}
 			return curr_value;
 		}
 		template <typename pred> requires (source_endian() == ::std::endian::big)
-		static char_type be_next(it_t& begin, pred&& is_eof)
+		char_type be_next(it_t& begin, pred&& is_eof)
 		{
 			auto curr_value = char_type{};
-			for (size_type offset{ bits_count_of_unit }; offset > 0; )
+			for (auto offset = bits_count_of_unit; offset != 0; )
 			{
 				// 0x12345678 be -> 0:0x12, 1:0x34, 2:0x56, 3:0x78
-				offset -= bits_count_of_byte;
 				++begin;
+				if constexpr (concepts::stoppable<it_t>)
+				{
+					if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						break;
+					}
+				}
 				if (is_eof()) [[unlikely]]
 				{
+					if (offset != bits_count_of_unit) [[unlikely]]
+					{
+						request_stop(stop_reason_code::incomplete_code_unit);
+					}
 					break;
 				}
-				curr_value |= (char_type(unsigned_it_value_t(*begin)) << offset);
+				offset -= bits_count_of_byte;
+				curr_value |= left_move(*begin, offset);
 			}
 			return curr_value;
 		}
 		template <typename pred> requires (source_endian() == ::std::endian::little)
-		static char_type first_le_next(it_t& begin, pred&& is_eof)
+		char_type first_le_next(it_t& begin, pred&& is_eof)
 		{
 			auto curr_value = char_type{};
-			for (size_type offset{}; !is_eof(); )
+			if constexpr (concepts::stoppable<it_t>)
 			{
-				curr_value |= (char_type(unsigned_it_value_t(*begin)) << offset);
-				offset += bits_count_of_byte;
-				if (offset < bits_count_of_unit)
+				if (begin.stop_requested()) [[unlikely]]
 				{
-					++begin;
-					continue;
+					request_stop(begin.stop_reason());
+					return curr_value;
 				}
-				break;
+			}
+			for (auto offset = size_type{}; ; )
+			{
+				if (is_eof()) [[unlikely]]
+				{
+					if (offset) [[unlikely]]
+					{
+						request_stop(stop_reason_code::incomplete_code_unit);
+					}
+					break;
+				}
+				curr_value |= left_move(*begin, offset);
+				offset += bits_count_of_byte;
+				if (offset == bits_count_of_unit)
+				{
+					break;
+				}
+				++begin;
+				if constexpr (concepts::stoppable<it_t>)
+				{
+					if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						break;
+					}
+				}
 			}
 			return curr_value;
 		}
 		template <typename pred> requires (source_endian() == ::std::endian::big)
-		static char_type first_be_next(it_t& begin, pred&& is_eof)
+		char_type first_be_next(it_t& begin, pred&& is_eof)
 		{
 			auto curr_value = char_type{};
-			for (size_type offset{ bits_count_of_unit }; !is_eof(); )
+			if constexpr (concepts::stoppable<it_t>)
 			{
-				offset -= bits_count_of_byte;
-				curr_value |= (char_type(unsigned_it_value_t(*begin)) << offset);
-				if (offset > 0)
+				if (begin.stop_requested()) [[unlikely]]
 				{
-					++begin;
-					continue;
+					request_stop(begin.stop_reason());
+					return curr_value;
 				}
-				break;
+			}
+			for (auto offset = bits_count_of_unit; ; )
+			{
+				if (is_eof()) [[unlikely]]
+				{
+					if (offset != bits_count_of_unit) [[unlikely]]
+					{
+						request_stop(stop_reason_code::incomplete_code_unit);
+					}
+					break;
+				}
+				offset -= bits_count_of_byte;
+				curr_value |= left_move(*begin, offset);
+				if (offset == 0)
+				{
+					break;
+				}
+				++begin;
+				if constexpr (concepts::stoppable<it_t>)
+				{
+					if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						break;
+					}
+				}
 			}
 			return curr_value;
 		}
+		void request_stop(stop_reason_code reason) noexcept
+		{
+			if (stop_reason_c == stop_reason_code{})
+			{
+				stop_reason_c = reason;
+			}
+		}
+		stop_reason_code stop_reason_c{};
 	};
 	
 	template <typename type>
-	concept eof_checker = requires(const type o)
+	concept eof_detector = requires(const type o)
 	{
 		{ o.eof() } -> ::std::convertible_to<bool>;
 	};
@@ -178,7 +272,7 @@ namespace pdn::detail
 		}
 	};
 
-	template <eof_checker it_t>
+	template <eof_detector it_t>
 	struct code_unit_iterator_compressed<it_t> final
 	{
 		it_t begin;
@@ -200,25 +294,23 @@ namespace pdn::detail
 		using size_type         = ::std::size_t;
 		using value_type        = char_type;
 	private:
-		using helper            = mb_code_unit_iterator_base<encode_type, it_t>;
+		using helper_type       = mb_code_unit_iterator_helper<encode_type, it_t>;
 		void first_to_next()
 		{
-			curr_value = helper::first_to_next(compressed.begin, [this]() { return compressed.eof(); });
+			curr_value = helper.first_to_next(compressed.begin, [this]() { return compressed.eof(); });
 		}
 	public:
 		static constexpr ::std::endian source_endian() noexcept
 		{
-			return helper::source_endian();
+			return helper.source_endian();
 		}
-		bool stop_requested() const noexcept(noexcept_stop_requested_v<it_t>)
-			requires concepts::stoppable<it_t>
+		bool stop_requested() const noexcept
 		{
-			return compressed.begin.stop_requested();
+			return helper.stop_requested();
 		}
-		auto stop_reason() const noexcept(noexcept_stop_reason_v<it_t>) -> stop_reason_code
-			requires concepts::stoppable<it_t>
+		auto stop_reason() const noexcept
 		{
-			return compressed.begin.stop_reason();
+			return helper.stop_reason();
 		}
 		const char_type& operator*() const noexcept
 		{
@@ -226,22 +318,23 @@ namespace pdn::detail
 		}
 		mb_code_unit_iterator& operator++ ()
 		{
-			curr_value = helper::to_next(compressed.begin, [this]() { return compressed.eof(); });
+			curr_value = helper.to_next(compressed.begin, [this]() { return compressed.eof(); });
 			return *this;
 		}
+		// just for checking eof, returns is lhs eof
 		template <typename original_it_t>
-		friend bool operator== (const mb_code_unit_iterator& lhs, const original_it_t& rhs) noexcept
+		friend bool operator== (const mb_code_unit_iterator& lhs, const original_it_t& rhs)
 		{
-			return lhs.compressed.begin == rhs;
+			return lhs.compressed.eof();
 		}
-		mb_code_unit_iterator(it_t bytes_begin)  requires eof_checker<it_t> :
+		mb_code_unit_iterator(it_t bytes_begin)  requires eof_detector<it_t> :
 			compressed{ ::std::move(bytes_begin) }
 		{
 			first_to_next();
 		}
-		mb_code_unit_iterator(it_t bytes_begin, auto&&) requires eof_checker<it_t> :
+		mb_code_unit_iterator(it_t bytes_begin, auto&&) requires eof_detector<it_t> :
 			mb_code_unit_iterator(::std::move(bytes_begin)) {}
-		mb_code_unit_iterator(it_t bytes_begin, it_t bytes_end) requires (!eof_checker<it_t>) :
+		mb_code_unit_iterator(it_t bytes_begin, it_t bytes_end) requires (!eof_detector<it_t>) :
 			compressed{ ::std::move(bytes_begin), ::std::move(bytes_end) }
 		{
 			first_to_next();
@@ -249,6 +342,7 @@ namespace pdn::detail
 	private:
 		code_unit_iterator_compressed<it_t> compressed{};
 		char_type curr_value{};
+		helper_type helper{};
 	};
 
 	template <typename it_t>
