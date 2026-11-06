@@ -58,7 +58,7 @@ namespace pdn
 		{
 			return swap_chain_ptr->stop_reason();
 		}
-		bool eof() const
+		bool eof() const noexcept
 		{
 			return swap_chain_ptr->eof();
 		}

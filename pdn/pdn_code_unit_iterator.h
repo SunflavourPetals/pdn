@@ -11,9 +11,7 @@
 
 #include "pdn_unicode_base.h"
 #include "pdn_false.h"
-#include "pdn_source_position_recorder_concept.h"
-#include "pdn_error_handler_concept.h"
-#include "pdn_error_message_generator_concept.h"
+#include "pdn_eof_detector.h"
 #include "pdn_stop_reason.h"
 #include "pdn_stoppable_concept.h"
 #include "pdn_stoppable_utility.h"
@@ -254,19 +252,13 @@ namespace pdn::detail
 		}
 		stop_reason_code stop_reason_c{};
 	};
-	
-	template <typename type>
-	concept eof_detector = requires(const type o)
-	{
-		{ o.eof() } -> ::std::convertible_to<bool>;
-	};
 
 	template <typename it_t>
 	struct code_unit_iterator_compressed final
 	{
 		it_t begin;
 		it_t end;
-		bool eof() const
+		bool eof() const noexcept(noexcept(::std::declval<const it_t&>() == ::std::declval<const it_t&>()))
 		{
 			return begin == end;
 		}
@@ -276,7 +268,7 @@ namespace pdn::detail
 	struct code_unit_iterator_compressed<it_t> final
 	{
 		it_t begin;
-		bool eof() const
+		bool eof() const noexcept(noexcept(::std::declval<const it_t&>().eof()))
 		{
 			return begin.eof();
 		}
@@ -312,6 +304,10 @@ namespace pdn::detail
 		{
 			return helper.stop_reason();
 		}
+		bool eof() const noexcept(noexcept(::std::declval<const code_unit_iterator_compressed<it_t>&>().eof()))
+		{
+			return compressed.eof();
+		}
 		const char_type& operator*() const noexcept
 		{
 			return curr_value;
@@ -324,6 +320,7 @@ namespace pdn::detail
 		// just for checking eof, returns is lhs eof
 		template <typename original_it_t>
 		friend bool operator== (const mb_code_unit_iterator& lhs, const original_it_t& rhs)
+			noexcept(noexcept(::std::declval<const code_unit_iterator_compressed<it_t>&>().eof()))
 		{
 			return lhs.compressed.eof();
 		}
@@ -395,6 +392,11 @@ namespace pdn::detail
 		{
 			return begin.stop_reason();
 		}
+		bool eof() const noexcept(noexcept(::std::declval<const it_t&>().eof()))
+			requires eof_detector<it_t>
+		{
+			return begin.eof();
+		}
 		deref_value_type operator*() const noexcept
 		{
 			return *begin;
@@ -404,8 +406,10 @@ namespace pdn::detail
 			++begin;
 			return *this;
 		}
+		// just for checking eof
 		template <typename original_it_t>
-		friend bool operator== (const u8_code_unit_iterator& lhs, const original_it_t& rhs) noexcept
+		friend bool operator== (const u8_code_unit_iterator& lhs, const original_it_t& rhs)
+			noexcept(noexcept(::std::declval<const it_t&>() == ::std::declval<const original_it_t&>()))
 		{
 			return lhs.begin == rhs;
 		}

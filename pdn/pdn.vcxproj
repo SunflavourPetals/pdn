@@ -138,6 +138,7 @@
   <ItemGroup>
     <ClInclude Include="pdn_adjacent_2_buffer.h" />
     <ClInclude Include="pdn_bom_reader.h" />
+    <ClInclude Include="pdn_eof_detector.h" />
     <ClInclude Include="pdn_false.h" />
     <ClInclude Include="pdn_from_chars_hex_float.h" />
     <ClInclude Include="pdn_stoppable_concept.h" />

@@ -13,9 +13,12 @@
 #include "pdn_convert_decision.h"
 #include "pdn_raw_error_message.h"
 #include "pdn_error_message.h"
+#include "pdn_eof_detector.h"
 #include "pdn_source_position_recorder_concept.h"
 #include "pdn_error_handler_concept.h"
 #include "pdn_error_message_generator_concept.h"
+#include "pdn_stop_reason.h"
+#include "pdn_stoppable_concept.h"
 
 //    byte input stream (provide: get byte) // such as ifstream
 //     |
@@ -170,6 +173,7 @@ namespace pdn
 		begin_it_t            begin;
 		end_it_t              end;
 		unicode::code_point_t curr_value{};
+		stop_reason_code      stop_reason_c{};
 	};
 
 	template <typename begin_it_t, typename end_it_t, concepts::function_package_for_code_point_iterator function_package>
