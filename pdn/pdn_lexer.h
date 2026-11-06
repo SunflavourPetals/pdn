@@ -281,7 +281,8 @@ namespace pdn::detail
 		                                             auto  end,
 		     ::std::predicate<unicode::code_point_t> auto  is_valid_char)
 	{
-		for (; begin != end; ++begin)
+		using begin_t = ::std::remove_reference_t<decltype(begin)>;
+		while (begin != end)
 		{
 			auto c = *begin;
 			if (!is_valid_char(c))
@@ -289,6 +290,8 @@ namespace pdn::detail
 				break;
 			}
 			sequence += static_cast<char>(c);
+			++begin;
+			if constexpr (concepts::stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return;
 		}
 	}
 
@@ -298,7 +301,8 @@ namespace pdn::detail
 		                                             auto  end,
 		     ::std::predicate<unicode::code_point_t> auto  is_valid_char) -> ::std::size_t
 	{
-		for (::std::size_t read_count{ 0 }; read_count < count && begin != end; ++read_count, ++begin)
+		using begin_t = ::std::remove_reference_t<decltype(begin)>;
+		for (::std::size_t read_count{ 0 }; read_count < count && begin != end; ++read_count)
 		{
 			auto c = *begin;
 			if (!is_valid_char(c))
@@ -306,10 +310,14 @@ namespace pdn::detail
 				return read_count;
 			}
 			sequence += static_cast<char>(c);
+			++begin;
+			if constexpr (concepts::stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return read_count;
 		}
 		return 0;
 	}
 
+	// TODO to en process_from_chars_error 最多报告一个错误，stoppable 相关检查依赖这个实现，
+	// 如果该函数一个分支报告超过一次错误，需要检查最后一次报告错误前所有 post_err 调用是否导致 stop
 	inline void process_from_chars_error(const ::std::from_chars_result            from_chars_r,
 		                                 const ::std::string_view                  src,
 		                                 const source_position                     pos,
@@ -360,7 +368,12 @@ namespace pdn::detail
 		                   bool  enable_escape_back_quote, // is enable escape sequence \`
 		                   auto  helper)
 	{
+		// TODO to en
+		// 返回 true 表示成功，返回 false 表示失败，失败可能伴有 request stop
 		using escape_value_t = ::std::uint_least32_t;
+		using begin_t = ::std::remove_reference_t<decltype(begin)>;
+		using helper_t = decltype(helper);
+		using concepts::stoppable;
 
 		auto position = helper.get_pos();
 
@@ -383,24 +396,24 @@ namespace pdn::detail
 		case U'`':
 			if (enable_escape_back_quote)
 			{
-				oc = U'`'; ++begin; return true;
+				oc = U'`'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
 			}
 			break;
-		case U'\'': oc = U'\''; ++begin; return true;
-		case U'\"': oc = U'\"'; ++begin; return true;
-		case U'\?': oc = U'\?'; ++begin; return true;
-		case U'\\': oc = U'\\'; ++begin; return true;
-		case U'a' : oc = U'\a'; ++begin; return true;
-		case U'b' : oc = U'\b'; ++begin; return true;
-		case U'f' : oc = U'\f'; ++begin; return true;
-		case U'n' : oc = U'\n'; ++begin; return true;
-		case U'r' : oc = U'\r'; ++begin; return true;
-		case U't' : oc = U'\t'; ++begin; return true;
-		case U'v' : oc = U'\v'; ++begin; return true;
-
+		case U'\'': oc = U'\''; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U'\"': oc = U'\"'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U'\?': oc = U'\?'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U'\\': oc = U'\\'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U'a' : oc = U'\a'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U'b' : oc = U'\b'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U'f' : oc = U'\f'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U'n' : oc = U'\n'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U'r' : oc = U'\r'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U't' : oc = U'\t'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
+		case U'v' : oc = U'\v'; ++begin; if constexpr (stoppable<begin_t>) return !begin.stop_requested(); else return true;
 		case U'o': // \o{n...}
 		{
 			++begin; // -> {
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 			if (begin == end || *begin != U'{')
 			{
@@ -411,25 +424,27 @@ namespace pdn::detail
 			}
 			c = *begin;
 			++begin; // -> n (oct)
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 			get_numeric_escape_sequence(sequence, begin, end, lexer_utility::is_oct);
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 			if (begin == end || *begin != U'}')
 			{
-				helper.post_err(position,
-				                escape_error_o_not_terminated_with_right_brackets,
-				                to_raw_err_str(u8"o{"_em + seq_to_err_msg_str()));
-
-				if (sequence.empty())
-				{
-					helper.post_err(position,
-					                escape_error_o_empty_delimited_escape_sequence,
-					                to_raw_err_str(u8"o{"_em));
-				}
+				if (helper.post_err(
+					position,
+					escape_error_o_not_terminated_with_right_brackets,
+					to_raw_err_str(u8"o{"_em + seq_to_err_msg_str())))
+					[[unlikely]] return false;
+				if (sequence.empty()) helper.post_err(
+					position,
+					escape_error_o_empty_delimited_escape_sequence,
+					to_raw_err_str(u8"o{"_em));
 				return false;
 			}
 			c = *begin;
 			++begin;
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 			if (sequence.empty())
 			{
@@ -448,6 +463,7 @@ namespace pdn::detail
 			{
 				using enum raw_error_message_type::number_type;
 				process_from_chars_error(from_chars_r, sequence, position, oct_integer, true, helper);
+				if constexpr (stoppable<helper_t>) if (helper.stop_requested()) [[unlikely]] return false;
 				rt_flag = true;
 			}
 			if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
@@ -468,6 +484,7 @@ namespace pdn::detail
 		{
 			bool is_with_curly_brackets{ false };
 			++begin; // -> { or n (hex/)
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 			if (begin == end)
 			{
@@ -482,27 +499,30 @@ namespace pdn::detail
 				is_with_curly_brackets = true;
 				++begin; // -> n (hex)
 				// No need to update the value of c here
+				if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 			}
 
 			get_numeric_escape_sequence(sequence, begin, end, lexer_utility::is_hex);
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 			if (is_with_curly_brackets)
 			{
 				if (begin == end || *begin != U'}')
 				{
-					helper.post_err(position,
-					                escape_error_x_not_terminated_with_right_brackets,
-					                to_raw_err_str(u8"x{"_em + seq_to_err_msg_str()));
-					if (sequence.empty())
-					{
-						helper.post_err(position,
-						                escape_error_x_empty_delimited_escape_sequence,
-						                to_raw_err_str(u8"x{"_em));
-					}
+					if (helper.post_err(
+						position,
+						escape_error_x_not_terminated_with_right_brackets,
+						to_raw_err_str(u8"x{"_em + seq_to_err_msg_str())))
+						[[unlikely]] return false;
+					if (sequence.empty()) helper.post_err(
+						position,
+						escape_error_x_empty_delimited_escape_sequence,
+						to_raw_err_str(u8"x{"_em));
 					return false;
 				}
 				c = *begin;
 				++begin;
+				if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 			}
 
 			if (sequence.empty())
@@ -522,6 +542,7 @@ namespace pdn::detail
 			{
 				using enum raw_error_message_type::number_type;
 				process_from_chars_error(from_chars_r, sequence, position, hex_integer, true, helper);
+				if constexpr (stoppable<helper_t>) if (helper.stop_requested()) [[unlikely]] return false;
 				rt_flag = true;
 			}
 			if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
@@ -543,6 +564,7 @@ namespace pdn::detail
 		{
 			bool is_with_curly_brackets{ false };
 			++begin; // -> { or n (hex/)
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 			if (begin == end)
 			{
 				helper.post_err(position,
@@ -556,6 +578,7 @@ namespace pdn::detail
 				is_with_curly_brackets = true;
 				++begin; // -> n (hex)
 				// No need to update the value of c here
+				if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 			}
 
 			if (is_with_curly_brackets)
@@ -566,24 +589,25 @@ namespace pdn::detail
 			{
 				get_numeric_escape_sequence(4, sequence, begin, end, lexer_utility::is_hex);
 			}
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 			if (is_with_curly_brackets)
 			{
 				if (begin == end || *begin != U'}')
 				{
-					helper.post_err(position,
-					                escape_error_u_not_terminated_with_right_brackets,
-					                to_raw_err_str(u8"u{"_em + seq_to_err_msg_str()));
-					if (sequence.empty())
-					{
-						helper.post_err(position,
-						                escape_error_u_empty_delimited_escape_sequence,
-						                to_raw_err_str(u8"u{"_em));
-					}
+					if (helper.post_err(
+						position,
+						escape_error_u_not_terminated_with_right_brackets,
+						to_raw_err_str(u8"u{"_em + seq_to_err_msg_str()))) [[unlikely]] return false;
+					if (sequence.empty()) helper.post_err(
+						position,
+						escape_error_u_empty_delimited_escape_sequence,
+						to_raw_err_str(u8"u{"_em));
 					return false;
 				}
 				c = *begin;
 				++begin;
+				if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 				if (sequence.empty())
 				{
@@ -614,6 +638,7 @@ namespace pdn::detail
 			{
 				using enum raw_error_message_type::number_type;
 				process_from_chars_error(from_chars_r, sequence, position, hex_integer, true, helper);
+				if constexpr (stoppable<helper_t>) if (helper.stop_requested()) [[unlikely]] return false;
 				rt_flag = true;
 			}
 			if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
@@ -634,6 +659,7 @@ namespace pdn::detail
 			// \Unnnnnnnn Universal character names
 		{
 			++begin; // -> n (hex/)
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 			if (begin == end)
 			{
@@ -646,6 +672,7 @@ namespace pdn::detail
 			c = *begin;
 
 			get_numeric_escape_sequence(8, sequence, begin, end, lexer_utility::is_hex);
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 			if (sequence.size() != 8)
 			{
@@ -664,6 +691,7 @@ namespace pdn::detail
 			{
 				using enum raw_error_message_type::number_type;
 				process_from_chars_error(from_chars_r, sequence, position, hex_integer, true, helper);
+				if constexpr (stoppable<helper_t>) if (helper.stop_requested()) [[unlikely]] return false;
 				rt_flag = true;
 			}
 			if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
@@ -687,7 +715,9 @@ namespace pdn::detail
 
 				sequence += static_cast<char>(c);
 				++begin;
+				if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 				get_numeric_escape_sequence(2, sequence, begin, end, lexer_utility::is_oct);
+				if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 
 				::std::uint_least32_t parse_val{};
 				auto from_chars_r = ::std::from_chars(sequence.data(), sequence.data() + sequence.size(), parse_val, 8);
@@ -697,6 +727,7 @@ namespace pdn::detail
 				{
 					using enum raw_error_message_type::number_type;
 					process_from_chars_error(from_chars_r, sequence, position, oct_integer, true, helper);
+					if constexpr (stoppable<helper_t>) if (helper.stop_requested()) [[unlikely]] return false;
 					rt_flag = true;
 				}
 				if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
@@ -704,6 +735,7 @@ namespace pdn::detail
 					helper.post_err(position,
 					                escape_error_not_unicode_scalar_value,
 					                get_esc_not_scalar_err_msg(u8""_em, seq_to_err_msg_str(), parse_val, false));
+					if constexpr (stoppable<helper_t>) if (helper.stop_requested()) [[unlikely]] return false;
 					rt_flag = true;
 				}
 				if (rt_flag) [[unlikely]]
@@ -973,9 +1005,17 @@ namespace pdn::detail
 	{
 	public:
 		explicit lexer_helper(lexer_t& lexer) : lexer_p{ &lexer } {}
-		void request_stop(stop_reason_code reason) noexcept
+		void request_stop(stop_reason_code reason) noexcept requires concepts::stoppable<lexer_t>
 		{
 			lexer_p->request_stop(reason);
+		}
+		bool stop_requested() const noexcept requires concepts::stoppable<lexer_t>
+		{
+			return lexer_p->stop_requested();
+		}
+		auto stop_reason() const noexcept -> stop_reason_code requires concepts::stoppable<lexer_t>
+		{
+			return lexer_p->stop_reason();
 		}
 		auto get_pos() -> source_position
 		{
@@ -1172,9 +1212,22 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::identifier_string;
-					if (detail::get_escape(c, begin, end, true, helper())) // BGMARK
+					if (detail::get_escape(c, begin, end, true, helper())) // BGMARK DONE
 					{
 						append(text, c);
+					}
+					else
+					{
+						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+						{
+							request_stop(begin.stop_reason());
+							return result;
+						}
+						if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+						{
+							request_stop(func_pkg->stop_reason());
+							return result;
+						}
 					}
 					goto label_update_dfa_state;
 				case string_escape:
@@ -1185,9 +1238,22 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::string;
-					if (detail::get_escape(c, begin, end, false, helper())) // BGMARK
+					if (detail::get_escape(c, begin, end, false, helper())) // BGMARK DONE
 					{
 						append(text, c);
+					}
+					else
+					{
+						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+						{
+							request_stop(begin.stop_reason());
+							return result;
+						}
+						if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+						{
+							request_stop(func_pkg->stop_reason());
+							return result;
+						}
 					}
 					goto label_update_dfa_state;
 				case character_escape:
@@ -1198,9 +1264,22 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::character;
-					if (detail::get_escape(c, begin, end, false, helper())) // BGMARK
+					if (detail::get_escape(c, begin, end, false, helper())) // BGMARK DONE
 					{
 						append(text, c);
+					}
+					else
+					{
+						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+						{
+							request_stop(begin.stop_reason());
+							return result;
+						}
+						if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+						{
+							request_stop(func_pkg->stop_reason());
+							return result;
+						}
 					}
 					goto label_update_dfa_state;
 				case raw_string_d_seq_opened:
