@@ -40,7 +40,7 @@ namespace pdn::concepts
 
 namespace pdn
 {
-	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
+	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package>
 	class lexer;
 }
 
@@ -49,7 +49,7 @@ namespace pdn::detail
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
 	struct token_iterator_ctrlblk_from_lexer
 	{
-		using lexer_t = lexer<char_t, function_package, it_begin_t>;
+		using lexer_t = lexer<char_t, function_package>;
 		using token_t = token<char_t>;
 		lexer_t    lex;
 		it_begin_t begin;
@@ -68,7 +68,7 @@ namespace pdn
 	{
 	private:
 		using ctrlblk_t = detail::token_iterator_ctrlblk_from_lexer<char_t, function_package, it_begin_t, it_end_t>;
-		using lexer_t   = lexer<char_t, function_package, it_begin_t>;
+		using lexer_t   = lexer<char_t, function_package>;
 		using token_t   = token<char_t>;
 	public:
 		using iterator_concept  = void;
@@ -127,13 +127,13 @@ namespace pdn
 	};
 
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
-	auto make_token_iterator(lexer<char_t, func_pkg, it_begin_t> lex, it_begin_t begin, it_end_t end)
+	auto make_token_iterator(lexer<char_t, func_pkg> lex, it_begin_t begin, it_end_t end)
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{ ::std::move(lex), ::std::move(begin), ::std::move(end) };
 	}
 
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
-	auto make_end_token_iterator(const lexer<char_t, func_pkg, it_begin_t>&, const it_begin_t&, const it_end_t&)
+	auto make_end_token_iterator(const lexer<char_t, func_pkg>&, const it_begin_t&, const it_end_t&)
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
 	}
@@ -987,37 +987,12 @@ namespace pdn::detail
 	private:
 		lexer_t* lexer_p{};
 	};
-
-	template <typename type>
-	class lexer_base_it_stoppable {};
-
-	template <concepts::stoppable type>
-	class lexer_base_it_stoppable<type>
-	{
-	public:
-		void request_stop_it(stop_reason_code reason) noexcept
-		{
-			if (stop_reason_c == stop_reason_code{})
-			{
-				stop_reason_c = reason;
-			}
-		}
-		bool stop_requested_it() const noexcept
-		{
-			return stop_reason_c != stop_reason_code{};
-		}
-		auto stop_reason_it() const noexcept -> stop_reason_code
-		{
-			return stop_reason_c;
-		}
-		stop_reason_code stop_reason_c{};
-	};
 }
 
 namespace pdn
 {
-	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
-	class lexer : private detail::lexer_base_it_stoppable<cp_it_t>
+	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package>
+	class lexer
 	{
 	private:
 		friend class detail::lexer_helper<lexer>;
@@ -1025,20 +1000,18 @@ namespace pdn
 		{
 			return detail::lexer_helper<lexer>{ *this };
 		}
-		void request_stop(stop_reason_code reason) noexcept requires concepts::stoppable<cp_it_t>
-		{
-			// this-> is necessary
-			this->request_stop_it(reason);
-		}
 	public:
-		template <typename cp_end_it_t>
-		token<char_t> get_token(cp_it_t&& begin, cp_end_it_t&& end)
+		bool stop_requested() const noexcept
 		{
-			return get_token(begin, ::std::forward<cp_end_it_t>(end));
+			return stop_reason_c != stop_reason_code{};
 		}
-		template <typename cp_end_it_t>
-		token<char_t> get_token(cp_it_t& begin, cp_end_it_t&& end)
+		auto stop_reason() const noexcept -> stop_reason_code
 		{
+			return stop_reason_c;
+		}
+		token<char_t> get_token(auto&& begin, auto&& end)
+		{
+			using begin_it_t = ::std::remove_reference_t<decltype(begin)>;
 			token<char_t>              result{};
 			type::string<char_t>       text{};            // rename text
 			unicode::ucpstring         open_d_seq{};      // delimiter-sequence for raw string
@@ -1062,15 +1035,21 @@ namespace pdn
 
 			while (begin != end)
 			{
-				// TODO make a helper ++begin returns is_failed (attempt_to_increase/attempt_to_dereference)
 				auto c = *begin;
 
-				if (!unicode::is_scalar_value(c))
+				// TODO to en
+				// 使用本库指定 code_point_iterator 时，已经保证了 c 是 Unicode 标量值
+				// 此处设计冗余为兼容其他 code_point_iterator 的实现，避免出现非法 Unicode 标量值
+				if (!unicode::is_scalar_value(c)) [[unlikely]]
 				{
 					using raw_err = raw_error_message_type::not_unicode_scalar_value;
-					// TODO make post_err like attempt_to_increase
-					post_err(get_pos(), lex_ec::not_unicode_scalar_value, raw_err{ c });
+					if (post_err(get_pos(), lex_ec::not_unicode_scalar_value, raw_err{ c })) [[unlikely]] return result;
 					++begin;
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return result;
+					}
 					continue;
 				}
 
@@ -1103,7 +1082,7 @@ namespace pdn
 					new_dfa_state = dfa_state_objects::start_state();
 					auto cp = unicode::code_point_t(c);
 					auto view = unicode::ucpstring_view{ &cp, 1 };
-					post_err(get_pos(), lex_ec::unacceptable_character, detail::to_raw_err_str(code_convert<err_ms>(view)));
+					if (post_err(get_pos(), lex_ec::unacceptable_character, detail::to_raw_err_str(code_convert<err_ms>(view)))) [[unlikely]] return result;
 					break;
 				}
 				case infinity:
@@ -1118,19 +1097,19 @@ namespace pdn
 				case identifier_string_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::identifier_string_closed;
-					post_err(position, lex_ec::identifier_string_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)));
+					if (post_err(position, lex_ec::identifier_string_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)))) [[unlikely]] return result;
 					goto label_update_dfa_state;
 				}
 				case string_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::string_closed;
-					post_err(position, lex_ec::string_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)));
+					if (post_err(position, lex_ec::string_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)))) [[unlikely]] return result;
 					goto label_update_dfa_state;
 				}
 				case character_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::character_closed;
-					post_err(position, lex_ec::character_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)));
+					if (post_err(position, lex_ec::character_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)))) [[unlikely]] return result;
 					goto label_update_dfa_state;
 				}
 				case start:
@@ -1162,6 +1141,11 @@ namespace pdn
 					break;
 				case identifier_string_escape:
 					++begin;
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return result;
+					}
 					new_dfa_state = dfa_state_objects::identifier_string;
 					if (detail::get_escape(c, begin, end, true, helper()))
 					{
@@ -1170,6 +1154,11 @@ namespace pdn
 					goto label_update_dfa_state;
 				case string_escape:
 					++begin;
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return result;
+					}
 					new_dfa_state = dfa_state_objects::string;
 					if (detail::get_escape(c, begin, end, false, helper()))
 					{
@@ -1178,6 +1167,11 @@ namespace pdn
 					goto label_update_dfa_state;
 				case character_escape:
 					++begin;
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return result;
+					}
 					new_dfa_state = dfa_state_objects::character;
 					if (detail::get_escape(c, begin, end, false, helper()))
 					{
@@ -1186,6 +1180,11 @@ namespace pdn
 					goto label_update_dfa_state;
 				case raw_string_d_seq_opened:
 					++begin;
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return result;
+					}
 					// @"d_seq()d_seq"
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
@@ -1196,6 +1195,11 @@ namespace pdn
 					while (true)
 					{
 						++begin;
+						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+						{
+							request_stop(begin.stop_reason());
+							return result;
+						}
 						if (begin == end)
 						{
 							text += char_t('\r');
@@ -1221,6 +1225,11 @@ namespace pdn
 				{
 					unicode::ucpstring close_d_seq{};
 					++begin;
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return result;
+					}
 					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'"'))
 					{
 						new_dfa_state = dfa_state_objects::raw_string_closed;
@@ -1235,6 +1244,11 @@ namespace pdn
 				}
 				case identifier_raw_string_d_seq_opened:
 					++begin;
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return result;
+					}
 					// @`d_seq()d_seq`
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
@@ -1243,6 +1257,11 @@ namespace pdn
 					goto label_update_dfa_state;
 				case identifier_raw_string_received_CR:
 					++begin;
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return result;
+					}
 					if (begin == end)
 					{
 						text += char_t('\r');
@@ -1261,6 +1280,11 @@ namespace pdn
 				{
 					unicode::ucpstring close_d_seq{};
 					++begin;
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return result;
+					}
 					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'`'))
 					{
 						new_dfa_state = dfa_state_objects::identifier_raw_string_closed;
@@ -1296,7 +1320,7 @@ namespace pdn
 					number_sequence += char(c);
 					if (cont_n_delimiter_count > 1)
 					{
-						post_err(get_pos(), lex_ec::more_than_one_separators_between_numbers, detail::to_raw_err_str(num_seq_to_ems()));
+						if (post_err(get_pos(), lex_ec::more_than_one_separators_between_numbers, detail::to_raw_err_str(num_seq_to_ems()))) [[unlikely]] return result;
 					}
 					cont_n_delimiter_count = 0;
 					break;
@@ -1317,6 +1341,11 @@ namespace pdn
 				}
 			label_move_iterator:
 				++begin;
+				if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+				{
+					request_stop(begin.stop_reason());
+					return result;
+				}
 			label_update_dfa_state:
 				dfa_state = new_dfa_state;
 			}
@@ -1339,14 +1368,14 @@ namespace pdn
 				// ERROR STATES vvv
 			case block_comment:
 			case block_comment_closing:
-				post_err(position, lexical_error_code::unterminated_block_comment, {});
+				if (post_err(position, lexical_error_code::unterminated_block_comment, {})) [[unlikely]] return result;
 				break;
 			case nested_block_comment:
 			case nested_block_comment_nesting:
 			case nested_block_comment_nested:
 			case nested_block_comment_closing:
 			case nested_block_comment_closed:
-				post_err(position, lex_ec::unterminated_nested_block_comment, {});
+				if (post_err(position, lex_ec::unterminated_nested_block_comment, {})) [[unlikely]] return result;
 				break;
 			case identifier_string_opened:
 			case identifier_string:
@@ -1406,14 +1435,14 @@ namespace pdn
 			case fp_exp_with_quote:       // <<< ERROR STATE
 				if (dfa_state.state_code == fp_exp_sign_or_first || dfa_state.state_code == fp_exp_first)
 				{
-					post_err(position, lex_ec::fp_dec_expect_exponent, detail::to_raw_err_str(num_seq_to_ems()));
+					if (post_err(position, lex_ec::fp_dec_expect_exponent, detail::to_raw_err_str(num_seq_to_ems()))) [[unlikely]] return result;
 					number_sequence += '0'; // add 0 for exponent
 				}
 				else if (dfa_state.state_code == fp_dec_part_with_quote || dfa_state.state_code == fp_exp_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
 					using enum raw_error_message_type::number_type;
-					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), dec_floating });
+					if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), dec_floating })) [[unlikely]] return result;
 				}
 				[[fallthrough]];
 			case fp_dec_part_first_after_dec_with_dot:
@@ -1440,7 +1469,7 @@ namespace pdn
 			{
 				using raw_err = raw_error_message_type::number_end_with_separator;
 				using enum raw_error_message_type::number_type;
-				post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), oct_integer });
+				if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), oct_integer })) [[unlikely]] return result;
 				[[fallthrough]];
 			}
 			case zero:
@@ -1462,14 +1491,14 @@ namespace pdn
 			case bin_seq_with_quote:  // <<< ERROR STATE
 				if (dfa_state.state_code == bin_seq_first)
 				{
-					post_err(position, lex_ec::bin_prefix_expect_bin_number_sequence, detail::to_raw_err_str(num_seq_to_ems()));
+					if (post_err(position, lex_ec::bin_prefix_expect_bin_number_sequence, detail::to_raw_err_str(num_seq_to_ems()))) [[unlikely]] return result;
 					number_sequence += '0';
 				}
 				else if (dfa_state.state_code == bin_seq_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
 					using enum raw_error_message_type::number_type;
-					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), bin_integer });
+					if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), bin_integer })) [[unlikely]] return result;
 				}
 				[[fallthrough]];
 			case bin_seq:
@@ -1491,14 +1520,14 @@ namespace pdn
 			case hex_seq_with_quote:  // <<< ERROR STATE
 				if (dfa_state.state_code == hex_seq_first)
 				{
-					post_err(position, lex_ec::hex_prefix_expect_hex_number_sequence, detail::to_raw_err_str(num_seq_to_ems()));
+					if (post_err(position, lex_ec::hex_prefix_expect_hex_number_sequence, detail::to_raw_err_str(num_seq_to_ems()))) [[unlikely]] return result;
 					number_sequence += '0';
 				}
 				else if (dfa_state.state_code == hex_seq_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
 					using enum raw_error_message_type::number_type;
-					post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_integer });
+					if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_integer })) [[unlikely]] return result;
 				}
 				[[fallthrough]];
 			case hex_seq:
@@ -1552,41 +1581,15 @@ namespace pdn
 
 			return result;
 		}
-		bool stop_requested() const noexcept(detail::noexcept_stop_requested_v<function_package>)
-			requires (concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>)
-		{
-			return this->stop_requested_it() ? true : static_cast<bool>(func_pkg->stop_requested());
-		}
-		bool stop_requested() const noexcept(detail::noexcept_stop_requested_v<function_package>)
-			requires (concepts::stoppable<function_package> && !concepts::stoppable<cp_it_t>)
-		{
-			return func_pkg->stop_requested();
-		}
-		bool stop_requested() const noexcept
-			requires (!concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>)
-		{
-			return this->stop_requested_it();
-		}
-		auto stop_reason() const noexcept(detail::noexcept_stop_reason_v<function_package>) -> stop_reason_code
-			requires (concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>)
-		{
-			if (this->stop_requested_it())
-				return this->stop_reason_it();
-			else
-				return func_pkg->stop_reason();
-		}
-		auto stop_reason() const noexcept(detail::noexcept_stop_reason_v<function_package>)->stop_reason_code
-			requires (concepts::stoppable<function_package> && !concepts::stoppable<cp_it_t>)
-		{
-			return func_pkg->stop_reason();
-		}
-		auto stop_reason() const noexcept -> stop_reason_code
-			requires (!concepts::stoppable<function_package> && concepts::stoppable<cp_it_t>)
-		{
-			return this->stop_reason_it();
-		}
 		explicit lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
+		void request_stop(stop_reason_code reason) noexcept
+		{
+			if (stop_reason_c == stop_reason_code{})
+			{
+				stop_reason_c = reason;
+			}
+		}
 		auto get_pos() -> source_position
 		{
 			return func_pkg->position();
@@ -1595,11 +1598,22 @@ namespace pdn
 		{
 			return func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
 		}
-		void post_err(source_position pos, auto err_c, raw_error_message_variant&& raw_msg)
+		// return stop_requested from function_package if stoppable
+		bool post_err(source_position pos, auto err_c, raw_error_message_variant&& raw_msg)
 		{
 			func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
+			if constexpr (concepts::stoppable<function_package>)
+			{
+				if (func_pkg->stop_requested()) [[unlikely]]
+				{
+					request_stop(func_pkg->stop_reason());
+					return true;
+				}
+			}
+			return false;
 		}
 		function_package* func_pkg{};
+		stop_reason_code stop_reason_c{};
 	};
 }
 
