@@ -294,7 +294,7 @@ namespace pdn::detail
 	public:
 		static constexpr ::std::endian source_endian() noexcept
 		{
-			return helper.source_endian();
+			return helper_type::source_endian();
 		}
 		bool stop_requested() const noexcept
 		{
