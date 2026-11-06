@@ -40,7 +40,7 @@ namespace pdn::concepts
 
 namespace pdn
 {
-	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package>
+	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
 	class lexer;
 }
 
@@ -49,7 +49,7 @@ namespace pdn::detail
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
 	struct token_iterator_ctrlblk_from_lexer
 	{
-		using lexer_t = lexer<char_t, function_package>;
+		using lexer_t = lexer<char_t, function_package, it_begin_t>;
 		using token_t = token<char_t>;
 		lexer_t    lex;
 		it_begin_t begin;
@@ -61,6 +61,7 @@ namespace pdn::detail
 	};
 }
 
+// TODO add stoppable
 namespace pdn
 {
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
@@ -68,7 +69,7 @@ namespace pdn
 	{
 	private:
 		using ctrlblk_t = detail::token_iterator_ctrlblk_from_lexer<char_t, function_package, it_begin_t, it_end_t>;
-		using lexer_t   = lexer<char_t, function_package>;
+		using lexer_t   = lexer<char_t, function_package, it_begin_t>;
 		using token_t   = token<char_t>;
 	public:
 		using iterator_concept  = void;
@@ -127,13 +128,13 @@ namespace pdn
 	};
 
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
-	auto make_token_iterator(lexer<char_t, func_pkg> lex, it_begin_t begin, it_end_t end)
+	auto make_token_iterator(lexer<char_t, func_pkg, it_begin_t> lex, it_begin_t begin, it_end_t end)
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{ ::std::move(lex), ::std::move(begin), ::std::move(end) };
 	}
 
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
-	auto make_end_token_iterator(const lexer<char_t, func_pkg>&, const it_begin_t&, const it_end_t&)
+	auto make_end_token_iterator(const lexer<char_t, func_pkg, it_begin_t>&, const it_begin_t&, const it_end_t&)
 	{
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
 	}
@@ -972,44 +973,66 @@ namespace pdn::detail
 	{
 	public:
 		explicit lexer_helper(lexer_t& lexer) : lexer_p{ &lexer } {}
+		void request_stop(stop_reason_code reason) noexcept
+		{
+			lexer_p->request_stop(reason);
+		}
 		auto get_pos() -> source_position
 		{
-			return lexer_p->func_pkg->position();
+			return lexer_p->get_pos();
 		}
-		auto err_msg_gen(source_position pos, auto err_c, raw_error_message_variant raw_msg) -> error_msg_string
+		auto err_msg_gen(source_position pos, auto err_c, raw_error_message_variant&& raw_msg) -> error_msg_string
 		{
-			return lexer_p->func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
+			return lexer_p->err_msg_gen(pos, err_c, ::std::move(raw_msg));
 		}
-		void post_err(source_position pos, auto err_c, raw_error_message_variant&& raw_msg)
+		bool post_err(source_position pos, auto err_c, raw_error_message_variant&& raw_msg)
 		{
-			lexer_p->func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
+			return lexer_p->post_err(pos, err_c, ::std::move(raw_msg));
 		}
 	private:
 		lexer_t* lexer_p{};
 	};
+
+	template <bool has_stop_reason_code>
+	class lexer_base {};
+
+	template <>
+	class lexer_base<true>
+	{
+	public:
+		stop_reason_code stop_reason_c{};
+	};
+
+	template <typename fp, typename it>
+	constexpr bool is_lexer_stoppable = concepts::stoppable<fp> || concepts::stoppable<it>;
 }
 
 namespace pdn
 {
-	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package>
-	class lexer
+	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
+	class lexer : private detail::lexer_base<detail::is_lexer_stoppable<function_package, cp_it_t>>
 	{
 	private:
+		static constexpr bool is_stoppable = detail::is_lexer_stoppable<function_package, cp_it_t>;
 		friend class detail::lexer_helper<lexer>;
 		auto helper() noexcept -> detail::lexer_helper<lexer>
 		{
 			return detail::lexer_helper<lexer>{ *this };
 		}
 	public:
-		bool stop_requested() const noexcept
+		bool stop_requested() const noexcept requires(is_stoppable)
 		{
-			return stop_reason_c != stop_reason_code{};
+			return this->stop_reason_c != stop_reason_code{};
 		}
-		auto stop_reason() const noexcept -> stop_reason_code
+		auto stop_reason() const noexcept -> stop_reason_code requires(is_stoppable)
 		{
-			return stop_reason_c;
+			return this->stop_reason_c;
 		}
-		token<char_t> get_token(auto&& begin, auto&& end)
+		token<char_t> get_token(cp_it_t&& begin, auto&& end)
+		{
+			return get_token(begin, end);
+		}
+		token<char_t> get_token(cp_it_t& begin, auto&& end)
 		{
 			using begin_it_t = ::std::remove_reference_t<decltype(begin)>;
 			token<char_t>              result{};
@@ -1585,11 +1608,11 @@ namespace pdn
 		}
 		explicit lexer(function_package& function_pkg) : func_pkg{ &function_pkg } {}
 	private:
-		void request_stop(stop_reason_code reason) noexcept
+		void request_stop(stop_reason_code reason) noexcept requires(is_stoppable)
 		{
-			if (stop_reason_c == stop_reason_code{})
+			if (this->stop_reason_c == stop_reason_code{})
 			{
-				stop_reason_c = reason;
+				this->stop_reason_c = reason;
 			}
 		}
 		auto get_pos() -> source_position
@@ -1615,7 +1638,6 @@ namespace pdn
 			return false;
 		}
 		function_package* func_pkg{};
-		stop_reason_code stop_reason_c{};
 	};
 }
 

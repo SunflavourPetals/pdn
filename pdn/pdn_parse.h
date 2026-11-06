@@ -129,7 +129,7 @@ namespace pdn
 		char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
 		auto cp_it = make_code_point_iterator(begin, end, cp_it_fp);
-		lexer<char_t, fn_pkg_for_lexer> lex{ lex_fp };
+		lexer<char_t, fn_pkg_for_lexer, decltype(cp_it)> lex{ lex_fp };
 		auto token_it = make_token_iterator(lex, cp_it, end);
 		auto token_end = make_end_token_iterator(token_it);
 		auto result = parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
