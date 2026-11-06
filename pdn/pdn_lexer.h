@@ -1385,7 +1385,7 @@ namespace pdn
 			case string:
 			case identifier_raw_string:
 			case raw_string:
-				detail::process_string_like_error(dfa_state.state_code, position, detail::to_err_ms<char_t>(text), open_d_seq, helper());
+				detail::process_string_like_error(dfa_state.state_code, position, detail::to_err_ms<char_t>(text), open_d_seq, helper()); // HELPER
 				[[fallthrough]];
 				// ERROR STATES ^^^
 			case identifier:
@@ -1407,15 +1407,15 @@ namespace pdn
 				break;
 			case character_opened: // <<< ERROR STATE
 			case character:        // <<< ERROR STATE
-				detail::process_char_missing_quote_error(position, detail::to_err_ms<char_t>(text), helper());
+				detail::process_char_missing_quote_error(position, detail::to_err_ms<char_t>(text), helper()); // HELPER
 				[[fallthrough]];
 			case character_closed:
-				result.value = detail::process_char_literal<char_t>(text, position, helper());
+				result.value = detail::process_char_literal<char_t>(text, position, helper()); // HELPER
 				break;
 			case dec_seq_start_with_0:             // <<< ERROR STATE
 			case dec_seq_start_with_0_with_quote:  // <<< ERROR STATE
 			case dec_seq_with_quote:               // <<< ERROR STATE
-				detail::process_dec_seq_error(dfa_state.state_code, position, num_seq_to_ems(), helper());
+				detail::process_dec_seq_error(dfa_state.state_code, position, num_seq_to_ems(), helper()); // HELPER
 				[[fallthrough]];
 			case dec_seq:
 			{
@@ -1427,7 +1427,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_integer, false, helper());
+					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_integer, false, helper()); // HELPER
 				}
 				break;
 			}
@@ -1463,7 +1463,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_floating, false, helper());
+					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_floating, false, helper()); // HELPER
 				}
 				break;
 			}
@@ -1485,7 +1485,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, oct_integer, false, helper());
+					detail::process_from_chars_error(from_chars_r, n_seq, position, oct_integer, false, helper()); // HELPER
 				}
 			}
 			break;
@@ -1514,7 +1514,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, bin_integer, false, helper());
+					detail::process_from_chars_error(from_chars_r, n_seq, position, bin_integer, false, helper()); // HELPER
 				}
 				break;
 			}
@@ -1543,7 +1543,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_integer, false, helper());
+					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_integer, false, helper()); // HELPER
 				}
 				break;
 			}
@@ -1554,7 +1554,7 @@ namespace pdn
 			case hex_fp_exp_first:                         // <<< ERROR STATE
 			case hex_fp_exp_with_quote:                    // <<< ERROR STATE
 			case hex_fp_seq_start_with_0x_dot:             // <<< ERROR STATE
-				detail::process_hex_fp_errors(dfa_state.state_code, number_sequence, position, helper());
+				detail::process_hex_fp_errors(dfa_state.state_code, number_sequence, position, helper()); // HELPER
 				[[fallthrough]];
 			case hex_fp_exp:
 			{
@@ -1571,7 +1571,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_floating, false, helper());
+					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_floating, false, helper()); // HELPER
 				}
 				break;
 			}
