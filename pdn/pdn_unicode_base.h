@@ -190,7 +190,7 @@ namespace pdn::unicode::type_traits
 	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf32_le> = encode_type::utf32_le;
 	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf32_be> = encode_type::utf32_be;
 
-	template <encode_type> inline constexpr ::std::endian endian_from_encode_type                         = ::std::endian::native;
+	template <encode_type> inline constexpr ::std::endian endian_from_encode_type                        = ::std::endian::native;
 	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf16_le> = ::std::endian::little;
 	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf16_be> = ::std::endian::big;
 	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf32_le> = ::std::endian::little;
