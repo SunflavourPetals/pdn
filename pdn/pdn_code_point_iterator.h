@@ -81,6 +81,7 @@ namespace pdn
 	template <typename begin_it_t, typename end_it_t, concepts::function_package_for_code_point_iterator function_package>
 	class code_point_iterator
 	{
+		static constexpr bool stoppable = concepts::stoppable<begin_it_t> || concepts::stoppable<function_package>;
 	public:
 		using iterator_concept  = void;
 		using iterator_category = void;
@@ -88,6 +89,14 @@ namespace pdn
 		using char_type         = unicode::code_point_t;
 		using size_type         = ::std::size_t;
 		using value_type        = char_type;
+		bool stop_requested() const noexcept requires (stoppable)
+		{
+			return stop_reason_c != stop_reason_code{};
+		}
+		auto stop_reason() const noexcept -> stop_reason_code requires (stoppable)
+		{
+			return stop_reason_c;
+		}
 		const char_type& get() const noexcept
 		{
 			return curr_value;
@@ -121,17 +130,26 @@ namespace pdn
 		{
 			return lhs.begin == rhs;
 		}
+		code_point_iterator(begin_it_t begin_it, end_it_t end_it, function_package& func_package) :
+			func_pkg{ &func_package },
+			begin{ ::std::move(begin_it) },
+			end{ ::std::move(end_it) }
+		{
+			to_next_impl<true>();
+		}
 	private:
 		template <bool is_first = false>
 		void to_next_impl()
 		{
-			if constexpr (!is_first)
+			if constexpr (!is_first) if (!eof()) [[unlikely]]
 			{
-				if (!eof())
+				++begin;
+				if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
 				{
-					++begin;
-					++offset;
+					request_stop(begin.stop_reason());
+					return;
 				}
+				++offset;
 			}
 			while (!eof())
 			{
@@ -143,7 +161,7 @@ namespace pdn
 					curr_value = result.value();
 					break;
 				}
-				else
+				else [[unlikely]]
 				{
 					using result_type = decltype(result);
 					const auto last = eof() ? code_unit_type{} : *begin;
@@ -156,30 +174,38 @@ namespace pdn
 							detail::decode_result_to_raw_error_t<result_type>{ result, last, offset }
 						})
 					});
+					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+					{
+						request_stop(func_pkg->stop_reason());
+						return;
+					}
 					func_pkg->update(U'\uFFFD');
 					if (!eof() && !decision::decoder_type::template is_reaching_next<false>(result))
 					{
 						++begin;
+						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+						{
+							request_stop(begin.stop_reason());
+							return;
+						}
 						++offset;
 					}
 				}
 			}
 		}
-	public:
-		code_point_iterator(begin_it_t begin_it, end_it_t end_it, function_package& func_package) :
-			func_pkg{ &func_package },
-			begin   { ::std::move(begin_it) },
-			end     { ::std::move(end_it) }
+		void request_stop(stop_reason_code reason) noexcept requires (stoppable)
 		{
-			to_next_impl<true>();
+			if (stop_reason_c == stop_reason_code{})
+			{
+				stop_reason_c = reason;
+			}
 		}
-	private:
 		function_package*     func_pkg{};
 		size_type             offset{};
 		begin_it_t            begin;
 		end_it_t              end;
 		unicode::code_point_t curr_value{};
-		stop_reason_code      stop_reason_c{};
+		stop_reason_code      stop_reason_c{}; // available only when stoppable<begin_it_t> or stoppable<function_package>
 	};
 
 	template <typename begin_it_t, typename end_it_t, concepts::function_package_for_code_point_iterator function_package>
