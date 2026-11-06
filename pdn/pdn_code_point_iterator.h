@@ -92,9 +92,15 @@ namespace pdn
 		{
 			return curr_value;
 		}
-		bool eof() const
+		bool eof() const noexcept(noexcept(::std::declval<const begin_it_t&>() == ::std::declval<const end_it_t&>()))
+			requires (!concepts::eof_detector<begin_it_t>)
 		{
 			return begin == end;
+		}
+		bool eof() const noexcept(noexcept(::std::declval<const begin_it_t&>().eof()))
+			requires concepts::eof_detector<begin_it_t>
+		{
+			return begin.eof();
 		}
 		void to_next()
 		{
@@ -121,13 +127,13 @@ namespace pdn
 		{
 			if constexpr (!is_first)
 			{
-				if (begin != end)
+				if (!eof())
 				{
 					++begin;
 					++offset;
 				}
 			}
-			while (begin != end)
+			while (!eof())
 			{
 				using decision = unicode::convert_decision<::std::basic_string_view<code_unit_type>, unicode::ucpstring>;
 				auto result = decision::template decode<false>(begin, end);
@@ -140,7 +146,7 @@ namespace pdn
 				else
 				{
 					using result_type = decltype(result);
-					const auto last = begin == end ? code_unit_type{} : *begin;
+					const auto last = eof() ? code_unit_type{} : *begin;
 					func_pkg->handle_error(error_message{
 						result.errc(),
 						func_pkg->position(),
@@ -151,7 +157,7 @@ namespace pdn
 						})
 					});
 					func_pkg->update(U'\uFFFD');
-					if (begin != end && !decision::decoder_type::template is_reaching_next<false>(result))
+					if (!eof() && !decision::decoder_type::template is_reaching_next<false>(result))
 					{
 						++begin;
 						++offset;

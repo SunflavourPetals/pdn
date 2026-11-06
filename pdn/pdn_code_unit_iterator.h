@@ -264,7 +264,7 @@ namespace pdn::detail
 		}
 	};
 
-	template <eof_detector it_t>
+	template <concepts::eof_detector it_t>
 	struct code_unit_iterator_compressed<it_t> final
 	{
 		it_t begin;
@@ -324,14 +324,14 @@ namespace pdn::detail
 		{
 			return lhs.compressed.eof();
 		}
-		mb_code_unit_iterator(it_t bytes_begin)  requires eof_detector<it_t> :
+		mb_code_unit_iterator(it_t bytes_begin)  requires concepts::eof_detector<it_t> :
 			compressed{ ::std::move(bytes_begin) }
 		{
 			first_to_next();
 		}
-		mb_code_unit_iterator(it_t bytes_begin, auto&&) requires eof_detector<it_t> :
+		mb_code_unit_iterator(it_t bytes_begin, auto&&) requires concepts::eof_detector<it_t> :
 			mb_code_unit_iterator(::std::move(bytes_begin)) {}
-		mb_code_unit_iterator(it_t bytes_begin, it_t bytes_end) requires (!eof_detector<it_t>) :
+		mb_code_unit_iterator(it_t bytes_begin, it_t bytes_end) requires (!concepts::eof_detector<it_t>) :
 			compressed{ ::std::move(bytes_begin), ::std::move(bytes_end) }
 		{
 			first_to_next();
@@ -393,7 +393,7 @@ namespace pdn::detail
 			return begin.stop_reason();
 		}
 		bool eof() const noexcept(noexcept(::std::declval<const it_t&>().eof()))
-			requires eof_detector<it_t>
+			requires concepts::eof_detector<it_t>
 		{
 			return begin.eof();
 		}

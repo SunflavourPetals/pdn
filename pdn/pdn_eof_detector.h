@@ -3,7 +3,7 @@
 
 #include <concepts>
 
-namespace pdn
+namespace pdn::concepts
 {
 	template <typename type>
 	concept eof_detector = requires(const type o)
