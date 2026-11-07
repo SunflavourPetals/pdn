@@ -774,10 +774,12 @@ namespace pdn::detail
 		// @`()`
 		//   ^
 
+		using begin_t = ::std::remove_reference_t<decltype(begin)>;
 		using raw_err = raw_error_message_type::delimiter_error;
 		using err_ms = error_msg_string;
 		using namespace literals::error_message_literals;
 		using unicode::code_convert;
+		using concepts::stoppable;
 
 		auto position = helper.get_pos();
 		bool invalid_character_in_raw_string_delimiter{ false };
@@ -790,6 +792,7 @@ namespace pdn::detail
 			if (c == U'(')
 			{
 				++begin;
+				if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 				if (out_sequence.length() > 16) [[unlikely]]
 				{
 					helper.post_err(position,
@@ -803,13 +806,16 @@ namespace pdn::detail
 			{
 				if (!lexer_utility::is_allowed_in_raw_string_d_sequence(c)) [[unlikely]]
 				{
-					helper.post_err(helper.get_pos(),
-						            d_seq_error_invalid_character_in_raw_string_delimiter,
-						            raw_err{ code_convert<err_ms>(out_sequence), is_raw_id_s });
+					if (helper.post_err(
+						helper.get_pos(),
+						d_seq_error_invalid_character_in_raw_string_delimiter,
+						raw_err{ code_convert<err_ms>(out_sequence), is_raw_id_s }))
+						[[unlikely]] return false;
 					invalid_character_in_raw_string_delimiter = true;
 				}
 				out_sequence += c;
 				++begin;
+				if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 			}
 		}
 
@@ -830,7 +836,9 @@ namespace pdn::detail
 		                                     auto                    end,
 		                                     unicode::code_point_t   end_quote)
 	{
-		for (::std::size_t index{}; begin != end; ++begin, ++index)
+		using begin_t = ::std::remove_reference_t<decltype(begin)>;
+		using concepts::stoppable;
+		for (::std::size_t index{}; begin != end; ++index)
 		{
 			auto c = *begin;
 			if (out_sequence.length() == in_sequence.length())
@@ -838,7 +846,8 @@ namespace pdn::detail
 				if (c == end_quote)
 				{
 					++begin; // skip the double/back quotation marks that are read
-					return true;
+					if constexpr (stoppable<begin_t>) return !begin.stop_requested();
+					else return true;
 				}
 				else
 				{
@@ -850,6 +859,8 @@ namespace pdn::detail
 				return false;
 			}
 			out_sequence += c;
+			++begin;
+			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 		}
 		return false;
 	}
@@ -1212,7 +1223,7 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::identifier_string;
-					if (detail::get_escape(c, begin, end, true, helper())) // BGMARK DONE
+					if (detail::get_escape(c, begin, end, true, helper())) // TODO BGMARK DONE
 					{
 						append(text, c);
 					}
@@ -1238,7 +1249,7 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::string;
-					if (detail::get_escape(c, begin, end, false, helper())) // BGMARK DONE
+					if (detail::get_escape(c, begin, end, false, helper())) // TODO BGMARK DONE
 					{
 						append(text, c);
 					}
@@ -1264,7 +1275,7 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::character;
-					if (detail::get_escape(c, begin, end, false, helper())) // BGMARK DONE
+					if (detail::get_escape(c, begin, end, false, helper())) // TODO BGMARK DONE
 					{
 						append(text, c);
 					}
@@ -1292,7 +1303,19 @@ namespace pdn
 					// @"d_seq()d_seq"
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
-					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, false, helper()); // BGMARK
+					if (!detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, false, helper())) [[unlikely]] // TODO BGMARK DONE
+					{
+						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+						{
+							request_stop(begin.stop_reason());
+							return result;
+						}
+						if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+						{
+							request_stop(func_pkg->stop_reason());
+							return result;
+						}
+					}
 					new_dfa_state = dfa_state_objects::raw_string;
 					goto label_update_dfa_state;
 				case raw_string_received_CR:
@@ -1334,12 +1357,17 @@ namespace pdn
 						request_stop(begin.stop_reason());
 						return result;
 					}
-					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'"')) // BGMARK
+					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'"')) // TODO BGMARK DONE
 					{
 						new_dfa_state = dfa_state_objects::raw_string_closed;
 					}
 					else
 					{
+						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+						{
+							request_stop(begin.stop_reason());
+							return result;
+						}
 						text += char_t(')');
 						text += unicode::code_convert<type::string<char_t>>(close_d_seq);
 						new_dfa_state = dfa_state_objects::raw_string;
@@ -1356,7 +1384,19 @@ namespace pdn
 					// @`d_seq()d_seq`
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
-					detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, true, helper()); // BGMARK
+					if (!detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, true, helper())) [[unlikely]] // TODO BGMARK DONE
+					{
+						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+						{
+							request_stop(begin.stop_reason());
+							return result;
+						}
+						if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+						{
+							request_stop(func_pkg->stop_reason());
+							return result;
+						}
+					}
 					new_dfa_state = dfa_state_objects::identifier_raw_string;
 					goto label_update_dfa_state;
 				case identifier_raw_string_received_CR:
@@ -1389,12 +1429,17 @@ namespace pdn
 						request_stop(begin.stop_reason());
 						return result;
 					}
-					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'`')) // BGMARK
+					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'`')) // TODO BGMARK DONE
 					{
 						new_dfa_state = dfa_state_objects::identifier_raw_string_closed;
 					}
 					else
 					{
+						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+						{
+							request_stop(begin.stop_reason());
+							return result;
+						}
 						text += char_t(')');
 						text += unicode::code_convert<type::string<char_t>>(close_d_seq);
 						new_dfa_state = dfa_state_objects::identifier_raw_string;
