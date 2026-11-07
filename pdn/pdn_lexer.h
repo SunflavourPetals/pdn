@@ -878,7 +878,8 @@ namespace pdn::detail
 		{
 			using raw_err = raw_error_message_type::number_end_with_separator;
 			using enum raw_error_message_type::number_type;
-			helper.post_err(pos, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_floating });
+			constexpr auto ec = lex_ec::number_cannot_end_with_separator;
+			if (helper.post_err(pos, ec, raw_err{ num_seq_to_ems(), hex_floating })) [[unlikely]] return;
 			[[fallthrough]];
 		}
 		case hex_fp_dec_part_first_after_hex_with_dot: // <<< ERROR STATE
@@ -908,7 +909,7 @@ namespace pdn::detail
 			break;
 		}
 		case hex_fp_seq_start_with_0x_dot: // <<< ERROR STATE
-			helper.post_err(pos, lex_ec::fp_hex_expect_decimal_part, to_raw_err_str(num_seq_to_ems()));
+			if (helper.post_err(pos, lex_ec::fp_hex_expect_decimal_part, to_raw_err_str(num_seq_to_ems()))) [[unlikely]] return;
 			helper.post_err(pos, lex_ec::fp_hex_expect_exponent, to_raw_err_str(num_seq_to_ems()));
 			num_seq += "0P0"s;
 			break;
@@ -917,6 +918,7 @@ namespace pdn::detail
 		}
 	}
 
+	// TODO to en 本函数最多只调用一次 post_error，所以检查 stop_requested 由调用方完成
 	inline void process_string_like_error(dfa_state_code          dfa_state_c,
 		                                  source_position         position,
 		                                  error_msg_string        err_s,
@@ -957,6 +959,7 @@ namespace pdn::detail
 		}
 	}
 
+	// TODO to en 本函数只调用一次 post_error，所以检查 stop_requested 由调用方完成
 	inline void process_char_missing_quote_error(source_position position, error_msg_string err_s, auto helper)
 	{
 		using lex_ec = lexical_error_code;
@@ -975,7 +978,7 @@ namespace pdn::detail
 		else if (code == dec_seq_start_with_0_with_quote)
 		{
 			using enum raw_error_message_type::number_type;
-			helper.post_err(position, lex_ec::invalid_octal_number, to_raw_err_str(error_str));
+			if (helper.post_err(position, lex_ec::invalid_octal_number, to_raw_err_str(error_str))) [[unlikely]] return;
 			helper.post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ ::std::move(error_str), oct_integer });
 		}
 		else if (code == dec_seq_with_quote)
@@ -985,6 +988,7 @@ namespace pdn::detail
 		}
 	}
 
+	// TODO to en 本函数只调用一次 post_error，所以检查 stop_requested 由调用方完成
 	template <typename char_t>
 	inline auto process_char_literal(::std::basic_string_view<char_t> src, const source_position& position, auto helper) -> type::character<char_t>
 	{
@@ -1532,7 +1536,12 @@ namespace pdn
 			case string:
 			case identifier_raw_string:
 			case raw_string:
-				detail::process_string_like_error(dfa_state.state_code, position, detail::to_err_ms<char_t>(text), open_d_seq, helper()); // HELPER
+				detail::process_string_like_error(dfa_state.state_code, position, detail::to_err_ms<char_t>(text), open_d_seq, helper()); // TODO HELPER DONE
+				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+				{
+					request_stop(func_pkg->stop_reason());
+					return result;
+				}
 				[[fallthrough]];
 				// ERROR STATES ^^^
 			case identifier:
@@ -1554,15 +1563,30 @@ namespace pdn
 				break;
 			case character_opened: // <<< ERROR STATE
 			case character:        // <<< ERROR STATE
-				detail::process_char_missing_quote_error(position, detail::to_err_ms<char_t>(text), helper()); // HELPER
+				detail::process_char_missing_quote_error(position, detail::to_err_ms<char_t>(text), helper()); // TODO HELPER DONE
+				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+				{
+					request_stop(func_pkg->stop_reason());
+					return result;
+				}
 				[[fallthrough]];
 			case character_closed:
-				result.value = detail::process_char_literal<char_t>(text, position, helper()); // HELPER
+				result.value = detail::process_char_literal<char_t>(text, position, helper()); // TODO HELPER DONE
+				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+				{
+					request_stop(func_pkg->stop_reason());
+					return result;
+				}
 				break;
 			case dec_seq_start_with_0:             // <<< ERROR STATE
 			case dec_seq_start_with_0_with_quote:  // <<< ERROR STATE
 			case dec_seq_with_quote:               // <<< ERROR STATE
-				detail::process_dec_seq_error(dfa_state.state_code, position, num_seq_to_ems(), helper()); // HELPER
+				detail::process_dec_seq_error(dfa_state.state_code, position, num_seq_to_ems(), helper()); // TODO HELPER DONE
+				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+				{
+					request_stop(func_pkg->stop_reason());
+					return result;
+				}
 				[[fallthrough]];
 			case dec_seq:
 			{
@@ -1574,7 +1598,12 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_integer, false, helper()); // HELPER
+					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_integer, false, helper()); // TODO HELPER DONE
+					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+					{
+						request_stop(func_pkg->stop_reason());
+						return result;
+					}
 				}
 				break;
 			}
@@ -1610,7 +1639,12 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_floating, false, helper()); // HELPER
+					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_floating, false, helper()); // TODO HELPER DONE
+					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+					{
+						request_stop(func_pkg->stop_reason());
+						return result;
+					}
 				}
 				break;
 			}
@@ -1632,7 +1666,12 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, oct_integer, false, helper()); // HELPER
+					detail::process_from_chars_error(from_chars_r, n_seq, position, oct_integer, false, helper()); // TODO HELPER DONE
+					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+					{
+						request_stop(func_pkg->stop_reason());
+						return result;
+					}
 				}
 			}
 			break;
@@ -1661,7 +1700,12 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, bin_integer, false, helper()); // HELPER
+					detail::process_from_chars_error(from_chars_r, n_seq, position, bin_integer, false, helper()); // TODO HELPER DONE
+					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+					{
+						request_stop(func_pkg->stop_reason());
+						return result;
+					}
 				}
 				break;
 			}
@@ -1690,7 +1734,12 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_integer, false, helper()); // HELPER
+					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_integer, false, helper()); // TODO HELPER DONE
+					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+					{
+						request_stop(func_pkg->stop_reason());
+						return result;
+					}
 				}
 				break;
 			}
@@ -1701,7 +1750,12 @@ namespace pdn
 			case hex_fp_exp_first:                         // <<< ERROR STATE
 			case hex_fp_exp_with_quote:                    // <<< ERROR STATE
 			case hex_fp_seq_start_with_0x_dot:             // <<< ERROR STATE
-				detail::process_hex_fp_errors(dfa_state.state_code, number_sequence, position, helper()); // HELPER
+				detail::process_hex_fp_errors(dfa_state.state_code, number_sequence, position, helper()); // TODO HELPER DONE
+				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+				{
+					request_stop(func_pkg->stop_reason());
+					return result;
+				}
 				[[fallthrough]];
 			case hex_fp_exp:
 			{
@@ -1718,7 +1772,12 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_floating, false, helper()); // HELPER
+					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_floating, false, helper()); // TODO HELPER DONE
+					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
+					{
+						request_stop(func_pkg->stop_reason());
+						return result;
+					}
 				}
 				break;
 			}
