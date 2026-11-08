@@ -54,6 +54,7 @@ namespace pdn::concepts
 
 namespace pdn
 {
+	constexpr auto default_nesting_depth_limit = ::std::size_t{ 256 };
 	template <unicode::concepts::code_unit char_t, concepts::function_package_for_parser<char_t> function_package>
 	class parser
 	{
@@ -703,7 +704,7 @@ namespace pdn
 			}, ::std::move(src.value));
 		}
 
-		void update_token(auto& begin, auto end)
+		void update_token(auto& begin, auto end) // TODO return is stopped by ++beg
 		{
 			if (begin != end)
 			{
@@ -716,17 +717,15 @@ namespace pdn
 			}
 		}
 
-		auto nesting_depth_limit() const noexcept // TODO noexcept(...)
+		auto nesting_depth_limit() const noexcept(noexcept(::std::declval<function_package&>().nesting_depth_limit()))
+			requires concepts::nesting_depth_limiter<function_package>
 		{
-			// TODO concept nesting_depth_limiter
-			if constexpr (concepts::nesting_depth_limiter<function_package>)
-			{
-				return func_pkg->nesting_depth_limit();
-			}
-			else
-			{
-				return 256;
-			}
+			return func_pkg->nesting_depth_limit();
+		}
+
+		static constexpr auto nesting_depth_limit() noexcept requires (!concepts::nesting_depth_limiter<function_package>)
+		{
+			return default_nesting_depth_limit;
 		}
 
 		void request_stop(stop_reason_code reason) noexcept
@@ -747,14 +746,14 @@ namespace pdn
 			return func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
 		}
 
-		void post_err(source_position pos, auto err_c, raw_error_message_variant raw_msg)
+		void post_err(source_position pos, auto err_c, raw_error_message_variant raw_msg) // TODO return stopped by handle_error
 		{
 			func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
 		}
 	private:
 		function_package* func_pkg{};
-		token<char_t>     tk{};
 		::std::size_t     nesting_depth{};
+		token<char_t>     tk{};
 		stop_reason_code  stop_reason_c{};
 	};
 }
