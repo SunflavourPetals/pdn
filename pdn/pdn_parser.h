@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_parser
 #define PDN_Header_pdn_parser
 
+#include <cstddef>
 #include <cassert>
 #include <utility>
 #include <cstdint>
@@ -37,6 +38,10 @@
 #include "pdn_make_slashes_string.h"
 #include "pdn_parser_utility.h"
 
+#include "pdn_stop_reason.h"
+
+#include "pdn_nesting_depth_limiter.h"
+
 namespace pdn::concepts
 {
 	template <typename type, typename char_t>
@@ -58,6 +63,14 @@ namespace pdn
 	private:
 		using syn_ec = syntax_error_code;
 	public:
+		bool stop_requested() const noexcept
+		{
+			return stop_reason_c != stop_reason_code{};
+		}
+		auto stop_reason() const noexcept -> stop_reason_code
+		{
+			return stop_reason_c;
+		}
 		void parse(concepts::token_iterator<char_t> auto begin, auto end, type::object<char_t>& o)
 		{
 			using enum pdn_token_code;
@@ -78,6 +91,8 @@ namespace pdn
 			using err_ms = error_msg_string;
 			using unicode::code_convert;
 			using parser_utility::is_expr_first;
+
+			nesting_depth = 0;
 
 			for (update_token(begin, end); tk.code != eof; )
 			{
@@ -300,13 +315,29 @@ namespace pdn
 			{
 				auto left_brackets_pos = tk.position;
 				update_token(begin, end);
-				return parse_list_expr(begin, end, left_brackets_pos);
+				++nesting_depth;
+				if (nesting_depth > nesting_depth_limit()) [[unlikely]]
+				{
+					request_stop(stop_reason_code::nesting_depth_exceed);
+					return make_proxy<type::list<char_t>>();
+				}
+				auto result = parse_list_expr(begin, end, left_brackets_pos);
+				--nesting_depth;
+				return result;
 			}
 			case left_curly_brackets:
 			{
 				auto left_curly_brackets_pos = tk.position;
 				update_token(begin, end);
-				return parse_object_expr(begin, end, left_curly_brackets_pos);
+				++nesting_depth;
+				if (nesting_depth > nesting_depth_limit()) [[unlikely]]
+				{
+					request_stop(stop_reason_code::nesting_depth_exceed);
+					return make_proxy<type::object<char_t>>();
+				}
+				auto result = parse_object_expr(begin, end, left_curly_brackets_pos);
+				--nesting_depth;
+				return result;
 			}
 			default:
 				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
@@ -685,6 +716,27 @@ namespace pdn
 			}
 		}
 
+		auto nesting_depth_limit() const noexcept // TODO noexcept(...)
+		{
+			// TODO concept nesting_depth_limiter
+			if constexpr (concepts::nesting_depth_limiter<function_package>)
+			{
+				return func_pkg->nesting_depth_limit();
+			}
+			else
+			{
+				return 256;
+			}
+		}
+
+		void request_stop(stop_reason_code reason) noexcept
+		{
+			if (stop_reason_c == stop_reason_code{})
+			{
+				stop_reason_c = reason;
+			}
+		}
+
 		auto type_gen(const type::string<char_t>& iden) -> type_code
 		{
 			return func_pkg->generate_type(iden);
@@ -702,6 +754,8 @@ namespace pdn
 	private:
 		function_package* func_pkg{};
 		token<char_t>     tk{};
+		::std::size_t     nesting_depth{};
+		stop_reason_code  stop_reason_c{};
 	};
 }
 

@@ -6,6 +6,7 @@ namespace pdn
 	enum class stop_reason_code
 	{
 		parse_error_limit = 1,
+		nesting_depth_exceed,
 		open_file_failed, // for input file stream
 		bad_stream,
 		stream_operation_failed,
