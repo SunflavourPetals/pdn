@@ -95,7 +95,8 @@ namespace pdn
 
 			nesting_depth = 0;
 
-			for (update_token(begin, end); tk.code != eof; )
+			if (update_token(begin, end)) [[unlikely]] return;
+			while (tk.code != eof)
 			{
 				if (tk.code == identifier)
 				{
@@ -104,12 +105,15 @@ namespace pdn
 					if (auto it = o.find(*iden_p); it == o.end())
 					{
 						o[::std::move(*iden_p)] = parse_decl(begin, end);
+						if (stop_requested()) [[unlikely]] return;
 					}
 					else
 					{
 						using raw_err_iden = raw_error_message_type::identifier;
-						post_err(tk.position, syn_ec::entity_redefine, raw_err_iden{ code_convert<err_ms>(*iden_p) });
+						if (post_err(tk.position, syn_ec::entity_redefine, raw_err_iden{ code_convert<err_ms>(*iden_p) }))
+							[[unlikely]] return;
 						parse_decl(begin, end);
+						if (stop_requested()) [[unlikely]] return;
 					}
 				}
 				else
@@ -117,17 +121,20 @@ namespace pdn
 					using parser_utility::to_raw_error_token;
 					if (tk.code == semicolon)
 					{
-						update_token(begin, end);
+						if (update_token(begin, end)) [[unlikely]] return;
 					}
 					else if (is_expr_first(tk.code))
 					{
-						post_err(tk.position, syn_ec::expect_entity_name, to_raw_error_token(tk));
+						if (post_err(tk.position, syn_ec::expect_entity_name, to_raw_error_token(tk)))
+							[[unlikely]] return;
 						parse_expr(begin, end);
+						if (stop_requested()) [[unlikely]] return;
 					}
 					else
 					{
-						post_err(tk.position, syn_ec::expect_definition_of_named_entity, to_raw_error_token(tk));
-						update_token(begin, end);
+						if (post_err(tk.position, syn_ec::expect_definition_of_named_entity, to_raw_error_token(tk)))
+							[[unlikely]] return;
+						if (update_token(begin, end)) [[unlikely]] return;
 					}
 				}
 			}
@@ -145,16 +152,17 @@ namespace pdn
 			type_code type_c = type_code::unknown;
 			auto type_pos = tk.position;
 
-			update_token(begin, end);
+			if (update_token(begin, end)) [[unlikely]] return default_entity_value<char_t>(type_c);
 			if (tk.code == colon)
 			{
-				update_token(begin, end);
+				if (update_token(begin, end)) [[unlikely]] return default_entity_value<char_t>(type_c);
 				type_pos = tk.position;
 
 				if (tk.code == identifier)
 				{
 					type_c = parse_type_spec();
-					update_token(begin, end);
+					if (stop_requested()) [[unlikely]] return default_entity_value<char_t>(type_c);
+					if (update_token(begin, end)) [[unlikely]] return default_entity_value<char_t>(type_c);
 					// ... iden : typename CURPOS(expect expr) ...
 				}
 				// ... iden : CURPOS(expect expr) ...
@@ -167,6 +175,7 @@ namespace pdn
 			}
 
 			auto e = parse_expr(begin, end);
+			if (stop_requested()) [[unlikely]] return default_entity_value<char_t>(type_c);
 			// ... iden [colon [typename] ] expr CURPOS ...
 
 			if (type_c != type_code::unknown)
@@ -214,6 +223,7 @@ namespace pdn
 			using enum pdn_token_code;
 
 			auto unary_rec = process_unary_operation(begin, end);
+			if (stop_requested()) [[unlikely]] return type::auto_int{};
 
 			if (!parser_utility::is_expr_first(tk.code))
 			{
@@ -222,6 +232,7 @@ namespace pdn
 			}
 
 			auto result = parse_expr_without_unary(begin, end);
+			if (stop_requested()) [[unlikely]] return result;
 
 			if (!unary_rec.has_sign) return result;
 
@@ -298,7 +309,10 @@ namespace pdn
 				while (tk.code == literal_string) // concatenation
 				{
 					concat_s += *::std::get<string_pr>(tk.value);
-					update_token(begin, end);
+					if (update_token(begin, end)) [[unlikely]]
+					{
+						return make_proxy<string_t>(::std::move(concat_s));
+					}
 				}
 				return token_value_to_entity(token<char_t>{ start_pos, literal_string, make_proxy<string_t>(::std::move(concat_s)) });
 			}
@@ -309,13 +323,14 @@ namespace pdn
 			case at_identifier:
 			{
 				auto result = token_value_to_entity(::std::move(tk));
+				if (stop_requested()) [[unlikely]] return result;
 				update_token(begin, end);
 				return result;
 			}
 			case left_brackets:
 			{
 				auto left_brackets_pos = tk.position;
-				update_token(begin, end);
+				if (update_token(begin, end)) [[unlikely]] return make_proxy<type::list<char_t>>();
 				++nesting_depth;
 				if (nesting_depth > nesting_depth_limit()) [[unlikely]]
 				{
@@ -329,7 +344,7 @@ namespace pdn
 			case left_curly_brackets:
 			{
 				auto left_curly_brackets_pos = tk.position;
-				update_token(begin, end);
+				if (update_token(begin, end)) [[unlikely]] return make_proxy<type::object<char_t>>();
 				++nesting_depth;
 				if (nesting_depth > nesting_depth_limit()) [[unlikely]]
 				{
@@ -353,7 +368,7 @@ namespace pdn
 
 			auto result = parser_utility::unary_record{ is_unary_operator(tk.code) };
 
-			for (; is_unary_operator(tk.code); update_token(begin, end))
+			while (is_unary_operator(tk.code))
 			{
 				result.is_last_sign_negative = is_negative_sign(tk.code);
 				if (result.is_last_sign_negative)
@@ -365,6 +380,7 @@ namespace pdn
 				{
 					result.last_positive_sign_pos = tk.position;
 				}
+				if (update_token(begin, end)) [[unlikely]] return result;
 			}
 
 			return result;
@@ -390,14 +406,18 @@ namespace pdn
 				{
 					if (!with_comma)
 					{
-						post_err(tk.position, syn_ec::expect_comma, to_raw_error_token(tk));
+						if (post_err(tk.position, syn_ec::expect_comma, to_raw_error_token(tk)))
+							[[unlikely]] return make_proxy<type::list<char_t>>(::std::move(result));
 					}
 					result.push_back(parse_list_element(begin, end, with_comma));
+					if (stop_requested()) [[unlikely]] return make_proxy<type::list<char_t>>(::std::move(result));
 				}
 				else
 				{
-					post_err(tk.position, syn_ec::expect_definition_of_list_element, to_raw_error_token(tk));
-					update_token(begin, end);
+					if (post_err(tk.position, syn_ec::expect_definition_of_list_element, to_raw_error_token(tk)))
+						[[unlikely]] return make_proxy<type::list<char_t>>(::std::move(result));
+					if (update_token(begin, end))
+						[[unlikely]] return make_proxy<type::list<char_t>>(::std::move(result));
 				}
 			}
 
@@ -411,29 +431,35 @@ namespace pdn
 		{
 			// ... iden [colon [typename] ] [ ... ] CURPOS ...
 
+			using parser_utility::default_entity_value;
+
 			auto type_c = type_code::unknown;
 			auto type_pos = tk.position;
 
 			if (tk.code == pdn_token_code::identifier)
 			{
 				type_c = parse_type_spec();
-				update_token(begin, end);
+				if (stop_requested()) [[unlikely]] return default_entity_value<char_t>(type_c);
+				if (update_token(begin, end)) [[unlikely]] return default_entity_value<char_t>(type_c);
 				if (tk.code == pdn_token_code::colon)
 				{
-					update_token(begin, end);
+					if (update_token(begin, end))
+						[[unlikely]] return default_entity_value<char_t>(type_c);
 				}
 				else
 				{
-					post_err(tk.position, syn_ec::expect_colon, parser_utility::to_raw_error_token(tk));
+					if (post_err(tk.position, syn_ec::expect_colon, parser_utility::to_raw_error_token(tk)))
+						[[unlikely]] return default_entity_value<char_t>(type_c);
 				}
 			}
 
-			entity_type e{ parse_expr(begin, end) };
+			auto e = parse_expr(begin, end);
+			if (stop_requested()) [[unlikely]] return e;
 			// to ... [ (element,)* element CURRPOS ...
 
 			if (tk.code == pdn_token_code::comma)
 			{
-				update_token(begin, end);
+				if (update_token(begin, end)) [[unlikely]] return e;
 				with_comma = true;
 			}
 			else
@@ -469,22 +495,30 @@ namespace pdn
 					if (auto it = result.find(*iden_p); it == result.end())
 					{
 						result[::std::move(*iden_p)] = parse_decl(begin, end);
+						if (stop_requested()) [[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 					}
 					else
 					{
 						using raw_err_iden = raw_error_message_type::identifier;
-						post_err(tk.position, syn_ec::entity_redefine, raw_err_iden{ code_convert<err_ms>(*iden_p) });
+						if (post_err(tk.position, syn_ec::entity_redefine, raw_err_iden{ code_convert<err_ms>(*iden_p) }))
+							[[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 						parse_decl(begin, end);
+						if (stop_requested()) [[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 					}
 				}
 				else if (tk.code == pdn_token_code::semicolon)
 				{
-					update_token(begin, end);
+					if (update_token(begin, end)) [[unlikely]]
+					{
+						return make_proxy<type::object<char_t>>(::std::move(result));
+					}
 				}
 				else if (is_expr_first(tk.code))
 				{
-					post_err(tk.position, syn_ec::expect_entity_name, to_raw_error_token(tk));
+					if (post_err(tk.position, syn_ec::expect_entity_name, to_raw_error_token(tk)))
+						[[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 					parse_expr(begin, end);
+					if (stop_requested()) [[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 				}
 				else if (tk.code == pdn_token_code::eof)
 				{
@@ -493,8 +527,10 @@ namespace pdn
 				}
 				else
 				{
-					post_err(tk.position, syn_ec::expect_definition_of_named_entity, to_raw_error_token(tk));
-					update_token(begin, end);
+					if (post_err(tk.position, syn_ec::expect_definition_of_named_entity, to_raw_error_token(tk)))
+						[[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
+					if (update_token(begin, end))
+						[[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 				}
 			}
 
