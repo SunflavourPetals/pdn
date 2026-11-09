@@ -704,17 +704,27 @@ namespace pdn
 			}, ::std::move(src.value));
 		}
 
-		void update_token(auto& begin, auto end) // TODO return is stopped by ++beg
+		// if begin is stoppable then returns begin.stop_requested() else return false
+		bool update_token(auto& begin, auto end)
 		{
 			if (begin != end)
 			{
 				tk = ::std::move(*begin);
 				++begin;
+				if constexpr (concepts::stoppable<::std::remove_reference_t<decltype(begin)>>)
+				{
+					if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return true;
+					}
+				}
 			}
 			else
 			{
 				tk = token<char_t>{ .position = tk.position, .code = pdn_token_code::eof, .value = {} };
 			}
+			return false;
 		}
 
 		auto nesting_depth_limit() const noexcept(noexcept(::std::declval<function_package&>().nesting_depth_limit()))
