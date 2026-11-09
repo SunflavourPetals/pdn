@@ -704,7 +704,7 @@ namespace pdn
 			}, ::std::move(src.value));
 		}
 
-		// if begin is stoppable then returns begin.stop_requested() else return false
+		// if begin is stoppable then returns begin.stop_requested() else returns false
 		bool update_token(auto& begin, auto end)
 		{
 			if (begin != end)
@@ -756,9 +756,19 @@ namespace pdn
 			return func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
 		}
 
-		void post_err(source_position pos, auto err_c, raw_error_message_variant raw_msg) // TODO return stopped by handle_error
+		// if function_package is stoppable then returns func_pkg->stop_requested() else returns false
+		bool post_err(source_position pos, auto err_c, raw_error_message_variant raw_msg)
 		{
 			func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
+			if constexpr (concepts::stoppable<function_package>)
+			{
+				if (func_pkg->stop_requested()) [[unlikely]]
+				{
+					request_stop(func_pkg->stop_reason());
+					return true;
+				}
+			}
+			return false;
 		}
 	private:
 		function_package* func_pkg{};
