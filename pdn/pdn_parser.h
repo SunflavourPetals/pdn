@@ -147,22 +147,21 @@ namespace pdn
 
 			using enum pdn_token_code;
 			using parser_utility::is_expr_first;
-			using parser_utility::default_entity_value;
 
 			type_code type_c = type_code::unknown;
 			auto type_pos = tk.position;
 
-			if (update_token(begin, end)) [[unlikely]] return default_entity_value<char_t>(type_c);
+			if (update_token(begin, end)) [[unlikely]] return default_ent(type_c);
 			if (tk.code == colon)
 			{
-				if (update_token(begin, end)) [[unlikely]] return default_entity_value<char_t>(type_c);
+				if (update_token(begin, end)) [[unlikely]] return default_ent(type_c);
 				type_pos = tk.position;
 
 				if (tk.code == identifier)
 				{
 					type_c = parse_type_spec();
-					if (stop_requested()) [[unlikely]] return default_entity_value<char_t>(type_c);
-					if (update_token(begin, end)) [[unlikely]] return default_entity_value<char_t>(type_c);
+					if (stop_requested()) [[unlikely]] return default_ent(type_c);
+					if (update_token(begin, end)) [[unlikely]] return default_ent(type_c);
 					// ... iden : typename CURPOS(expect expr) ...
 				}
 				// ... iden : CURPOS(expect expr) ...
@@ -171,11 +170,11 @@ namespace pdn
 			if (!is_expr_first(tk.code))
 			{
 				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
-				return default_entity_value<char_t>(type_c);
+				return default_ent(type_c);
 			}
 
 			auto e = parse_expr(begin, end);
-			if (stop_requested()) [[unlikely]] return default_entity_value<char_t>(type_c);
+			if (stop_requested()) [[unlikely]] return default_ent(type_c);
 			// ... iden [colon [typename] ] expr CURPOS ...
 
 			if (type_c != type_code::unknown)
@@ -223,12 +222,12 @@ namespace pdn
 			using enum pdn_token_code;
 
 			auto unary_rec = process_unary_operation(begin, end);
-			if (stop_requested()) [[unlikely]] return type::auto_int{};
+			if (stop_requested()) [[unlikely]] return default_ent();
 
 			if (!parser_utility::is_expr_first(tk.code))
 			{
 				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
-				return type::auto_int{};
+				return default_ent();
 			}
 
 			auto result = parse_expr_without_unary(begin, end);
@@ -357,7 +356,7 @@ namespace pdn
 			}
 			default:
 				post_err(tk.position, syn_ec::expect_expression, parser_utility::to_raw_error_token(tk));
-				return type::auto_int{};
+				return default_ent();
 			}
 		}
 
@@ -431,25 +430,23 @@ namespace pdn
 		{
 			// ... iden [colon [typename] ] [ ... ] CURPOS ...
 
-			using parser_utility::default_entity_value;
-
 			auto type_c = type_code::unknown;
 			auto type_pos = tk.position;
 
 			if (tk.code == pdn_token_code::identifier)
 			{
 				type_c = parse_type_spec();
-				if (stop_requested()) [[unlikely]] return default_entity_value<char_t>(type_c);
-				if (update_token(begin, end)) [[unlikely]] return default_entity_value<char_t>(type_c);
+				if (stop_requested()) [[unlikely]] return default_ent(type_c);
+				if (update_token(begin, end)) [[unlikely]] return default_ent(type_c);
 				if (tk.code == pdn_token_code::colon)
 				{
 					if (update_token(begin, end))
-						[[unlikely]] return default_entity_value<char_t>(type_c);
+						[[unlikely]] return default_ent(type_c);
 				}
 				else
 				{
 					if (post_err(tk.position, syn_ec::expect_colon, parser_utility::to_raw_error_token(tk)))
-						[[unlikely]] return default_entity_value<char_t>(type_c);
+						[[unlikely]] return default_ent(type_c);
 				}
 			}
 
@@ -563,15 +560,13 @@ namespace pdn
 			case unknown:   assert(0 && "cast to unknown type"); break;
 			default:        assert(0 && "type cast unhandled");  break;
 			}
-			return type::auto_int{};
+			return default_ent();
 		}
 
 		template <type_code target_type_c>
 		auto entity_cast(entity_type src, source_position type_pos) -> entity_type
 		{
 			static_assert(target_type_c != type_code::unknown, "[pdn] cast to unknown type");
-
-			using parser_utility::default_entity_value;
 
 			return ::std::visit([&](auto& arg) -> entity_type
 			{
@@ -598,7 +593,7 @@ namespace pdn
 						if (arg > ::std::numeric_limits<tar_t>::max() || arg < ::std::numeric_limits<tar_t>::min())
 						{
 							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
-							return default_entity_value<char_t>(target_type_c);
+							return default_ent(target_type_c);
 						}
 						return static_cast<tar_t>(arg);
 					}
@@ -609,7 +604,7 @@ namespace pdn
 						if (arg < s_tar_t(::std::numeric_limits<tar_t>::min()) || u_src_t(arg) > ::std::numeric_limits<tar_t>::max())
 						{
 							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
-							return default_entity_value<char_t>(target_type_c);
+							return default_ent(target_type_c);
 						}
 						return static_cast<tar_t>(arg);
 					}
@@ -620,7 +615,7 @@ namespace pdn
 					else // sint -> character|string|list|object
 					{
 						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
-						return default_entity_value<char_t>(target_type_c);
+						return default_ent(target_type_c);
 					}
 				}
 				else if constexpr (pdn_uint<src_t>)
@@ -630,7 +625,7 @@ namespace pdn
 						if (arg > ::std::numeric_limits<tar_t>::max() || arg < ::std::numeric_limits<tar_t>::min())
 						{
 							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
-							return default_entity_value<char_t>(target_type_c);
+							return default_ent(target_type_c);
 						}
 						return static_cast<tar_t>(arg);
 					}
@@ -644,7 +639,7 @@ namespace pdn
 						if (arg > u_tar_t(::std::numeric_limits<tar_t>::max()))
 						{
 							post_err(type_pos, casting_domain_error, raw_err_casting{ { arg }, src_c, tar_c });
-							return default_entity_value<char_t>(target_type_c);
+							return default_ent(target_type_c);
 						}
 						return static_cast<tar_t>(arg);
 					}
@@ -655,7 +650,7 @@ namespace pdn
 					else // uint -> character|string|list|object
 					{
 						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
-						return default_entity_value<char_t>(target_type_c);
+						return default_ent(target_type_c);
 					}
 				}
 				else if constexpr (pdn_fp<src_t>)
@@ -667,12 +662,12 @@ namespace pdn
 					else if constexpr (pdn_integral<tar_t>)
 					{
 						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
-						return default_entity_value<char_t>(target_type_c);
+						return default_ent(target_type_c);
 					}
 					else // fp -> character|string|list|object
 					{
 						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
-						return default_entity_value<char_t>(target_type_c);
+						return default_ent(target_type_c);
 					}
 				}
 				else if constexpr (pdn_bool<src_t>)
@@ -684,7 +679,7 @@ namespace pdn
 					else // bool -> character|string|list|object
 					{
 						post_err(type_pos, illegal_cast, raw_err_casting{ { arg }, src_c, tar_c });
-						return default_entity_value<char_t>(target_type_c);
+						return default_ent(target_type_c);
 					}
 				}
 				else // character|string|list|object
@@ -705,7 +700,7 @@ namespace pdn
 					{
 						post_err(type_pos, illegal_cast, raw_err_casting{ {}, src_c, tar_c });
 					}
-					return default_entity_value<char_t>(target_type_c);
+					return default_ent(target_type_c);
 				}
 			}, src);
 		}
@@ -717,7 +712,7 @@ namespace pdn
 				if constexpr (::std::same_as<arg_t, ::std::monostate>)
 				{
 					assert(0 && "token have no value");
-					return type::auto_int{};
+					return default_ent();
 				}
 				else if constexpr (::std::same_as<arg_t, detail::at_iden_string_proxy>)
 				{
@@ -731,13 +726,23 @@ namespace pdn
 						using unicode::code_convert;
 						post_err(src.position, syn_ec::at_value_not_found, raw_err_iden{ code_convert<error_msg_string>(arg.get_id()) });
 					}
-					return type::auto_int{};
+					return default_ent();
 				}
 				else
 				{
 					return entity<char_t>{ ::std::move(arg) };
 				}
 			}, ::std::move(src.value));
+		}
+
+		static constexpr auto default_ent(type_code type_c)
+		{
+			return parser_utility::default_entity_value<char_t>(type_c);
+		}
+
+		static constexpr auto default_ent()
+		{
+			return default_ent(type_code::unknown);
 		}
 
 		// if begin is stoppable then returns begin.stop_requested() else returns false
