@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_function_package
 
 #include <iosfwd>
+#include <cstddef>
 #include <utility>
 #include <type_traits>
 
@@ -20,6 +21,10 @@ namespace pdn
 	public:
 		using error_count_t = default_threshold_error_handler::error_count_t;
 		inline static constexpr auto default_limit = default_threshold_error_handler::default_limit;
+		static constexpr auto nesting_depth_limit() noexcept -> ::std::size_t
+		{
+			return 256;
+		}
 		bool stop_requested() const noexcept
 		{
 			return err_handler.stop_requested();
