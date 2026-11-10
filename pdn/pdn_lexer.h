@@ -7,7 +7,6 @@
 #include <memory>
 #include <limits>
 #include <utility>
-#include <optional>
 #include <concepts>
 #include <charconv>
 #include <iterator>
@@ -42,33 +41,13 @@ namespace pdn
 {
 	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
 	class lexer;
-}
 
-namespace pdn::detail
-{
-	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
-	struct token_iterator_ctrlblk_from_lexer
-	{
-		using lexer_t = lexer<char_t, function_package, it_begin_t>;
-		using token_t = token<char_t>;
-		lexer_t    lex;
-		it_begin_t begin;
-		it_end_t   end;
-		token_t get_token()
-		{
-			return lex.get_token(begin, end); // if begin == end then return eof
-		}
-	};
-}
+	struct token_iterator_end_from_lexer {};
 
-// TODO add stoppable
-namespace pdn
-{
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
 	class token_iterator_from_lexer
 	{
 	private:
-		using ctrlblk_t = detail::token_iterator_ctrlblk_from_lexer<char_t, function_package, it_begin_t, it_end_t>;
 		using lexer_t   = lexer<char_t, function_package, it_begin_t>;
 		using token_t   = token<char_t>;
 	public:
@@ -79,11 +58,11 @@ namespace pdn
 	public:
 		bool eof() const noexcept
 		{
-			return ctrl_opt.has_value();
+			return stored_token.code == pdn_token_code::eof;
 		}
 		void to_next()
 		{
-			to_next_impl();
+			stored_token = get_token();
 		}
 		value_type& operator*() noexcept
 		{
@@ -99,32 +78,25 @@ namespace pdn
 			return *this;
 		}
 		// just for check eof
-		friend bool operator==(const token_iterator_from_lexer& lhs, const token_iterator_from_lexer& rhs) noexcept
+		friend bool operator==(const token_iterator_from_lexer& lhs, const token_iterator_end_from_lexer&) noexcept
 		{
-			return lhs.ctrl_opt.has_value() == rhs.ctrl_opt.has_value();
+			return lhs.eof();
 		}
 		// construct end iter
 		token_iterator_from_lexer() = default;
 		token_iterator_from_lexer(lexer_t lex, it_begin_t begin, it_end_t end) :
-			ctrl_opt{ ::std::make_optional<ctrlblk_t>(::std::move(lex), ::std::move(begin), ::std::move(end)) }
-		{
-			to_next();
-		}
+			lex{ ::std::move(lex) },
+			begin{ ::std::move(begin) },
+			end{ ::std::move(end) } { to_next(); }
 	private:
 		token_t get_token()
 		{
-			return ctrl_opt->get_token();
+			return lex.get_token(begin, end);
 		}
-		void to_next_impl()
-		{
-			stored_token = get_token();
-			if (stored_token.code == pdn_token_code::eof)
-			{
-				ctrl_opt = ::std::nullopt;
-			}
-		}
-		token_t                    stored_token{ .position = {}, .code = pdn_token_code::eof, .value = {} };
-		::std::optional<ctrlblk_t> ctrl_opt{ ::std::nullopt };
+		token_t    stored_token{ .position = {}, .code = pdn_token_code::eof, .value = {} };
+		lexer_t    lex;
+		it_begin_t begin;
+		it_end_t   end;
 	};
 
 	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
@@ -133,22 +105,9 @@ namespace pdn
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{ ::std::move(lex), ::std::move(begin), ::std::move(end) };
 	}
 
-	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
-	auto make_end_token_iterator(const lexer<char_t, func_pkg, it_begin_t>&, const it_begin_t&, const it_end_t&)
-	{
-		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
-	}
-
-	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
-	auto make_end_token_iterator(const token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>&)
-	{
-		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
-	}
-
-	template <typename char_t, typename func_pkg, typename it_begin_t, typename it_end_t>
 	auto make_end_token_iterator()
 	{
-		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{};
+		return token_iterator_end_from_lexer{};
 	}
 }
 
