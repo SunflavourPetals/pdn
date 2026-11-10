@@ -354,6 +354,12 @@
     <ClInclude Include="pdn_nesting_depth_limiter.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
+    <ClInclude Include="pdn_parse_error_code.h">
+      <Filter>pdn_parser</Filter>
+    </ClInclude>
+    <ClInclude Include="pdn_parse_result.h">
+      <Filter>pdn_parser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

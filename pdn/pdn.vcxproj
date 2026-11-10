@@ -142,6 +142,8 @@
     <ClInclude Include="pdn_false.h" />
     <ClInclude Include="pdn_from_chars_hex_float.h" />
     <ClInclude Include="pdn_nesting_depth_limiter.h" />
+    <ClInclude Include="pdn_parse_error_code.h" />
+    <ClInclude Include="pdn_parse_result.h" />
     <ClInclude Include="pdn_stoppable_concept.h" />
     <ClInclude Include="pdn_stoppable_utility.h" />
     <ClInclude Include="pdn_stop_reason.h" />

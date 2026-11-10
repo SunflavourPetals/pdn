@@ -23,6 +23,8 @@
 #include "pdn_entity.h"
 #include "pdn_parser_utility.h"
 #include "pdn_stop_reason.h"
+#include "pdn_parse_error_code.h"
+#include "pdn_parse_result.h"
 
 namespace pdn::detail
 {
@@ -50,111 +52,6 @@ namespace pdn::inline utf_tag
 
 namespace pdn
 {
-	enum class parse_error_code
-	{
-		parse_error = 1,
-		parse_error_limit, // stop requested in parse because error limit exceed
-		nesting_depth_exceed,
-		open_file_failed, // for input file stream or filename | path
-		bad_stream,
-		stream_operation_failed,
-		incomplete_code_unit,
-		user_cancelled, // for user defined function package
-	};
-
-	constexpr auto to_parse_error_code(stop_reason_code c) noexcept -> parse_error_code
-	{
-		using enum parse_error_code;
-		switch (c)
-		{
-		case stop_reason_code::parse_error_limit:       return parse_error_limit;
-		case stop_reason_code::nesting_depth_exceed:    return nesting_depth_exceed;
-		case stop_reason_code::open_file_failed:        return open_file_failed;
-		case stop_reason_code::bad_stream:              return bad_stream;
-		case stop_reason_code::stream_operation_failed: return stream_operation_failed;
-		case stop_reason_code::incomplete_code_unit:    return incomplete_code_unit;
-		case stop_reason_code::user_cancelled:          return user_cancelled;
-		default:
-#ifdef __cpp_lib_unreachable
-			::std::unreachable();
-#else
-			assert(false && "[pdn] unknown stop reason");
-#endif
-			return user_cancelled; // unreachable
-		}
-	}
-
-	template <unicode::concepts::code_unit char_t>
-	class parse_result
-	{
-	public:
-		using entity_type = entity<char_t>;
-		auto error_code() const noexcept
-		{
-			return err_c;
-		}
-		bool success() const noexcept
-		{
-			return err_c == parse_error_code{};
-		}
-		bool failed() const noexcept
-		{
-			return !success();
-		}
-		bool has_value() const noexcept
-		{
-			return success();
-		}
-		auto value() noexcept -> entity<char_t>&
-		{
-			return ent;
-		}
-		auto value() const noexcept -> const entity<char_t>&
-		{
-			return ent;
-		}
-		operator bool() const noexcept
-		{
-			return has_value();
-		}
-		auto operator->() noexcept -> entity_type*
-		{
-			return &ent;
-		}
-		auto operator->() const noexcept -> const entity_type*
-		{
-			return &ent;
-		}
-		auto operator*() & noexcept -> entity_type&
-		{
-			return ent;
-		}
-		auto operator*() && noexcept -> entity_type&&
-		{
-			return ::std::move(ent);
-		}
-		auto operator*() const& noexcept -> const entity_type&
-		{
-			return ent;
-		}
-		auto operator*() const&& noexcept -> const entity_type&&
-		{
-			return ::std::move(ent);
-		}
-		explicit parse_result(parse_error_code error_code) : err_c{ error_code }, ent{ default_ent() } {}
-		explicit parse_result(entity_type&& ent_result) : err_c{}, ent{ ::std::move(ent_result) } {}
-		parse_result(parse_error_code error_code, entity_type&& ent_result) :
-			err_c{ error_code },
-			ent{ ::std::move(ent_result) } {}
-	private:
-		static auto default_ent() -> entity_type
-		{
-			return parser_utility::default_entity_value<char_t>(type_code::unknown);
-		}
-		parse_error_code err_c;
-		entity_type ent;
-	};
-
 	// for token iterator
 	template <unicode::concepts::code_unit                  char_t,
 	          concepts::token_iterator<char_t>              it_t,
