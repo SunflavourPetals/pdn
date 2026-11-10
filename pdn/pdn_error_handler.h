@@ -9,6 +9,7 @@
 #include "pdn_error_message.h"
 #include "pdn_error_handler_concept.h"
 #include "pdn_stop_reason.h"
+#include "pdn_stoppable_concept.h"
 
 namespace pdn::detail
 {
@@ -78,7 +79,7 @@ namespace pdn
 				stop_reason_c = stop_reason_code::parse_error_limit;
 			}
 		}
-		// only increase error count by 1, and throw an exception if error count exceeds limit
+		// only increase error count by 1, and set parse_error_limit if error count exceeds limit
 		void handle_error()
 		{
 			err_handler.handle_error();
@@ -90,6 +91,7 @@ namespace pdn
 		void clear() noexcept
 		{
 			err_handler.clear();
+			stop_reason_c = stop_reason_code{};
 		}
 		auto error_count() const noexcept -> error_count_t
 		{
@@ -101,10 +103,11 @@ namespace pdn
 		default_error_handler err_handler{};
 		stop_reason_code stop_reason_c{};
 	public:
-		// Throws an exception once accumulated errors reach limit. If limit is 0, handle_error(...) behaves as if limit were 1.
+		// set parse_error_limit once accumulated errors reach limit. If limit is 0, handle_error(...) behaves as if limit were 1.
 		error_count_t limit{ default_limit };
 	};
 	static_assert(concepts::error_handler<default_threshold_error_handler>);
+	static_assert(concepts::stoppable<default_threshold_error_handler>);
 }
 
 #endif

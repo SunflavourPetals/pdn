@@ -48,7 +48,6 @@ namespace pdn
 		{
 		case stop_reason_code::parse_error_limit:       return parse_error_limit;
 		case stop_reason_code::nesting_depth_exceed:    return nesting_depth_exceed;
-		case stop_reason_code::open_file_failed:        return open_file_failed;
 		case stop_reason_code::bad_stream:              return bad_stream;
 		case stop_reason_code::stream_operation_failed: return stream_operation_failed;
 		case stop_reason_code::incomplete_code_unit:    return incomplete_code_unit;

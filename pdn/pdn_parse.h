@@ -97,8 +97,12 @@ namespace pdn
 		fn_pkg_for_parser& par_fp,
 		char_t             char_tag = {}) -> parse_result<char_t>
 	{
+		if constexpr (concepts::stoppable<it_t>) if (begin.stop_requested()) [[unlikely]]
+		{
+			return parse_result<char_t>{ to_parse_error_code(begin.stop_reason()) };
+		}
 		auto cp_it = make_code_point_iterator(::std::move(begin), end, cp_it_fp);
-		if (cp_it.stop_requested()) [[unlikely]]
+		if constexpr (concepts::stoppable<decltype(cp_it)>) if (cp_it.stop_requested()) [[unlikely]]
 		{
 			return parse_result<char_t>{ to_parse_error_code(cp_it.stop_reason()) };
 		}
