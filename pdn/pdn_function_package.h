@@ -52,7 +52,7 @@ namespace pdn
 		{
 			return parsing_filename;
 		}
-		void clear_error_count() noexcept
+		void clear_error() noexcept
 		{
 			err_handler.clear();
 		}

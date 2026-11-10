@@ -1011,7 +1011,7 @@ class default_function_package
 public:
     // 表示错误数量的类型
     using error_count_t = default_threshold_error_handler::error_count_t;
-    // 默认的解析错误数量限制，错误超过限制时pdn默认功能包会抛出异常或终止程序(禁用异常情况下)
+    // 默认的解析错误数量限制，错误超过限制时pdn默认功能包会请求终止本次解析
     inline static constexpr auto default_limit = default_threshold_error_handler::default_limit;
 
 
@@ -1033,15 +1033,24 @@ public:
     void clear_filename() noexcept;
     // 获取文件名
     auto filename() const noexcept -> const pdn::error_msg_string&;
-    // 归零累计的已发生错误数量(默认行为是当错误数量累积到100时结束解析)
-    void clear_error_count() noexcept;
+    // 归零累计的已发生错误数量、重置 stop 请求状态(默认行为是当错误数量累积到100时结束解析)
+    void clear_error() noexcept;
     // 重设结束解析所需的错误数量
     void reset_error_threshold(const error_count_t max_error_count) noexcept;
     // 查询结束解析所需的错误数量
     auto error_threshold() const noexcept;
 
 
+    // function_package 选择性提供：
+    // 限制解析器解析列表和对象的嵌套深度，需要满足概念 concepts::nesting_depth_limiter
+    static constexpr auto nesting_depth_limit() noexcept -> ::std::size_t;
 
+    // function_package 选择性提供：
+    // 用于请求解析器停止解析，需要满足概念 concepts::stoppable
+    // 注：stop 请求只能由 handle_error(const pdn::error_message&) 直接或间接生成
+    bool stop_requested() const noexcept;
+    auto stop_reason() const noexcept -> stop_reason_code;
+    
     // function_package 必需品：
     // source_position_recorder 相关，提供正在解析行与列位置，用户一般无需自定义
     auto position() const -> pdn::source_position;
@@ -1053,13 +1062,13 @@ public:
 
     // function_package 必需品：查询累计的已发生错误数量
     auto error_count() const noexcept;
-    // function_package 必需品：处理错误，默认行为是输出错误信息到 std::cerr，并检查错误数量是否抵达上限
+    // function_package 必需品：处理错误，默认行为是输出错误信息到 std::cerr，并在错误数量抵达上限时请求停止解析
     void handle_error(const pdn::error_message& msg);
     // 另一个版本，供用户定制时使用，非必需
-    // 输出错误信息到 out，并检查错误数量是否抵达上限
+    // 输出错误信息到 out，并在错误数量抵达上限时请求停止解析
     void handle_error(const pdn::error_message& msg, ::std::ostream& out);
     // 另一个版本，供用户定制时使用，非必需
-    // 检查错误数量是否抵达上限
+    // 在错误数量抵达上限时请求停止解析
     void handle_error();
 
     // function_package 必需品：生成错误信息文本
@@ -1142,14 +1151,8 @@ void handle_error(const error_message& e, ::std::ostream& out)
     err_handler.handle_error(e, out); // default_error_handler：计数并输出
     if (err_handler.error_count() >= limit)
     {
-#ifdef PDN_NO_EXCEPTIONS
-#ifdef PDN_USER_TERMINATE
-        PDN_USER_TERMINATE("pdn::default_threshold_error_handler::handle_error(error_message const&, ::std::ostream&)", "too many parsing errors");
-#endif
-        ::std::terminate();
-#else
-        throw ::std::runtime_error{ "too many parsing errors" };
-#endif
+        // 请求停止解析
+        request_stop(stop_reason_code::parse_error_limit);
     }
 }
 ```
@@ -1225,12 +1228,32 @@ catch (...)
 
 ### 利用解析器错误处理终止解析
 
-在未禁用异常时，默认函数包在累计错误达到 `100` 时抛出 `std::runtime_error`。  
-因此使用 `pdn::parse` 时需要注意异常处理和异常安全。  
+默认函数包在累计错误达到 `100` 时会请求 `stop` 来结束解析。  
 
-在禁用异常时，默认函数包的 `error_handler` 会在累计错误达到 `100` 时终止程序，以防止可能出现的死循环(暂未测试出有解析时死循环的情况)。  
+解析器允许 `function_package` 提供的 `handle_error(const pdn::error_message&)` 中直接或间接请求停止解析，如需要此功能，`function_package` 需要满足概念 `pdn::concepts::stoppable`。  
 
-禁用异常请参考 [禁用异常设置](#禁用异常设置)。  
+``` C++
+template <typename type>
+concept stoppable = requires(add_const_t<type> stop)
+{
+    { stop.stop_requested() } -> convertible_to<bool>;
+    { stop.stop_reason() } -> convertible_to<stop_reason_code>;
+};
+```
+
+注意，不允许在解析器使用的其他 `function_package` 接口(参考 [解析器配置](#解析器配置) 章节)里直接或间接改变 `stop` 请求状态，如果在非 `handle_error(const pdn::error_message&)` 中改变 `stop` 请求状态，可能不会被立即响应。  
+
+本库的 `parse` 函数允许为不同的解析阶段提供不同的 `function_package`，如为文件名提供的 `parse` 函数接受分别满足以下三个概念的 `function_package`：  
+
+``` C++
+concepts::function_package_for_code_point_iterator;
+concepts::function_package_for_lexer;
+concepts::function_package_for_parser<char_t>;
+```
+
+如果为不同解析阶段提供不同的 `function_package`，它们将会各自统计自己的错误处理次数，而不是在总错误处理次数达到阈值时就请求 `stop`。  
+
+本库提供的 `pdn::default_function_package` 满足 `pdn::concepts::stoppable`，并会在累计处理的错误达到上限(数值可自由设置)时 请求 `stop`，以防止可能出现的死循环(暂未测试出有解析时死循环的情况)。  
 
 ## 配置自定义的解析器的常量
 
@@ -1389,8 +1412,7 @@ enum class serialize_separator_ts
 
 ### 禁用异常设置
 
-编译本库头文件时如果有宏定义 `PDN_NO_EXCEPTIONS`，那么将禁用本库使用的异常，本库内不含 `try-catch`，但是在某些条件下使用 `throw` 报告异常。定义 `PDN_NO_EXCEPTIONS` 禁用异常后，所有 `throw` 将被替换为 `::std::terminate()`。启用异常时，`entity` 访问越界、库内使用的输入流损坏且无法恢复等情况会抛出异常，在禁用异常时被 `terminate` 替代是很合理的，唯一有影响的是本库使用 `throw` 在解析错误过多时退出解析，如果禁用了异常，那么它将直接导致程序终止。本库实现的解析器没有为解析错误数量达到阈值时退出解析预留非异常实现的通道(暂时没有计划支持)。  
-综上所述，在禁用异常时可能需要根据情况提高可承受错误数量阈值(在 `default_function_package` 的 `handle_error` 函数)，或者去除阈值限定，不过这样解析器将可能花费太多时间处理不必要的错误报告，而且去除可承受解析错误数量阈值后有解析器死循环的风险(虽然目前的测试没有发现去除阈值限定情况下死循环的bug)。  
+编译本库头文件时如果有宏定义 `PDN_NO_EXCEPTIONS`，那么将禁用本库使用的异常，本库内不含 `try-catch`，但是在某些条件下使用 `throw` 报告异常。定义 `PDN_NO_EXCEPTIONS` 禁用异常后，所有 `throw` 将被替换为 `::std::terminate()` 或用户提供的终止方式。  
 
 ### 提供终止前的用户处理
 

@@ -83,9 +83,9 @@ namespace pdn
 		void handle_error()
 		{
 			err_handler.handle_error();
-			if (err_handler.error_count() >= limit) [[unlikely]]
+			if (err_handler.error_count() >= limit)
 			{
-				stop_reason_c = stop_reason_code::parse_error_limit;
+				request_stop(stop_reason_code::parse_error_limit);
 			}
 		}
 		void clear() noexcept
@@ -100,6 +100,13 @@ namespace pdn
 		default_threshold_error_handler() = default;
 		explicit default_threshold_error_handler(error_count_t max_error_count) : limit{ max_error_count } {}
 	private:
+		void request_stop(stop_reason_code reason) noexcept
+		{
+			if (stop_reason_c == stop_reason_code{})
+			{
+				stop_reason_c = reason;
+			}
+		}
 		default_error_handler err_handler{};
 		stop_reason_code stop_reason_c{};
 	public:
