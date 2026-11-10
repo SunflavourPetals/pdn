@@ -1194,7 +1194,7 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::identifier_string;
-					if (detail::get_escape(c, begin, end, true, helper())) // TODO BGMARK DONE
+					if (detail::get_escape(c, begin, end, true, helper()))
 					{
 						append(text, c);
 					}
@@ -1220,7 +1220,7 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::string;
-					if (detail::get_escape(c, begin, end, false, helper())) // TODO BGMARK DONE
+					if (detail::get_escape(c, begin, end, false, helper()))
 					{
 						append(text, c);
 					}
@@ -1246,7 +1246,7 @@ namespace pdn
 						return result;
 					}
 					new_dfa_state = dfa_state_objects::character;
-					if (detail::get_escape(c, begin, end, false, helper())) // TODO BGMARK DONE
+					if (detail::get_escape(c, begin, end, false, helper()))
 					{
 						append(text, c);
 					}
@@ -1274,7 +1274,7 @@ namespace pdn
 					// @"d_seq()d_seq"
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
-					if (!detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, false, helper())) [[unlikely]] // TODO BGMARK DONE
+					if (!detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, false, helper())) [[unlikely]]
 					{
 						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
 						{
@@ -1328,7 +1328,7 @@ namespace pdn
 						request_stop(begin.stop_reason());
 						return result;
 					}
-					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'"')) // TODO BGMARK DONE
+					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'"'))
 					{
 						new_dfa_state = dfa_state_objects::raw_string_closed;
 					}
@@ -1355,7 +1355,7 @@ namespace pdn
 					// @`d_seq()d_seq`
 					//  ^ -> to first d sequence character or '('
 					// not concerned whether this function fails
-					if (!detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, true, helper())) [[unlikely]] // TODO BGMARK DONE
+					if (!detail::get_raw_string_opening_d_seq(open_d_seq, begin, end, true, helper())) [[unlikely]]
 					{
 						if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
 						{
@@ -1400,7 +1400,7 @@ namespace pdn
 						request_stop(begin.stop_reason());
 						return result;
 					}
-					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'`')) // TODO BGMARK DONE
+					if (detail::get_raw_string_closing_d_seq(open_d_seq, close_d_seq, begin, end, U'`'))
 					{
 						new_dfa_state = dfa_state_objects::identifier_raw_string_closed;
 					}
@@ -1503,7 +1503,7 @@ namespace pdn
 			case string:
 			case identifier_raw_string:
 			case raw_string:
-				detail::process_string_like_error(dfa_state.state_code, position, detail::to_err_ms<char_t>(text), open_d_seq, helper()); // TODO HELPER DONE
+				detail::process_string_like_error(dfa_state.state_code, position, detail::to_err_ms<char_t>(text), open_d_seq, helper());
 				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 				{
 					request_stop(func_pkg->stop_reason());
@@ -1530,7 +1530,7 @@ namespace pdn
 				break;
 			case character_opened: // <<< ERROR STATE
 			case character:        // <<< ERROR STATE
-				detail::process_char_missing_quote_error(position, detail::to_err_ms<char_t>(text), helper()); // TODO HELPER DONE
+				detail::process_char_missing_quote_error(position, detail::to_err_ms<char_t>(text), helper());
 				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 				{
 					request_stop(func_pkg->stop_reason());
@@ -1538,7 +1538,7 @@ namespace pdn
 				}
 				[[fallthrough]];
 			case character_closed:
-				result.value = detail::process_char_literal<char_t>(text, position, helper()); // TODO HELPER DONE
+				result.value = detail::process_char_literal<char_t>(text, position, helper());
 				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 				{
 					request_stop(func_pkg->stop_reason());
@@ -1548,7 +1548,7 @@ namespace pdn
 			case dec_seq_start_with_0:             // <<< ERROR STATE
 			case dec_seq_start_with_0_with_quote:  // <<< ERROR STATE
 			case dec_seq_with_quote:               // <<< ERROR STATE
-				detail::process_dec_seq_error(dfa_state.state_code, position, num_seq_to_ems(), helper()); // TODO HELPER DONE
+				detail::process_dec_seq_error(dfa_state.state_code, position, num_seq_to_ems(), helper());
 				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 				{
 					request_stop(func_pkg->stop_reason());
@@ -1565,7 +1565,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_integer, false, helper()); // TODO HELPER DONE
+					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_integer, false, helper());
 					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 					{
 						request_stop(func_pkg->stop_reason());
@@ -1606,7 +1606,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_floating, false, helper()); // TODO HELPER DONE
+					detail::process_from_chars_error(from_chars_r, n_seq, position, dec_floating, false, helper());
 					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 					{
 						request_stop(func_pkg->stop_reason());
@@ -1633,7 +1633,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, oct_integer, false, helper()); // TODO HELPER DONE
+					detail::process_from_chars_error(from_chars_r, n_seq, position, oct_integer, false, helper());
 					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 					{
 						request_stop(func_pkg->stop_reason());
@@ -1667,7 +1667,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, bin_integer, false, helper()); // TODO HELPER DONE
+					detail::process_from_chars_error(from_chars_r, n_seq, position, bin_integer, false, helper());
 					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 					{
 						request_stop(func_pkg->stop_reason());
@@ -1701,7 +1701,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_integer, false, helper()); // TODO HELPER DONE
+					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_integer, false, helper());
 					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 					{
 						request_stop(func_pkg->stop_reason());
@@ -1717,7 +1717,7 @@ namespace pdn
 			case hex_fp_exp_first:                         // <<< ERROR STATE
 			case hex_fp_exp_with_quote:                    // <<< ERROR STATE
 			case hex_fp_seq_start_with_0x_dot:             // <<< ERROR STATE
-				detail::process_hex_fp_errors(dfa_state.state_code, number_sequence, position, helper()); // TODO HELPER DONE
+				detail::process_hex_fp_errors(dfa_state.state_code, number_sequence, position, helper());
 				if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 				{
 					request_stop(func_pkg->stop_reason());
@@ -1739,7 +1739,7 @@ namespace pdn
 				if (!detail::check_from_chars_succeed(from_chars_r, n_seq.data() + n_seq.size())) [[unlikely]]
 				{
 					using enum raw_error_message_type::number_type;
-					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_floating, false, helper()); // TODO HELPER DONE
+					detail::process_from_chars_error(from_chars_r, n_seq, position, hex_floating, false, helper());
 					if constexpr (concepts::stoppable<function_package>) if (func_pkg->stop_requested()) [[unlikely]]
 					{
 						request_stop(func_pkg->stop_reason());
