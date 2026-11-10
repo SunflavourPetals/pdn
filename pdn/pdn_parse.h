@@ -8,7 +8,6 @@
 #include <cstddef>
 #include <fstream>
 #include <string>
-#include <optional>
 #include <iterator>
 #include <filesystem>
 
@@ -23,6 +22,7 @@
 #include "pdn_function_package.h"
 #include "pdn_entity.h"
 #include "pdn_parser_utility.h"
+#include "pdn_stop_reason.h"
 
 namespace pdn::detail
 {
@@ -50,67 +50,129 @@ namespace pdn::inline utf_tag
 
 namespace pdn
 {
-	enum class parse_failure_code
+	enum class parse_error_code
 	{
 		parse_error = 1,
-		parse_error_limit, // stop requested in parse for error limit
+		parse_error_limit, // stop requested in parse because error limit exceed
+		nesting_depth_exceed,
 		open_file_failed, // for input file stream or filename | path
 		bad_stream,
 		stream_operation_failed,
-		user_defined_error, // for user defined function package
+		incomplete_code_unit,
+		user_cancelled, // for user defined function package
 	};
 
+	constexpr auto to_parse_error_code(stop_reason_code c) noexcept -> parse_error_code
+	{
+		using enum parse_error_code;
+		switch (c)
+		{
+		case stop_reason_code::parse_error_limit:       return parse_error_limit;
+		case stop_reason_code::nesting_depth_exceed:    return nesting_depth_exceed;
+		case stop_reason_code::open_file_failed:        return open_file_failed;
+		case stop_reason_code::bad_stream:              return bad_stream;
+		case stop_reason_code::stream_operation_failed: return stream_operation_failed;
+		case stop_reason_code::incomplete_code_unit:    return incomplete_code_unit;
+		case stop_reason_code::user_cancelled:          return user_cancelled;
+		default:                                        return user_cancelled; // unreachable
+		}
+	}
+
+	template <unicode::concepts::code_unit char_t>
 	class parse_result
 	{
-		using char_t = char8_t; // TODO
 	public:
+		using entity_type = entity<char_t>;
+		auto error_code() const noexcept
+		{
+			return err_c;
+		}
 		bool success() const noexcept
 		{
-			// TODO
+			return err_c == parse_error_code{};
 		}
 		bool failed() const noexcept
 		{
-			// TODO
+			return !success();
 		}
 		bool has_value() const noexcept
 		{
-			// TODO
-		}
-		auto failure_code() const noexcept
-		{
-			// TODO
+			return success();
 		}
 		auto value() noexcept -> entity<char_t>&
 		{
-			// TODO
+			return ent;
 		}
-		auto value() const noexcept -> const entity<char_t>
+		auto value() const noexcept -> const entity<char_t>&
 		{
-			// TODO
+			return ent;
 		}
-		// TODO operator* operator->
-		// see optional
-		explicit parse_result(parse_failure_code f_code) : code{ f_code }, entity_opt{} {}
-		explicit parse_result(entity<char_t>&& ent) : code{}, entity_opt{ ::std::move(ent) } {}
+		operator bool() const noexcept
+		{
+			return has_value();
+		}
+		auto operator->() noexcept -> entity_type*
+		{
+			return &ent;
+		}
+		auto operator->() const noexcept -> const entity_type*
+		{
+			return &ent;
+		}
+		auto operator*() & noexcept -> entity_type&
+		{
+			return ent;
+		}
+		auto operator*() && noexcept -> entity_type&&
+		{
+			return ::std::move(ent);
+		}
+		auto operator*() const& noexcept -> const entity_type&
+		{
+			return ent;
+		}
+		auto operator*() const&& noexcept -> const entity_type&&
+		{
+			return ::std::move(ent);
+		}
+		explicit parse_result(parse_error_code error_code) : err_c{ error_code }, ent{ default_ent() } {}
+		explicit parse_result(entity_type&& ent_result) : err_c{}, ent{ ::std::move(ent_result) } {}
+		parse_result(parse_error_code error_code, entity_type&& ent_result) :
+			err_c{ error_code },
+			ent{ ::std::move(ent_result) } {}
 	private:
-		parse_failure_code code;
-		::std::optional<entity<char_t>> entity_opt;
+		static auto default_ent() -> entity_type
+		{
+			return parser_utility::default_entity_value<char_t>(type_code::unknown);
+		}
+		parse_error_code err_c;
+		entity_type ent;
 	};
 
 	// for token iterator
 	template <unicode::concepts::code_unit                  char_t,
 	          concepts::token_iterator<char_t>              it_t,
 	          concepts::function_package_for_parser<char_t> fn_pkg>
-	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> ::std::optional<entity<char_t>>
+	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> parse_result<char_t>
 	{
 		parser<char_t, fn_pkg> par{ fp };
-		auto result = ::std::make_optional<entity<char_t>>(par.parse(begin, end));
-		return fp.error_count() ? ::std::nullopt : result;
+		auto result = par.parse(begin, end);
+
+		if (par.stop_requested()) [[unlikely]]
+		{
+			return { to_parse_error_code(par.stop_reason()), ::std::move(result) };
+		}
+		if (fp.error_count()) [[unlikely]]
+		{
+			return { parse_error_code::parse_error, ::std::move(result) };
+		}
+
+		return parse_result<char_t>{ ::std::move(result) };
 	}
 	// for token iterator
 	template <unicode::concepts::code_unit     char_t,
 	          concepts::token_iterator<char_t> it_t>
-	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> ::std::optional<entity<char_t>>
+	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(::std::move(begin), ::std::move(end), fp, char_tag);
@@ -126,19 +188,23 @@ namespace pdn
 		fn_pkg_for_cp_it& cp_it_fp,
 		fn_pkg_for_lexer& lex_fp,
 		fn_pkg_for_parser& par_fp,
-		char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
+		char_t             char_tag = {}) -> parse_result<char_t>
 	{
 		auto cp_it = make_code_point_iterator(::std::move(begin), end, cp_it_fp);
 		lexer<char_t, fn_pkg_for_lexer, decltype(cp_it)> lex{ lex_fp };
 		auto token_it = make_token_iterator(::std::move(lex), ::std::move(cp_it), end);
 		auto token_end = make_token_iterator_end();
 		auto result = parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
-		return (cp_it_fp.error_count() || lex_fp.error_count()) ? ::std::nullopt : result;
+		if (result && (lex_fp.error_count() || cp_it_fp.error_count())) [[unlikely]]
+		{
+			return { parse_error_code::parse_error, ::std::move(result.value()) };
+		}
+		return result;
 	}
 	// for code_unit iterator
 	template <unicode::concepts::code_unit     char_t,
 		concepts::utf_code_unit_iterator it_t>
-	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> ::std::optional<entity<char_t>>
+	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(::std::move(begin), ::std::move(end), fp, fp, fp, char_tag);
@@ -153,14 +219,14 @@ namespace pdn
 		fn_pkg_for_cp_it& cp_it_fp,
 		fn_pkg_for_lexer& lex_fp,
 		fn_pkg_for_parser& par_fp,
-		char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
+		char_t             char_tag = {}) -> parse_result<char_t>
 	{
 		return parse(sv.cbegin(), sv.cend(), cp_it_fp, lex_fp, par_fp, char_tag);
 	}
 	// for utf_code_unit_string_view
 	template <unicode::concepts::code_unit        char_t,
 		concepts::utf_code_unit_string_view str_view_t>
-	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> ::std::optional<entity<char_t>>
+	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(sv, fp, fp, fp, char_tag);
@@ -175,20 +241,16 @@ namespace pdn
 		fn_pkg_for_lexer& lex_fp,
 		fn_pkg_for_parser& par_fp,
 		char_t             char_tag = {},
-		::std::size_t      buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+		::std::size_t      buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		// !is_open | bad -> nullopt; good | fail | eof -> continue
 		if (!source_file.is_open()) [[unlikely]]
 		{
-			// TODO open_file_failed
-			// ...
-			return ::std::nullopt;
+			return parse_result<char_t>{ parse_error_code::open_file_failed };
 		}
 		else if (source_file.bad()) [[unlikely]]
 		{
-			// TODO bad_stream
-			// ...
-			return ::std::nullopt;
+			return parse_result<char_t>{ parse_error_code::bad_stream };
 		}
 		// clear fail bit -> good | eof
 		source_file.clear(source_file.rdstate() & std::ios::eofbit);
@@ -197,15 +259,11 @@ namespace pdn
 		// bad | (fail & !eof) -> nullopt; good | (fail & eof) -> continue
 		if (source_file.bad()) [[unlikely]]
 		{
-			// TODO bad_stream
-			// ...
-			return ::std::nullopt;
+			return parse_result<char_t>{ parse_error_code::bad_stream };
 		}
 		else if (source_file.fail() && !source_file.eof()) [[unlikely]]
 		{
-			// TODO stream_failed
-			// ...
-			return ::std::nullopt;
+			return parse_result<char_t>{ parse_error_code::stream_operation_failed };
 		}
 		source_file.clear(source_file.rdstate() & std::ios::eofbit); // clear fail bit -> good | eof
 		auto enc = unicode::to_encode_type(bom_t);
@@ -222,13 +280,13 @@ namespace pdn
 		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
 		default:       assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type"); // unreachable
 		}
-		return ::std::nullopt;
+		return parse_result<char_t>{ parse_error_code::parse_error }; // unreachable
 	}
 	// for file stream
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(::std::ifstream& source_file,
 	                         char_t           char_tag = {},
-	                         ::std::size_t    buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t    buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(source_file, fp, fp, fp, char_tag, buffer_size);
@@ -243,7 +301,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&    lex_fp,
 	                         fn_pkg_for_parser&   par_fp,
 	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -252,7 +310,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const ::std::string& filename,
 	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -267,7 +325,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&    lex_fp,
 	                         fn_pkg_for_parser&   par_fp,
 	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -276,7 +334,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const char* const filename,
 	                         char_t            char_tag = {},
-	                         ::std::size_t     buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t     buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -291,7 +349,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&     lex_fp,
 	                         fn_pkg_for_parser&    par_fp,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		auto source_file = detail::open_stream_by_wchar_string<::std::ifstream, char_t>(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -300,7 +358,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const ::std::wstring& filename,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -315,7 +373,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&     lex_fp,
 	                         fn_pkg_for_parser&    par_fp,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		auto source_file = detail::open_stream_by_wchar_cstring<::std::ifstream, char_t>(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -324,7 +382,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t>
 	[[nodiscard]] auto parse(const wchar_t* const  filename,
 	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
@@ -340,7 +398,7 @@ namespace pdn
 	                         fn_pkg_for_lexer&  lex_fp,
 	                         fn_pkg_for_parser& par_fp,
 	                         char_t             char_tag = {},
-	                         ::std::size_t      buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t      buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
@@ -349,7 +407,7 @@ namespace pdn
 	template <unicode::concepts::code_unit char_t, ::std::same_as<::std::filesystem::path> path_t>
 	[[nodiscard]] auto parse(const path_t& filename,
 	                         char_t        char_tag = {},
-	                         ::std::size_t buffer_size = detail::default_buffer_size) -> ::std::optional<entity<char_t>>
+	                         ::std::size_t buffer_size = detail::default_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ filename.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);

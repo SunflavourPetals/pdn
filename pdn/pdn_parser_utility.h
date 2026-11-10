@@ -99,7 +99,7 @@ namespace pdn::parser_utility
 	}
 
 	template <typename code_unit_t>
-	constexpr auto default_entity_value(type_code type_c) -> entity<code_unit_t>
+	auto default_entity_value(type_code type_c) -> entity<code_unit_t>
 	{
 		using char_t   = type::character<code_unit_t>;
 		using string_t = type::string<code_unit_t>;
