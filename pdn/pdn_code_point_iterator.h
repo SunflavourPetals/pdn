@@ -20,12 +20,12 @@
 #include "pdn_stop_reason.h"
 #include "pdn_stoppable_concept.h"
 
-//    byte input stream (provide: get byte) // such as ifstream
+//    byte input stream (provide: read byte...) such as ifstream
 //     |
 //     +---> BOM reader (provide: get BOM)
-//     |         extra: requires byte input stream has operation seekg
+//     |
 //     v
-//    byte iterator and swap chain (provide: get byte)
+//    byte iterator (provide: get byte, move backward(++it), check EOF)
 //     |
 //     v
 //    code unit iterator (provide: get code unit, move backward(++it), check EOF)
@@ -42,7 +42,7 @@
 //    lexer (provide: get token{ token code, value, token position })
 //     |
 //     v
-//    parser (provide: parse) ----> pdn document object model
+//    parser (provide: parse) --> pdn document object model
 
 namespace pdn::concepts
 {
