@@ -351,7 +351,7 @@
     <ClInclude Include="pdn_eof_detector.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_nesting_depth_limiter.h">
+    <ClInclude Include="pdn_nesting_depth_limiter_concept.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
     <ClInclude Include="pdn_parse_error_code.h">

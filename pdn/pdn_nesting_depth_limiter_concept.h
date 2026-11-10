@@ -1,5 +1,5 @@
-#ifndef PDN_Header_pdn_nesting_depth_limiter
-#define PDN_Header_pdn_nesting_depth_limiter
+#ifndef PDN_Header_pdn_nesting_depth_limiter_concept
+#define PDN_Header_pdn_nesting_depth_limiter_concept
 
 #include <concepts>
 #include <type_traits>

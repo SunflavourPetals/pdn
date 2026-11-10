@@ -12,6 +12,9 @@
 #include "pdn_constant_generator.h"
 #include "pdn_type_generator.h"
 #include "pdn_stop_reason.h"
+#include "pdn_unicode_base.h"
+#include "pdn_stoppable_concept.h"
+#include "pdn_nesting_depth_limiter_concept.h"
 
 namespace pdn
 {
@@ -123,6 +126,12 @@ namespace pdn
 		default_threshold_error_handler err_handler{};
 		error_msg_string                parsing_filename{};
 	};
+	static_assert(concepts::stoppable<default_function_package<unicode::u8char_t>>);
+	static_assert(concepts::stoppable<default_function_package<unicode::u16char_t>>);
+	static_assert(concepts::stoppable<default_function_package<unicode::u32char_t>>);
+	static_assert(concepts::nesting_depth_limiter<default_function_package<unicode::u8char_t>>);
+	static_assert(concepts::nesting_depth_limiter<default_function_package<unicode::u16char_t>>);
+	static_assert(concepts::nesting_depth_limiter<default_function_package<unicode::u32char_t>>);
 }
 
 #endif

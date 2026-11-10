@@ -40,7 +40,7 @@
 
 #include "pdn_stop_reason.h"
 
-#include "pdn_nesting_depth_limiter.h"
+#include "pdn_nesting_depth_limiter_concept.h"
 
 namespace pdn::concepts
 {
