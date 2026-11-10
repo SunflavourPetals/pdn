@@ -253,29 +253,29 @@ namespace pdn::detail
 		stop_reason_code stop_reason_c{};
 	};
 
-	template <typename it_t>
+	template <typename it_begin_t, typename it_end_t>
 	struct code_unit_iterator_compressed final
 	{
-		it_t begin;
-		it_t end;
-		bool eof() const noexcept(noexcept(::std::declval<const it_t&>() == ::std::declval<const it_t&>()))
+		it_begin_t begin;
+		it_end_t end;
+		bool eof() const noexcept(noexcept(::std::declval<const it_begin_t&>() == ::std::declval<const it_end_t&>()))
 		{
 			return begin == end;
 		}
 	};
 
-	template <concepts::eof_detector it_t>
-	struct code_unit_iterator_compressed<it_t> final
+	template <concepts::eof_detector it_begin_t, typename it_end_t>
+	struct code_unit_iterator_compressed<it_begin_t, it_end_t> final
 	{
-		it_t begin;
-		bool eof() const noexcept(noexcept(::std::declval<const it_t&>().eof()))
+		it_begin_t begin;
+		bool eof() const noexcept(noexcept(::std::declval<const it_begin_t&>().eof()))
 		{
 			return begin.eof();
 		}
 	};
 
 	// for multi-byte code unit type(utf16 or utf32)
-	template <unicode::encode_type encode_type, typename it_t>
+	template <unicode::encode_type encode_type, typename it_begin_t, typename it_end_t>
 	class mb_code_unit_iterator
 	{
 	public:
@@ -286,7 +286,7 @@ namespace pdn::detail
 		using size_type         = ::std::size_t;
 		using value_type        = char_type;
 	private:
-		using helper_type       = mb_code_unit_iterator_helper<encode_type, it_t>;
+		using helper_type       = mb_code_unit_iterator_helper<encode_type, it_begin_t>;
 		void first_to_next()
 		{
 			curr_value = helper.first_to_next(compressed.begin, [this]() { return compressed.eof(); });
@@ -304,7 +304,7 @@ namespace pdn::detail
 		{
 			return helper.stop_reason();
 		}
-		bool eof() const noexcept(noexcept(::std::declval<const code_unit_iterator_compressed<it_t>&>().eof()))
+		bool eof() const noexcept(noexcept(::std::declval<const code_unit_iterator_compressed<it_begin_t, it_end_t>&>().eof()))
 		{
 			return compressed.eof();
 		}
@@ -320,38 +320,38 @@ namespace pdn::detail
 		// just for checking eof, returns is lhs eof
 		template <typename original_it_t>
 		friend bool operator== (const mb_code_unit_iterator& lhs, const original_it_t& rhs)
-			noexcept(noexcept(::std::declval<const code_unit_iterator_compressed<it_t>&>().eof()))
+			noexcept(noexcept(::std::declval<const code_unit_iterator_compressed<it_begin_t, it_end_t>&>().eof()))
 		{
 			return lhs.compressed.eof();
 		}
-		mb_code_unit_iterator(it_t bytes_begin)  requires concepts::eof_detector<it_t> :
+		mb_code_unit_iterator(it_begin_t bytes_begin)  requires concepts::eof_detector<it_begin_t> :
 			compressed{ ::std::move(bytes_begin) }
 		{
 			first_to_next();
 		}
-		mb_code_unit_iterator(it_t bytes_begin, auto&&) requires concepts::eof_detector<it_t> :
+		mb_code_unit_iterator(it_begin_t bytes_begin, auto&&) requires concepts::eof_detector<it_begin_t> :
 			mb_code_unit_iterator(::std::move(bytes_begin)) {}
-		mb_code_unit_iterator(it_t bytes_begin, it_t bytes_end) requires (!concepts::eof_detector<it_t>) :
+		mb_code_unit_iterator(it_begin_t bytes_begin, it_end_t bytes_end) requires (!concepts::eof_detector<it_begin_t>) :
 			compressed{ ::std::move(bytes_begin), ::std::move(bytes_end) }
 		{
 			first_to_next();
 		}
 	private:
-		code_unit_iterator_compressed<it_t> compressed{};
+		code_unit_iterator_compressed<it_begin_t, it_end_t> compressed{};
 		char_type curr_value{};
 		helper_type helper{};
 	};
 
-	template <typename it_t>
-	class mb_code_unit_iterator<unicode::encode_type::unknown, it_t>
+	template <typename it_begin_t, typename it_end_t>
+	class mb_code_unit_iterator<unicode::encode_type::unknown, it_begin_t, it_end_t>
 	{
-		static_assert(false_v<it_t>, "[pdn] unknown encode type for mb_code_unit_iterator");
+		static_assert(false_v<it_begin_t>, "[pdn] unknown encode type for mb_code_unit_iterator");
 	};
 
-	template <typename it_t>
-	class mb_code_unit_iterator<unicode::encode_type::utf8, it_t>
+	template <typename it_begin_t, typename it_end_t>
+	class mb_code_unit_iterator<unicode::encode_type::utf8, it_begin_t, it_end_t>
 	{
-		static_assert(false_v<it_t>, "[pdn] unsupported encode utf8 for mb_code_unit_iterator, see u8_code_unit_iterator");
+		static_assert(false_v<it_begin_t>, "[pdn] unsupported encode utf8 for mb_code_unit_iterator, see u8_code_unit_iterator");
 	};
 
 	namespace for_u8_code_unit_iterator
@@ -422,15 +422,15 @@ namespace pdn::detail
 
 namespace pdn
 {
-	template <unicode::encode_type encode_type, typename it_t>
+	template <unicode::encode_type encode_type, typename it_begin_t, typename it_end_t>
 	using code_unit_iterator = ::std::conditional_t<encode_type == unicode::encode_type::utf8,
-		detail::u8_code_unit_iterator<it_t>,
-		detail::mb_code_unit_iterator<encode_type, it_t>>;
+		detail::u8_code_unit_iterator<it_begin_t>,
+		detail::mb_code_unit_iterator<encode_type, it_begin_t, it_end_t>>;
 
-	template <unicode::encode_type encode_type, typename it_t>
-	inline auto make_code_unit_iterator(it_t bytestream_begin, it_t bytestream_end)
+	template <unicode::encode_type encode_type, typename it_begin_t, typename it_end_t>
+	 auto make_code_unit_iterator(it_begin_t bytestream_begin, it_end_t bytestream_end)
 	{
-		return code_unit_iterator<encode_type, it_t>{ ::std::move(bytestream_begin), ::std::move(bytestream_end) };
+		return code_unit_iterator<encode_type, it_begin_t, it_end_t>{ ::std::move(bytestream_begin), ::std::move(bytestream_end) };
 	}
 }
 

@@ -105,7 +105,7 @@ namespace pdn
 		return token_iterator_from_lexer<char_t, func_pkg, it_begin_t, it_end_t>{ ::std::move(lex), ::std::move(begin), ::std::move(end) };
 	}
 
-	auto make_end_token_iterator()
+	constexpr auto make_token_iterator_end() noexcept
 	{
 		return token_iterator_end_from_lexer{};
 	}

@@ -128,10 +128,10 @@ namespace pdn
 		fn_pkg_for_parser& par_fp,
 		char_t             char_tag = {}) -> ::std::optional<entity<char_t>>
 	{
-		auto cp_it = make_code_point_iterator(begin, end, cp_it_fp);
+		auto cp_it = make_code_point_iterator(::std::move(begin), end, cp_it_fp);
 		lexer<char_t, fn_pkg_for_lexer, decltype(cp_it)> lex{ lex_fp };
-		auto token_it = make_token_iterator(lex, cp_it, end);
-		auto token_end = make_end_token_iterator();
+		auto token_it = make_token_iterator(::std::move(lex), ::std::move(cp_it), end);
+		auto token_end = make_token_iterator_end();
 		auto result = parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
 		return (cp_it_fp.error_count() || lex_fp.error_count()) ? ::std::nullopt : result;
 	}
@@ -209,15 +209,17 @@ namespace pdn
 		}
 		source_file.clear(source_file.rdstate() & std::ios::eofbit); // clear fail bit -> good | eof
 		auto enc = unicode::to_encode_type(bom_t);
-		auto sw = make_byte_swap_chain(source_file, buffer_size); // requires source_file is opened and not bad
+		auto swap_chain = make_byte_swap_chain(source_file, buffer_size); // requires source_file is opened and not bad
+		auto byte_it = make_byte_iterator(::std::move(swap_chain));
+		auto end = make_byte_iterator_end();
 		using enum unicode::encode_type;
 		switch (enc)
 		{
-		case utf8:     return parse(make_code_unit_iterator<utf8>    (sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf16_le: return parse(make_code_unit_iterator<utf16_le>(sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(sw.begin(), sw.end()), sw.end(), cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf8:     return parse(make_code_unit_iterator<utf8>    (::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_le: return parse(make_code_unit_iterator<utf16_le>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
 		default:       assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type"); // unreachable
 		}
 		return ::std::nullopt;

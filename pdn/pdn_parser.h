@@ -72,13 +72,13 @@ namespace pdn
 		{
 			return stop_reason_c;
 		}
-		void parse(concepts::token_iterator<char_t> auto begin, auto end, type::object<char_t>& o)
+		void parse(concepts::token_iterator<char_t> auto&& begin, auto end, type::object<char_t>& o)
 		{
 			using enum pdn_token_code;
 			parse_start(begin, end, o);
 			assert(tk.code == eof && "parse terminated");
 		}
-		auto parse(concepts::token_iterator<char_t> auto begin, auto end) -> entity_type
+		auto parse(concepts::token_iterator<char_t> auto&& begin, auto end) -> entity_type
 		{
 			auto o = type::object<char_t>{};
 			parse(begin, end, o);

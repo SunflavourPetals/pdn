@@ -40,6 +40,8 @@ namespace pdn
 	template <typename istream_t, typename buffer_deleter_t>
 	class byte_swap_chain;
 
+	struct byte_iterator_end_from_byte_swap_chain {};
+
 	template <typename istream_t, typename buffer_deleter_t>
 	class byte_iterator_from_byte_swap_chain
 	{
@@ -52,34 +54,45 @@ namespace pdn
 		using value_type = typename swap_chain_type::value_type;
 		bool stop_requested() const noexcept
 		{
-			return swap_chain_ptr->stop_requested();
+			return swap_chain.stop_requested();
 		}
 		auto stop_reason() const noexcept -> stop_reason_code
 		{
-			return swap_chain_ptr->stop_reason();
+			return swap_chain.stop_reason();
 		}
 		bool eof() const noexcept
 		{
-			return swap_chain_ptr->eof();
+			return swap_chain.eof();
 		}
 		auto operator*() const noexcept -> ::std::add_lvalue_reference_t<::std::add_const_t<value_type>>
 		{
-			return swap_chain_ptr->get();
+			return swap_chain.get();
 		}
 		byte_iterator_from_byte_swap_chain& operator++ () // cannot ++end
 		{
-			swap_chain_ptr->to_next();
+			swap_chain.to_next();
 			return *this;
 		}
 		// just for checking eof, returns is lhs eof
-		friend bool operator==(const byte_iterator_from_byte_swap_chain& lhs, const byte_iterator_from_byte_swap_chain&)
+		friend bool operator==(const byte_iterator_from_byte_swap_chain& lhs, const byte_iterator_end_from_byte_swap_chain&)
 		{
 			return lhs.eof();
 		}
-		explicit byte_iterator_from_byte_swap_chain(swap_chain_type& swap) : swap_chain_ptr{ &swap } {}
+		explicit byte_iterator_from_byte_swap_chain(swap_chain_type&& swap) : swap_chain{::std::move(swap)} {}
 	private:
-		swap_chain_type* swap_chain_ptr{}; // swap_ptr == nullptr means it is end
+		swap_chain_type swap_chain{}; // swap_ptr == nullptr means it is end
 	};
+
+	template <typename istream_t, typename deleter_t>
+	auto make_byte_iterator(byte_swap_chain<istream_t, deleter_t>&& rval)
+	{
+		return byte_iterator_from_byte_swap_chain{ ::std::move(rval) };
+	}
+
+	constexpr auto make_byte_iterator_end() noexcept
+	{
+		return byte_iterator_end_from_byte_swap_chain{};
+	}
 
 	// to_next maybe requests stop; get and eof is safe
 	template <typename istream_t, typename buffer_deleter_t = ::std::default_delete<typename istream_t::char_type[]>>
@@ -112,14 +125,6 @@ namespace pdn
 		auto stop_reason() const noexcept -> stop_reason_code
 		{
 			return stop_reason_c;
-		}
-		auto begin() noexcept -> const_iterator
-		{
-			return const_iterator{ *this };
-		}
-		auto end() noexcept -> const_iterator
-		{
-			return const_iterator{ *this }; // end iterator is same as current iterator when eof reached
 		}
 		auto get() const noexcept -> ::std::add_lvalue_reference_t<::std::add_const_t<value_type>>
 		{
