@@ -5,6 +5,7 @@
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf16_base.h"
+#include "pdn_stoppable_concept.h"
 
 namespace pdn::unicode::utf16
 {
@@ -107,6 +108,14 @@ namespace pdn::unicode::utf16
 			{
 				result.code_point = ((result.code_point & value_type(0x03FF)) << 10) + value_type(0x10000U);
 				to_next(begin, result);
+				if constexpr (pdn::concepts::stoppable<::std::remove_reference_t<decltype(begin)>>)
+				{
+					if (begin.stop_requested()) [[unlikely]]
+					{
+						result.error_code = incomplete_sequence;
+						return result;
+					}
+				}
 				if (begin == end) [[unlikely]]
 				{
 					result.error_code = unexpected_eof_offset1;

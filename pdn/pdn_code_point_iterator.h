@@ -163,6 +163,11 @@ namespace pdn
 				}
 				else [[unlikely]]
 				{
+					if constexpr (concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						request_stop(begin.stop_reason());
+						return;
+					}
 					using result_type = decltype(result);
 					const auto last = eof() ? code_unit_type{} : *begin;
 					func_pkg->handle_error(error_message{

@@ -11,6 +11,7 @@
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf8_base.h"
+#include "pdn_stoppable_concept.h"
 
 namespace pdn::unicode::utf8
 {
@@ -254,7 +255,8 @@ namespace pdn::unicode::utf8
 		{
 		private:
 			// trailing_count [1, 5]
-			static auto process_trailing(int trailing_count, auto& begin, auto end) -> decode_result
+			template <typename begin_it_t>
+			static auto process_trailing(int trailing_count, begin_it_t& begin, auto end) -> decode_result
 			{
 				using enum decode_error_code;
 
@@ -266,6 +268,11 @@ namespace pdn::unicode::utf8
 				for (int i = 1; i <= trailing_count; ++i)
 				{
 					to_next(begin, result);
+					if constexpr (pdn::concepts::stoppable<begin_it_t>) if (begin.stop_requested()) [[unlikely]]
+					{
+						result.error_code = incomplete_sequence;
+						return result;
+					}
 					if (begin == end) [[unlikely]]
 					{
 						result.error_code = to_unexpected_eof_errc(i);
