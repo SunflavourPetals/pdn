@@ -155,6 +155,10 @@ namespace pdn
 	          concepts::function_package_for_parser<char_t> fn_pkg>
 	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> parse_result<char_t>
 	{
+		if constexpr (concepts::stoppable<it_t>) if (begin.stop_requested()) [[unlikely]]
+		{
+			return parse_result<char_t>{ to_parse_error_code(begin.stop_reason()) };
+		}
 		parser<char_t, fn_pkg> par{ fp };
 		auto result = par.parse(begin, end);
 
@@ -191,6 +195,10 @@ namespace pdn
 		char_t             char_tag = {}) -> parse_result<char_t>
 	{
 		auto cp_it = make_code_point_iterator(::std::move(begin), end, cp_it_fp);
+		if (cp_it.stop_requested()) [[unlikely]]
+		{
+			return parse_result<char_t>{ to_parse_error_code(cp_it.stop_reason()) };
+		}
 		lexer<char_t, fn_pkg_for_lexer, decltype(cp_it)> lex{ lex_fp };
 		auto token_it = make_token_iterator(::std::move(lex), ::std::move(cp_it), end);
 		auto token_end = make_token_iterator_end();
