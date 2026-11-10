@@ -283,8 +283,6 @@ namespace pdn::detail
 		return 0;
 	}
 
-	// TODO to en process_from_chars_error 最多报告一个错误，stoppable 相关检查依赖这个实现，
-	// 如果该函数一个分支报告超过一次错误，需要检查最后一次报告错误前所有 post_err 调用是否导致 stop
 	inline void process_from_chars_error(const ::std::from_chars_result            from_chars_r,
 		                                 const ::std::string_view                  src,
 		                                 const source_position                     pos,
@@ -335,8 +333,6 @@ namespace pdn::detail
 		                   bool  enable_escape_back_quote, // is enable escape sequence \`
 		                   auto  helper)
 	{
-		// TODO to en
-		// 返回 true 表示成功，返回 false 表示失败，失败可能伴有 request stop
 		using escape_value_t = ::std::uint_least32_t;
 		using begin_t = ::std::remove_reference_t<decltype(begin)>;
 		using helper_t = decltype(helper);
@@ -885,7 +881,6 @@ namespace pdn::detail
 		}
 	}
 
-	// TODO to en 本函数最多只调用一次 post_error，所以检查 stop_requested 由调用方完成
 	inline void process_string_like_error(dfa_state_code          dfa_state_c,
 		                                  source_position         position,
 		                                  error_msg_string        err_s,
@@ -926,7 +921,6 @@ namespace pdn::detail
 		}
 	}
 
-	// TODO to en 本函数只调用一次 post_error，所以检查 stop_requested 由调用方完成
 	inline void process_char_missing_quote_error(source_position position, error_msg_string err_s, auto helper)
 	{
 		using lex_ec = lexical_error_code;
@@ -955,7 +949,6 @@ namespace pdn::detail
 		}
 	}
 
-	// TODO to en 本函数只调用一次 post_error，所以检查 stop_requested 由调用方完成
 	template <typename char_t>
 	auto process_char_literal(::std::basic_string_view<char_t> src, const source_position& position, auto helper) -> type::character<char_t>
 	{
@@ -1070,8 +1063,7 @@ namespace pdn
 			auto append = [](type::string<char_t>& src, unicode::code_point_t c)
 			{
 				auto encode_r = unicode::encode<char_t>(c);
-				// TODO to en
-				// lexer 保证了 c 是 Unicode 标量值，encode 不会失败
+				// the lexer ensures that c is a Unicode scalar value, so encoding won’t fail.
 				assert(static_cast<bool>(encode_r) && "[pdn] encode failed");
 				src.append(encode_r.cbegin(), encode_r.cend());
 			};
@@ -1084,9 +1076,10 @@ namespace pdn
 			{
 				auto c = *begin;
 
-				// TODO to en
-				// 使用本库指定 code_point_iterator 时，已经保证了 c 是 Unicode 标量值
-				// 此处设计冗余为兼容其他 code_point_iterator 的实现，避免出现非法 Unicode 标量值
+				// when using this library's specified code_point_iterator,
+				// it's already ensured that c is a Unicode scalar value.
+				// this redundancy is designed to be compatible with other implementations of code_point_iterator,
+				// preventing illegal Unicode scalar values.
 				if (!unicode::is_scalar_value(c)) [[unlikely]]
 				{
 					using raw_err = raw_error_message_type::not_unicode_scalar_value;
