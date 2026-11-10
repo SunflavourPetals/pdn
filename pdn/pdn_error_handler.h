@@ -8,6 +8,7 @@
 
 #include "pdn_error_message.h"
 #include "pdn_error_handler_concept.h"
+#include "pdn_stop_reason.h"
 
 namespace pdn::detail
 {
@@ -57,6 +58,14 @@ namespace pdn
 	public:
 		using error_count_t = default_error_handler::error_count_t;
 		inline static constexpr auto default_limit = error_count_t{ 100 };
+		bool stop_requested() const noexcept
+		{
+			return stop_reason_c != stop_reason_code{};
+		}
+		auto stop_reason() const noexcept -> stop_reason_code
+		{
+			return stop_reason_c;
+		}
 		void handle_error(const error_message& e)
 		{
 			handle_error(e, ::std::cerr);
@@ -64,32 +73,18 @@ namespace pdn
 		void handle_error(const error_message& e, ::std::ostream& out)
 		{
 			err_handler.handle_error(e, out);
-			if (err_handler.error_count() >= limit)
+			if (err_handler.error_count() >= limit) [[unlikely]]
 			{
-#ifdef PDN_NO_EXCEPTIONS
-#ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("pdn::default_threshold_error_handler::handle_error(error_message const&, ::std::ostream&)", "too many parsing errors");
-#endif
-				::std::terminate();
-#else
-				throw ::std::runtime_error{ "too many parsing errors" };
-#endif
+				stop_reason_c = stop_reason_code::parse_error_limit;
 			}
 		}
 		// only increase error count by 1, and throw an exception if error count exceeds limit
 		void handle_error()
 		{
 			err_handler.handle_error();
-			if (err_handler.error_count() >= limit)
+			if (err_handler.error_count() >= limit) [[unlikely]]
 			{
-#ifdef PDN_NO_EXCEPTIONS
-#ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("pdn::default_threshold_error_handler::handle_error()", "too many parsing errors");
-#endif
-				::std::terminate();
-#else
-				throw ::std::runtime_error{ "too many parsing errors" };
-#endif
+				stop_reason_c = stop_reason_code::parse_error_limit;
 			}
 		}
 		void clear() noexcept
@@ -104,6 +99,7 @@ namespace pdn
 		explicit default_threshold_error_handler(error_count_t max_error_count) : limit{ max_error_count } {}
 	private:
 		default_error_handler err_handler{};
+		stop_reason_code stop_reason_c{};
 	public:
 		// Throws an exception once accumulated errors reach limit. If limit is 0, handle_error(...) behaves as if limit were 1.
 		error_count_t limit{ default_limit };

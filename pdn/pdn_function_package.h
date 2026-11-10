@@ -10,6 +10,7 @@
 #include "pdn_error_message_generator.h"
 #include "pdn_constant_generator.h"
 #include "pdn_type_generator.h"
+#include "pdn_stop_reason.h"
 
 namespace pdn
 {
@@ -19,6 +20,14 @@ namespace pdn
 	public:
 		using error_count_t = default_threshold_error_handler::error_count_t;
 		inline static constexpr auto default_limit = default_threshold_error_handler::default_limit;
+		bool stop_requested() const noexcept
+		{
+			return err_handler.stop_requested();
+		}
+		auto stop_reason() const noexcept -> stop_reason_code
+		{
+			return err_handler.stop_reason();
+		}
 		auto fill_filename(const pdn::error_message& msg) -> pdn::error_message
 		{
 			return detail::error_msg_for_filename(filename(), msg);

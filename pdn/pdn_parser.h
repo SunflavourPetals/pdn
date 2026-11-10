@@ -76,7 +76,6 @@ namespace pdn
 		{
 			using enum pdn_token_code;
 			parse_start(begin, end, o);
-			assert(tk.code == eof && "parse terminated");
 		}
 		auto parse(concepts::token_iterator<char_t> auto&& begin, auto end) -> entity_type
 		{

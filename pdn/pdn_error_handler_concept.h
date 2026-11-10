@@ -14,7 +14,7 @@ namespace pdn::concepts
 	{
 		err_handler.handle_error(err_msg);
 		err_handler.handle_error(::std::move(err_msg));
-		{ err_handler.error_count() } -> ::std::convertible_to<::std::size_t>;
+		{ err_handler.error_count() } -> ::std::same_as<::std::size_t>;
 	};
 }
 
