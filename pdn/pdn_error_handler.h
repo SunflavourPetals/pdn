@@ -74,9 +74,9 @@ namespace pdn
 		void handle_error(const error_message& e, ::std::ostream& out)
 		{
 			err_handler.handle_error(e, out);
-			if (err_handler.error_count() >= limit) [[unlikely]]
+			if (err_handler.error_count() >= limit)
 			{
-				stop_reason_c = stop_reason_code::parse_error_limit;
+				request_stop(stop_reason_code::parse_error_limit);
 			}
 		}
 		// only increase error count by 1, and set parse_error_limit if error count exceeds limit
