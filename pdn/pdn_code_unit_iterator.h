@@ -357,7 +357,7 @@ namespace pdn::detail
 	namespace for_u8_code_unit_iterator
 	{
 		template <typename it_t>
-		using deref_t = decltype(*::std::declval<it_t>());
+		using deref_t = decltype(*::std::declval<it_t&>());
 
 		template <typename it_t>
 		using it_value_t = ::std::remove_const_t<::std::remove_reference_t<deref_t<it_t>>>;

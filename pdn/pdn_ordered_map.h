@@ -65,18 +65,18 @@ namespace pdn::type::detail
 			bt::clear();
 		}
 
-		iterator erase(iterator pos) noexcept(noexcept(::std::declval<bt&>().erase(::std::declval<iterator>())))
+		iterator erase(iterator pos) noexcept(noexcept(::std::declval<bt&>().erase(::std::declval<iterator&>())))
 		{
 			return bt::erase(pos);
 		}
 
-		iterator erase(const_iterator pos) noexcept(noexcept(::std::declval<bt&>().erase(::std::declval<const_iterator>())))
+		iterator erase(const_iterator pos) noexcept(noexcept(::std::declval<bt&>().erase(::std::declval<const_iterator&>())))
 		{
 			return bt::erase(pos);
 		}
 
 		iterator erase(const_iterator first, const_iterator last)
-			noexcept(noexcept(::std::declval<bt&>().erase(::std::declval<const_iterator>(), ::std::declval<const_iterator>())))
+			noexcept(noexcept(::std::declval<bt&>().erase(::std::declval<const_iterator&>(), ::std::declval<const_iterator&>())))
 		{
 			return bt::erase(first, last);
 		}
