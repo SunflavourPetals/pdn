@@ -169,7 +169,7 @@ namespace pdn
 		void fill_to(value_type* target_buffer)
 		{
 			// if eof was reached or stop requested, then no need to call fill_to anytime
-			assert(!istream_ptr->fail() && "istream fail or bad in byte_swap_chain::fill_to");
+			assert(!istream_ptr->fail() && "[pdn] istream fail or bad in byte_swap_chain::fill_to");
 			istream_ptr->read(target_buffer, chunk_size() * sizeof(value_type));
 			if (istream_ptr->bad()) [[unlikely]]
 			{

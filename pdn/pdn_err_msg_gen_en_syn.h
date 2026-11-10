@@ -62,7 +62,7 @@ namespace pdn::detail
 		case missing_right_curly_brackets:
 			return u8"missing right curly brackets: }"_em;
 		default:
-			assert(0 && "syntax error and error_message_generator_en unresolved");
+			assert(0 && "[pdn] syntax error and error_message_generator_en unresolved");
 			return u8"syntax error and error_message_generator_en unresolved"_em;
 		}
 	}

@@ -196,7 +196,7 @@ namespace pdn
 			using err_ms = error_msg_string;
 			using unicode::code_convert;
 
-			assert(tk.code == identifier && "generate type from non-identifier");
+			assert(tk.code == identifier && "[pdn] generate type from non-identifier");
 			using string_pr = proxy<type::string<char_t>>;
 			auto type_c = type_gen(*::std::get<string_pr>(tk.value));
 			if (type_c == type_code::unknown)
@@ -556,8 +556,8 @@ namespace pdn
 			case string:    return entity_cast<string>   (::std::move(src), type_pos);
 			case list:      return entity_cast<list>     (::std::move(src), type_pos);
 			case object:    return entity_cast<object>   (::std::move(src), type_pos);
-			case unknown:   assert(0 && "cast to unknown type"); break;
-			default:        assert(0 && "type cast unhandled");  break;
+			case unknown:   assert(0 && "[pdn] cast to unknown type"); break;
+			default:        assert(0 && "[pdn] unhandled type cast");  break;
 			}
 			return default_ent();
 		}
@@ -710,7 +710,7 @@ namespace pdn
 			{
 				if constexpr (::std::same_as<arg_t, ::std::monostate>)
 				{
-					assert(0 && "token have no value");
+					assert(0 && "[pdn] token have no value");
 					return default_ent();
 				}
 				else if constexpr (::std::same_as<arg_t, detail::at_iden_string_proxy>)

@@ -48,7 +48,7 @@ namespace pdn::detail::err_msg_gen_util
 		static_assert(::std::numeric_limits<::std::remove_cv_t<decltype(val)>>::digits + 1 < buffer_size, "[pdn] unsupported type");
 		::std::array<char, buffer_size> buffer{}; // int64_min in base 2 = "-" + 64 digits = 65 chars; 72 leaves margin
 		auto to_chars_result = ::std::to_chars(buffer.data(), buffer.data() + buffer.size(), val, base);
-		assert(to_chars_result.ec == ::std::errc{} && "to_chars error"); // unreachable
+		assert(to_chars_result.ec == ::std::errc{} && "[pdn] to_chars error"); // unreachable
 		assert(to_chars_result.ptr > buffer.data());
 		auto n_count = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
 		auto prefix0_count = n_count < width ? width - n_count : 0;

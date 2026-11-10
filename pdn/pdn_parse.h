@@ -74,7 +74,13 @@ namespace pdn
 		case stop_reason_code::stream_operation_failed: return stream_operation_failed;
 		case stop_reason_code::incomplete_code_unit:    return incomplete_code_unit;
 		case stop_reason_code::user_cancelled:          return user_cancelled;
-		default:                                        return user_cancelled; // unreachable
+		default:
+#ifdef __cpp_lib_unreachable
+			::std::unreachable();
+#else
+			assert(false && "[pdn] unknown stop reason");
+#endif
+			return user_cancelled; // unreachable
 		}
 	}
 
@@ -263,7 +269,6 @@ namespace pdn
 		// clear fail bit -> good | eof
 		source_file.clear(source_file.rdstate() & std::ios::eofbit);
 		auto bom_t = unicode::read_bom(source_file); // read source_file and maybe seekg
-		// TODO move to swapchain
 		// bad | (fail & !eof) -> nullopt; good | (fail & eof) -> continue
 		if (source_file.bad()) [[unlikely]]
 		{
@@ -286,7 +291,12 @@ namespace pdn
 		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
 		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
 		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
-		default:       assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type"); // unreachable
+		default:
+#ifdef __cpp_lib_unreachable
+			::std::unreachable();
+#else
+			assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type"); // unreachable
+#endif
 		}
 		return parse_result<char_t>{ parse_error_code::parse_error }; // unreachable
 	}

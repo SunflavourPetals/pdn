@@ -50,7 +50,7 @@ namespace pdn::detail
 			return u8"eof when read utf-16 trailing surrogate, sequence at offset "_em
 				+ offset_of_leading(msg, 2) + u8"(if with BOM then +2)"_em;
 		default:
-			assert(0 && "UTF-16 decode error and error_message_generator_en unresolved");
+			assert(0 && "[pdn] UTF-16 decode error and error_message_generator_en unresolved");
 			return u8"UTF-16 decode error and error_message_generator_en unresolved"_em;
 		}
 	}

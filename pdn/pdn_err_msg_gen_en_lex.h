@@ -156,7 +156,7 @@ namespace pdn::detail
 			return u8"raw string delimiter sequence not close: "_em + add_quote(get_prefix_and_d_seq(raw));
 
 		default:
-			assert(0 && "lexical error and error_message_generator_en unresolved");
+			assert(0 && "[pdn] lexical error and error_message_generator_en unresolved");
 			return u8"lexical error and error_message_generator_en unresolved"_em;
 		}
 	}

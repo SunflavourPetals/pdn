@@ -296,9 +296,9 @@ namespace pdn::unicode::utf8
 				case 5: return unexpected_eof_offset5;
 				default:
 #ifdef __cpp_lib_unreachable
-					std::unreachable();
+					::std::unreachable();
 #else
-					assert(false && "unreachable");
+					assert(false && "[pdn] unreachable");
 #endif
 				}
 				return decode_error_code{};

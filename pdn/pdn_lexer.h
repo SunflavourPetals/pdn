@@ -295,7 +295,7 @@ namespace pdn::detail
 		using raw_err = raw_error_message_type::from_chars_error;
 		auto [unresolved_char_ptr, err_code] = from_chars_r;
 
-		assert(unresolved_char_ptr >= src.data() && unresolved_char_ptr <= (src.data() + src.size()) && "invalid arguments");
+		assert(unresolved_char_ptr >= src.data() && unresolved_char_ptr <= (src.data() + src.size()) && "[pdn] invalid arguments");
 
 		auto num_seq_to_ems = [&]() { return reinterpret_to_err_msg_str(src); };
 		using enum lexical_error_code;
@@ -1072,7 +1072,7 @@ namespace pdn
 				auto encode_r = unicode::encode<char_t>(c);
 				// TODO to en
 				// lexer 保证了 c 是 Unicode 标量值，encode 不会失败
-				assert(static_cast<bool>(encode_r) && "encode failed");
+				assert(static_cast<bool>(encode_r) && "[pdn] encode failed");
 				src.append(encode_r.cbegin(), encode_r.cend());
 			};
 
@@ -1658,7 +1658,7 @@ namespace pdn
 				[[fallthrough]];
 			case bin_seq:
 			{
-				assert(detail::check_0b_prefix(number_sequence) && "binary literal without prefix");
+				assert(detail::check_0b_prefix(number_sequence) && "[pdn] binary literal without prefix");
 				type::u64 integer_value{};
 				detail::remove_all_separator(number_sequence);
 				auto n_seq = ::std::string_view{ number_sequence.begin() + 2, number_sequence.end() };
@@ -1692,7 +1692,7 @@ namespace pdn
 				[[fallthrough]];
 			case hex_seq:
 			{
-				assert(detail::check_0x_prefix(number_sequence) && "hexadecimal literal without prefix");
+				assert(detail::check_0x_prefix(number_sequence) && "[pdn] hexadecimal literal without prefix");
 				type::u64 integer_value{};
 				detail::remove_all_separator(number_sequence);
 				auto n_seq = ::std::string_view{ number_sequence.begin() + 2, number_sequence.end() };
@@ -1726,7 +1726,7 @@ namespace pdn
 				[[fallthrough]];
 			case hex_fp_exp:
 			{
-				assert(detail::check_0x_prefix(number_sequence) && "hexadecimal literal without prefix");
+				assert(detail::check_0x_prefix(number_sequence) && "[pdn] hexadecimal literal without prefix");
 				type::f64 fp_value{};
 				detail::remove_all_separator(number_sequence);
 				auto n_seq = ::std::string_view{ number_sequence.begin() + 2, number_sequence.end() };
@@ -1750,7 +1750,7 @@ namespace pdn
 			}
 			default:
 				// if dfa state is not final-state, then should process error in non-default case
-				assert(dfa_state.is_final() && "error unhandled");
+				assert(dfa_state.is_final() && "[pdn] unhandled error in lexer switch-statement");
 				break;
 			}
 

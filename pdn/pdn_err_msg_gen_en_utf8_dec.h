@@ -66,7 +66,7 @@ namespace pdn::detail
 		case unexpected_eof_offset5:
 			return u8"eof when read 6th code unit, sequence at offset "_em + offset_of_leading(msg) + u8"(if with BOM then +3)"_em;
 		default:
-			assert(0 && "UTF-8 decode error and error_message_generator_en unresolved");
+			assert(0 && "[pdn] UTF-8 decode error and error_message_generator_en unresolved");
 			return u8"UTF-8 decode error and error_message_generator_en unresolved"_em;
 		}
 	}
