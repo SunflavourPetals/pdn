@@ -56,6 +56,14 @@ namespace pdn
 		using size_type         = ::std::size_t;
 		using value_type        = token_t;
 	public:
+		bool stop_requested() const noexcept requires concepts::stoppable<lexer_t>
+		{
+			return lex.stop_requested();
+		}
+		auto stop_reason() const noexcept -> stop_reason_code requires concepts::stoppable<lexer_t>
+		{
+			return lex.stop_reason();
+		}
 		bool eof() const noexcept
 		{
 			return stored_token.code == pdn_token_code::eof;
