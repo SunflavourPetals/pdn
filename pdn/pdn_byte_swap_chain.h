@@ -108,7 +108,7 @@ namespace pdn
 		static_assert(sizeof(value_type) == 1, "[pdn] unsupported istream");
 	private:
 		using buffers_manager = detail::adjacent_2_buffer<char_type, deleter_type>;
-		inline static constexpr auto default_buffer_size = size_type{ 16 * 1024 };
+		static constexpr auto default_buffer_size = size_type{ 16 * 1024 };
 	private:
 		void request_stop(stop_reason_code reason) noexcept
 		{

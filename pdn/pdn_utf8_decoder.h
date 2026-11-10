@@ -333,7 +333,7 @@ namespace pdn::unicode::utf8
 	};
 
 	template <bool reach_next_code_point>
-	inline auto decode(auto&& begin, auto end) -> decode_result
+	auto decode(auto&& begin, auto end) -> decode_result
 	{
 		return decoder::decode<reach_next_code_point>(begin, ::std::move(end));
 	}

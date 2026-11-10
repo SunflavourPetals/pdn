@@ -21,7 +21,7 @@ namespace pdn::unicode::detail
 	using dec_char = typename convert_decision<cvt_src, cvt_des>::target_char;
 
 	template <typename cvt_src, typename cvt_des>
-	inline bool default_decode_error_handler(cvt_des& des, dec_res<cvt_src, cvt_des>, ::std::size_t)
+	bool default_decode_error_handler(cvt_des& des, dec_res<cvt_src, cvt_des>, ::std::size_t)
 	{
 		// replace with Replacement Character
 		auto rep = get_replace<dec_char<cvt_src, cvt_des>>();
@@ -31,7 +31,7 @@ namespace pdn::unicode::detail
 	}
 
 	template <typename cvt_src, typename cvt_des>
-	inline bool default_encode_error_handler(cvt_des& des, enc_res<cvt_src, cvt_des>, ::std::size_t)
+	bool default_encode_error_handler(cvt_des& des, enc_res<cvt_src, cvt_des>, ::std::size_t)
 	{
 		// replace with Replacement Character
 		auto rep = get_replace<dec_char<cvt_src, cvt_des>>();
@@ -49,7 +49,7 @@ namespace pdn::unicode
 	          typename source_string_view,
 	          typename decode_error_handler_t,
 	          typename encode_error_handler_t>
-	inline auto code_convert(const source_string_view& source,
+	auto code_convert(const source_string_view& source,
 	                         decode_error_handler_t    decode_error_handler,
 	                         encode_error_handler_t    encode_error_handler) -> target_string
 	{
@@ -84,7 +84,7 @@ namespace pdn::unicode
 	}
 
 	template <typename target_string, typename source_string_view>
-	inline auto code_convert(const source_string_view& source) -> target_string
+	auto code_convert(const source_string_view& source) -> target_string
 	{
 		return code_convert<target_string>(
 			source,

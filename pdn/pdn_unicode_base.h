@@ -165,13 +165,13 @@ namespace pdn::unicode::concepts
 namespace pdn::unicode::type_traits
 {
 	template <typename char_t>
-	inline constexpr bool is_utf8_code_unit_v  = concepts::utf8_code_unit<char_t>;
+	constexpr bool is_utf8_code_unit_v  = concepts::utf8_code_unit<char_t>;
 	template <typename char_t>
-	inline constexpr bool is_utf16_code_unit_v = concepts::utf16_code_unit<char_t>;
+	constexpr bool is_utf16_code_unit_v = concepts::utf16_code_unit<char_t>;
 	template <typename char_t>
-	inline constexpr bool is_utf32_code_unit_v = concepts::utf32_code_unit<char_t>;
+	constexpr bool is_utf32_code_unit_v = concepts::utf32_code_unit<char_t>;
 	template <typename char_t>
-	inline constexpr bool is_code_unit_v = concepts::code_unit<char_t>;
+	constexpr bool is_code_unit_v = concepts::code_unit<char_t>;
 
 	template <typename char_t>
 	struct is_utf8_code_unit  : public ::std::bool_constant<is_utf8_code_unit_v<char_t>> {};
@@ -182,19 +182,19 @@ namespace pdn::unicode::type_traits
 	template <typename char_t>
 	struct is_code_unit : public ::std::bool_constant<is_code_unit_v<char_t>> {};
 
-	template <bom_type> inline constexpr encode_type encode_type_from_bom                     = encode_type::unknown;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::no_bom>   = encode_type::utf8;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf8>     = encode_type::utf8;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf16_le> = encode_type::utf16_le;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf16_be> = encode_type::utf16_be;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf32_le> = encode_type::utf32_le;
-	template <>         inline constexpr encode_type encode_type_from_bom<bom_type::utf32_be> = encode_type::utf32_be;
+	template <bom_type> constexpr encode_type encode_type_from_bom                     = encode_type::unknown;
+	template <>         constexpr encode_type encode_type_from_bom<bom_type::no_bom>   = encode_type::utf8;
+	template <>         constexpr encode_type encode_type_from_bom<bom_type::utf8>     = encode_type::utf8;
+	template <>         constexpr encode_type encode_type_from_bom<bom_type::utf16_le> = encode_type::utf16_le;
+	template <>         constexpr encode_type encode_type_from_bom<bom_type::utf16_be> = encode_type::utf16_be;
+	template <>         constexpr encode_type encode_type_from_bom<bom_type::utf32_le> = encode_type::utf32_le;
+	template <>         constexpr encode_type encode_type_from_bom<bom_type::utf32_be> = encode_type::utf32_be;
 
-	template <encode_type> inline constexpr ::std::endian endian_from_encode_type                        = ::std::endian::native;
-	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf16_le> = ::std::endian::little;
-	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf16_be> = ::std::endian::big;
-	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf32_le> = ::std::endian::little;
-	template <>            inline constexpr ::std::endian endian_from_encode_type<encode_type::utf32_be> = ::std::endian::big;
+	template <encode_type> constexpr ::std::endian endian_from_encode_type                        = ::std::endian::native;
+	template <>            constexpr ::std::endian endian_from_encode_type<encode_type::utf16_le> = ::std::endian::little;
+	template <>            constexpr ::std::endian endian_from_encode_type<encode_type::utf16_be> = ::std::endian::big;
+	template <>            constexpr ::std::endian endian_from_encode_type<encode_type::utf32_le> = ::std::endian::little;
+	template <>            constexpr ::std::endian endian_from_encode_type<encode_type::utf32_be> = ::std::endian::big;
 
 	template <encode_type> struct code_unit                        { static_assert(detail::false_v<encode_type>, "[pdn] unknown encode type"); };
 	template <>            struct code_unit<encode_type::utf8>     { using type = u8char_t;  };

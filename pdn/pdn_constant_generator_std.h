@@ -34,7 +34,7 @@ namespace pdn::detail
 		::std::equal_to<>>;
 
 	template <typename char_t>
-	inline auto test_string_hello() -> entity<char_t>
+	auto test_string_hello() -> entity<char_t>
 	{
 		using c = char_t;
 		auto s = type::string<char_t>
@@ -46,7 +46,7 @@ namespace pdn::detail
 	}
 
 	template <typename char_t>
-	inline auto test_list_fib_10() -> entity<char_t>
+	auto test_list_fib_10() -> entity<char_t>
 	{
 		// 1, 1, 2, 3, 5, 8, 13, 21, 34, 55
 		auto list = type::list<char_t>{};
@@ -64,7 +64,7 @@ namespace pdn::detail
 	}
 
 	template <typename char_t>
-	inline auto test_object_me() -> entity<char_t>
+	auto test_object_me() -> entity<char_t>
 	{
 		using c = char_t;
 		using s = type::string<c>;
@@ -159,7 +159,7 @@ namespace pdn
 	};
 
 	template <typename char_t>
-	inline auto constant_generator_std_function(const unicode::u8string& s) -> ::std::optional<entity<char_t>>
+	auto constant_generator_std_function(const unicode::u8string& s) -> ::std::optional<entity<char_t>>
 	{
 		if (auto result = constant_table<char_t>::instance().find(s); result != constant_table<char_t>::instance().end())
 		{

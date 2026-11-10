@@ -57,11 +57,11 @@ namespace pdn::unicode
 		using encode_result_type = typename encoder_type::result_type;
 
 		template <bool reach_next_code_point = false>
-		inline static auto decode(auto&& begin, auto end) -> decode_result_type
+		static auto decode(auto&& begin, auto end) -> decode_result_type
 		{
 			return decoder_type::template decode<reach_next_code_point>(begin, end);
 		}
-		inline static auto encode(code_point_t code_point) noexcept -> encode_result_type
+		static auto encode(code_point_t code_point) noexcept -> encode_result_type
 		{
 			return encoder_type::encode(code_point);
 		}

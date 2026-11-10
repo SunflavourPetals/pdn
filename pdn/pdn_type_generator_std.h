@@ -38,7 +38,7 @@ namespace pdn::detail
 		static constexpr auto value = type_code::i64;
 	};
 	template <typename cppint_t>
-	inline constexpr auto cppint_to_type_code_v = cppint_to_type_code<cppint_t>::value;
+	constexpr auto cppint_to_type_code_v = cppint_to_type_code<cppint_t>::value;
 
 	template <typename T>
 	struct cppuint_to_type_code
@@ -66,7 +66,7 @@ namespace pdn::detail
 		static constexpr auto value = type_code::u64;
 	};
 	template <typename cppuint_t>
-	inline constexpr auto cppuint_to_type_code_v = cppuint_to_type_code<cppuint_t>::value;
+	constexpr auto cppuint_to_type_code_v = cppuint_to_type_code<cppuint_t>::value;
 }
 
 namespace pdn

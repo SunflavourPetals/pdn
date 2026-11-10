@@ -34,7 +34,7 @@ namespace pdn::type::detail
 	};
 
 	template <typename char_t>
-	inline constexpr ::std::size_t max_code_unit_count_for_character_v
+	constexpr ::std::size_t max_code_unit_count_for_character_v
 		= max_code_unit_count_for_character<char_t>::value;
 }
 

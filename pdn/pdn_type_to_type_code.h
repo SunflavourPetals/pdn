@@ -87,7 +87,7 @@ namespace pdn
 		static constexpr type_code value = type_code::object;
 	};
 	template <typename type, typename char_t>
-	inline constexpr type_code type_to_type_code_v = type_to_type_code<type, char_t>::value;
+	constexpr type_code type_to_type_code_v = type_to_type_code<type, char_t>::value;
 }
 
 #endif

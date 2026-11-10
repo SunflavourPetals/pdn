@@ -185,7 +185,7 @@ namespace pdn::detail
 	}
 
 	template <typename char_t>
-	inline auto to_err_ms(::std::basic_string_view<char_t> s) -> error_msg_string
+	auto to_err_ms(::std::basic_string_view<char_t> s) -> error_msg_string
 	{
 		if constexpr (::std::same_as<char_t, error_msg_char>)
 		{
@@ -198,7 +198,7 @@ namespace pdn::detail
 	}
 
 	template <typename char_t>
-	inline void to_appropriate_int_type(token_value_variant<char_t>& target, type::u64 val)
+	void to_appropriate_int_type(token_value_variant<char_t>& target, type::u64 val)
 	{
 		constexpr auto cppint_max = static_cast<type::u64>(::std::numeric_limits<type::auto_int>::max());
 		constexpr auto i8_max     = static_cast<type::u64>(::std::numeric_limits<type::i8> ::max());
@@ -957,7 +957,7 @@ namespace pdn::detail
 
 	// TODO to en 本函数只调用一次 post_error，所以检查 stop_requested 由调用方完成
 	template <typename char_t>
-	inline auto process_char_literal(::std::basic_string_view<char_t> src, const source_position& position, auto helper) -> type::character<char_t>
+	auto process_char_literal(::std::basic_string_view<char_t> src, const source_position& position, auto helper) -> type::character<char_t>
 	{
 		using unicode::code_convert;
 		auto cp_s = code_convert<unicode::ucpstring>(src);

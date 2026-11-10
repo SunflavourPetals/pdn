@@ -57,7 +57,7 @@ namespace pdn
 	{
 	public:
 		using error_count_t = default_error_handler::error_count_t;
-		inline static constexpr auto default_limit = error_count_t{ 100 };
+		static constexpr auto default_limit = error_count_t{ 100 };
 		bool stop_requested() const noexcept
 		{
 			return stop_reason_c != stop_reason_code{};

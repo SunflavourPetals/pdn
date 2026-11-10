@@ -209,7 +209,7 @@ namespace pdn
 	};
 
 	template <typename begin_it_t, typename end_it_t, concepts::function_package_for_code_point_iterator function_package>
-	inline auto make_code_point_iterator(begin_it_t begin_it, end_it_t end_it, function_package& func_package)
+	auto make_code_point_iterator(begin_it_t begin_it, end_it_t end_it, function_package& func_package)
 	{
 		return code_point_iterator{ ::std::move(begin_it), ::std::move(end_it), func_package };
 	}

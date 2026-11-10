@@ -41,7 +41,7 @@ namespace pdn::detail::err_msg_gen_util
 		return u8"'"_em.append(src).append(u8"'");
 	}
 	template <int base = 10, ::std::size_t width = 1>
-	inline auto to_s(::std::integral auto const val) -> error_msg_string
+	auto to_s(::std::integral auto const val) -> error_msg_string
 	{
 		constexpr ::std::size_t buffer_size = 72;
 		static_assert(base >= 2 && base <= 36, "[pdn] unsupported base");

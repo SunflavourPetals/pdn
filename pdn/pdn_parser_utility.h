@@ -128,7 +128,7 @@ namespace pdn::parser_utility
 	}
 
 	template <typename char_t>
-	inline auto to_raw_error_token(token<char_t> src) -> raw_error_message_type::error_token
+	auto to_raw_error_token(token<char_t> src) -> raw_error_message_type::error_token
 	{
 		if constexpr (::std::same_as<char_t, error_msg_char>)
 		{

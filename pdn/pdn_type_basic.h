@@ -37,9 +37,9 @@ namespace pdn::type::detail
 	template <typename     int_t> using  alias_uint_t  =  typename alias_uint<int_t>::type;
 
 	template <typename int_t>
-	inline constexpr bool sint_has_alias_v = !same_as<alias_sint_t<int_t>, void>;
+	constexpr bool sint_has_alias_v = !same_as<alias_sint_t<int_t>, void>;
 	template <typename int_t>
-	inline constexpr bool uint_has_alias_v = !same_as<alias_uint_t<int_t>, void>;
+	constexpr bool uint_has_alias_v = !same_as<alias_uint_t<int_t>, void>;
 
 	template <typename int_t>
 	using simu_int_t  = ::std::conditional_t<sint_has_alias_v<int_t>, alias_sint_t<int_t>, i32>;
