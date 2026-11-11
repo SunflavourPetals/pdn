@@ -73,7 +73,6 @@ namespace pdn
 			using enum parse_error_code;
 			switch (err_c)
 			{
-			case parse_error_code{}:      return "success";
 			case parse_error:             return "parse_error";
 			case parse_error_limit:       return "parse_error_limit";
 			case nesting_depth_exceed:    return "nesting_depth_exceed";
@@ -82,7 +81,15 @@ namespace pdn
 			case stream_operation_failed: return "stream_operation_failed";
 			case incomplete_code_unit:    return "incomplete_code_unit";
 			case user_cancelled:          return "user_cancelled";
-			default:                      return "unknown_parse_error_code";
+			default:
+				if (err_c == parse_error_code{})
+				{
+					return "success";
+				}
+				else
+				{
+					return "unknown_parse_error_code";
+				}
 			}
 		}
 		explicit parse_result(parse_error_code error_code) : err_c{ error_code }, ent{ default_ent() } {}

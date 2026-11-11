@@ -319,7 +319,7 @@ namespace pdn::detail
 		}
 		// just for checking eof, returns is lhs eof
 		template <typename original_it_t>
-		friend bool operator== (const mb_code_unit_iterator& lhs, const original_it_t& rhs)
+		friend bool operator== (const mb_code_unit_iterator& lhs, const original_it_t&)
 			noexcept(noexcept(::std::declval<const code_unit_iterator_compressed<it_begin_t, it_end_t>&>().eof()))
 		{
 			return lhs.compressed.eof();
