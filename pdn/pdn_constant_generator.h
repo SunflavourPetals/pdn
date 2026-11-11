@@ -19,6 +19,9 @@ namespace pdn
 			return constant_generator_std_function<char_t>(iden);
 		}
 	};
+	static_assert(concepts::constant_generator<default_constant_generator<unicode::u8char_t>,  unicode::u8char_t>);
+	static_assert(concepts::constant_generator<default_constant_generator<unicode::u16char_t>, unicode::u16char_t>);
+	static_assert(concepts::constant_generator<default_constant_generator<unicode::u32char_t>, unicode::u32char_t>);
 }
 
 #endif
