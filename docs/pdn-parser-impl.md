@@ -8,15 +8,17 @@
 `pdn::parse` 方法对用户提供 `function_package` 和使用默认配置有重载，一般使用默认配置已足够。  
 `pdn::parse` 方法需要用户指定编码方式，在有确定的方案时推荐使用 `pdn::utf8_tag`、`pdn::utf16_tag`、`pdn::utf32_tag` 作为 `pdn::parse` 的 `char_t` 参数来提供。  
 
+所有版本的 `pdn::parse` 都返回 `pdn::parse_result<char_t>`。  
+
 ``` C++
 #include "pdn_parse.h"
 
 template <typename char_t>
 void parse_something()
 {
-    auto example1_using_utf_8_opt  = pdn::parse("./example1.spdn", pdn::utf8_tag);
-    auto example2_using_utf_16_opt = pdn::parse("./example2.spdn", pdn::utf16_tag);
-    auto example3_using_utf_32_opt = pdn::parse("./example3.spdn", pdn::utf32_tag);
+    auto example1_using_utf_8  = pdn::parse("./example1.spdn", pdn::utf8_tag);
+    auto example2_using_utf_16 = pdn::parse("./example2.spdn", pdn::utf16_tag);
+    auto example3_using_utf_32 = pdn::parse("./example3.spdn", pdn::utf32_tag);
 
     auto example1 = pdn::parse("./example1.spdn", char_t{});
     // 等价于
@@ -24,14 +26,139 @@ void parse_something()
 }
 ```
 
+`parse_result` 的完整成员见 guide 的[解析结果 parse_result](pdn-guide.md#解析结果-parse_result)章节，常用的有：
+
+1. `success()` `failed()` `has_value()` 和 `operator bool`：判断解析是否成功；  
+2. `error_code()`：解析终止的原因，类型为 `pdn::parse_error_code`，成功时的值为 0；  
+3. `what()`：`error_code()` 对应的英文名称，失败时可以直接打印；  
+4. `operator*` 和 `value()`：取出解析得到的数据实体；  
+5. `operator->`：访问解析结果的数据实体。  
+
+``` C++
+#include <iostream>
+
+#include "pdn_parse.h"
+
+void parse_file()
+{
+    auto result = pdn::parse("./example1.spdn", pdn::utf8_tag);
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return;
+    }
+    const auto& entity = *result;
+    // 使用 entity...
+}
+```
+
+`pdn::parse_error_code` 除了 `parse_error`（普通的词法或语法错误）之外，其余取值与 `pdn::stop_reason_code` 对应，另有一个 `open_file_failed` 用于打开文件失败的情况，详见[终止解析](#终止解析)。
+
 用户提供 `function_package`，可参考 `pdn::concepts::function_package_for...` 等概念实现(分别定义于 `pdn_parser.h`、`pdn_lexer.h`、`pdn_code_point_iterator.h`)。  
 记录行列位置信息的功能由 `function_package_for_code_point_iterator` 提供；`function_package_for_lexer` 需要获得解析点行列位置；`pdn` 的 `@val` 常量和类型名由 `function_package_for_parser` 提供。  
 此外，以上三者都需要错误处理、错误信息生成和错误数量查询功能；`error_handler` 概念要求提供 `handle_error(err_msg)` 和 `error_count()`。默认的错误处理为打印错误信息到标准错误流，默认的错误信息生成方法生成英文错误信息；自定义函数包需要实现或转发 `error_count()`。  
-最佳实践是组合 `pdn_function_package.h` 内的 `pdn::default_function_package` 和用户需要自定义的内容，使它满足以上三者的需求，然后为它们三个提供同一个`function_package` 对象(将按引用传递)。
+最佳实践是组合 `pdn_function_package.h` 内的 `pdn::default_function_package` 和用户需要自定义的内容，使它满足以上三者的需求，然后为它们三个提供同一个`function_package` 对象(将按引用传递)。  
+`pdn::default_function_package` 还提供 `stop_requested()`、`stop_reason()` 和 `nesting_depth_limit()`，使函数包可以请求终止解析、限制嵌套层数，详见[终止解析](#终止解析)。
+
+## 终止解析
+
+解析可以被请求终止。`pdn::parse` 会返回一个带有对应 `error_code()` 的 `parse_result`。
+
+从字节迭代器到解析器共有五层：字节迭代器、码元迭代器、码点迭代器、词法分析器、语法分析器，每层都可以把下层的终止状态转发到上层。按约定，只有两处操作可以触发终止请求：
+
+1. 每层解析所用的 begin 迭代器的 `operator++()`；  
+2. `function_package` 的 `handle_error(...)`。
+
+其他操作不允许触发终止请求。终止请求一旦发出，原因不会被后续终止请求覆盖，只保留首次终止请求的原因。
+
+需要自定义迭代器的用户应提供 `stop_requested()` 和 `stop_reason()`，即满足 `pdn::concepts::stoppable`；不满足该概念时，该层迭代器无法请求终止。
+
+### stop_reason_code
+
+`pdn::stop_reason_code` 的取值及含义：
+
+| 值 | 含义 |
+| :-- | :-- |
+| `parse_error_limit` | 累计的错误数量达到了上限(本库的实现默认为 100) |
+| `nesting_depth_exceed` | `{}` 或 `[]` 的嵌套层数超过了 `nesting_depth_limit()` |
+| `bad_stream` | 流已损坏(`badbit`) |
+| `stream_operation_failed` | 流操作失败 |
+| `incomplete_code_unit` | 文件末尾的编码单元序列不完整，如 UTF-16 末尾只有半个码元时 |
+| `user_cancelled` | 用户自行请求终止，本库的实现不使用此代码 |
+
+### 错误数量上限
+
+`pdn::default_threshold_error_handler` 默认在错误数达到 100 时请求终止，原因是 `parse_error_limit`，`pdn::default_function_package::default_limit` 即这个默认值。可以用 `reset_error_threshold(n)` 修改上限，用 `clear_error()` 清零错误数并清除终止状态，此后同一个函数包对象可以继续使用(需要按情况调用 `clear_position` 重置函数包对象记录的解析处的行列位置)。  
+
+### 嵌套层数上限
+
+`function_package` 可以提供成员 `nesting_depth_limit()`：
+
+``` C++
+#include "spdn.h"
+
+struct my_function_package : pdn::default_function_package<char8_t>
+{
+    static constexpr auto nesting_depth_limit() noexcept -> ::std::size_t
+    {
+        return 16;
+    }
+};
+```
+
+未提供时使用 256。`{}` 与 `[]` 的嵌套层数超过上限时，解析以 `nesting_depth_exceed` 终止，且不会因此增加错误数。
+
+### 自定义终止
+
+在 `handle_error` 中请求终止，可以让解析在某次错误处理时停下：
+
+``` C++
+#include <string_view>
+
+#include "spdn.h"
+
+struct cancel_on_error : pdn::default_function_package<char8_t>
+{
+    pdn::stop_reason_code reason{};
+
+    void handle_error(const pdn::error_message& msg)
+    {
+        default_function_package::handle_error(msg);
+        // 检查是否已请求停止
+        if (default_function_package::stop_requested())
+        {
+            reason = default_function_package::stop_reason();
+            return;
+        }
+        // TODO 修改代码为当错误码为特定值时才请求停止，实现思路：先检查main中的解析结果的错误码，然后把对应错误码的判断放到这里，如果判断是对应的错误码，才设置 reason 来请求停止
+        reason = pdn::stop_reason_code::user_cancelled;
+    }
+
+    bool stop_requested() const noexcept
+    {
+        return reason != pdn::stop_reason_code{};
+    }
+
+    auto stop_reason() const noexcept -> pdn::stop_reason_code
+    {
+        return reason;
+    }
+};
+
+void parse_something()
+{
+    using namespace std::string_view_literals;
+    auto fp = cancel_on_error{};
+    auto result = pdn::parse(u8R"(100)"sv, fp, fp, fp, pdn::utf8_tag);
+    // result.error_code() == pdn::parse_error_code::user_cancelled
+}
+```
+
+派生类中的 `stop_requested()` 和 `stop_reason()` 会隐藏 `default_function_package` 的同名成员，解析器按传入的实际类型调用它们。  
 
 ## entity
 
-解析后将得到一个持有 `object` 的 `entity` (数据实体) 或 `optional` 的数据实体(取决于使用的 `parse` 函数)，是 `std::variant<pdn_data_types...>` 的派生类，除了可以用 `std::get` `std::get_if` `std::visit` 等方法访问，还提供如下访问函数(头文件 `pdn_entity.h`，名称空间 `pdn` 内)：  
+`pdn::parse` 返回 `pdn::parse_result<char_t>`，成功后用 `operator*` 或 `value()` 取出数据实体，失败时用 `error_code()` 或 `what()` 查询终止解析的原因。数据实体持有 `object`，是 `std::variant<pdn_data_types...>` 的派生类，除了可以用 `std::get` `std::get_if` `std::visit` 等方法访问，还提供如下访问函数(头文件 `pdn_entity.h`，名称空间 `pdn` 内)：  
 
 1. `get` 系列函数：对代理进行处理的 `std::get` 的封装，不支持 `refer` 和 `const_refer` 版本；  
 2. `get_if` 系列函数：获得相应类型的值或得到 nullptr；  
@@ -96,13 +223,15 @@ list [
 )"sv;
 
     using namespace pdn;
-    const auto& e = parse(src, utf8_tag);
+    const auto result = parse(src, utf8_tag);
+    assert(result);
+    const auto& e = *result;
     const auto r = e.ref();
 
     using namespace pdn::type;
     // get
-    get<auto_int>(e[u8"auto_int"]);
-    get<object<char8_t>>(e[u8"object"]);
+    auto unused1 = get<auto_int>(e[u8"auto_int"]);
+    auto unused2 = get<object<char8_t>>(e[u8"object"]);
     auto test_i64 = get<i64>(e[u8"i64"]);
     assert(test_i64 == -64);
     // get_if
