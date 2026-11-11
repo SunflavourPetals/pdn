@@ -13,6 +13,7 @@ namespace pdn
 	class source_position_and_newline_recorder
 	{
 	public:
+		constexpr void clear()            noexcept { pos = {}; }
 		constexpr auto position()   const noexcept { return pos; }
 		constexpr auto CRLF_count() const noexcept { return CRLF_cnt; }
 		constexpr auto LF_count()   const noexcept { return LF_cnt; }

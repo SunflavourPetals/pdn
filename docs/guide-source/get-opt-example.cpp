@@ -1,19 +1,24 @@
 #include <iostream>
 #include <string>
-#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
     using namespace pdn;
     using namespace std::string_view_literals;
 
-    auto e = parse(u8R"(int 1 big 0xffff'ffff'ffff'ffff)"sv, utf8_tag);
+    auto result = parse(u8R"(int 1 big 0xffff'ffff'ffff'ffff)"sv, utf8_tag);
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return 1;
+    }
+    const auto& e = *result;
 
-    using et = decltype(e); // entity<char8_t>
+    using et = u8entity; // entity<char8_t>
 
     if (auto opt = e[u8"int"sv].get_opt<et::auto_int>())
     {
@@ -23,12 +28,4 @@ int main() try
     {
         std::cout << *opt << "\n"; // 18446744073709551615
     }
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }

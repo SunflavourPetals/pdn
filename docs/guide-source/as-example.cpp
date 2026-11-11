@@ -1,23 +1,30 @@
 #include <iostream>
 #include <string>
-#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
 	using namespace pdn;
 	using namespace std::string_view_literals;
 
-	auto e = parse(u8R"(
+	auto result = parse(u8R"(
 			f   : 1.25
 			inf : @inf
 			c   : '爱'
 			nan : @nan
 			s   : "string"
 		)"sv, utf8_tag);
+
+	if (!result)
+	{
+		std::cerr << "parse failed: " << result.what() << "\n";
+		return 1;
+	}
+
+	const auto& e = *result; // the entity parsed from the spdn text
 
 	std::cout << as_int(e[u8"f"]) << "\n"; // 1
 
@@ -28,12 +35,4 @@ int main() try
 	std::cout << e[u8"nan"].as(int_tag) << "\n"; // 0
 
 	std::cout << as_string(e[u8"f"]) << "\n"; // *null string
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }

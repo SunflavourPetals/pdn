@@ -68,6 +68,10 @@ namespace pdn
 		{
 			return err_handler.limit;
 		}
+		void clear_position() noexcept
+		{
+			pos_recorder.clear();
+		}
 		auto position() const -> pdn::source_position
 		{
 			return pos_recorder.position();

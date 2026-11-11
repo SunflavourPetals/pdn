@@ -1,22 +1,23 @@
 #include <iostream>
+#include <string>
 #include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
 	using namespace pdn;
 	
-	auto entity_opt = parse("hello.spdn", utf8_tag);
+	auto result = parse("hello.spdn", utf8_tag);
 	
-	if (!entity_opt)
+	if (!result)
 	{
-		std::cerr << "failed in parse hello.spdn\n";
-		return 0;
+		std::cerr << "failed in parse hello.spdn: " << result.what() << "\n";
+		return 1;
 	}
-	auto& entity = *entity_opt;
+	auto& entity = *result;
 
 	auto& say = entity[u8"say"];
 	try
@@ -53,12 +54,4 @@ int main() try
 			std::cout << "no entity named \"name\"\n";
 		}
 	}
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }

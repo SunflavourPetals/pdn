@@ -3,9 +3,10 @@
 #include <chrono>
 #include <random>
 #include <limits>
-#include <exception>
 
 #include "spdn.h"
+
+#include "outu8sv.h"
 
 class my_function_package : public pdn::default_function_package<char8_t>
 {
@@ -79,7 +80,7 @@ private:
     inline static random_int rd{};
 };
 
-int main() try
+int main()
 {
     using namespace std::string_view_literals;
     auto spdn_content = u8R"(
@@ -93,7 +94,13 @@ random_list [
 ]
 )"sv;
     auto mfp = my_function_package{};
-    auto e = pdn::parse(spdn_content, mfp, mfp, mfp, pdn::utf8_tag);
+    auto result = pdn::parse(spdn_content, mfp, mfp, mfp, pdn::utf8_tag);
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return 1;
+    }
+    const auto& e = *result;
     const auto& dt = e[u8"parsing_time"sv];
     std::cout
         << "parsing_time:\n"
@@ -108,12 +115,4 @@ random_list [
     {
         std::cout << "    " << rd.as_int() << "\n";
     }
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }

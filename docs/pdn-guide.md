@@ -43,7 +43,6 @@ say: "Hello world!"
 
 ```C++
 #include <iostream>
-#include <exception>
 
 #include "spdn.h" // 包含下两行的头文件
 // #include "pdn_parse.h" // 包含解析 spdn 的函数
@@ -61,7 +60,7 @@ std::ostream& operator<<(std::ostream& o, std::u8string_view sv)
     return o << std::string_view{ (const char*)sv.data(), sv.size() };
 }
 
-int main() try // 发生错误过多时 parse 函数将抛出异常，结束解析
+int main()
 {
     // 为了方便编写教程代码而使用的 using 指令
     using namespace pdn;
@@ -69,33 +68,29 @@ int main() try // 发生错误过多时 parse 函数将抛出异常，结束解�
     // 使用 pdn::parse 解析 hello.spdn 中的数据
     // pdn::utf8_tag 指示以 utf-8 作为解析后的键和字符、字符串的编码方式，表现为用 C++ 的 u8string 类型进行描述
     // 该指示与被解析的文件采用什么编码无关，它只作用于解析结果
-    auto entity_opt = parse("hello.spdn", utf8_tag);
+    auto result = parse("hello.spdn", utf8_tag);
+
+    // pdn::parse 返回 pdn::parse_result<char8_t>
     
-    // 得到一个 entity_opt，它是一个 std::optional<pdn::u8entity> 的对象
-    if (!entity_opt) // 判断是否解析成功，若文件不存在或无法打开，则是 nullopt
+    // 用 operator bool 判断是否解析成功
+    if (!result)
     {
-        std::cerr << "failed in open or parse hello.spdn\n";
-        return 0;
+        std::cerr << "failed in parse hello.spdn: " << result.what() << "\n";
+        return 1;
     }
     
-    // 从 optional 获取数据实体的引用，
+    // 从 parse_result 中取出数据实体(operator*)，
     // 这个数据实体包含了 hello.spdn 中的所有数据作为它的成员(注释等不算做数据)，
     // 因此它是一个 spdn 中的 object，在 C++ 里的类型则是一个关联容器。
-    const auto& entity = *entity_opt;
+    // 这里通过 C++ 引用来使用解析获得的数据实体，你也可以把它移动或复制到新 pdn::u8entity 对象，
+    // 对于 pdn::entity 的复制操作，因为数据实体可能很大，需要慎重考虑复制的成本
+    const auto& entity = *result;
 
-    // 从中查询 "say" 成员，并引用它(因为我们指定了 utf8_tag，所以需要使用 u8 字符串作为查询的键)
+    // 从中查询 "say" 成员，并引用它(因为我们指定了 utf8_tag，所以需要使用 u8 字符串或字符串视图作为查询的键)
     const auto& say = entity[u8"say"];
 
     // 将我们查询到的数据以字符串的形式使用，需要用到 pdn::as_string 函数，提供成员函数版本
     std::cout << say.as_string() << "\n";
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -535,36 +530,46 @@ at 常量用于从解析器提供的常量表中获取值，比如使用 `@true`
 
 通过 `fn_pkg_for_...` 参数，`pdn::parse` 提供部分自定义配置，根据被解析内容的层次(token 流或是 UTF 码元流包括 UTF 字符串、文件) 配置项有增减。  
 
+所有版本的 `pdn::parse` 都返回 `pdn::parse_result<char_t>`：其中的 `error_code()` 表示终止解析的原因(成功时为零初始化的 `pdn::parse_error_code`)，可以用 `operator bool` 判断是否解析成功，成功后用 `operator*` 或 `value()` 取出数据实体。详见 [解析结果 `parse_result` 章节](#解析结果-parse_result)。  
+
 用户常用版本：
 
 * 解析 UTF 字符串的版本；  
 * 根据文件名解析 `spdn` 文件的版本。  
 
 ```C++
-#include <exception>
+#include <cassert>
+#include <iostream>
 #include <string>
 
 #include "spdn.h"
 
-int main() try
+#include "outu8sv.h"
+
+int main()
 {
     using namespace std::literals;
     
     auto spdn_text = u8R"(test: "test")"sv; // 可以使用 char8_t/char16_t/char32_t 字符串，这里选用 char8_t
     auto spdn_filename = "hello.spdn"s;
 
-    // 解析 UTF8 字符串
+    // 解析 UTF8 字符串，返回 pdn::parse_result<char8_t>
     // 参数类型可以是
     //     u8string/u8string_view/
     //     u16string/u16string_view/
     //     u32string/u32string_view
     // 不支持c风格字符串
     auto e1 = pdn::parse(spdn_text, pdn::utf8_tag); // 可以换成 utf16_tag utf32_tag，但是推荐使用 utf8
+    assert(e1);
 
     // 解析 spdn 文件
     // 参数类型可以是 string/const char*/filesystem::path，
     // 如果你的编译环境支持使用 wstring/const wchar_t* 构造文件流，那么也可以使用 wstring/const wchar_t* 作为参数类型
-    auto e2_opt = pdn::parse(spdn_filename, pdn::utf8_tag); // tag 可以换成 utf16_tag utf32_tag，但是推荐使用 utf8
+    auto e2 = pdn::parse(spdn_filename, pdn::utf8_tag); // tag 可以换成 utf16_tag utf32_tag，但是推荐使用 utf8
+    if (!e2)
+    {
+        std::cerr << "failed to parse " << spdn_filename << ": " << e2.what() << "\n";
+    }
 
     // 自定义内容，仅支持utf8_tag，因为指定了char8_t(目前不展开具体可自定义内容)
     class my_fn_pkg : public pdn::default_function_package<char8_t> {};
@@ -573,27 +578,57 @@ int main() try
 
     // 解析 UTF8 字符串
     // 为 utf 解码器、词法分析器、解析器填入我们的 fp
-    // 必须使用 utf8_tag，因为我们的 fp 只支持 utf8
+    // 这里必须使用 utf8_tag，因为我们的 fp 只支持 utf8
     auto e3 = pdn::parse(spdn_text, fp, fp, fp, pdn::utf8_tag);
+    assert(e3);
+
+    // 清除 fp 内旧数据以复用
+    fp.clear_position();
+    fp.clear_error();
 
     // parse spdn file
     // 为 utf 解码器、词法分析器、解析器填入我们的 fp
     // 必须使用 utf8_tag，因为我们的 fp 只支持 utf8
-    auto e4_opt = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag);
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
+    auto e4 = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag);
+    if (!e4)
+    {
+        std::cerr << "failed to parse " << spdn_filename << ": "
+                  << e4.what() << "\n";
+    }
 }
 ```
 
 代码见 [`guide-source/learn-parse.cpp`](./guide-source/learn-parse.cpp)。  
 
 [参考 pdn-parser-impl](./pdn-parser-impl.md#parse)  
+
+## 解析结果 parse_result
+
+解析函数 `parse` 的返回值即解析结果，是一个类似 `optional` 的类型模板。  
+
+提供以下功能：  
+
+``` C++
+// 是否解析成功/有值
+bool success() const noexcept;
+bool has_value() const noexcept;
+operator bool() const noexcept;
+// 是否解析失败
+bool failed() const noexcept;
+// 解析失败时返回错误码，解析成功时返回零初始化的 parse_error_code 值
+auto error_code() const noexcept -> parse_error_code;
+// 根据 error_code 返回描述，返回值不为 nullptr
+auto what() const noexcept -> const char*;
+// 取值
+auto value() noexcept -> entity_type&;
+auto value() const noexcept -> const entity_type&;
+auto operator->() noexcept -> entity_type*;
+auto operator->() const noexcept -> const entity_type*;
+auto operator*() & noexcept -> entity_type&;
+auto operator*() && noexcept -> entity_type&&;
+auto operator*() const& noexcept -> const entity_type&;
+auto operator*() const&& noexcept -> const entity_type&&;
+```
 
 ## 访问不同类型数据的方法
 
@@ -667,13 +702,18 @@ ref 对象的 `operator bool` 和 `has_value` 具有相同的功能。
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
     using namespace std::string_view_literals;
     using namespace pdn;
 
-    auto entity = parse(u8R"(list [1, 2, 3, "hello", 5.0])"sv, utf8_tag);
-    // 直接对 spdn 序列进行解析，返回一个 pdn::u8entity，而不再是一个 optional
+    auto result = parse(u8R"(list [1, 2, 3, "hello", 5.0])"sv, utf8_tag);
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return 1;
+    }
+    const auto& entity = *result; // 解析成功，取出数据实体
 
     const auto& list = entity[u8"list"];
 
@@ -713,14 +753,6 @@ int main() try
     auto nullref = elem_5[0]; // elem_5 是空 ref，得到空 ref
     assert(!nullref.has_value());
 }
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
-}
 ```
 
 代码见 [`guide-source/query-on-list.cpp`](./guide-source/query-on-list.cpp)。  
@@ -755,24 +787,31 @@ catch (...)
 ```C++
 #include <iostream>
 #include <string>
-#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
     using namespace pdn;
     using namespace std::string_view_literals;
 
-    auto e = parse(u8R"(
+    auto result = parse(u8R"(
             f   : 1.25
             inf : @inf
             c   : '爱'
             nan : @nan
             s   : "string"
         )"sv, utf8_tag);
+
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return 1;
+    }
+
+    const auto& e = *result; // 解析出的数据实体
 
     std::cout << as_int(e[u8"f"]) << "\n"; // 1
 
@@ -783,14 +822,6 @@ int main() try
     std::cout << e[u8"nan"].as(int_tag) << "\n"; // 0
 
     std::cout << as_string(e[u8"f"]) << "\n"; // *null string*
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -815,7 +846,7 @@ catch (...)
 
 `pdn::as` 和 `pdn::entity<char_t>::as` 则是对 `as_...` 函数的汇总，填入模板参数或者想要的 `tag` 来使用。  
 
-对于无法转换的数据，会得到一个默认值(通常是零或者默认初始化的值)：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空列表、对他使用 `s.as_int()` 会得到 `0`。  
+对于无法转换的数据，会得到一个默认值(通常是零初始化或者默认初始化的值)：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空列表、对他使用 `s.as_int()` 会得到 `0`。  
 
 ### get 系列函数
 
@@ -832,34 +863,31 @@ catch (...)
 ```C++
 #include <iostream>
 #include <string>
-#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
     using namespace pdn;
     using namespace std::string_view_literals;
 
-    auto e = parse(u8R"(int 1 string "hello")"sv, utf8_tag);
+    auto result = parse(u8R"(int 1 string "hello")"sv, utf8_tag);
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return 1;
+    }
+    auto& e = *result;
 
-    using et = decltype(e); // entity<char8_t>
+    using et = u8entity; // entity<char8_t>
 
     auto& int_of_e = e[u8"int"sv].get<et::auto_int>();
     std::cout << int_of_e << "\n"; // 1
     int_of_e = -1; // e[u8"int"] <- -1
     std::cout << e[u8"int"sv].get<et::auto_int>() << "\n"; // -1
     std::cout << get<et::string>(e[u8"string"sv]) << "\n"; // hello
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -874,20 +902,25 @@ catch (...)
 ```C++
 #include <iostream>
 #include <string>
-#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
     using namespace pdn;
     using namespace std::string_view_literals;
 
-    auto e = parse(u8R"(int 1 string "hello")"sv, utf8_tag);
+    auto result = parse(u8R"(int 1 string "hello")"sv, utf8_tag);
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return 1;
+    }
+    auto& e = *result;
 
-    using et = decltype(e); // entity<char8_t>
+    using et = u8entity; // entity<char8_t>
 
     if (auto int_of_e_p = e[u8"int"sv].get_if<et::auto_int>())
     {
@@ -899,14 +932,6 @@ int main() try
     {
         std::cout << *str_of_e_p << "\n"; // hello
     }
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -923,20 +948,25 @@ catch (...)
 ```C++
 #include <iostream>
 #include <string>
-#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
     using namespace pdn;
     using namespace std::string_view_literals;
 
-    auto e = parse(u8R"(int 1 big 0xffff'ffff'ffff'ffff)"sv, utf8_tag);
+    auto result = parse(u8R"(int 1 big 0xffff'ffff'ffff'ffff)"sv, utf8_tag);
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return 1;
+    }
+    const auto& e = *result;
 
-    using et = decltype(e); // entity<char8_t>
+    using et = u8entity; // entity<char8_t>
 
     if (auto opt = e[u8"int"sv].get_opt<et::auto_int>())
     {
@@ -946,14 +976,6 @@ int main() try
     {
         std::cout << *opt << "\n"; // 18446744073709551615
     }
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -966,31 +988,28 @@ catch (...)
 ```C++
 #include <iostream>
 #include <string>
-#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
     using namespace pdn;
     using namespace std::string_view_literals;
 
-    auto e = parse(u8R"(hello "hello")"sv, utf8_tag);
+    auto result = parse(u8R"(hello "hello")"sv, utf8_tag);
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return 1;
+    }
+    const auto& e = *result;
 
-    using et = decltype(e); // entity<char8_t>
+    using et = u8entity; // entity<char8_t>
 
     std::cout << type_test<et::auto_int>(e[u8"hello"sv]) << "\n"; // 0
     std::cout << type_test<et::string>(e[u8"hello"sv]) << "\n"; // 1
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }
 ```
 
@@ -1012,7 +1031,7 @@ public:
     // 表示错误数量的类型
     using error_count_t = default_threshold_error_handler::error_count_t;
     // 默认的解析错误数量限制，错误超过限制时pdn默认功能包会请求终止本次解析
-    inline static constexpr auto default_limit = default_threshold_error_handler::default_limit;
+    static constexpr auto default_limit = default_threshold_error_handler::default_limit;
 
 
 
@@ -1033,6 +1052,8 @@ public:
     void clear_filename() noexcept;
     // 获取文件名
     auto filename() const noexcept -> const pdn::error_msg_string&;
+    // 重置解析位置记录
+    void clear_position() noexcept;
     // 归零累计的已发生错误数量、重置 stop 请求状态(默认行为是当错误数量累积到100时结束解析)
     void clear_error() noexcept;
     // 重设结束解析所需的错误数量
@@ -1163,7 +1184,6 @@ void handle_error(const error_message& e, ::std::ostream& out)
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <exception>
 
 #include "spdn.h"
 
@@ -1207,20 +1227,13 @@ private:
     std::ofstream out;
 };
 
-int main() try
+int main()
 {
     using namespace std::string_view_literals;
 
     auto mfp = my_function_package{};
-    auto e = pdn::parse(u8R"(100)"sv, mfp, mfp, mfp, pdn::utf8_tag); // 缺少标识符的错误
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
+    // 错误信息由 my_function_package::handle_error 写入文件
+    [[maybe_unused]] auto result = pdn::parse(u8R"(100)"sv, mfp, mfp, mfp, pdn::utf8_tag);
 }
 ```
 
@@ -1241,14 +1254,14 @@ concept stoppable = requires(add_const_t<type> stop)
 };
 ```
 
-注意，不允许在解析器使用的其他 `function_package` 接口(参考 [解析器配置](#解析器配置) 章节)里直接或间接改变 `stop` 请求状态，如果在非 `handle_error(const pdn::error_message&)` 中改变 `stop` 请求状态，可能不会被立即响应。  
+注意，不允许在解析器使用的其他 `function_package` 接口(参考 [解析器配置](#解析器配置) 章节)里直接或间接改变 `stop` 请求状态，本库将此定义为未定义行为，根据用户提供的 `function_package` 的实现，可能导致严重错误。  
 
 本库的 `parse` 函数允许为不同的解析阶段提供不同的 `function_package`，如为文件名提供的 `parse` 函数接受分别满足以下三个概念的 `function_package`：  
 
 ``` C++
-concepts::function_package_for_code_point_iterator;
-concepts::function_package_for_lexer;
-concepts::function_package_for_parser<char_t>;
+pdn::concepts::function_package_for_code_point_iterator<fp_type>;
+pdn::concepts::function_package_for_lexer<fp_type>;
+pdn::concepts::function_package_for_parser<fp_type, char_type>;
 ```
 
 如果为不同解析阶段提供不同的 `function_package`，它们将会各自统计自己的错误处理次数，而不是在总错误处理次数达到阈值时就请求 `stop`。  
@@ -1269,11 +1282,12 @@ concepts::function_package_for_parser<char_t>;
 #include <chrono>
 #include <random>
 #include <limits>
-#include <exception>
 
 #include "spdn.h"
 
-// 为了突出重点，本示例直接继承默认函数包
+#include "outu8sv.h"
+
+// 为了突出重点，本示例直接继承默认函数包，此处不讨论继承和组合的工程实践哪个更优
 class my_function_package : public pdn::default_function_package<char8_t>
 {
 public:
@@ -1406,13 +1420,15 @@ enum class serialize_separator_ts
 
 本库默认使用异常，如果使用环境禁用异常，请参照本节教程。  
 
+本库的解析函数不使用异常报告错误，解析失败时通过 `pdn::parse_result` 的 `error_code` 或 `what` 获取终止解析的原因；但 `entity` 或底层容器的越界访问等使用 `throw` 报告异常。  
+
 本库使用宏定义 `PDN_NO_EXCEPTIONS` 控制是否禁用异常。  
 
 注意不要让不同翻译单元的 `PDN_NO_EXCEPTIONS` 和 `PDN_USER_TERMINATE` 定义不一致，否则可能违反 ODR。  
 
 ### 禁用异常设置
 
-编译本库头文件时如果有宏定义 `PDN_NO_EXCEPTIONS`，那么将禁用本库使用的异常，本库内不含 `try-catch`，但是在某些条件下使用 `throw` 报告异常。定义 `PDN_NO_EXCEPTIONS` 禁用异常后，所有 `throw` 将被替换为 `::std::terminate()` 或用户提供的终止方式。  
+编译本库头文件时如果有宏定义 `PDN_NO_EXCEPTIONS`，那么将禁用本库使用的异常，本库内不含 `try-catch`，但容器的越界访问在某些条件下仍使用 `throw` 报告异常。定义 `PDN_NO_EXCEPTIONS` 禁用异常后，所有 `throw` 将被替换为 `::std::terminate()` 或用户提供的终止方式。  
 
 ### 提供终止前的用户处理
 

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <exception>
 
 #include "spdn.h"
 
@@ -45,19 +44,10 @@ private:
     std::ofstream out;
 };
 
-int main() try
+int main()
 {
     using namespace std::string_view_literals;
 
     auto mfp = my_function_package{};
-    [[maybe_unused]]
-    auto e = pdn::parse(u8R"(100)"sv, mfp, mfp, mfp, pdn::utf8_tag);
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
+    [[maybe_unused]] auto result = pdn::parse(u8R"(100)"sv, mfp, mfp, mfp, pdn::utf8_tag);
 }

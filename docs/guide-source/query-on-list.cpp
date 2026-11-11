@@ -7,11 +7,18 @@
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
     using namespace std::string_view_literals;
     using namespace pdn;
-    auto entity = parse(u8R"(list [1, 2, 3, "hello", 5.0])"sv, utf8_tag);
+
+    auto result = parse(u8R"(list [1, 2, 3, "hello", 5.0])"sv, utf8_tag);
+    if (!result)
+    {
+        std::cerr << "parse failed: " << result.what() << "\n";
+        return 1;
+    }
+    const auto& entity = *result;
 
     const auto& list = entity[u8"list"];
 
@@ -25,7 +32,7 @@ int main() try
 
     try
     {
-        auto& e5 = as_list(list).at(5); // throw
+        auto& e5 = as_list(list).at(5);
         for (const auto& e : as_list(list))
         {
             std::cout << as_int(e) << "\n";
@@ -47,12 +54,4 @@ int main() try
     assert(!elem_5.has_value());
     auto nullref = elem_5[0];
     assert(!nullref.has_value());
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }

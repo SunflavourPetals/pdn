@@ -1,16 +1,15 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-#include <exception>
 
 #include "spdn.h"
 
 template <typename char_t>
 void parse_something()
 {
-    auto example1_using_utf_8_opt  = pdn::parse("./example.spdn", pdn::utf8_tag);
-    // auto example2_using_utf_16_opt = pdn::parse("./example.spdn", pdn::utf16_tag);
-    // auto example3_using_utf_32_opt = pdn::parse("./example.spdn", pdn::utf32_tag);
+    auto example1_using_utf_8 = pdn::parse("./example.spdn", pdn::utf8_tag);
+    // auto example2_using_utf_16 = pdn::parse("./example.spdn", pdn::utf16_tag);
+    // auto example3_using_utf_32 = pdn::parse("./example.spdn", pdn::utf32_tag);
     // too many sections
 
     [[maybe_unused]]
@@ -55,7 +54,9 @@ list [
 )"sv;
 
     using namespace pdn;
-    const auto& e = parse(src, utf8_tag);
+    const auto result = parse(src, utf8_tag);
+    assert(result);
+    const auto& e = *result;
     const auto r = e.ref();
 
     using namespace pdn::type;
@@ -85,15 +86,8 @@ list [
     assert(test_as_string == string<char8_t>{});
 }
 
-int main() try
+int main()
 {
     parse_something<char8_t>();
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
+    access_test();
 }

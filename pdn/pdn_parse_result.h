@@ -16,7 +16,7 @@ namespace pdn
 	{
 	public:
 		using entity_type = entity<char_t>;
-		auto error_code() const noexcept
+		auto error_code() const noexcept -> parse_error_code
 		{
 			return err_c;
 		}
@@ -32,11 +32,11 @@ namespace pdn
 		{
 			return success();
 		}
-		auto value() noexcept -> entity<char_t>&
+		auto value() noexcept -> entity_type&
 		{
 			return ent;
 		}
-		auto value() const noexcept -> const entity<char_t>&
+		auto value() const noexcept -> const entity_type&
 		{
 			return ent;
 		}
@@ -67,6 +67,23 @@ namespace pdn
 		auto operator*() const&& noexcept -> const entity_type&&
 		{
 			return ::std::move(ent);
+		}
+		auto what() const noexcept -> const char*
+		{
+			using enum parse_error_code;
+			switch (err_c)
+			{
+			case parse_error_code{}:      return "success";
+			case parse_error:             return "parse_error";
+			case parse_error_limit:       return "parse_error_limit";
+			case nesting_depth_exceed:    return "nesting_depth_exceed";
+			case open_file_failed:        return "open_file_failed";
+			case bad_stream:              return "bad_stream";
+			case stream_operation_failed: return "stream_operation_failed";
+			case incomplete_code_unit:    return "incomplete_code_unit";
+			case user_cancelled:          return "user_cancelled";
+			default:                      return "unknown_parse_error_code";
+			}
 		}
 		explicit parse_result(parse_error_code error_code) : err_c{ error_code }, ent{ default_ent() } {}
 		explicit parse_result(entity_type&& ent_result) : err_c{}, ent{ ::std::move(ent_result) } {}

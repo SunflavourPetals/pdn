@@ -1,41 +1,40 @@
-#include <exception>
+#include <cassert>
+#include <iostream>
 #include <string>
 
 #include "spdn.h"
 
-int main() try
+#include "outu8sv.h"
+
+int main()
 {
     using namespace std::literals;
-    
+
     auto spdn_text = u8R"(test: "test")"sv;
     auto spdn_filename = "hello.spdn"s;
 
-    // parse UTF8 string
-    [[maybe_unused]]
-    auto e1 = pdn::parse(spdn_text, pdn::utf8_tag); // utf16_tag utf32_tag
+    auto e1 = pdn::parse(spdn_text, pdn::utf8_tag);
+    assert(e1);
 
-    // parse spdn file
-    [[maybe_unused]]
-    auto e2_opt = pdn::parse(spdn_filename, pdn::utf8_tag); // utf16_tag utf32_tag
+    auto e2 = pdn::parse(spdn_filename, pdn::utf8_tag);
+    if (!e2)
+    {
+        std::cerr << "failed to parse " << spdn_filename << ": " << e2.what() << "\n";
+    }
 
-    // my function package(only supports utf8)
     class my_fn_pkg : public pdn::default_function_package<char8_t> {};
 
     auto fp = my_fn_pkg{};
 
-    // parse UTF8 string
-    [[maybe_unused]]
-    auto e3 = pdn::parse(spdn_text, fp, fp, fp, pdn::utf8_tag); // utf8 only
+    auto e3 = pdn::parse(spdn_text, fp, fp, fp, pdn::utf8_tag);
+    assert(e3);
 
-    // parse spdn file
-    [[maybe_unused]]
-    auto e4_opt = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag); // utf8 only
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
+    fp.clear_position();
+    fp.clear_error();
+
+    auto e4 = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag);
+    if (!e4)
+    {
+        std::cerr << "failed to parse " << spdn_filename << ": " << e4.what() << "\n";
+    }
 }

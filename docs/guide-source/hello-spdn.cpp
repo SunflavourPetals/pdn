@@ -1,29 +1,20 @@
 #include <iostream>
-#include <exception>
 
 #include "spdn.h"
 
 #include "outu8sv.h"
 
-int main() try
+int main()
 {
-	auto entity_opt = pdn::parse("hello.spdn", pdn::utf8_tag);
-	
-	if (!entity_opt)
+	auto result = pdn::parse("hello.spdn", pdn::utf8_tag);
+
+	if (!result)
 	{
-		std::cerr << "failed in open or parse hello.spdn\n";
-		return 0;
+		std::cerr << "failed in open or parse hello.spdn: " << result.what() << "\n";
+		return 1;
 	}
-	
-	const auto& entity = *entity_opt; // this optional has value, get a reference and named it entity
+
+	const auto& entity = *result;
 	const auto& say = entity[u8"say"]; // query the content of "say"
 	std::cout << say.as_string() << "\n"; // use "say" as a string and print the content of "say"
-}
-catch (std::exception& e)
-{
-    std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-    std::cerr << "unknown exception\n";
 }

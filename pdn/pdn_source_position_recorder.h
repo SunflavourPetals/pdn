@@ -10,6 +10,10 @@ namespace pdn
 	class source_position_recorder
 	{
 	public:
+		constexpr void clear() noexcept
+		{
+			pos = {};
+		}
 		constexpr source_position position() const noexcept
 		{
 			return pos;
