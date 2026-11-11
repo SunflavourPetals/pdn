@@ -110,28 +110,33 @@ struct my_function_package : pdn::default_function_package<char8_t>
 
 ### 自定义终止
 
-在 `handle_error` 中请求终止，可以让解析在某次错误处理时停下：
+在 `handle_error` 中请求终止，可以让解析在某次错误处理时停下。下面的示例添加对 `syntax_error_code::expect_entity_name` 这个错误请求终止的功能：`error_message::error_code` 是一个 `std::variant`，用 `std::get_if` 取出具体类型再比较。要确定应该针对哪个错误，可以先不请求终止地解析一次，从 `parse_result::what()` 的错误消息里看到具体的错误，再到 `handle_error` 里做对应的判断。
 
 ``` C++
 #include <string_view>
+#include <variant>
 
 #include "spdn.h"
 
-struct cancel_on_error : pdn::default_function_package<char8_t>
+class cancel_on_expect_entity_name : public pdn::default_function_package<char8_t>
 {
     pdn::stop_reason_code reason{};
 
     void handle_error(const pdn::error_message& msg)
     {
         default_function_package::handle_error(msg);
-        // 检查是否已请求停止
+        // 已经因为其它原因(例如错误数量达到上限)请求停止时，保留原有的原因
         if (default_function_package::stop_requested())
         {
             reason = default_function_package::stop_reason();
             return;
         }
-        // TODO 修改代码为当错误码为特定值时才请求停止，实现思路：先检查main中的解析结果的错误码，然后把对应错误码的判断放到这里，如果判断是对应的错误码，才设置 reason 来请求停止
-        reason = pdn::stop_reason_code::user_cancelled;
+        // 对特定的错误码请求停止
+        const auto* code = ::std::get_if<pdn::syntax_error_code>(&msg.error_code);
+        if (code != nullptr && *code == pdn::syntax_error_code::expect_entity_name)
+        {
+            reason = pdn::stop_reason_code::user_cancelled;
+        }
     }
 
     bool stop_requested() const noexcept
@@ -145,12 +150,18 @@ struct cancel_on_error : pdn::default_function_package<char8_t>
     }
 };
 
-void parse_something()
+int main()
 {
     using namespace std::string_view_literals;
-    auto fp = cancel_on_error{};
+    // 第一个 token 是数字，产生的错误是 expect_entity_name，于是解析终止
+    auto fp = cancel_on_expect_entity_name{};
     auto result = pdn::parse(u8R"(100)"sv, fp, fp, fp, pdn::utf8_tag);
     // result.error_code() == pdn::parse_error_code::user_cancelled
+
+    // "a: " 的错误是 expect_expression，不会被这个函数包终止，解析继续到输入结束
+    auto fp2 = cancel_on_expect_entity_name{};
+    auto result2 = pdn::parse(u8R"(a: )"sv, fp2, fp2, fp2, pdn::utf8_tag);
+    // result2.error_code() == pdn::parse_error_code::parse_error
 }
 ```
 
