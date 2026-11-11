@@ -55,8 +55,8 @@ namespace pdn::detail
 	class mb_code_unit_iterator_helper
 	{
 	public:
-		static_assert(encode_type != unicode::encode_type::unknown && encode_type != unicode::encode_type::utf8,
-			"[pdn] code_unit_iterator_helper: unsupported encode");
+		static_assert(encode_type != unicode::encode_type::utf8,
+			"[pdn] mb_code_unit_iterator_helper: unsupported encode, see u8_code_unit_iterator");
 		using code_unit_type = unicode::type_traits::code_unit_t<encode_type>;
 		using char_type = code_unit_type;
 		using size_type = ::std::size_t;
@@ -340,12 +340,6 @@ namespace pdn::detail
 		code_unit_iterator_compressed<it_begin_t, it_end_t> compressed{};
 		char_type curr_value{};
 		helper_type helper{};
-	};
-
-	template <typename it_begin_t, typename it_end_t>
-	class mb_code_unit_iterator<unicode::encode_type::unknown, it_begin_t, it_end_t>
-	{
-		static_assert(false_v<it_begin_t>, "[pdn] unknown encode type for mb_code_unit_iterator");
 	};
 
 	template <typename it_begin_t, typename it_end_t>

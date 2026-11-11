@@ -5,8 +5,10 @@
 #include <cstdint>
 #include <bit>
 #include <array>
+#include <cassert>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include "pdn_false.h"
 
@@ -35,7 +37,6 @@ namespace pdn::unicode
 
 	enum class encode_type
 	{
-		unknown,
 		utf8,
 		utf16_le,
 		utf16_be,
@@ -116,8 +117,14 @@ namespace pdn::unicode
 		case bom_type::utf16_be: return encode_type::utf16_be;
 		case bom_type::utf32_le: return encode_type::utf32_le;
 		case bom_type::utf32_be: return encode_type::utf32_be;
-		default:                  return encode_type::unknown;
 		}
+		// all bom_type values are handled above, only an explicitly cast value can reach here
+#ifdef __cpp_lib_unreachable
+		::std::unreachable();
+#else
+		assert(0 && "[pdn] invalid bom_type"); // unreachable
+#endif
+		return encode_type::utf8; // for the build where assert is removed
 	}
 
 	constexpr auto to_endian(encode_type encode_type) noexcept -> ::std::endian
@@ -130,7 +137,7 @@ namespace pdn::unicode
 		case utf16_be: return big;
 		case utf32_le: return little;
 		case utf32_be: return big;
-		default:       return native; // case encode_type::{ unknown | utf8 }
+		default:       return native; // case encode_type::utf8
 		}
 	}
 
@@ -182,9 +189,7 @@ namespace pdn::unicode::type_traits
 	template <typename char_t>
 	struct is_code_unit : public ::std::bool_constant<is_code_unit_v<char_t>> {};
 
-	template <bom_type> constexpr encode_type encode_type_from_bom                     = encode_type::unknown;
-	template <> inline  constexpr encode_type encode_type_from_bom<bom_type::no_bom>   = encode_type::utf8;
-	template <> inline  constexpr encode_type encode_type_from_bom<bom_type::utf8>     = encode_type::utf8;
+	template <bom_type> constexpr encode_type encode_type_from_bom                     = encode_type::utf8;
 	template <> inline  constexpr encode_type encode_type_from_bom<bom_type::utf16_le> = encode_type::utf16_le;
 	template <> inline  constexpr encode_type encode_type_from_bom<bom_type::utf16_be> = encode_type::utf16_be;
 	template <> inline  constexpr encode_type encode_type_from_bom<bom_type::utf32_le> = encode_type::utf32_le;
