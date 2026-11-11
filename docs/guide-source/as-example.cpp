@@ -13,7 +13,7 @@ int main()
 	auto result = parse(u8R"(
 			f   : 1.25
 			inf : @inf
-			c   : '爱'
+			c   : '\u7231' // Chinese character Love. Use eacape character to keep ASCII
 			nan : @nan
 			s   : "string"
 		)"sv, utf8_tag);
