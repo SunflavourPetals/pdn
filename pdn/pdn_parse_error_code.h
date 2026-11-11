@@ -1,11 +1,8 @@
 #ifndef PDN_Header_pdn_parse_error_code
 #define PDN_Header_pdn_parse_error_code
 
-#ifdef __cpp_lib_unreachable
-#include <utility>
-#else
 #include <cassert>
-#endif
+#include <utility>
 
 #include "pdn_stop_reason.h"
 

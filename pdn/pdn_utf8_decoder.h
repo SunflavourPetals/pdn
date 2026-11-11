@@ -4,10 +4,8 @@
 #include <type_traits>
 #include <cstdint>
 #include <array>
-#include <utility>
-#ifndef __cpp_lib_unreachable
 #include <cassert>
-#endif
+#include <utility>
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf8_base.h"
