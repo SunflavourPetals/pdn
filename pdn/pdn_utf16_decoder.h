@@ -4,7 +4,6 @@
 #include <type_traits>
 
 #include "pdn_unicode_base.h"
-#include "pdn_utf16_base.h"
 #include "pdn_stoppable_concept.h"
 
 namespace pdn::unicode::utf16

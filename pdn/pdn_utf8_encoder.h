@@ -6,7 +6,6 @@
 #include <cstdint>
 
 #include "pdn_unicode_base.h"
-#include "pdn_utf8_base.h"
 
 namespace pdn::unicode::utf8
 {

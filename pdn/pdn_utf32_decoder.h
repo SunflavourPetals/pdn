@@ -4,7 +4,6 @@
 #include <type_traits>
 
 #include "pdn_unicode_base.h"
-#include "pdn_utf32_base.h"
 
 namespace pdn::unicode::utf32
 {

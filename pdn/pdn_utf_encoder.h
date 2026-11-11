@@ -2,11 +2,8 @@
 #define PDN_Header_pdn_utf_encoder
 
 #include "pdn_unicode_base.h"
-#include "pdn_utf8_base.h"
 #include "pdn_utf8_encoder.h"
-#include "pdn_utf16_base.h"
 #include "pdn_utf16_encoder.h"
-#include "pdn_utf32_base.h"
 #include "pdn_utf32_encoder.h"
 
 namespace pdn::unicode::detail

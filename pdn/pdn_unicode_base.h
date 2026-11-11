@@ -266,4 +266,62 @@ namespace pdn::inline literals::inline unicode_literals
 	}
 }
 
+namespace pdn::unicode::utf8
+{
+	using code_unit_t = u8char_t;
+	using string = u8string;
+	using string_view = u8string_view;
+
+	constexpr bool is_trailing(code_unit_t c) noexcept
+	{
+		return (c & code_unit_t(0xC0)) == code_unit_t(0x80);
+	}
+}
+
+namespace pdn::unicode::utf16
+{
+	using code_unit_t = u16char_t;
+	using string = u16string;
+	using string_view = u16string_view;
+
+	constexpr auto to_le_bytes(code_unit_t code_unit) noexcept -> ::std::array<::std::uint8_t, 2>
+	{
+		return { ::std::uint8_t(code_unit), ::std::uint8_t(code_unit >> 8) };
+	}
+
+	constexpr auto to_be_bytes(code_unit_t code_unit) noexcept -> ::std::array<::std::uint8_t, 2>
+	{
+		return { ::std::uint8_t(code_unit >> 8), ::std::uint8_t(code_unit) };
+	}
+}
+
+namespace pdn::unicode::utf32
+{
+	using code_unit_t = u32char_t;
+	using string = u32string;
+	using string_view = u32string_view;
+
+	constexpr auto to_le_bytes(code_unit_t code_unit) noexcept -> ::std::array<::std::uint8_t, 4>
+	{
+		return
+		{
+			::std::uint8_t(code_unit),
+			::std::uint8_t(code_unit >> 8),
+			::std::uint8_t(code_unit >> 16),
+			::std::uint8_t(code_unit >> 24)
+		};
+	}
+
+	constexpr auto to_be_bytes(code_unit_t code_unit) noexcept -> ::std::array<::std::uint8_t, 4>
+	{
+		return
+		{
+			::std::uint8_t(code_unit >> 24),
+			::std::uint8_t(code_unit >> 16),
+			::std::uint8_t(code_unit >> 8),
+			::std::uint8_t(code_unit)
+		};
+	}
+}
+
 #endif
