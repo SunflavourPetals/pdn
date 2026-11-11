@@ -154,6 +154,57 @@ namespace pdn
 		default_function_package<char_t> fp{};
 		return parse(sv, fp, fp, fp, char_tag);
 	}
+	// for input byte stream
+	template <
+		unicode::concepts::code_unit                       char_t,
+		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+		concepts::function_package_for_lexer               fn_pkg_for_lexer,
+		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(
+		::std::istream&      source_input_stream,
+		unicode::encode_type source_encode_type,
+		fn_pkg_for_cp_it&    cp_it_fp,
+		fn_pkg_for_lexer&    lex_fp,
+		fn_pkg_for_parser&   par_fp,
+		char_t               char_tag = {},
+		::std::size_t        buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
+	{
+		// bad -> null; good | fail | eof -> continue
+		if (source_input_stream.bad()) [[unlikely]]
+		{
+			return parse_result<char_t>{ parse_error_code::bad_stream };
+		}
+
+		auto swap_chain = make_byte_swap_chain(source_input_stream, buffer_size); // requires source_file is opened and not bad
+		auto byte_it = make_byte_iterator(::std::move(swap_chain));
+		auto end = make_byte_iterator_end();
+		using enum unicode::encode_type;
+		switch (source_encode_type)
+		{
+		case utf8:     return parse(make_code_unit_iterator<utf8>    (::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_le: return parse(make_code_unit_iterator<utf16_le>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
+		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
+		}
+#ifdef __cpp_lib_unreachable
+		::std::unreachable();
+#else
+		assert(0 && "[pdn] inner error in pdn::parse: unknown encode_type"); // unreachable
+#endif
+		return parse_result<char_t>{ parse_error_code::parse_error }; // unreachable
+	}
+	// for input byte stream
+	template <unicode::concepts::code_unit char_t>
+	[[nodiscard]] auto parse(
+		::std::istream&      source_input_stream,
+		unicode::encode_type source_encode_type,
+		char_t               char_tag = {},
+		::std::size_t        buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
+	{
+		default_function_package<char_t> fp{};
+		return parse(source_input_stream, source_encode_type, fp, fp, fp, char_tag, buffer_size);
+	}
 	// for file stream
 	template <
 		unicode::concepts::code_unit                       char_t,
@@ -179,7 +230,7 @@ namespace pdn
 		}
 		// clear fail bit -> good | eof
 		source_file.clear(source_file.rdstate() & std::ios::eofbit);
-		auto bom_t = unicode::read_bom(source_file); // read source_file and maybe seekg
+		auto bom_code = unicode::read_bom(source_file); // read source_file and maybe seekg
 		// bad | (fail & !eof) -> null; good | (fail & eof) -> continue
 		if (source_file.bad()) [[unlikely]]
 		{
@@ -190,26 +241,8 @@ namespace pdn
 			return parse_result<char_t>{ parse_error_code::stream_operation_failed };
 		}
 		source_file.clear(source_file.rdstate() & std::ios::eofbit); // clear fail bit -> good | eof
-		auto enc = unicode::to_encode_type(bom_t);
-		auto swap_chain = make_byte_swap_chain(source_file, buffer_size); // requires source_file is opened and not bad
-		auto byte_it = make_byte_iterator(::std::move(swap_chain));
-		auto end = make_byte_iterator_end();
-		using enum unicode::encode_type;
-		switch (enc)
-		{
-		case utf8:     return parse(make_code_unit_iterator<utf8>    (::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf16_le: return parse(make_code_unit_iterator<utf16_le>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf16_be: return parse(make_code_unit_iterator<utf16_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
-		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
-		default:
-#ifdef __cpp_lib_unreachable
-			::std::unreachable();
-#else
-			assert(0 && "[pdn] inner error in pdn::parse: unknown bom_type"); // unreachable
-#endif
-		}
-		return parse_result<char_t>{ parse_error_code::parse_error }; // unreachable
+		auto enc = unicode::to_encode_type(bom_code);
+		return parse(static_cast<::std::istream&>(source_file), enc, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
 	}
 	// for file stream
 	template <unicode::concepts::code_unit char_t>
