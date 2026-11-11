@@ -28,7 +28,7 @@
 
 namespace pdn::detail
 {
-	inline constexpr ::std::size_t default_buffer_size = 16 * 1024;
+	inline constexpr ::std::size_t default_swap_chain_buffer_size = 16 * 1024;
 
 	template <typename stream>
 	concept stream_constructible_from_wchar_cstring = ::std::constructible_from<stream, const wchar_t*>;
@@ -53,9 +53,10 @@ namespace pdn::inline utf_tag
 namespace pdn
 {
 	// for token iterator
-	template <unicode::concepts::code_unit                  char_t,
-	          concepts::token_iterator<char_t>              it_t,
-	          concepts::function_package_for_parser<char_t> fn_pkg>
+	template <
+		unicode::concepts::code_unit                  char_t,
+		concepts::token_iterator<char_t>              it_t,
+		concepts::function_package_for_parser<char_t> fn_pkg>
 	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> parse_result<char_t>
 	{
 		if constexpr (concepts::stoppable<it_t>) if (begin.stop_requested()) [[unlikely]]
@@ -77,23 +78,26 @@ namespace pdn
 		return parse_result<char_t>{ ::std::move(result) };
 	}
 	// for token iterator
-	template <unicode::concepts::code_unit     char_t,
-	          concepts::token_iterator<char_t> it_t>
+	template <
+		unicode::concepts::code_unit     char_t,
+		concepts::token_iterator<char_t> it_t>
 	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(::std::move(begin), ::std::move(end), fp, char_tag);
 	}
 	// for code_unit iterator
-	template <unicode::concepts::code_unit                       char_t,
-	          concepts::utf_code_unit_iterator                   it_t,
-	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
-	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	[[nodiscard]] auto parse(it_t               begin,
+	template <
+		unicode::concepts::code_unit                       char_t,
+		concepts::utf_code_unit_iterator                   it_t,
+		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+		concepts::function_package_for_lexer               fn_pkg_for_lexer,
+		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(
+		it_t               begin,
 		auto               end,
-		fn_pkg_for_cp_it& cp_it_fp,
-		fn_pkg_for_lexer& lex_fp,
+		fn_pkg_for_cp_it&  cp_it_fp,
+		fn_pkg_for_lexer&  lex_fp,
 		fn_pkg_for_parser& par_fp,
 		char_t             char_tag = {}) -> parse_result<char_t>
 	{
@@ -117,7 +121,8 @@ namespace pdn
 		return result;
 	}
 	// for code_unit iterator
-	template <unicode::concepts::code_unit     char_t,
+	template <
+		unicode::concepts::code_unit     char_t,
 		concepts::utf_code_unit_iterator it_t>
 	[[nodiscard]] auto parse(it_t begin, auto end, char_t char_tag = {}) -> parse_result<char_t>
 	{
@@ -125,21 +130,24 @@ namespace pdn
 		return parse(::std::move(begin), ::std::move(end), fp, fp, fp, char_tag);
 	}
 	// for utf_code_unit_string_view
-	template <unicode::concepts::code_unit                       char_t,
+	template <
+		unicode::concepts::code_unit                       char_t,
 		concepts::utf_code_unit_string_view                str_view_t,
 		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
 		concepts::function_package_for_lexer               fn_pkg_for_lexer,
 		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	[[nodiscard]] auto parse(str_view_t         sv,
-		fn_pkg_for_cp_it& cp_it_fp,
-		fn_pkg_for_lexer& lex_fp,
+	[[nodiscard]] auto parse(
+		str_view_t         sv,
+		fn_pkg_for_cp_it&  cp_it_fp,
+		fn_pkg_for_lexer&  lex_fp,
 		fn_pkg_for_parser& par_fp,
 		char_t             char_tag = {}) -> parse_result<char_t>
 	{
 		return parse(sv.cbegin(), sv.cend(), cp_it_fp, lex_fp, par_fp, char_tag);
 	}
 	// for utf_code_unit_string_view
-	template <unicode::concepts::code_unit        char_t,
+	template <
+		unicode::concepts::code_unit        char_t,
 		concepts::utf_code_unit_string_view str_view_t>
 	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> parse_result<char_t>
 	{
@@ -147,18 +155,20 @@ namespace pdn
 		return parse(sv, fp, fp, fp, char_tag);
 	}
 	// for file stream
-	template <unicode::concepts::code_unit                       char_t,
+	template <
+		unicode::concepts::code_unit                       char_t,
 		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
 		concepts::function_package_for_lexer               fn_pkg_for_lexer,
 		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	[[nodiscard]] auto parse(::std::ifstream& source_file,
-		fn_pkg_for_cp_it& cp_it_fp,
-		fn_pkg_for_lexer& lex_fp,
+	[[nodiscard]] auto parse(
+		::std::ifstream&   source_file,
+		fn_pkg_for_cp_it&  cp_it_fp,
+		fn_pkg_for_lexer&  lex_fp,
 		fn_pkg_for_parser& par_fp,
 		char_t             char_tag = {},
-		::std::size_t      buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+		::std::size_t      buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
-		// !is_open | bad -> nullopt; good | fail | eof -> continue
+		// !is_open | bad -> null; good | fail | eof -> continue
 		if (!source_file.is_open()) [[unlikely]]
 		{
 			return parse_result<char_t>{ parse_error_code::open_file_failed };
@@ -170,7 +180,7 @@ namespace pdn
 		// clear fail bit -> good | eof
 		source_file.clear(source_file.rdstate() & std::ios::eofbit);
 		auto bom_t = unicode::read_bom(source_file); // read source_file and maybe seekg
-		// bad | (fail & !eof) -> nullopt; good | (fail & eof) -> continue
+		// bad | (fail & !eof) -> null; good | (fail & eof) -> continue
 		if (source_file.bad()) [[unlikely]]
 		{
 			return parse_result<char_t>{ parse_error_code::bad_stream };
@@ -203,130 +213,146 @@ namespace pdn
 	}
 	// for file stream
 	template <unicode::concepts::code_unit char_t>
-	[[nodiscard]] auto parse(::std::ifstream& source_file,
-	                         char_t           char_tag = {},
-	                         ::std::size_t    buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	[[nodiscard]] auto parse(
+		::std::ifstream& source_file,
+		char_t           char_tag = {},
+		::std::size_t    buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(source_file, fp, fp, fp, char_tag, buffer_size);
 	}
 	// for filename
-	template <unicode::concepts::code_unit                       char_t,
-	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
-	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	[[nodiscard]] auto parse(const ::std::string& filename,
-	                         fn_pkg_for_cp_it&    cp_it_fp,
-	                         fn_pkg_for_lexer&    lex_fp,
-	                         fn_pkg_for_parser&   par_fp,
-	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	template <
+		unicode::concepts::code_unit                       char_t,
+		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+		concepts::function_package_for_lexer               fn_pkg_for_lexer,
+		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(
+		const ::std::string& filename,
+		fn_pkg_for_cp_it&    cp_it_fp,
+		fn_pkg_for_lexer&    lex_fp,
+		fn_pkg_for_parser&   par_fp,
+		char_t               char_tag = {},
+		::std::size_t        buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
 	}
 	// for filename
 	template <unicode::concepts::code_unit char_t>
-	[[nodiscard]] auto parse(const ::std::string& filename,
-	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	[[nodiscard]] auto parse(
+		const ::std::string& filename,
+		char_t               char_tag = {},
+		::std::size_t        buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
 	// for filename
-	template <unicode::concepts::code_unit                       char_t,
-	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
-	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	[[nodiscard]] auto parse(const char* const    filename,
-	                         fn_pkg_for_cp_it&    cp_it_fp,
-	                         fn_pkg_for_lexer&    lex_fp,
-	                         fn_pkg_for_parser&   par_fp,
-	                         char_t               char_tag = {},
-	                         ::std::size_t        buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	template <
+		unicode::concepts::code_unit                       char_t,
+		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+		concepts::function_package_for_lexer               fn_pkg_for_lexer,
+		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(
+		const char* const    filename,
+		fn_pkg_for_cp_it&    cp_it_fp,
+		fn_pkg_for_lexer&    lex_fp,
+		fn_pkg_for_parser&   par_fp,
+		char_t               char_tag = {},
+		::std::size_t        buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
 	}
 	// for filename
 	template <unicode::concepts::code_unit char_t>
-	[[nodiscard]] auto parse(const char* const filename,
-	                         char_t            char_tag = {},
-	                         ::std::size_t     buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	[[nodiscard]] auto parse(
+		const char* const filename,
+		char_t            char_tag = {},
+		::std::size_t     buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
 	// for filename
-	template <unicode::concepts::code_unit                       char_t,
-	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
-	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	[[nodiscard]] auto parse(const ::std::wstring& filename,
-	                         fn_pkg_for_cp_it&     cp_it_fp,
-	                         fn_pkg_for_lexer&     lex_fp,
-	                         fn_pkg_for_parser&    par_fp,
-	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	template <
+		unicode::concepts::code_unit                       char_t,
+		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+		concepts::function_package_for_lexer               fn_pkg_for_lexer,
+		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(
+		const ::std::wstring& filename,
+		fn_pkg_for_cp_it&     cp_it_fp,
+		fn_pkg_for_lexer&     lex_fp,
+		fn_pkg_for_parser&    par_fp,
+		char_t                char_tag = {},
+		::std::size_t         buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		auto source_file = detail::open_stream_by_wchar_string<::std::ifstream, char_t>(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
 	}
 	// for filename
 	template <unicode::concepts::code_unit char_t>
-	[[nodiscard]] auto parse(const ::std::wstring& filename,
-	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	[[nodiscard]] auto parse(
+		const ::std::wstring& filename,
+		char_t                char_tag = {},
+		::std::size_t         buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
 	// for filename
-	template <unicode::concepts::code_unit                       char_t,
-	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
-	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
-	[[nodiscard]] auto parse(const wchar_t* const  filename,
-	                         fn_pkg_for_cp_it&     cp_it_fp,
-	                         fn_pkg_for_lexer&     lex_fp,
-	                         fn_pkg_for_parser&    par_fp,
-	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	template <
+		unicode::concepts::code_unit                       char_t,
+		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+		concepts::function_package_for_lexer               fn_pkg_for_lexer,
+		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
+	[[nodiscard]] auto parse(
+		const wchar_t* const  filename,
+		fn_pkg_for_cp_it&     cp_it_fp,
+		fn_pkg_for_lexer&     lex_fp,
+		fn_pkg_for_parser&    par_fp,
+		char_t                char_tag = {},
+		::std::size_t         buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		auto source_file = detail::open_stream_by_wchar_cstring<::std::ifstream, char_t>(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
 	}
 	// for filename
 	template <unicode::concepts::code_unit char_t>
-	[[nodiscard]] auto parse(const wchar_t* const  filename,
-	                         char_t                char_tag = {},
-	                         ::std::size_t         buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	[[nodiscard]] auto parse(
+		const wchar_t* const  filename,
+		char_t                char_tag = {},
+		::std::size_t         buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ ::std::filesystem::path{ filename }.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
 	}
 	// for filename
-	template <unicode::concepts::code_unit                       char_t,
-	          concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
-	          concepts::function_package_for_lexer               fn_pkg_for_lexer,
-	          concepts::function_package_for_parser<char_t>      fn_pkg_for_parser,
-	          ::std::same_as<::std::filesystem::path>            path_t>
-	[[nodiscard]] auto parse(const path_t&      filename,
-	                         fn_pkg_for_cp_it&  cp_it_fp,
-	                         fn_pkg_for_lexer&  lex_fp,
-	                         fn_pkg_for_parser& par_fp,
-	                         char_t             char_tag = {},
-	                         ::std::size_t      buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	template <
+		unicode::concepts::code_unit                       char_t,
+		concepts::function_package_for_code_point_iterator fn_pkg_for_cp_it,
+		concepts::function_package_for_lexer               fn_pkg_for_lexer,
+		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser,
+		::std::same_as<::std::filesystem::path>            path_t>
+	[[nodiscard]] auto parse(
+		const path_t&      filename,
+		fn_pkg_for_cp_it&  cp_it_fp,
+		fn_pkg_for_lexer&  lex_fp,
+		fn_pkg_for_parser& par_fp,
+		char_t             char_tag = {},
+		::std::size_t      buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		::std::ifstream source_file(filename, ::std::ios::in | ::std::ios::binary);
 		return parse(source_file, cp_it_fp, lex_fp, par_fp, char_tag, buffer_size);
 	}
 	// for filename
 	template <unicode::concepts::code_unit char_t, ::std::same_as<::std::filesystem::path> path_t>
-	[[nodiscard]] auto parse(const path_t& filename,
-	                         char_t        char_tag = {},
-	                         ::std::size_t buffer_size = detail::default_buffer_size) -> parse_result<char_t>
+	[[nodiscard]] auto parse(
+		const path_t& filename,
+		char_t        char_tag = {},
+		::std::size_t buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{ filename.u8string() };
 		return parse(filename, fp, fp, fp, char_tag, buffer_size);
