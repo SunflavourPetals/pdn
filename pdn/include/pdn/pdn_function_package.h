@@ -23,10 +23,11 @@ namespace pdn
 	{
 	public:
 		using error_count_t = default_threshold_error_handler::error_count_t;
-		static constexpr auto default_limit = default_threshold_error_handler::default_limit;
+		static constexpr auto default_error_limit = default_threshold_error_handler::default_limit;
+		static constexpr auto default_nesting_limit = ::std::size_t{ 256 };
 		static constexpr auto nesting_depth_limit() noexcept -> ::std::size_t
 		{
-			return 256;
+			return default_nesting_limit;
 		}
 		bool stop_requested() const noexcept
 		{
@@ -72,11 +73,11 @@ namespace pdn
 		{
 			pos_recorder.clear();
 		}
-		auto position() const -> pdn::source_position
+		auto position() const noexcept -> pdn::source_position
 		{
 			return pos_recorder.position();
 		}
-		void update(const char32_t c)
+		void update(const char32_t c) noexcept
 		{
 			pos_recorder.update(c);
 		}
@@ -122,7 +123,7 @@ namespace pdn
 		default_function_package() = default;
 		explicit default_function_package(error_count_t max_error_count) :
 			err_handler{ max_error_count } {}
-		explicit default_function_package(error_msg_string filename, error_count_t max_error_count = default_limit) :
+		explicit default_function_package(error_msg_string filename, error_count_t max_error_count = default_error_limit) :
 			err_handler{ max_error_count },
 			parsing_filename{ ::std::move(filename) } {}
 	private:

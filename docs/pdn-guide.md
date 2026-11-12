@@ -51,7 +51,7 @@ greeting: "Hello world!"
 // ostream 对象如 std::cout 并不能输出 u8string 的值，
 // 但是每次都进行转换会使程序变得冗长，不利于教学。
 // 尽管下面这种方式过于简短粗暴，例如在 Windows 平台输出包含汉字等非 ASCII 字符的文本会在使用 936 代码页的 Win 系统上显示乱码。
-// 尽管有进行转码的方法，但那不再本教程的讨论范围内，
+// 虽然有进行转码的方法，但那不再本教程的讨论范围内，
 // 如果你遇到了麻烦，可以先尝试在命令行中使用 chcp 65001 命令，再运行程序，
 // 等到合适的时机再学习更好的解决方案。
 // 之后我会将这个函数以 inline 的方式放在头文件 outu8sv.h 中，以后就不再展示。
@@ -83,13 +83,13 @@ int main()
     // 这个数据实体包含了 hello.spdn 中的所有数据作为它的成员(注释等不算做数据)，
     // 因此它是一个 spdn 中的 object，在 C++ 里的类型则是一个关联容器。
     // 这里通过 C++ 引用来使用解析获得的数据实体，你也可以把它移动或复制到新 pdn::u8entity 对象，
-    // 对于 pdn::entity 的复制操作，因为数据实体可能很大，需要慎重考虑复制的成本
+    // 对于 pdn::entity 的复制操作，因为数据实体可能很大，需要慎重考虑复制的成本，移动操作则非常廉价。
     const auto& entity = *result;
 
-    // 从中查询 "greeting" 成员，并引用它(因为我们指定了 utf8_tag，所以需要使用 u8 字符串或字符串视图作为查询的键)
+    // 从中查询 "greeting" 成员，并引用它(因为我们指定了 utf8_tag，所以需要使用 u8 字符串或字符串视图作为查询的键)。
     const auto& greeting = entity[u8"greeting"];
 
-    // 将我们查询到的数据以字符串的形式使用，需要用到 pdn::as_string 函数，提供成员函数版本
+    // 将我们查询到的数据以字符串的形式使用，需要用到 pdn::as_string 函数，提供成员函数版本。
     std::cout << greeting.as_string() << "\n";
 }
 ```
@@ -211,6 +211,8 @@ list [
 0U // 错误！想要一个无符号整数 0，但是 spdn 不支持整数后缀，想要指定实体的类型请使用“类型指定”
 ```
 
+[类型和类型指定](#类型和类型指定)  
+
 [参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/integer_literal "integer_literal")  
 
 ### 浮点数示例
@@ -236,6 +238,8 @@ list [
 // 有关浮点数后缀的内容
 0.F // 错误！想要一个 float 的 0.0，但是 spdn 不支持浮点数后缀，想要指定实体的类型请使用“类型指定”
 ```
+
+[类型和类型指定](#类型和类型指定)  
 
 [参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/floating_literal "floating_literal")  
 
@@ -281,7 +285,7 @@ cat: "a" " " @"(string)" "!" // 等效于 "a string!"
 
 在写正则表达式或 Windows 平台的文件路径等时，我们可能会大量使用某些转义字符，这些转义字符的使用会让字符串的可读性大大降低。  
 
-`spdn` 提供了原始字符串以供使用，它的词法除开头是 `@` 而不是 `R` 外，和 C++ 的原始字符串词法一致：字符串由 `@"d_seq(` 和 `)d_seq"` 包围，其中 `d_seq`(delimiter sequence) 为不超过16个的除了圆括号、反斜线和[空白字符](https://zh.cppreference.com/w/cpp/string/byte/isspace.html)的[基本字符集](https://zh.cppreference.com/w/cpp/language/charset.html#Basic_character_set)中字符的序列(`spdn` 已支持 C++26 的基本字符集)。  
+`spdn` 提供了原始字符串以供使用，它的词法除开头是 `@` 而不是 `R` 外，和 C++ 的原始字符串词法一致：字符串由 `@"d_seq(` 和 `)d_seq"` 包围，其中 `d_seq`(delimiter sequence) 为数量不超过16个的除了圆括号、反斜线和[空白字符](https://zh.cppreference.com/w/cpp/string/byte/isspace.html)的[基本字符集](https://zh.cppreference.com/w/cpp/language/charset.html#Basic_character_set)中的字符的序列(`spdn` 支持 C++26 的基本字符集)。  
 
 原始字符串字面量示例：  
 
@@ -332,19 +336,19 @@ _x  // OK
 
 `spdn` 只是有条件地支持通用字符名，对于是否能用于普通标识符，答案是不可以。  
 
-在 `spdn` 里，通用字符名只能用于字符、字符串和“字符串标识符”中，作用范围和转义字符一致。标识符中混杂着通用字符名会导致可读性直线下降，直接写出你想要的那个字符就好；如果遇到了不好输入的字符，可以使用“字符串标识符”，在“字符串标识符”里你可以使用通用字符名和其他形式的转义字符。  
+在 `spdn` 里，通用字符名只能用于字符、字符串和“字符串形式的标识符”中，作用范围和转义字符一致。标识符中混杂着通用字符名会导致可读性直线下降，直接写出你想要的那个字符就好；如果遇到了不好输入的字符，可以使用“字符串形式的标识符”，在“字符串形式的标识符”里你可以使用通用字符名和其他形式的转义字符。  
 
-### 字符串标识符
+### 字符串形式的标识符
 
-我相信大部分的数据，不需要超过“标识符”表示范围的名字，我不喜欢在给它们命名时用一些特殊的字符，也不喜欢每次在表示一个键时，都要用字符串的形式。尽管如此，我也没有禁止字符串形式的键的表示方法，相反，我提供“字符串标识符”的同时还额外提供“原始字符串标识符”，作为键的表示方法。  
-当我们想要在键中使用特殊字符比如空格时，只能通过字符串标识符或原始字符串标识符的方式达成：  
+我相信大部分的数据，不需要超过“标识符”表示范围的名字，我不喜欢在给它们命名时用一些特殊的字符，也不喜欢每次在表示一个键时，都要用字符串的形式。尽管如此，我也没有禁止字符串形式的键的表示方法，相反，我提供“字符串形式的标识符”的同时还额外提供“原始字符串形式的标识符”，作为键的表示方法。  
+当我们想要在键中使用特殊字符比如空格时，只能通过字符串形式的标识符或原始字符串形式的标识符的方式达成：  
 
 ```spdn
 a_name_without_spaces 123 // OK
 a name with spaces 123 // token 序列 "a" "name" "with" "spaces" "123" 不符合语法
 ```
 
-字符串标识符的词法是由反引号 `` ` `` 包围的内容，不能包含换行符(LF)，且支持[转义字符](#转义字符)：  
+字符串形式的标识符的词法是由反引号 `` ` `` 包围的内容，不能包含换行符(LF)，且支持[转义字符](#转义字符)：  
 
 ```spdn
 `a name with spaces` 123 // OK
@@ -369,11 +373,11 @@ linefeed` 123
 // 请不要犯这种错误
 ```
 
-除了 `` \` `` 是 `spdn` 字符串标识符独有的转义序列外，`spdn` 支持 C++ 除了条件转义序列(实现定义)的所有转义序列，形式与目前(我编写这个文档的时间公元2024-2025年)最新的 C++ 标准(C++26)完全一样，只是 `spdn` 额外要求所有转义结果都必须是 Unicode 标量值，参考 [转义字符](#转义字符)、[`C++ Reference`](https://zh.cppreference.com/w/cpp/language/escape "escape")。  
+除了 `` \` `` 是 `spdn` 字符串形式的标识符独有的转义序列外，`spdn` 支持 C++ 除了条件转义序列(实现定义)的所有转义序列，形式与目前(我编写这个文档的时间公元2024-2025年)最新的 C++ 标准(C++26)完全一样，只是 `spdn` 额外要求所有转义结果都必须是 Unicode 标量值，参考 [转义字符](#转义字符)、[`C++ Reference`](https://zh.cppreference.com/w/cpp/language/escape "escape")。  
 
-### 原始字符串标识符
+### 原始字符串形式的标识符
 
-由 `` @`d_seq( `` 和 `` )d_seq` `` 包裹着的字符串，是原始字符串标识符，词法参考[原始字符串](#原始字符串)，不过就是把双引号`"`换成了反引号`` ` ``而已。  
+由 `` @`d_seq( `` 和 `` )d_seq` `` 包裹着的字符串，是原始字符串形式的标识符，词法参考[原始字符串](#原始字符串)，不过就是把双引号`"`换成了反引号`` ` ``而已。  
 
 这玩意一般来讲没什么用，应该没人会取那种需要大量转义字符的名字吧？  
 
@@ -440,7 +444,7 @@ score 100 // 分数的范围为 0 到 100 分
 我们在 `spdn` 中写下的整数，绝大部分是 `int` 类型的，如果我们写下的数字超过了 `int` 类型能表示的范围，解析器会为它选择一个合适的整数类型，如果没有能表示这个整数的类型，那么就会产生错误：`1` 的类型是 `int`，`0xffff'ffff'ffff'ffff` 的类型是 `u64`，`0x1'0000'0000'0000'0000` Oops! 现在连 `u64` 都无法表示这个整数，只能报告错误了！  
 其实像这样的情况应该换用字符串(C++的内置整数类型无法满足要求，由程序想办法解析这么大的数)或者浮点数表示了，`0x1p64`，这里使用的是十六进制科学计数法表示。还记得我们说过 `spdn` 参考了 C++ 的字面量词法吗？`spdn` 支持[二进制、八进制、十进制和十六进制的整数](https://zh.cppreference.com/w/cpp/language/integer_literal "cppreference")，以及[十进制、十进制科学计数法、十六进制科学计数法的浮点数](https://zh.cppreference.com/w/cpp/language/floating_literal "cppreference")。  
 
-在 `spdn` 里浮点数形式的的数据都是 `f64` 类型的，想要得到 `f32` 类型的数据只能使用[类型指定](#类型指定的语法)来转换，将整数转换为 `f32` 浮点数：`num1:f32 123`，将 `f64` 浮点数转换为 `f32` 浮点数：`num2:f32 123.0`。  
+在 `spdn` 里浮点数形式的的数据都是 `f64` 类型的，想要得到 `f32` 类型的数据只能使用[类型指定](#类型指定的语法)来转换，将整数转换为 `f32` 浮点数：`num1:f32 123`；将 `f64` 浮点数转换为 `f32` 浮点数：`num2:f32 123.0`。  
 
 [数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
 [整数字面量参考 pdn_reference](./pdn-reference.md#整数字面量)  
@@ -511,7 +515,7 @@ at 常量用于从解析器提供的常量表中获取值，比如使用 `@true`
 
 `spdn` 的转义字符形式上与 C++ 的一致，但是不支持条件转义序列，另外要求转义的结果是 Unicode 标量值。  
 
-注：本仓库实现的解析器目前不支持 `\N{NAME}` 形式的转义序列  
+注：本仓库实现的解析器目前没有计划支持 `\N{NAME}` 形式的转义序列  
 
 [参考 pdn_reference](./pdn-reference.md#转义)  
 [参考 C++ Reference](https://zh.cppreference.com/w/cpp/language/escape "escape")  
@@ -571,7 +575,7 @@ int main()
         std::cerr << "failed to parse " << spdn_filename << ": " << e2.what() << "\n";
     }
 
-    // 自定义内容，仅支持utf8_tag，因为指定了char8_t(目前不展开具体可自定义内容)
+    // 自定义内容(目前不展开具体可自定义内容)
     class my_fn_pkg : public pdn::default_function_package<char8_t> {};
 
     auto fp = my_fn_pkg{};
@@ -583,6 +587,7 @@ int main()
     assert(e3);
 
     // 清除 fp 内旧数据以复用
+    // 这里仅作演示，实际情况下推荐使用新的 my_fn_pkg 对象
     fp.clear_position();
     fp.clear_error();
 
@@ -592,8 +597,7 @@ int main()
     auto e4 = pdn::parse(spdn_filename, fp, fp, fp, pdn::utf8_tag);
     if (!e4)
     {
-        std::cerr << "failed to parse " << spdn_filename << ": "
-                  << e4.what() << "\n";
+        std::cerr << "failed to parse " << spdn_filename << ": " << e4.what() << "\n";
     }
 }
 ```
@@ -617,7 +621,7 @@ operator bool() const noexcept;
 bool failed() const noexcept;
 // 解析失败时返回错误码，解析成功时返回零初始化的 parse_error_code 值
 auto error_code() const noexcept -> parse_error_code;
-// 根据 error_code 返回描述，返回值不为 nullptr
+// 根据 error_code 返回描述，即使 error_code 为零初始化值，即意味着返回值恒不为 nullptr
 auto what() const noexcept -> const char*;
 // 取值
 auto value() noexcept -> entity_type&;
@@ -636,9 +640,9 @@ auto operator*() const&& noexcept -> const entity_type&&;
 
 在 [Hello world](#hello-world) 章节中，我们已经学会解析 `spdn` 文件和查询数据实体的成员，并用 `as_string` 方法将数据当作字符串使用。  
 
-一份 `spdn` 数据被解析后会被装进一个类型为对象的数据实体里，如 `hello.spdn` 被解析后，得到了一个数据实体，里面含有一个键值对 `greeting: "Hello world!"`。在 C++ 中我们使用下标运算符 `operator[]` 去查询 `greeting` 所指代的数据，就像在使用一个关联容器，然而它的语义与关联容器如 `map` 的 `operator[]` 并非相同，它只进行查询，而不包含在查询的键不存在时构造新值的操作。  
+一份 `spdn` 数据被解析后会被装进一个类型为对象的数据实体里，如 `hello.spdn` 被解析后，得到了一个数据实体，里面含有一个键值对 `greeting: "Hello world!"`。在 C++ 中我们使用下标运算符 `operator[]` 去查询 `greeting` 所指代的数据，就像在使用一个关联容器，然而它的语义与 C++ 关联容器如 `map` 的 `operator[]` 并非相同，它只进行查询，而不包含在查询的键不存在时构造新值的操作。  
 
-当对不是对象类型的数据实体使用键的下标运算符时，会抛出 `std::bad_variant_access` 异常，因为本库就是使用 `variant` 达到动态的数据实体类型的目标的；访问不存在的数据时，会抛出 `std::out_of_range` 异常。  
+在未禁用异常的情况下，当对不是对象类型的数据实体使用键的下标运算符时，会抛出 `std::bad_variant_access` 异常，因为本库就是使用 `std::variant` 达到动态的数据实体类型的目标的；访问不存在的数据时，会抛出 `std::out_of_range` 异常。  
 
 ```C++
 auto& greeting = entity[u8"greeting"]; // OK! (entity 来自 hello.spdn)
@@ -761,7 +765,7 @@ int main()
 
 上面我们已经用过了一些 as 系列的函数，如 `as_int` `as_string` `as_list` 等，本库的 as 系列函数大致分为 8 类：`as_int` `as_uint` `as_fp`(fp 是 floating-point 的缩写) `as_bool` `as_char` `as_string` `as_list` `as_object`，全部在头文件 `pdn_entity.h`、名称空间 `pdn` 中，也有 `pdn::entity<char_t>`、`pdn::entity_ref<char_t>` 和 `pdn::entity_cref<char_t>` 成员函数版本供使用。  
 
-另外还有对 `character` 和 `string` 进行编码转换的 `as_unchar` 和 `as_unstring` (n 为 8/16/32)，如果请求的类型使用的编码和 `entity<char_t>` 的编码不一致，则会进行编码的转换，并返回转换后的结果，否则，它和 `as_char` 和 `as_string` 的行为一致。  
+另外还有对 `character` 和 `string` 进行编码转换的 `as_uNchar` 和 `as_uNstring` (N 为 8/16/32)，如果请求的类型使用的编码和 `entity<char_t>` 的编码不一致，则会进行编码的转换，并返回转换后的结果，否则，它和 `as_char` 和 `as_string` 的行为一致。  
 
 最后 `as` 函数对以上函数进行了整合。  
 
@@ -844,9 +848,9 @@ int main()
 
 对表示 `character` 的实体使用 `as_bool`，如果实体表示 NUL 字符，得到 `false`，否则得到 `true`，除了 `bool` 字符不能转换成其他类型的值。  
 
-`pdn::as` 和 `pdn::entity<char_t>::as` 则是对 `as_...` 函数的汇总，填入模板参数或者想要的 `tag` 来使用。  
+`pdn::as` 和 `pdn::entity<char_t>::as` 则是对 `as_...` 函数的汇总，填入模板参数或者想要的 `tag` 来使用，如 `pdn::int_tag`(位于 `pdn::inline type_tag`)。  
 
-对于无法转换的数据，会得到一个默认值(通常是零初始化或者默认初始化的值)：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空列表、对他使用 `s.as_int()` 会得到 `0`。  
+对于无法转换的数据，会得到一个默认值(通常是零初始化或者默认初始化的值)：对一个表示字符串的实体 `s` 使用 `as_list(s)`，会得到一个空列表、对它使用 `s.as_int()` 会得到 `0`。  
 
 ### get 系列函数
 
@@ -856,7 +860,7 @@ int main()
 
 `entity` 是依赖 `std::variant` 实现的，其中常用的 `i32`、`i64`、`u64`、`f64` 等通常只占 8 字节或更少，而 `string`、`object`、`list` 这样的复杂数据的大小则是前者的数倍，为了节省内存开支、避免浪费，本库的 `entity` 在存储上述复杂对象时使用了“代理”，在代码中则是 `pdn::proxy`，它是拥有独占所有权、支持深拷贝(值语义)且构造后保证非空的智能包装器(被移动后不保证非空，直到被重新赋值)。`pdn::proxy<T>` 只存储指向 `T` 对象的 `std::unique_ptr`，所以对象大小和简单的数据差不多(通常是 8 字节)。由于多了一层代理，使用 `std::get` 时就必须填入 `pdn::proxy<T>` 的名字，对使用者不友好，于是 `spdn` 把 `std::get` 包装成了 `pdn::get`，供用户使用。  
 
-注意，使用 `get` 意味着可能抛出异常。  
+注意，使用 `get` 意味着可能抛出异常或导致程序终止。  
 
 使用方法如下：  
 
@@ -1031,7 +1035,9 @@ public:
     // 表示错误数量的类型
     using error_count_t = default_threshold_error_handler::error_count_t;
     // 默认的解析错误数量限制，错误超过限制时pdn默认功能包会请求终止本次解析
-    static constexpr auto default_limit = default_threshold_error_handler::default_limit;
+    static constexpr auto default_error_limit = default_threshold_error_handler::default_limit;
+    // 默认的数据嵌套深度限制，嵌套超过限制时pdn默认功能包会请求终止本次解析
+    static constexpr auto default_nesting_limit = ::std::size_t{ 256 };
 
 
 
@@ -1064,24 +1070,31 @@ public:
 
     // function_package 选择性提供：
     // 限制解析器解析列表和对象的嵌套深度，需要满足概念 concepts::nesting_depth_limiter
+    // 默认函数包不允许配置该项，如要配置需要实现新的函数包
+    // 不要求 static 或 constexpr 或 noexcept
     static constexpr auto nesting_depth_limit() noexcept -> ::std::size_t;
 
     // function_package 选择性提供：
     // 用于请求解析器停止解析，需要满足概念 concepts::stoppable
-    // 注：stop 请求只能由 handle_error(const pdn::error_message&) 直接或间接生成
+    // 注：函数包的 stop 请求只能由 handle_error(const pdn::error_message&) 直接或间接生成
+    // 不要求 noexcept
     bool stop_requested() const noexcept;
     auto stop_reason() const noexcept -> stop_reason_code;
     
     // function_package 必需品：
     // source_position_recorder 相关，提供正在解析行与列位置，用户一般无需自定义
-    auto position() const -> pdn::source_position;
+    // 不要求 const 或 noexcept
+    auto position() const noexcept -> pdn::source_position;
     // function_package 必需品：
     // source_position_recorder 相关，根据读到的字符更新记录的行列位置，用户一般无需自定义
+    // 不要求 noexcept
     // pdn_source_position_and_newline_recorder.h 中提供另一个行列记录器版本
     // 它会记录用户使用的换行类型和各自的数量，但是一般无需统计它们
-    void update(const char32_t c);
+    // 不要求 noexcept
+    void update(const char32_t c) noexcept;
 
-    // function_package 必需品：查询累计的已发生错误数量
+    // function_package 必需品：查询累计的已发生错误数量，仅供 pdn::parse 函数判断是否解析失败使用
+    // 不要求 const 或 noexcept
     auto error_count() const noexcept;
     // function_package 必需品：处理错误，默认行为是输出错误信息到 std::cerr，并在错误数量抵达上限时请求停止解析
     void handle_error(const pdn::error_message& msg);
@@ -1092,13 +1105,13 @@ public:
     // 在错误数量抵达上限时请求停止解析
     void handle_error();
 
-    // function_package 必需品：生成错误信息文本
+    // function_package 必需品：生成错误信息文本，不要求 static
     static auto generate_error_message(pdn::raw_error_message raw) -> pdn::error_msg_string;
     
-    // function_package 必需品：查询 @常量 对应数据供 parser 使用
+    // function_package 必需品：查询 @常量 对应数据供 parser 使用，不要求 static
     static auto generate_constant(const pdn::unicode::u8string& iden) -> ::std::optional<pdn::entity<char_t>>;
     
-    // function_package 必需品：类型指定时生成类型码供 parser 使用
+    // function_package 必需品：类型指定时生成类型码供 parser 使用，不要求 static
     static auto generate_type(const type::string<char_t>& iden) -> type_code;
     
     // 无需关注
@@ -1190,11 +1203,11 @@ void handle_error(const error_message& e, ::std::ostream& out)
 class my_function_package
 {
 public:
-    auto position() const -> pdn::source_position
+    auto position() const noexcept -> pdn::source_position
     {
         return dfp.position();
     }
-    void update(const char32_t c)
+    void update(const char32_t c) noexcept
     {
         dfp.update(c);
     }
@@ -1264,7 +1277,7 @@ pdn::concepts::function_package_for_lexer<fp_type>;
 pdn::concepts::function_package_for_parser<fp_type, char_type>;
 ```
 
-如果为不同解析阶段提供不同的 `function_package`，它们将会各自统计自己的错误处理次数，而不是在总错误处理次数达到阈值时就请求 `stop`。  
+如果为不同解析阶段提供不同的 `function_package`，它们可能会各自统计自己的错误处理次数，而不是在总错误处理次数达到阈值时就请求 `stop`(这是用户实现定义的)。  
 
 本库提供的 `pdn::default_function_package` 满足 `pdn::concepts::stoppable`，并会在累计处理的错误达到上限(数值可自由设置)时 请求 `stop`，以防止可能出现的死循环(暂未测试出有解析时死循环的情况)。  
 

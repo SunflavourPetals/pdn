@@ -7,11 +7,11 @@
 class my_function_package
 {
 public:
-    auto position() const -> pdn::source_position
+    auto position() const noexcept -> pdn::source_position
     {
         return dfp.position();
     }
-    void update(const char32_t c)
+    void update(const char32_t c) noexcept
     {
         dfp.update(c);
     }
