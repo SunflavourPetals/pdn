@@ -19,10 +19,10 @@ int main()
 	}
 	auto& entity = *result;
 
-	auto& say = entity[u8"say"];
+	auto& greeting = entity[u8"greeting"];
 	try
 	{
-		say[u8""]; // (maybe)std::get: wrong index for variant
+		greeting[u8""]; // (maybe)std::get: wrong index for variant
 	}
 	catch (std::exception& e)
 	{
@@ -39,9 +39,9 @@ int main()
 
 	{
 		auto e_ref = entity.cref();
-		auto say_ref = e_ref[u8"say"];
-		auto x = say_ref[u8"x"];
-		if (!x) std::cout << "get null ref from say_ref[u8\"x\"]\n";
+		auto greeting_ref = e_ref[u8"greeting"];
+		auto x = greeting_ref[u8"x"];
+		if (!x) std::cout << "get null ref from greeting_ref[u8\"x\"]\n";
 		auto y = x[u8"y"];
 		if (!y) std::cout << "get null ref from x[u8\"y\"]\n";
 		auto name = e_ref[u8"name"];

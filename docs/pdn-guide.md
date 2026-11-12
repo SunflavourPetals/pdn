@@ -18,21 +18,21 @@
 首先编写一个 `hello.spdn` 文件，文件内容如下：  
 
 ```spdn
-say "Hello world!"
+greeting "Hello world!"
 ```
 
-这个文件很简短，它包含一个键值对 `key="say"` `val="Hello world!"`，其中 `say` 只是我随意起的名字，在 `json` 中，与之等价的表达是：  
+这个文件很简短，它包含一个键值对 `key="greeting"` `val="Hello world!"`，其中 `greeting` 是这个字段的名字，你可以随意取，在 `json` 中，与之等价的表达是：  
 
 ```json
 {
-    "say": "Hello world!"
+    "greeting": "Hello world!"
 }
 ```
 
 `spdn` 省略了最外层的大括号，而且键可以以符合 C++ 标识符词法的方式提供。至于键和值之间的冒号，则完全取决于你的想法——你觉得加冒号好就加上冒号，觉得不好也可以不写，或是根据情况选择是否使用冒号，这完完全全是你的自由。  
 
 ```spdn
-say: "Hello world!"
+greeting: "Hello world!"
 ```
 
 注意：`spdn` 文件的编码格式只可以是 `UTF-8` `UTF-16` `UTF-32` 其中之一，因为实现的解析器不支持其他编码。  
@@ -86,11 +86,11 @@ int main()
     // 对于 pdn::entity 的复制操作，因为数据实体可能很大，需要慎重考虑复制的成本
     const auto& entity = *result;
 
-    // 从中查询 "say" 成员，并引用它(因为我们指定了 utf8_tag，所以需要使用 u8 字符串或字符串视图作为查询的键)
-    const auto& say = entity[u8"say"];
+    // 从中查询 "greeting" 成员，并引用它(因为我们指定了 utf8_tag，所以需要使用 u8 字符串或字符串视图作为查询的键)
+    const auto& greeting = entity[u8"greeting"];
 
     // 将我们查询到的数据以字符串的形式使用，需要用到 pdn::as_string 函数，提供成员函数版本
-    std::cout << say.as_string() << "\n";
+    std::cout << greeting.as_string() << "\n";
 }
 ```
 
@@ -636,13 +636,13 @@ auto operator*() const&& noexcept -> const entity_type&&;
 
 在 [Hello world](#hello-world) 章节中，我们已经学会解析 `spdn` 文件和查询数据实体的成员，并用 `as_string` 方法将数据当作字符串使用。  
 
-一份 `spdn` 数据被解析后会被装进一个类型为对象的数据实体里，如 `hello.spdn` 被解析后，得到了一个数据实体，里面含有一个键值对 `say: "Hello world!"`。在 C++ 中我们使用下标运算符 `operator[]` 去查询 `say` 所指代的数据，就像在使用一个关联容器，然而它的语义与关联容器如 `map` 的 `operator[]` 并非相同，它只进行查询，而不包含在查询的键不存在时构造新值的操作。  
+一份 `spdn` 数据被解析后会被装进一个类型为对象的数据实体里，如 `hello.spdn` 被解析后，得到了一个数据实体，里面含有一个键值对 `greeting: "Hello world!"`。在 C++ 中我们使用下标运算符 `operator[]` 去查询 `greeting` 所指代的数据，就像在使用一个关联容器，然而它的语义与关联容器如 `map` 的 `operator[]` 并非相同，它只进行查询，而不包含在查询的键不存在时构造新值的操作。  
 
 当对不是对象类型的数据实体使用键的下标运算符时，会抛出 `std::bad_variant_access` 异常，因为本库就是使用 `variant` 达到动态的数据实体类型的目标的；访问不存在的数据时，会抛出 `std::out_of_range` 异常。  
 
 ```C++
-auto& say = entity[u8"say"]; // OK! (entity 来自 hello.spdn)
-say[u8"x"]; // 抛出 bad_variant_access 异常！say是一个字符串而不是对象
+auto& greeting = entity[u8"greeting"]; // OK! (entity 来自 hello.spdn)
+greeting[u8"x"]; // 抛出 bad_variant_access 异常！greeting是一个字符串而不是对象
 entity[u8"name"]; // 抛出 out_of_range 异常！没有一个叫 name 的成员数据
 ```
 
@@ -666,9 +666,9 @@ const auto& e_ref_ref = entity.cref(); // 别这么干
 对 ref 进行的查询不会抛出异常，查询成功时返回相应数据实体的 ref，使用键进行查询失败(该 ref 为空、该 ref 所指代的实体不是对象或该 ref 指代的对象没有相应成员)时返回空 ref：  
 
 ```C++
-auto say_ref = e_ref[u8"say"]; // 查询成功，say_ref 不为空
-auto x = say_ref[u8"x"]; // 得到空，say_ref 引用的实体是一个字符串而不是对象
-if (!x) std::cout << "get null ref from say_ref[u8\"x\"]\n";
+auto greeting_ref = e_ref[u8"greeting"]; // 查询成功，greeting_ref 不为空
+auto x = greeting_ref[u8"x"]; // 得到空，greeting_ref 引用的实体是一个字符串而不是对象
+if (!x) std::cout << "get null ref from greeting_ref[u8\"x\"]\n";
 auto y = x[u8"y"]; // 得到空 ref，因为 x 就是一个空 ref
 if (!y) std::cout << "get null ref from x[u8\"y\"]\n";
 auto name = e_ref[u8"name"]; // 得到空 ref，没有一个叫 name 的成员数据

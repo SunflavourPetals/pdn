@@ -15,6 +15,6 @@ int main()
 	}
 
 	const auto& entity = *result;
-	const auto& say = entity[u8"say"]; // query the content of "say"
-	std::cout << say.as_string() << "\n"; // use "say" as a string and print the content of "say"
+	const auto& greeting = entity[u8"greeting"]; // query the content of "greeting"
+	std::cout << greeting.as_string() << "\n"; // use "greeting" as a string and print the content of "greeting"
 }
