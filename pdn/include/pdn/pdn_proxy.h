@@ -19,31 +19,31 @@ namespace pdn
 		using pointer       = typename handle_type::pointer;
 		using const_pointer = typename ::std::pointer_traits<pointer>::template rebind<::std::add_const_t<t>>;
 		using deleter_type  = typename handle_type::deleter_type;
-		explicit operator bool() const noexcept
+		explicit constexpr operator bool() const noexcept
 		{
 			return static_cast<bool>(handle);
 		}
-		auto get() noexcept -> pointer
+		constexpr auto get() noexcept -> pointer
 		{
 			return handle.get();
 		}
-		auto get() const noexcept -> const_pointer
+		constexpr auto get() const noexcept -> const_pointer
 		{
 			return handle.get();
 		}
-		auto operator*() noexcept -> ::std::add_lvalue_reference_t<t>
+		constexpr auto operator*() noexcept -> ::std::add_lvalue_reference_t<t>
 		{
 			return *handle;
 		}
-		auto operator*() const noexcept -> ::std::add_lvalue_reference_t<::std::add_const_t<t>>
+		constexpr auto operator*() const noexcept -> ::std::add_lvalue_reference_t<::std::add_const_t<t>>
 		{
 			return *handle;
 		}
-		auto operator->() noexcept -> pointer
+		constexpr auto operator->() noexcept -> pointer
 		{
 			return handle.get();
 		}
-		auto operator->() const noexcept -> const_pointer
+		constexpr auto operator->() const noexcept -> const_pointer
 		{
 			return handle.get();
 		}

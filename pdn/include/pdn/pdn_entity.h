@@ -12,6 +12,8 @@
 #include <stdexcept>
 
 #include "pdn_type.h"
+#include "pdn_type_code.h"
+#include "pdn_type_to_type_code.h"
 #include "pdn_proxy.h"
 #include "pdn_false.h"
 #include "pdn_utf_code_convert.h"
@@ -72,11 +74,18 @@ namespace pdn::detail
 
 		// get_opt is for basic type only, returns std::nullopt if type mismatch or no value
 		template <typename target_t>
-		[[nodiscard]] auto get_opt() const -> ::std::optional<target_t>;
+		[[nodiscard]] constexpr auto get_opt() const -> ::std::optional<target_t>;
 
 		// test if the entity holds a value of type target_t, returns false if type mismatch or no value
 		template <typename target_t>
-		[[nodiscard]] bool type_test() const;
+		[[nodiscard]] constexpr bool type_test() const noexcept;
+
+		// test if the entity holds a value of one of target_ts, returns false if type mismatch or no value
+		template <typename... target_ts> requires (sizeof...(target_ts) > 0)
+		[[nodiscard]] constexpr bool type_test_any() const noexcept;
+
+		// returns the type code of the held value, returns type_code::unknown if no value
+		[[nodiscard]] constexpr auto type_of() const -> type_code;
 	};
 
 	// accessor for entity(get is entity only)
@@ -87,19 +96,19 @@ namespace pdn::detail
 		using char_type   = char_t;
 
 		template <typename target_t>
-		[[nodiscard]] auto get() const& -> const target_t&;
+		[[nodiscard]] constexpr auto get() const& -> const target_t&;
 
 		template <typename target_t>
-		[[nodiscard]] auto get() && ->target_t&&;
+		[[nodiscard]] constexpr auto get() && ->target_t&&;
 
 		template <typename target_t>
-		[[nodiscard]] auto get() & ->target_t&;
+		[[nodiscard]] constexpr auto get() & ->target_t&;
 
 		template <typename target_t>
-		[[nodiscard]] auto get_if() const& -> const target_t*;
+		[[nodiscard]] constexpr auto get_if() const& noexcept -> const target_t*;
 
 		template <typename target_t>
-		[[nodiscard]] auto get_if() & ->target_t*;
+		[[nodiscard]] constexpr auto get_if() & noexcept -> target_t*;
 
 		template <typename target_t>
 		auto get_if() && ->target_t* = delete;
@@ -126,19 +135,19 @@ namespace pdn
 		auto operator[](index_type index)   const -> const_refer { return at(index); }
 		auto operator[](const key_type key) const -> const_refer { return at(key); }
 
-		bool has_value() const noexcept { return get(); }
+		[[nodiscard]] constexpr bool has_value() const noexcept { return get(); }
 		// get() returns pointer to entity, not pointer to value of entity, nullable if no value
-		const entity_type* get() const noexcept { return ptr; }
-		const entity_type* operator->() const noexcept { return get(); }
-		const entity_type& operator*() const noexcept { return *get(); }
-		explicit operator bool() const noexcept { return has_value(); }
+		[[nodiscard]] constexpr const entity_type* get() const noexcept { return ptr; }
+		[[nodiscard]] constexpr const entity_type* operator->() const noexcept { return get(); }
+		[[nodiscard]] constexpr const entity_type& operator*() const noexcept { return *get(); }
+		[[nodiscard]] explicit constexpr operator bool() const noexcept { return has_value(); }
 		// get_if() returns pointer to value of entity, not pointer to entity, nullable if no value or type mismatch
 		template <typename target_t>
-		[[nodiscard]] auto get_if() const -> const target_t*;
+		[[nodiscard]] constexpr auto get_if() const noexcept -> const target_t*;
 
 		const_refer() = default;
-		const_refer(const const_refer& m) : ptr{ m.ptr } {}
-		const_refer(const entity_type& e) : ptr{ &e } {}
+		const_refer(const const_refer& m) noexcept : ptr{ m.ptr } {}
+		const_refer(const entity_type& e) noexcept : ptr{ &e } {}
 		const_refer(entity_type&&) = delete;
 		const_refer& operator=(const const_refer& m) = default;
 	private:
@@ -162,22 +171,22 @@ namespace pdn
 		auto operator[](index_type index)   const -> refer { return at(index); }
 		auto operator[](const key_type key) const -> refer { return at(key); }
 
-		bool has_value() const noexcept { return get(); }
+		[[nodiscard]] constexpr bool has_value() const noexcept { return get(); }
 		// get() returns pointer to entity, not pointer to value of entity, nullable if no value
-		entity_type* get() const noexcept { return get_from_base(); }
-		entity_type* operator->() const noexcept { return get(); }
-		entity_type& operator*() const noexcept { return *get(); }
-		explicit operator bool() const noexcept { return has_value(); }
+		[[nodiscard]] constexpr entity_type* get() const noexcept { return get_from_base(); }
+		[[nodiscard]] constexpr entity_type* operator->() const noexcept { return get(); }
+		[[nodiscard]] constexpr entity_type& operator*() const noexcept { return *get(); }
+		[[nodiscard]] explicit constexpr operator bool() const noexcept { return has_value(); }
 		// get_if() returns pointer to value of entity, nullable if no value or type mismatch
 		template <typename target_t>
-		[[nodiscard]] auto get_if() const -> target_t*;
+		[[nodiscard]] constexpr auto get_if() const noexcept -> target_t*;
 
 		refer() = default;
-		refer(const refer& m) : base_type(m) {}
-		refer(entity_type& e) : base_type(e) {}
+		refer(const refer& m) noexcept : base_type(m) {}
+		refer(entity_type& e) noexcept : base_type(e) {}
 		refer& operator=(const refer& m) = default;
 	private:
-		entity_type* get_from_base() const noexcept
+		[[nodiscard]] constexpr entity_type* get_from_base() const noexcept
 		{
 			return const_cast<entity_type*>(base_type::get());
 		}
@@ -806,7 +815,7 @@ namespace pdn
 namespace pdn
 {
 	template <typename target_t, typename char_t>
-	[[nodiscard]] auto get(const entity<char_t>& e) -> const target_t&
+	[[nodiscard]] constexpr auto get(const entity<char_t>& e) -> const target_t&
 	{
 		if constexpr (detail::has_proxy_v<target_t>)
 		{
@@ -819,7 +828,7 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	[[nodiscard]] auto get(entity<char_t>&& e) -> target_t&&
+	[[nodiscard]] constexpr auto get(entity<char_t>&& e) -> target_t&&
 	{
 		if constexpr (detail::has_proxy_v<target_t>)
 		{
@@ -832,7 +841,7 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	[[nodiscard]] auto get(entity<char_t>& e) -> target_t&
+	[[nodiscard]] constexpr auto get(entity<char_t>& e) -> target_t&
 	{
 		if constexpr (detail::has_proxy_v<target_t>)
 		{
@@ -845,7 +854,7 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	[[nodiscard]] auto get_if(const entity<char_t>& e) -> const target_t*
+	[[nodiscard]] constexpr auto get_if(const entity<char_t>& e) noexcept -> const target_t*
 	{
 		if constexpr (detail::has_proxy_v<target_t>)
 		{
@@ -862,7 +871,7 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	[[nodiscard]] auto get_if(entity<char_t>& e) -> target_t*
+	[[nodiscard]] constexpr auto get_if(entity<char_t>& e) noexcept -> target_t*
 	{
 		if constexpr (detail::has_proxy_v<target_t>)
 		{
@@ -885,7 +894,7 @@ namespace pdn
 	auto get_if(const entity<char_t>&& e) -> const target_t* = delete;
 
 	template <typename target_t, typename char_t>
-	[[nodiscard]] auto get_if(const_refer<char_t> e) -> const target_t*
+	[[nodiscard]] constexpr auto get_if(const_refer<char_t> e) noexcept -> const target_t*
 	{
 		if constexpr (detail::has_proxy_v<target_t>)
 		{
@@ -902,7 +911,7 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	[[nodiscard]] auto get_if(refer<char_t> e) -> target_t*
+	[[nodiscard]] constexpr auto get_if(refer<char_t> e) noexcept -> target_t*
 	{
 		if constexpr (detail::has_proxy_v<target_t>)
 		{
@@ -920,7 +929,7 @@ namespace pdn
 
 	// just for basic type
 	template <typename target_t, typename char_t> requires type::concepts::basic_type<target_t, char_t>
-	[[nodiscard]] auto get_opt(const entity<char_t>& e) -> ::std::optional<target_t>
+	[[nodiscard]] constexpr auto get_opt(const entity<char_t>& e) -> ::std::optional<target_t>
 	{
 		if (auto p = ::std::get_if<target_t>(&e))
 		{
@@ -931,7 +940,7 @@ namespace pdn
 
 	// just for basic type
 	template <typename target_t, typename char_t> requires type::concepts::basic_type<target_t, char_t>
-	[[nodiscard]] auto get_opt(const_refer<char_t> e) -> ::std::optional<target_t>
+	[[nodiscard]] constexpr auto get_opt(const_refer<char_t> e) -> ::std::optional<target_t>
 	{
 		if (auto p = ::std::get_if<target_t>(e.get()))
 		{
@@ -941,15 +950,46 @@ namespace pdn
 	}
 
 	template <typename target_t, typename char_t>
-	[[nodiscard]] bool type_test(const entity<char_t>& e)
+	[[nodiscard]] constexpr bool type_test(const entity<char_t>& e) noexcept
 	{
 		return get_if<target_t>(e);
 	}
 
 	template <typename target_t, typename char_t>
-	[[nodiscard]] bool type_test(const_refer<char_t> e)
+	[[nodiscard]] constexpr bool type_test(const_refer<char_t> e) noexcept
 	{
 		return get_if<target_t>(e);
+	}
+
+	template <typename... target_ts, typename char_t> requires (sizeof...(target_ts) > 0)
+	[[nodiscard]] constexpr bool type_test_any(const entity<char_t>& e) noexcept
+	{
+		return (type_test<target_ts>(e) || ...);
+	}
+
+	template <typename... target_ts, typename char_t> requires (sizeof...(target_ts) > 0)
+	[[nodiscard]] constexpr bool type_test_any(const_refer<char_t> e) noexcept
+	{
+		return (type_test<target_ts>(e) || ...);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] constexpr auto type_of(const entity<char_t>& e) -> type_code
+	{
+		return ::std::visit([]<typename arg_t>(const arg_t&) constexpr
+		{
+			return type_to_type_code_v<remove_proxy_t<arg_t>, char_t>;
+		}, e);
+	}
+
+	template <typename char_t>
+	[[nodiscard]] constexpr auto type_of(const_refer<char_t> e) -> type_code
+	{
+		if (auto p = e.get())
+		{
+			return type_of(*p);
+		}
+		return type_code::unknown;
 	}
 }
 
@@ -957,14 +997,14 @@ namespace pdn
 {
 	template <typename char_t>
 	template <typename target_t>
-	[[nodiscard]] auto const_refer<char_t>::get_if() const -> const target_t*
+	[[nodiscard]] constexpr auto const_refer<char_t>::get_if() const noexcept -> const target_t*
 	{
 		return pdn::get_if<target_t>(*this);
 	}
 
 	template <typename char_t>
 	template <typename target_t>
-	[[nodiscard]] auto refer<char_t>::get_if() const -> target_t*
+	[[nodiscard]] constexpr auto refer<char_t>::get_if() const noexcept -> target_t*
 	{
 		return pdn::get_if<target_t>(*this);
 	}
@@ -1093,7 +1133,7 @@ namespace pdn::detail
 
 	template <typename entity_t, typename char_t>
 	template <typename target_t>
-	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get() const& -> const target_t&
+	[[nodiscard]] constexpr auto crtp_accessor_e<entity_t, char_t>::get() const& -> const target_t&
 	{
 		auto& self = *static_cast<const entity_t*>(this);
 		return pdn::get<target_t>(self);
@@ -1101,7 +1141,7 @@ namespace pdn::detail
 
 	template <typename entity_t, typename char_t>
 	template <typename target_t>
-	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get() && ->target_t&&
+	[[nodiscard]] constexpr auto crtp_accessor_e<entity_t, char_t>::get() && ->target_t&&
 	{
 		auto& self = *static_cast<entity_t*>(this);
 		return pdn::get<target_t>(::std::move(self));
@@ -1109,7 +1149,7 @@ namespace pdn::detail
 
 	template <typename entity_t, typename char_t>
 	template <typename target_t>
-	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get() & ->target_t&
+	[[nodiscard]] constexpr auto crtp_accessor_e<entity_t, char_t>::get() & ->target_t&
 	{
 		auto& self = *static_cast<entity_t*>(this);
 		return pdn::get<target_t>(self);
@@ -1117,14 +1157,14 @@ namespace pdn::detail
 
 	template <typename entity_t, typename char_t>
 	template <typename target_t>
-	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get_if() const& -> const target_t*
+	[[nodiscard]] constexpr auto crtp_accessor_e<entity_t, char_t>::get_if() const& noexcept -> const target_t*
 	{
 		return pdn::get_if<target_t>(*static_cast<const entity_t*>(this));
 	}
 
 	template <typename entity_t, typename char_t>
 	template <typename target_t>
-	[[nodiscard]] auto crtp_accessor_e<entity_t, char_t>::get_if() & ->target_t*
+	[[nodiscard]] constexpr auto crtp_accessor_e<entity_t, char_t>::get_if() & noexcept -> target_t*
 	{
 		return pdn::get_if<target_t>(*static_cast<entity_t*>(this));
 	}
@@ -1132,16 +1172,29 @@ namespace pdn::detail
 	// just for basic type
 	template <typename entity_t, typename char_t>
 	template <typename target_t>
-	[[nodiscard]] auto crtp_accessor<entity_t, char_t>::get_opt() const -> ::std::optional<target_t>
+	[[nodiscard]] constexpr auto crtp_accessor<entity_t, char_t>::get_opt() const -> ::std::optional<target_t>
 	{
 		return pdn::get_opt<target_t>(*static_cast<const entity_t*>(this));
 	}
 
 	template <typename entity_t, typename char_t>
 	template <typename target_t>
-	[[nodiscard]] bool crtp_accessor<entity_t, char_t>::type_test() const
+	[[nodiscard]] constexpr bool crtp_accessor<entity_t, char_t>::type_test() const noexcept
 	{
 		return pdn::type_test<target_t>(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	template <typename... target_ts> requires (sizeof...(target_ts) > 0)
+	[[nodiscard]] constexpr bool crtp_accessor<entity_t, char_t>::type_test_any() const noexcept
+	{
+		return pdn::type_test_any<target_ts...>(*static_cast<const entity_t*>(this));
+	}
+
+	template <typename entity_t, typename char_t>
+	[[nodiscard]] constexpr auto crtp_accessor<entity_t, char_t>::type_of() const -> type_code
+	{
+		return pdn::type_of(*static_cast<const entity_t*>(this));
 	}
 }
 
