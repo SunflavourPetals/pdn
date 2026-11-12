@@ -146,8 +146,8 @@ namespace pdn
 		[[nodiscard]] constexpr auto get_if() const noexcept -> const target_t*;
 
 		const_refer() = default;
-		const_refer(const const_refer& m) noexcept : ptr{ m.ptr } {}
-		const_refer(const entity_type& e) noexcept : ptr{ &e } {}
+		constexpr const_refer(const const_refer& m) noexcept : ptr{ m.ptr } {}
+		constexpr const_refer(const entity_type& e) noexcept : ptr{ &e } {}
 		const_refer(entity_type&&) = delete;
 		const_refer& operator=(const const_refer& m) = default;
 	private:
@@ -182,8 +182,8 @@ namespace pdn
 		[[nodiscard]] constexpr auto get_if() const noexcept -> target_t*;
 
 		refer() = default;
-		refer(const refer& m) noexcept : base_type(m) {}
-		refer(entity_type& e) noexcept : base_type(e) {}
+		constexpr refer(const refer& m) noexcept : base_type(m) {}
+		constexpr refer(entity_type& e) noexcept : base_type(e) {}
 		refer& operator=(const refer& m) = default;
 	private:
 		[[nodiscard]] constexpr entity_type* get_from_base() const noexcept
@@ -226,10 +226,10 @@ namespace pdn
 
 	public:
 		auto  ref() const&& -> const_refer<char_type> = delete;
-		auto  ref()      &  ->       refer<char_type> { return       refer<char_type>{ *this }; }
-		auto  ref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
 		auto cref() const&& -> const_refer<char_type> = delete;
-		auto cref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
+		constexpr auto  ref()      &  ->       refer<char_type> { return       refer<char_type>{ *this }; }
+		constexpr auto  ref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
+		constexpr auto cref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
 
 		auto at(index_type) const&& ->const_refer<char_type> = delete;
 		auto at(index_type index) const& -> const_refer<char_type>

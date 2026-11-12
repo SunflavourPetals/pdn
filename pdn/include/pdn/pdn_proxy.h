@@ -7,6 +7,20 @@
 
 #include "pdn_false.h"
 
+// std::unique_ptr (hence every accessor of proxy) is constexpr only since C++23 (P2273).
+// __cpp_lib_constexpr_memory is 201811L in C++20 (that value belongs to P0784, not to
+// constexpr unique_ptr) and 202202L from C++23 on, so testing the value - not just the
+// presence of the macro - is required here.
+// In C++20 the accessors are deliberately left non-constexpr: a constexpr member of a
+// class template that no specialization can ever satisfy is ill-formed, no diagnostic
+// required ([dcl.constexpr]/5). Plain accessors keep the library conforming and start
+// working in constant expressions as soon as the project moves to C++23.
+#if defined(__cpp_lib_constexpr_memory) && __cpp_lib_constexpr_memory >= 202202L
+#	define PDN_CONSTEXPR_PROXY constexpr
+#else
+#	define PDN_CONSTEXPR_PROXY
+#endif
+
 namespace pdn
 {
 	template <typename t>
@@ -19,31 +33,31 @@ namespace pdn
 		using pointer       = typename handle_type::pointer;
 		using const_pointer = typename ::std::pointer_traits<pointer>::template rebind<::std::add_const_t<t>>;
 		using deleter_type  = typename handle_type::deleter_type;
-		explicit constexpr operator bool() const noexcept
+		explicit PDN_CONSTEXPR_PROXY operator bool() const noexcept
 		{
 			return static_cast<bool>(handle);
 		}
-		constexpr auto get() noexcept -> pointer
+		PDN_CONSTEXPR_PROXY auto get() noexcept -> pointer
 		{
 			return handle.get();
 		}
-		constexpr auto get() const noexcept -> const_pointer
+		PDN_CONSTEXPR_PROXY auto get() const noexcept -> const_pointer
 		{
 			return handle.get();
 		}
-		constexpr auto operator*() noexcept -> ::std::add_lvalue_reference_t<t>
+		PDN_CONSTEXPR_PROXY auto operator*() noexcept -> ::std::add_lvalue_reference_t<t>
 		{
 			return *handle;
 		}
-		constexpr auto operator*() const noexcept -> ::std::add_lvalue_reference_t<::std::add_const_t<t>>
+		PDN_CONSTEXPR_PROXY auto operator*() const noexcept -> ::std::add_lvalue_reference_t<::std::add_const_t<t>>
 		{
 			return *handle;
 		}
-		constexpr auto operator->() noexcept -> pointer
+		PDN_CONSTEXPR_PROXY auto operator->() noexcept -> pointer
 		{
 			return handle.get();
 		}
-		constexpr auto operator->() const noexcept -> const_pointer
+		PDN_CONSTEXPR_PROXY auto operator->() const noexcept -> const_pointer
 		{
 			return handle.get();
 		}
@@ -110,5 +124,7 @@ namespace pdn
 	template <typename t>
 	using remove_proxy_t = typename remove_proxy<t>::type;
 }
+
+#undef PDN_CONSTEXPR_PROXY
 
 #endif
