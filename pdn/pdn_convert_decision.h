@@ -19,8 +19,8 @@ namespace pdn::unicode::concepts
 		{
 			typename string_t::value_type;
 			typename string_t::iterator;
-				requires ::std::same_as<typename string_t::value_type, code_unit_t>;
-				requires ::std::random_access_iterator<typename string_t::iterator>;
+			requires ::std::same_as<typename string_t::value_type, code_unit_t>;
+			requires ::std::random_access_iterator<typename string_t::iterator>;
 		};
 		template <typename string_t, typename code_unit_t>
 		concept convert_des_base = requires(string_t destination, ::std::basic_string<code_unit_t> s)
