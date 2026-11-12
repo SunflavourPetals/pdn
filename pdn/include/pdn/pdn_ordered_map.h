@@ -3,19 +3,17 @@
 
 #include <utility>
 #include <memory>
-#include <functional>
-
-#include <type_traits>
 #include <algorithm>
 #include <stdexcept>
+#include <exception>
 
-#include <deque>
+#include <list>
 
 namespace pdn::type::detail
 {
 	template <typename key_t,
 	          typename val_t,
-	          template <typename t, typename alloc> typename container_t = ::std::deque,
+	          template <typename t, typename alloc> typename container_t = ::std::list,
 	          typename alloc_t = ::std::allocator<::std::pair<const key_t, val_t>>>
 	class ordered_map : public container_t<::std::pair<const key_t, val_t>, alloc_t>
 	{

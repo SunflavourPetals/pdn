@@ -1453,17 +1453,17 @@ enum class serialize_separator_ts
 
 如果觉得枚举的自由度不够高，还可以直接操作 `serializer<char_t>` 对象的相关成员属性，但是可能会导致生成的文本不符合 `spdn` 规范，一般不推荐这样使用。  
 
-### 使用 oredered_map 配合解析与序列化
+### 使用 ordered_map 配合解析与序列化
 
 本库使用宏定义 `PDN_ENABLE_ORDERED_MAP` 控制是否使用 `oredered_map`。  
 
-注意不要让不同翻译单元的 `PDN_ENABLE_ORDERED_MAP` 和 `PDN_ENABLE_ORDERED_MAP` 定义不一致，否则可能违反 ODR。  
+注意不要让不同翻译单元之间的 `PDN_ENABLE_ORDERED_MAP` 定义不一致，否则可能违反 ODR。  
 
 编译本库头文件时如果有宏定义 `PDN_ENABLE_ORDERED_MAP`，会将 `pdn::type::config::object` 的定义替换为 `detail::ordered_map<iden_t, entity_t>`。  
 
-不定义 `PDN_ENABLE_ORDERED_MAP` 宏时，序列化 `spdn` 实体后，对象成员数据的顺序可能会发生改变，这是因为本库的解析器默认使用 `std::unordered_map` 保存对象，本库额外提供了一个基于 `std::deque` 的包装 `ordered_map`，使用它代替 `std::unordered_map` 可以保证解析时保留数据的顺序，以便序列化时可以得到正确的顺序。  
+不定义 `PDN_ENABLE_ORDERED_MAP` 宏时，序列化 `spdn` 实体后，对象成员数据的顺序可能会发生改变，这是因为本库的解析器默认使用 `std::unordered_map` 保存对象，本库额外提供了一个基于 `std::list` 的包装 `ordered_map`，把成员按插入顺序存放在链表里，使用它代替 `std::unordered_map` 可以保证解析时保留数据的顺序，以便序列化时可以得到正确的顺序。  
 
-虽然这样可以保证序列化的顺序，但是对查询性能可能会有影响，如果程序依赖 `ordered_map` 没有提供的、属于 `std::unordered_map` 的功能，可能导致编译错误或行为改变，建议评估后再做考虑。如无必要，不推荐使用 `ordered_map`。  
+虽然这样可以保证序列化的顺序，但是对查询性能可能会有影响：`ordered_map` 的查找、下标和 `at` 都是线性复杂度，每个成员还额外占用一个链表节点的内存。删除成员时只会使指向被删元素的迭代器失效，这一点与 `std::map` 一致。如果程序依赖 `ordered_map` 没有提供的、属于 `std::unordered_map` 的功能，可能导致编译错误或行为改变，建议评估后再做考虑。如无必要，不推荐使用 `ordered_map`。  
 
 ## no-exceptions 支持
 
