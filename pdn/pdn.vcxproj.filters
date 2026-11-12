@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="源文件">
@@ -84,280 +84,271 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pdn_unicode_base.h">
+    <ClInclude Include="include\pdn\pdn_unicode_base.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf8_encoder.h">
+    <ClInclude Include="include\pdn\pdn_utf8_encoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf16_encoder.h">
+    <ClInclude Include="include\pdn\pdn_utf16_encoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf32_encoder.h">
+    <ClInclude Include="include\pdn\pdn_utf32_encoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_byte_swap_chain.h">
+    <ClInclude Include="include\pdn\pdn_byte_swap_chain.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_lexer_utility.h">
+    <ClInclude Include="include\pdn\pdn_lexer_utility.h">
       <Filter>pdn_lexer</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_lexer.h">
+    <ClInclude Include="include\pdn\pdn_lexer.h">
       <Filter>pdn_lexer</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_code_unit_iterator.h">
+    <ClInclude Include="include\pdn\pdn_code_unit_iterator.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type.h">
+    <ClInclude Include="include\pdn\pdn_type.h">
       <Filter>pdn_type</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_lexical_error_code.h">
+    <ClInclude Include="include\pdn\pdn_lexical_error_code.h">
       <Filter>pdn_lexer</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf_code_convert.h">
+    <ClInclude Include="include\pdn\pdn_utf_code_convert.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf_encoder.h">
+    <ClInclude Include="include\pdn\pdn_utf_encoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_message.h">
+    <ClInclude Include="include\pdn\pdn_error_message.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_code_point_iterator.h">
+    <ClInclude Include="include\pdn\pdn_code_point_iterator.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_string.h">
+    <ClInclude Include="include\pdn\pdn_error_string.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_source_position.h">
+    <ClInclude Include="include\pdn\pdn_source_position.h">
       <Filter>pdn_source_position</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_source_position_and_newline_recorder.h">
+    <ClInclude Include="include\pdn\pdn_source_position_and_newline_recorder.h">
       <Filter>pdn_source_position</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_newline_modes.h">
+    <ClInclude Include="include\pdn\pdn_newline_modes.h">
       <Filter>pdn_source_position</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_source_position_recorder.h">
+    <ClInclude Include="include\pdn\pdn_source_position_recorder.h">
       <Filter>pdn_source_position</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_code_variant.h">
+    <ClInclude Include="include\pdn\pdn_error_code_variant.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_token.h">
+    <ClInclude Include="include\pdn\pdn_token.h">
       <Filter>pdn_token</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_token_code.h">
+    <ClInclude Include="include\pdn\pdn_token_code.h">
       <Filter>pdn_token</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_token_value_variant.h">
+    <ClInclude Include="include\pdn\pdn_token_value_variant.h">
       <Filter>pdn_token</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_bom_reader.h">
+    <ClInclude Include="include\pdn\pdn_bom_reader.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_dfa_state_objects.h">
+    <ClInclude Include="include\pdn\pdn_dfa_state_objects.h">
       <Filter>pdn_dfa</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_dfa_state_object.h">
+    <ClInclude Include="include\pdn\pdn_dfa_state_object.h">
       <Filter>pdn_dfa</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_dfa_state_code.h">
+    <ClInclude Include="include\pdn\pdn_dfa_state_code.h">
       <Filter>pdn_dfa</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_constant_generator_std.h">
+    <ClInclude Include="include\pdn\pdn_constant_generator_std.h">
       <Filter>pdn_constants</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_constant_generator.h">
+    <ClInclude Include="include\pdn\pdn_constant_generator.h">
       <Filter>pdn_constants</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_proxy.h">
+    <ClInclude Include="include\pdn\pdn_proxy.h">
       <Filter>pdn_proxy</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_parser.h">
+    <ClInclude Include="include\pdn\pdn_parser.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_generator_std.h">
+    <ClInclude Include="include\pdn\pdn_type_generator_std.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_code.h">
+    <ClInclude Include="include\pdn\pdn_type_code.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_generator.h">
+    <ClInclude Include="include\pdn\pdn_type_generator.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_code_to_type.h">
+    <ClInclude Include="include\pdn\pdn_type_code_to_type.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf8_decoder.h">
+    <ClInclude Include="include\pdn\pdn_utf8_decoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf8_base.h">
+    <ClInclude Include="include\pdn\pdn_utf16_decoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf16_base.h">
+    <ClInclude Include="include\pdn\pdn_utf32_decoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf16_decoder.h">
+    <ClInclude Include="include\pdn\pdn_utf_decoder.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf32_decoder.h">
+    <ClInclude Include="include\pdn\pdn_unicode.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_utf32_base.h">
-      <Filter>pdn_unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_utf_decoder.h">
-      <Filter>pdn_unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_unicode.h">
-      <Filter>pdn_unicode</Filter>
-    </ClInclude>
-    <ClInclude Include="pdn_type_code_to_error_msg_string.h">
+    <ClInclude Include="include\pdn\pdn_type_code_to_error_msg_string.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_syntax_error_code.h">
+    <ClInclude Include="include\pdn\pdn_syntax_error_code.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_source_position_recorder_concept.h">
+    <ClInclude Include="include\pdn\pdn_source_position_recorder_concept.h">
       <Filter>pdn_source_position</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_to_type_code.h">
+    <ClInclude Include="include\pdn\pdn_type_to_type_code.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_token_code_to_error_msg_string.h">
+    <ClInclude Include="include\pdn\pdn_token_code_to_error_msg_string.h">
       <Filter>pdn_token</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_make_slashes_string.h">
+    <ClInclude Include="include\pdn\pdn_make_slashes_string.h">
       <Filter>pdn_make_escape_sequence</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h">
+    <ClInclude Include="include\pdn\pdn_error_code_variant_to_error_msg_string.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_constant_generator_concept.h">
+    <ClInclude Include="include\pdn\pdn_constant_generator_concept.h">
       <Filter>pdn_constants</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_generator_concept.h">
+    <ClInclude Include="include\pdn\pdn_type_generator_concept.h">
       <Filter>pdn_type_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_function_package.h">
+    <ClInclude Include="include\pdn\pdn_function_package.h">
       <Filter>pdn_function_package</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_raw_error_message.h">
+    <ClInclude Include="include\pdn\pdn_raw_error_message.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_raw_error_message_variant.h">
+    <ClInclude Include="include\pdn\pdn_raw_error_message_variant.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_parser_utility.h">
+    <ClInclude Include="include\pdn\pdn_parser_utility.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_token_value_variant_convert.h">
+    <ClInclude Include="include\pdn\pdn_token_value_variant_convert.h">
       <Filter>pdn_token</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_token_convert.h">
+    <ClInclude Include="include\pdn\pdn_token_convert.h">
       <Filter>pdn_token</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_raw_error_message_type.h">
+    <ClInclude Include="include\pdn\pdn_raw_error_message_type.h">
       <Filter>pdn_error</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_handler.h">
+    <ClInclude Include="include\pdn\pdn_error_handler.h">
       <Filter>pdn_error_handler</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_handler_concept.h">
+    <ClInclude Include="include\pdn\pdn_error_handler_concept.h">
       <Filter>pdn_error_handler</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_lex.h">
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_lex.h">
       <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_syn.h">
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_syn.h">
       <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf8_dec.h">
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_utf8_dec.h">
       <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf16_dec.h">
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_utf16_dec.h">
       <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_en_utf32_dec.h">
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_utf32_dec.h">
       <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_err_msg_gen_utility.h">
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_utility.h">
       <Filter>pdn_error_message_generator\pdn_err_msg_gen_impl</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_message_generator.h">
+    <ClInclude Include="include\pdn\pdn_error_message_generator.h">
       <Filter>pdn_error_message_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_message_generator_concept.h">
+    <ClInclude Include="include\pdn\pdn_error_message_generator_concept.h">
       <Filter>pdn_error_message_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_error_message_generator_en.h">
+    <ClInclude Include="include\pdn\pdn_error_message_generator_en.h">
       <Filter>pdn_error_message_generator</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_config.h">
+    <ClInclude Include="include\pdn\pdn_type_config.h">
       <Filter>pdn_type</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_character.h">
+    <ClInclude Include="include\pdn\pdn_type_character.h">
       <Filter>pdn_type</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_character_utility.h">
+    <ClInclude Include="include\pdn\pdn_type_character_utility.h">
       <Filter>pdn_type</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_type_basic.h">
+    <ClInclude Include="include\pdn\pdn_type_basic.h">
       <Filter>pdn_type</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_entity_forward_decl.h">
+    <ClInclude Include="include\pdn\pdn_entity_forward_decl.h">
       <Filter>pdn_entity</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_entity.h">
+    <ClInclude Include="include\pdn\pdn_entity.h">
       <Filter>pdn_entity</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_entity_utility.h">
+    <ClInclude Include="include\pdn\pdn_entity_utility.h">
       <Filter>pdn_entity</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_serializer.h">
+    <ClInclude Include="include\pdn\pdn_serializer.h">
       <Filter>pdn_serializer</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_ordered_map.h">
+    <ClInclude Include="include\pdn\pdn_ordered_map.h">
       <Filter>pdn_ordered_map</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_convert_decision.h">
+    <ClInclude Include="include\pdn\pdn_convert_decision.h">
       <Filter>pdn_unicode</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_parse.h">
+    <ClInclude Include="include\pdn\pdn_parse.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
-    <ClInclude Include="spdn.h">
+    <ClInclude Include="include\pdn\spdn.h">
       <Filter>pdn_include</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_false.h">
+    <ClInclude Include="include\pdn\pdn_false.h">
       <Filter>pdn_dependent_false</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_from_chars_hex_float.h">
+    <ClInclude Include="include\pdn\pdn_from_chars_hex_float.h">
       <Filter>pdn_lexer</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_stop_reason.h">
+    <ClInclude Include="include\pdn\pdn_stop_reason.h">
       <Filter>pdn_stop</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_stoppable_utility.h">
+    <ClInclude Include="include\pdn\pdn_stoppable_utility.h">
       <Filter>pdn_stop</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_adjacent_2_buffer.h">
+    <ClInclude Include="include\pdn\pdn_adjacent_2_buffer.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_stoppable_concept.h">
+    <ClInclude Include="include\pdn\pdn_stoppable_concept.h">
       <Filter>pdn_stop</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_eof_detector.h">
+    <ClInclude Include="include\pdn\pdn_eof_detector.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_nesting_depth_limiter_concept.h">
+    <ClInclude Include="include\pdn\pdn_nesting_depth_limiter_concept.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_parse_error_code.h">
+    <ClInclude Include="include\pdn\pdn_parse_error_code.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
-    <ClInclude Include="pdn_parse_result.h">
+    <ClInclude Include="include\pdn\pdn_parse_result.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
   </ItemGroup>

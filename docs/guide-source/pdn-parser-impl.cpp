@@ -2,7 +2,7 @@
 #include <string>
 #include <cassert>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 template <typename char_t>
 void parse_something()

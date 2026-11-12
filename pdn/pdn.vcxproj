@@ -76,6 +76,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -92,6 +93,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -108,6 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -124,6 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <Optimization>MaxSpeed</Optimization>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
@@ -136,95 +140,95 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="pdn_adjacent_2_buffer.h" />
-    <ClInclude Include="pdn_bom_reader.h" />
-    <ClInclude Include="pdn_eof_detector.h" />
-    <ClInclude Include="pdn_false.h" />
-    <ClInclude Include="pdn_from_chars_hex_float.h" />
-    <ClInclude Include="pdn_nesting_depth_limiter_concept.h" />
-    <ClInclude Include="pdn_parse_error_code.h" />
-    <ClInclude Include="pdn_parse_result.h" />
-    <ClInclude Include="pdn_stoppable_concept.h" />
-    <ClInclude Include="pdn_stoppable_utility.h" />
-    <ClInclude Include="pdn_stop_reason.h" />
-    <ClInclude Include="pdn_utf_code_convert.h" />
-    <ClInclude Include="pdn_code_point_iterator.h" />
-    <ClInclude Include="pdn_code_unit_iterator.h" />
-    <ClInclude Include="pdn_constant_generator.h" />
-    <ClInclude Include="pdn_constant_generator_concept.h" />
-    <ClInclude Include="pdn_constant_generator_std.h" />
-    <ClInclude Include="pdn_convert_decision.h" />
-    <ClInclude Include="pdn_dfa_state_objects.h" />
-    <ClInclude Include="pdn_dfa_state_code.h" />
-    <ClInclude Include="pdn_dfa_state_object.h" />
-    <ClInclude Include="pdn_entity.h" />
-    <ClInclude Include="pdn_entity_forward_decl.h" />
-    <ClInclude Include="pdn_entity_utility.h" />
-    <ClInclude Include="pdn_error_code_variant_to_error_msg_string.h" />
-    <ClInclude Include="pdn_error_handler_concept.h" />
-    <ClInclude Include="pdn_error_message_generator_concept.h" />
-    <ClInclude Include="pdn_err_msg_gen_utility.h" />
-    <ClInclude Include="pdn_ordered_map.h" />
-    <ClInclude Include="pdn_parser_utility.h" />
-    <ClInclude Include="pdn_raw_error_message.h" />
-    <ClInclude Include="pdn_error_string.h" />
-    <ClInclude Include="pdn_error_code_variant.h" />
-    <ClInclude Include="pdn_error_handler.h" />
-    <ClInclude Include="pdn_error_message.h" />
-    <ClInclude Include="pdn_error_message_generator.h" />
-    <ClInclude Include="pdn_error_message_generator_en.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_lex.h" />
-    <ClInclude Include="pdn_function_package.h" />
-    <ClInclude Include="pdn_lexer.h" />
-    <ClInclude Include="pdn_make_slashes_string.h" />
-    <ClInclude Include="pdn_parse.h" />
-    <ClInclude Include="pdn_parser.h" />
-    <ClInclude Include="pdn_proxy.h" />
-    <ClInclude Include="pdn_raw_error_message_type.h" />
-    <ClInclude Include="pdn_raw_error_message_variant.h" />
-    <ClInclude Include="pdn_source_position_recorder_concept.h" />
-    <ClInclude Include="pdn_token_code.h" />
-    <ClInclude Include="pdn_token_code_to_error_msg_string.h" />
-    <ClInclude Include="pdn_token_convert.h" />
-    <ClInclude Include="pdn_token_value_variant.h" />
-    <ClInclude Include="pdn_lexical_error_code.h" />
-    <ClInclude Include="pdn_lexer_utility.h" />
-    <ClInclude Include="pdn_newline_modes.h" />
-    <ClInclude Include="pdn_source_position_and_newline_recorder.h" />
-    <ClInclude Include="pdn_source_position.h" />
-    <ClInclude Include="pdn_source_position_recorder.h" />
-    <ClInclude Include="pdn_byte_swap_chain.h" />
-    <ClInclude Include="pdn_token.h" />
-    <ClInclude Include="pdn_serializer.h" />
-    <ClInclude Include="pdn_type.h" />
-    <ClInclude Include="pdn_type_basic.h" />
-    <ClInclude Include="pdn_type_character.h" />
-    <ClInclude Include="pdn_type_code.h" />
-    <ClInclude Include="pdn_type_code_to_type.h" />
-    <ClInclude Include="pdn_type_config.h" />
-    <ClInclude Include="pdn_type_generator_concept.h" />
-    <ClInclude Include="pdn_type_generator_std.h" />
-    <ClInclude Include="pdn_type_generator.h" />
-    <ClInclude Include="pdn_type_to_type_code.h" />
-    <ClInclude Include="pdn_type_character_utility.h" />
-    <ClInclude Include="pdn_unicode_base.h" />
-    <ClInclude Include="pdn_utf_encoder.h" />
-    <ClInclude Include="pdn_utf16_encoder.h" />
-    <ClInclude Include="pdn_utf32_encoder.h" />
-    <ClInclude Include="pdn_utf8_decoder.h" />
-    <ClInclude Include="pdn_utf8_encoder.h" />
-    <ClInclude Include="pdn_utf16_decoder.h" />
-    <ClInclude Include="pdn_utf32_decoder.h" />
-    <ClInclude Include="pdn_utf_decoder.h" />
-    <ClInclude Include="pdn_unicode.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_utf8_dec.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_utf16_dec.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_utf32_dec.h" />
-    <ClInclude Include="pdn_err_msg_gen_en_syn.h" />
-    <ClInclude Include="pdn_type_code_to_error_msg_string.h" />
-    <ClInclude Include="pdn_syntax_error_code.h" />
-    <ClInclude Include="pdn_token_value_variant_convert.h" />
-    <ClInclude Include="spdn.h" />
+    <ClInclude Include="include\pdn\pdn_adjacent_2_buffer.h" />
+    <ClInclude Include="include\pdn\pdn_bom_reader.h" />
+    <ClInclude Include="include\pdn\pdn_eof_detector.h" />
+    <ClInclude Include="include\pdn\pdn_false.h" />
+    <ClInclude Include="include\pdn\pdn_from_chars_hex_float.h" />
+    <ClInclude Include="include\pdn\pdn_nesting_depth_limiter_concept.h" />
+    <ClInclude Include="include\pdn\pdn_parse_error_code.h" />
+    <ClInclude Include="include\pdn\pdn_parse_result.h" />
+    <ClInclude Include="include\pdn\pdn_stoppable_concept.h" />
+    <ClInclude Include="include\pdn\pdn_stoppable_utility.h" />
+    <ClInclude Include="include\pdn\pdn_stop_reason.h" />
+    <ClInclude Include="include\pdn\pdn_utf_code_convert.h" />
+    <ClInclude Include="include\pdn\pdn_code_point_iterator.h" />
+    <ClInclude Include="include\pdn\pdn_code_unit_iterator.h" />
+    <ClInclude Include="include\pdn\pdn_constant_generator.h" />
+    <ClInclude Include="include\pdn\pdn_constant_generator_concept.h" />
+    <ClInclude Include="include\pdn\pdn_constant_generator_std.h" />
+    <ClInclude Include="include\pdn\pdn_convert_decision.h" />
+    <ClInclude Include="include\pdn\pdn_dfa_state_objects.h" />
+    <ClInclude Include="include\pdn\pdn_dfa_state_code.h" />
+    <ClInclude Include="include\pdn\pdn_dfa_state_object.h" />
+    <ClInclude Include="include\pdn\pdn_entity.h" />
+    <ClInclude Include="include\pdn\pdn_entity_forward_decl.h" />
+    <ClInclude Include="include\pdn\pdn_entity_utility.h" />
+    <ClInclude Include="include\pdn\pdn_error_code_variant_to_error_msg_string.h" />
+    <ClInclude Include="include\pdn\pdn_error_handler_concept.h" />
+    <ClInclude Include="include\pdn\pdn_error_message_generator_concept.h" />
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_utility.h" />
+    <ClInclude Include="include\pdn\pdn_ordered_map.h" />
+    <ClInclude Include="include\pdn\pdn_parser_utility.h" />
+    <ClInclude Include="include\pdn\pdn_raw_error_message.h" />
+    <ClInclude Include="include\pdn\pdn_error_string.h" />
+    <ClInclude Include="include\pdn\pdn_error_code_variant.h" />
+    <ClInclude Include="include\pdn\pdn_error_handler.h" />
+    <ClInclude Include="include\pdn\pdn_error_message.h" />
+    <ClInclude Include="include\pdn\pdn_error_message_generator.h" />
+    <ClInclude Include="include\pdn\pdn_error_message_generator_en.h" />
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_lex.h" />
+    <ClInclude Include="include\pdn\pdn_function_package.h" />
+    <ClInclude Include="include\pdn\pdn_lexer.h" />
+    <ClInclude Include="include\pdn\pdn_make_slashes_string.h" />
+    <ClInclude Include="include\pdn\pdn_parse.h" />
+    <ClInclude Include="include\pdn\pdn_parser.h" />
+    <ClInclude Include="include\pdn\pdn_proxy.h" />
+    <ClInclude Include="include\pdn\pdn_raw_error_message_type.h" />
+    <ClInclude Include="include\pdn\pdn_raw_error_message_variant.h" />
+    <ClInclude Include="include\pdn\pdn_source_position_recorder_concept.h" />
+    <ClInclude Include="include\pdn\pdn_token_code.h" />
+    <ClInclude Include="include\pdn\pdn_token_code_to_error_msg_string.h" />
+    <ClInclude Include="include\pdn\pdn_token_convert.h" />
+    <ClInclude Include="include\pdn\pdn_token_value_variant.h" />
+    <ClInclude Include="include\pdn\pdn_lexical_error_code.h" />
+    <ClInclude Include="include\pdn\pdn_lexer_utility.h" />
+    <ClInclude Include="include\pdn\pdn_newline_modes.h" />
+    <ClInclude Include="include\pdn\pdn_source_position_and_newline_recorder.h" />
+    <ClInclude Include="include\pdn\pdn_source_position.h" />
+    <ClInclude Include="include\pdn\pdn_source_position_recorder.h" />
+    <ClInclude Include="include\pdn\pdn_byte_swap_chain.h" />
+    <ClInclude Include="include\pdn\pdn_token.h" />
+    <ClInclude Include="include\pdn\pdn_serializer.h" />
+    <ClInclude Include="include\pdn\pdn_type.h" />
+    <ClInclude Include="include\pdn\pdn_type_basic.h" />
+    <ClInclude Include="include\pdn\pdn_type_character.h" />
+    <ClInclude Include="include\pdn\pdn_type_code.h" />
+    <ClInclude Include="include\pdn\pdn_type_code_to_type.h" />
+    <ClInclude Include="include\pdn\pdn_type_config.h" />
+    <ClInclude Include="include\pdn\pdn_type_generator_concept.h" />
+    <ClInclude Include="include\pdn\pdn_type_generator_std.h" />
+    <ClInclude Include="include\pdn\pdn_type_generator.h" />
+    <ClInclude Include="include\pdn\pdn_type_to_type_code.h" />
+    <ClInclude Include="include\pdn\pdn_type_character_utility.h" />
+    <ClInclude Include="include\pdn\pdn_unicode_base.h" />
+    <ClInclude Include="include\pdn\pdn_utf_encoder.h" />
+    <ClInclude Include="include\pdn\pdn_utf16_encoder.h" />
+    <ClInclude Include="include\pdn\pdn_utf32_encoder.h" />
+    <ClInclude Include="include\pdn\pdn_utf8_decoder.h" />
+    <ClInclude Include="include\pdn\pdn_utf8_encoder.h" />
+    <ClInclude Include="include\pdn\pdn_utf16_decoder.h" />
+    <ClInclude Include="include\pdn\pdn_utf32_decoder.h" />
+    <ClInclude Include="include\pdn\pdn_utf_decoder.h" />
+    <ClInclude Include="include\pdn\pdn_unicode.h" />
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_utf8_dec.h" />
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_utf16_dec.h" />
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_utf32_dec.h" />
+    <ClInclude Include="include\pdn\pdn_err_msg_gen_en_syn.h" />
+    <ClInclude Include="include\pdn\pdn_type_code_to_error_msg_string.h" />
+    <ClInclude Include="include\pdn\pdn_syntax_error_code.h" />
+    <ClInclude Include="include\pdn\pdn_token_value_variant_convert.h" />
+    <ClInclude Include="include\pdn\spdn.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

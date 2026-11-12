@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 class my_function_package
 {

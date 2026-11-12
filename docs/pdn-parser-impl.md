@@ -11,7 +11,7 @@
 所有版本的 `pdn::parse` 都返回 `pdn::parse_result<char_t>`。  
 
 ``` C++
-#include "pdn_parse.h"
+#include <pdn/pdn_parse.h>
 
 template <typename char_t>
 void parse_something()
@@ -37,7 +37,7 @@ void parse_something()
 ``` C++
 #include <iostream>
 
-#include "pdn_parse.h"
+#include <pdn/pdn_parse.h>
 
 void parse_file()
 {
@@ -95,7 +95,7 @@ void parse_file()
 `function_package` 可以提供成员 `nesting_depth_limit()`：
 
 ``` C++
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 struct my_function_package : pdn::default_function_package<char8_t>
 {
@@ -116,7 +116,7 @@ struct my_function_package : pdn::default_function_package<char8_t>
 #include <string_view>
 #include <variant>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 class cancel_on_expect_entity_name : public pdn::default_function_package<char8_t>
 {
@@ -197,7 +197,7 @@ int main()
 #include <string>
 #include <cassert>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 void access_test()
 {

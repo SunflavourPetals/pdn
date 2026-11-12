@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 

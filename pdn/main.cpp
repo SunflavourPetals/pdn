@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
 #include <exception>
 #include <filesystem>
@@ -6,10 +6,10 @@
 #include <array>
 
 #define PDN_ENABLE_ORDERED_MAP
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 // for compile test
-#include "pdn_source_position_and_newline_recorder.h"
+#include <pdn/pdn_source_position_and_newline_recorder.h>
 
 std::ostream & operator<<(std::ostream & os, const pdn::type::u8string & s)
 {

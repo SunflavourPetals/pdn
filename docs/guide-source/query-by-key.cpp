@@ -2,7 +2,7 @@
 #include <string>
 #include <exception>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 

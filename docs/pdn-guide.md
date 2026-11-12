@@ -44,9 +44,9 @@ greeting: "Hello world!"
 ```C++
 #include <iostream>
 
-#include "spdn.h" // 包含下两行的头文件
-// #include "pdn_parse.h" // 包含解析 spdn 的函数
-// #include "pdn_entity.h" // 包含 entity 的访问函数如 as_string
+#include <pdn/spdn.h> // 包含下两行的头文件
+// #include <pdn/pdn_parse.h> // 包含解析 spdn 的函数
+// #include <pdn/pdn_entity.h> // 包含 entity 的访问函数如 as_string
 
 // ostream 对象如 std::cout 并不能输出 u8string 的值，
 // 但是每次都进行转换会使程序变得冗长，不利于教学。
@@ -103,7 +103,7 @@ int main()
 例如，移动到 `.../pdn/docs/guide-source` 目录下使用以下命令：  
 
 ```shell
-g++ -std=c++20 -I../../pdn -o hello-spdn ./hello-spdn.cpp
+g++ -std=c++20 -I../../pdn/include -o hello-spdn ./hello-spdn.cpp
 ```
 
 编译之后运行它(`hello-spdn.exe`)，程序会输出 `Hello world!`。
@@ -542,7 +542,7 @@ at 常量用于从解析器提供的常量表中获取值，比如使用 `@true`
 #include <iostream>
 #include <string>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 
@@ -698,7 +698,7 @@ ref 对象的 `operator bool` 和 `has_value` 具有相同的功能。
 #include <cassert>
 #include <exception>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 
@@ -788,7 +788,7 @@ int main()
 #include <iostream>
 #include <string>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 
@@ -864,7 +864,7 @@ int main()
 #include <iostream>
 #include <string>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 
@@ -903,7 +903,7 @@ int main()
 #include <iostream>
 #include <string>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 
@@ -949,7 +949,7 @@ int main()
 #include <iostream>
 #include <string>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 
@@ -989,7 +989,7 @@ int main()
 #include <iostream>
 #include <string>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 
@@ -1112,7 +1112,7 @@ private:
 };
 ```
 
-[源码参考 pdn_function_package.h](../pdn/pdn_function_package.h)  
+[源码参考 pdn_function_package.h](../pdn/include/pdn/pdn_function_package.h)  
 
 ## 解析器的错误处理
 
@@ -1142,22 +1142,22 @@ public:
 };
 ```
 
-[源码参考 pdn_error_message_generator.h](../pdn/pdn_error_message_generator.h)  
+[源码参考 pdn_error_message_generator.h](../pdn/include/pdn/pdn_error_message_generator.h)  
 
 在最后调用了 `error_message_generator_en`，它根据原始错误信息生成文本。  
 
-[源码参考 pdn_error_message_generator_en.h](../pdn/pdn_error_message_generator_en.h)  
+[源码参考 pdn_error_message_generator_en.h](../pdn/include/pdn/pdn_error_message_generator_en.h)  
 
 它根据原始错误信息中的错误码的类型(UTF8/16/32 解码错误、词法错误、语法错误) 分发到 `pdn::detail::err_msg_gen_en` 进行最终处理。  
 
 见：  
 
-* [pdn_err_msg_gen_en_utf8_dec.h](../pdn/pdn_err_msg_gen_en_utf8_dec.h)  
-* [pdn_err_msg_gen_en_utf16_dec.h](../pdn/pdn_err_msg_gen_en_utf16_dec.h)  
-* [pdn_err_msg_gen_en_utf32_dec.h](../pdn/pdn_err_msg_gen_en_utf32_dec.h)  
-* [pdn_err_msg_gen_en_lex.h](../pdn/pdn_err_msg_gen_en_lex.h)  
-* [pdn_err_msg_gen_en_syn.h](../pdn/pdn_err_msg_gen_en_syn.h)  
-* [pdn_err_msg_gen_utility.h](../pdn/pdn_err_msg_gen_utility.h)  
+* [pdn_err_msg_gen_en_utf8_dec.h](../pdn/include/pdn/pdn_err_msg_gen_en_utf8_dec.h)  
+* [pdn_err_msg_gen_en_utf16_dec.h](../pdn/include/pdn/pdn_err_msg_gen_en_utf16_dec.h)  
+* [pdn_err_msg_gen_en_utf32_dec.h](../pdn/include/pdn/pdn_err_msg_gen_en_utf32_dec.h)  
+* [pdn_err_msg_gen_en_lex.h](../pdn/include/pdn/pdn_err_msg_gen_en_lex.h)  
+* [pdn_err_msg_gen_en_syn.h](../pdn/include/pdn/pdn_err_msg_gen_en_syn.h)  
+* [pdn_err_msg_gen_utility.h](../pdn/include/pdn/pdn_err_msg_gen_utility.h)  
 
 默认函数包使用 `handle_error(e)` 报告错误，默认行为是向 `std::cerr` 打印错误信息。  
 错误计数由内部的 `default_error_handler` 维护；`default_threshold_error_handler` 委托给它输出错误，并检查累计错误数量是否达到阈值。  
@@ -1185,7 +1185,7 @@ void handle_error(const error_message& e, ::std::ostream& out)
 #include <fstream>
 #include <string>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 class my_function_package
 {
@@ -1270,7 +1270,7 @@ pdn::concepts::function_package_for_parser<fp_type, char_type>;
 
 ## 配置自定义的解析器的常量
 
-解析器遇到at常量时会从函数包的 `generate_constant` 获取对应的数据，`generate_constant` 最终会调用 [`pdn_constant_generator_std.h`](../pdn/pdn_constant_generator_std.h) 中的 `constant_generator_std_function` 获取常量。  
+解析器遇到at常量时会从函数包的 `generate_constant` 获取对应的数据，`generate_constant` 最终会调用 [`pdn_constant_generator_std.h`](../pdn/include/pdn/pdn_constant_generator_std.h) 中的 `constant_generator_std_function` 获取常量。  
 
 虽然名称叫常量，但是也可以是随机值，下面的示例演示了添加表示解析时间和随机整数的at常量。  
 
@@ -1283,7 +1283,7 @@ pdn::concepts::function_package_for_parser<fp_type, char_type>;
 #include <random>
 #include <limits>
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 #include "outu8sv.h"
 
@@ -1441,7 +1441,7 @@ enum class serialize_separator_ts
 #define PDN_NO_EXCEPTIONS
 #define PDN_USER_TERMINATE(func_name, reason)\
 { ::std::cerr << "pdn error: " << reason << " in " << func_name << "\n"; }
-#include "spdn.h"
+#include <pdn/spdn.h>
 ...
 ```
 
@@ -1457,7 +1457,7 @@ enum class serialize_separator_ts
 
 ```C++
 #define PDN_USER_FROM_CHARS_FLOAT(first, last, value, fmt) ::my_code::from_chars(first, last, value, fmt)
-#include "spdn.h"
+#include <pdn/spdn.h>
 // ...
 ```
 
@@ -1466,7 +1466,7 @@ enum class serialize_separator_ts
 ```C++
 #include <charconv>
 #include "fast_float/fast_float.h" // 假设 fast_float 已经处于包含目录
-#include "pdn_from_chars_hex_float.h"
+#include <pdn/pdn_from_chars_hex_float.h>
 
 namespace user_charconv
 {
@@ -1506,7 +1506,7 @@ namespace user_charconv
 
 #define PDN_USER_FROM_CHARS_FLOAT(first, last, value, fmt) ::user_charconv::from_chars_float(first, last, value, fmt)
 
-#include "spdn.h"
+#include <pdn/spdn.h>
 
 // ...
 ```
@@ -1523,6 +1523,6 @@ namespace user_charconv
 
 ```C++
 #define PDN_USER_FORMAT(fmt_arg, val) ::fmt::format(fmt_arg, val)
-#include "spdn.h"
+#include <pdn/spdn.h>
 // ...
 ```
