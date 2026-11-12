@@ -354,7 +354,7 @@
     <ClInclude Include="include\pdn\pdn_parse_result.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
-    <ClInclude Include="include\pdn\pdn_decayed_same_as_concept.h">
+    <ClInclude Include="include\pdn\pdn_remove_cvref_same_as_concept.h">
       <Filter>pdn_concept_utility</Filter>
     </ClInclude>
   </ItemGroup>
