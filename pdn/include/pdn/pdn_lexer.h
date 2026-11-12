@@ -1063,7 +1063,7 @@ namespace pdn
 			auto append = [](type::string<char_t>& src, unicode::code_point_t c)
 			{
 				auto encode_r = unicode::encode<char_t>(c);
-				// the lexer ensures that c is a Unicode scalar value, so encoding won’t fail.
+				// the lexer ensures that c is a Unicode scalar value, so encoding won't fail.
 				assert(static_cast<bool>(encode_r) && "[pdn] encode failed");
 				src.append(encode_r.cbegin(), encode_r.cend());
 			};
