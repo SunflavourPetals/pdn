@@ -4,6 +4,8 @@
 #include <type_traits>
 #include <concepts>
 #include <cstddef>
+#include <iterator>
+#include <utility>
 
 #include "pdn_entity.h"
 #include "pdn_type.h"
@@ -57,8 +59,9 @@ namespace pdn::concepts
 		|| utf32_code_unit_iterator<type>;
 	template <typename type>
 	concept utf_code_unit_string_view
-		 = requires(type sv) { sv.cbegin(); sv.cend(); }
-		&& utf_code_unit_iterator<typename type::const_iterator>;
+		 = requires (const type& sv) { ::std::cbegin(sv); ::std::cend(sv); }
+		&& !::std::is_array_v<type> // a C array carries its terminating null code unit
+		&& utf_code_unit_iterator<decltype(::std::cbegin(::std::declval<const type&>()))>;
 }
 
 namespace pdn::parser_utility

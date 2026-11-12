@@ -137,19 +137,19 @@ namespace pdn
 		concepts::function_package_for_lexer               fn_pkg_for_lexer,
 		concepts::function_package_for_parser<char_t>      fn_pkg_for_parser>
 	[[nodiscard]] auto parse(
-		str_view_t         sv,
+		str_view_t const&  sv,
 		fn_pkg_for_cp_it&  cp_it_fp,
 		fn_pkg_for_lexer&  lex_fp,
 		fn_pkg_for_parser& par_fp,
 		char_t             char_tag = {}) -> parse_result<char_t>
 	{
-		return parse(sv.cbegin(), sv.cend(), cp_it_fp, lex_fp, par_fp, char_tag);
+		return parse(::std::cbegin(sv), ::std::cend(sv), cp_it_fp, lex_fp, par_fp, char_tag);
 	}
 	// for utf_code_unit_string_view
 	template <
 		unicode::concepts::code_unit        char_t,
 		concepts::utf_code_unit_string_view str_view_t>
-	[[nodiscard]] auto parse(str_view_t sv, char_t char_tag = {}) -> parse_result<char_t>
+	[[nodiscard]] auto parse(str_view_t const& sv, char_t char_tag = {}) -> parse_result<char_t>
 	{
 		default_function_package<char_t> fp{};
 		return parse(sv, fp, fp, fp, char_tag);
