@@ -70,6 +70,7 @@ namespace pdn::detail
 			return has_buffer();
 		}
 
+		// Largest chunk size such that the allocation, 2 * chunk_size() elements, cannot overflow size_type.
 		static constexpr auto truncate_chunk_size(size_type size_per_chunk) noexcept -> size_type
 		{
 			constexpr auto half_max_size = ::std::numeric_limits<size_type>::max() / 2;
@@ -78,6 +79,8 @@ namespace pdn::detail
 
 		adjacent_2_buffer() = default;
 
+		// Allocates 2 * chunk_size() elements. A requested size of 0 leaves the buffer empty
+		// (has_buffer() is false); oversized requests are truncated by truncate_chunk_size.
 		explicit adjacent_2_buffer(size_type size_per_chunk)
 			requires ::std::same_as<buffer_deleter_t, ::std::default_delete<value_t[]>> :
 			buffer{ size_per_chunk ? ::std::make_unique<value_t[]>(truncate_chunk_size(size_per_chunk) * 2) : nullptr },
@@ -85,16 +88,15 @@ namespace pdn::detail
 
 		// Takes ownership of p, which must point to at least 2 * size_per_chunk elements that deleter
 		// can release, and which must have been obtained in a way deleter can undo. The caller
-		// guarantees both arguments describe the same allocation, and that p is null only when
-		// size_per_chunk is 0: a null pointer with a nonzero size leaves an object that owns no
-		// buffer but still reports that chunk size.
+		// guarantees both arguments describe the same allocation. A null p is stored as an empty
+		// buffer with chunk_size() == 0; a non-null p is kept even when size_per_chunk is 0.
 		adjacent_2_buffer(size_type size_per_chunk, pointer p, const deleter_type& deleter) :
 			buffer{ p, deleter },
-			size{ size_per_chunk } {}
+			size{ p ? size_per_chunk : 0 } {}
 		// Same as above, moving the deleter into the buffer.
 		adjacent_2_buffer(size_type size_per_chunk, pointer p, deleter_type&& deleter) :
 			buffer{ p, ::std::move(deleter) },
-			size{ size_per_chunk } {}
+			size{ p ? size_per_chunk : 0 } {}
 
 		adjacent_2_buffer(adjacent_2_buffer&& other) noexcept :
 			buffer{ ::std::move(other.buffer) },
