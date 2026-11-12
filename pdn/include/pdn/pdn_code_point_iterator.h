@@ -13,7 +13,7 @@
 #include "pdn_convert_decision.h"
 #include "pdn_raw_error_message.h"
 #include "pdn_error_message.h"
-#include "pdn_eof_detector.h"
+#include "pdn_eof_detector_concept.h"
 #include "pdn_source_position_recorder_concept.h"
 #include "pdn_error_handler_concept.h"
 #include "pdn_error_message_generator_concept.h"

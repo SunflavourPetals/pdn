@@ -342,7 +342,7 @@
     <ClInclude Include="include\pdn\pdn_stoppable_concept.h">
       <Filter>pdn_stoppable</Filter>
     </ClInclude>
-    <ClInclude Include="include\pdn\pdn_eof_detector.h">
+    <ClInclude Include="include\pdn\pdn_eof_detector_concept.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
     <ClInclude Include="include\pdn\pdn_nesting_depth_limiter_concept.h">

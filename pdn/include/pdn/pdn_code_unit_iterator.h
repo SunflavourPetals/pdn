@@ -11,7 +11,7 @@
 
 #include "pdn_unicode_base.h"
 #include "pdn_false.h"
-#include "pdn_eof_detector.h"
+#include "pdn_eof_detector_concept.h"
 #include "pdn_stop_reason.h"
 #include "pdn_stoppable_concept.h"
 #include "pdn_stoppable_utility.h"

@@ -142,7 +142,7 @@
   <ItemGroup>
     <ClInclude Include="include\pdn\pdn_adjacent_2_buffer.h" />
     <ClInclude Include="include\pdn\pdn_bom_reader.h" />
-    <ClInclude Include="include\pdn\pdn_eof_detector.h" />
+    <ClInclude Include="include\pdn\pdn_eof_detector_concept.h" />
     <ClInclude Include="include\pdn\pdn_false.h" />
     <ClInclude Include="include\pdn\pdn_from_chars_hex_float.h" />
     <ClInclude Include="include\pdn\pdn_nesting_depth_limiter_concept.h" />
