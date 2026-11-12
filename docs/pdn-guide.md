@@ -1014,10 +1014,46 @@ int main()
 
     std::cout << type_test<et::auto_int>(e[u8"hello"sv]) << "\n"; // 0
     std::cout << type_test<et::string>(e[u8"hello"sv]) << "\n"; // 1
+
+    std::cout << type_test_any<et::auto_int, et::string>(e[u8"hello"sv]) << "\n"; // 1
+    std::cout << type_test_any<et::auto_int, et::list>(e[u8"hello"sv]) << "\n"; // 0
+
+    std::cout << (type_of(e[u8"hello"sv]) == type_code::string) << "\n"; // 1
 }
 ```
 
 代码见 [`guide-source/type-test-example.cpp`](./guide-source/type-test-example.cpp)。  
+
+### type_test_any 与 type_of
+
+`type_test_any` 一次测试多个类型，只要其中任意一个匹配就返回 `true`，至少需要提供一个类型参数；它和 `type_test` 一样会自动处理 `pdn::proxy`。  
+
+`type_of` 返回实体当前持有的值的 `pdn::type_code`，用于**运行期**判断类型(例如类型来自配置文件或其它运行期数据时)，而 `type_test` 系列要求目标类型在编译期已知。  
+
+`pdn::type_code` 的取值与实体中存放的类型一一对应：  
+
+| `type_code` | 含义 |
+| --- | --- |
+| `unknown` | 没有值，只有空的 `entity_cref`(查询失败的结果)会得到 |
+| `i8` `i16` `i32` `i64` | 有符号整数 |
+| `u8` `u16` `u32` `u64` | 无符号整数 |
+| `f32` `f64` | 浮点数 |
+| `boolean` | 布尔 |
+| `character` | 字符 |
+| `string` | 字符串 |
+| `list` | 列表 |
+| `object` | 对象 |
+
+空的 `entity_ref` `entity_cref` 上调用 `type_of` 得到 `type_code::unknown`，调用 `type_test_any` 得到 `false`。两者都同时提供成员函数和自由函数版本，且都是 `constexpr`，当实体本身可以在常量表达式中使用时即可参与常量求值。  
+
+上面的示例中与这两个函数相关的几行：  
+
+```C++
+    std::cout << type_test_any<et::auto_int, et::string>(e[u8"hello"sv]) << "\n"; // 1
+    std::cout << type_test_any<et::auto_int, et::list>(e[u8"hello"sv]) << "\n"; // 0
+
+    std::cout << (type_of(e[u8"hello"sv]) == type_code::string) << "\n"; // 1
+```
 
 ## 解析器配置
 

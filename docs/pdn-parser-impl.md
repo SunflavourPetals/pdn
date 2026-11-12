@@ -175,7 +175,9 @@ int main()
 2. `get_if` 系列函数：获得相应类型的值或得到 nullptr；  
 3. `get_opt` 系列函数：仅对基本类型提供(整数、浮点数、布尔和字符)，获得相应类型的 `optional`，失败时得到 `nullopt`；  
 4. `as` 系列函数： 将实体转换为相应类型的值，如果无法转换，将获得一个零初始化或默认初始化的目标类型的值；  
-5. `type_test` 系列函数：测试实体持有的值是否为指定类型。  
+5. `type_test` 系列函数：测试实体持有的值是否为指定类型；  
+6. `type_test_any` 系列函数：测试实体持有的值是否为指定的多个类型之一，任意一个匹配即得到 `true`，至少需要一个类型参数；  
+7. `type_of`：返回实体持有的值的 `pdn::type_code`(头文件 `pdn_type_code.h`)，用于运行期判断类型，空的 `entity_cref` 会得到 `type_code::unknown`。  
 
 以上函数同时提供 `entity` `entity_ref` `entity_cref` 成员函数版本(后两者不含 `get` 函数，其提供的同名 `get` 函数用于取引用的实体的地址)。  
 
