@@ -3,6 +3,10 @@
 
 namespace pdn
 {
+	// Reason a layer asked to stop parsing. The unnamed value 0 means "no stop requested", which is
+	// why the first enumerator is 1: every request_stop(...) only records the reason while the stored
+	// one is still 0, so the first reason wins. Every code below except user_cancelled is produced by
+	// this library; user_cancelled exists for user defined function packages.
 	enum class stop_reason_code
 	{
 		parse_error_limit = 1,
