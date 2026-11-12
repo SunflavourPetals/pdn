@@ -229,7 +229,7 @@
     <ClInclude Include="include\pdn\pdn_syntax_error_code.h" />
     <ClInclude Include="include\pdn\pdn_token_value_variant_convert.h" />
     <ClInclude Include="include\pdn\spdn.h" />
-    <ClInclude Include="include\pdn\pdn_decayed_same_as_concept.h" />
+    <ClInclude Include="include\pdn\pdn_remove_cvref_same_as_concept.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

@@ -18,12 +18,7 @@
 #include "pdn_utf_code_convert.h"
 #include "pdn_raw_error_message_type.h"
 #include "pdn_source_position.h"
-
-namespace pdn::detail
-{
-	template <typename type, typename target_type>
-	concept remove_cvref_same_as = ::std::is_same_v<::std::remove_cvref_t<type>, ::std::remove_cvref_t<target_type>>;
-}
+#include "pdn_remove_cvref_same_as_concept.h"
 
 namespace pdn::concepts
 {
