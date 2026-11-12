@@ -608,7 +608,7 @@ int main()
 
 提供以下功能：  
 
-``` C++
+```C++
 // 是否解析成功/有值
 bool success() const noexcept;
 bool has_value() const noexcept;
@@ -1245,7 +1245,7 @@ int main()
 
 解析器允许 `function_package` 提供的 `handle_error(const pdn::error_message&)` 中直接或间接请求停止解析，如需要此功能，`function_package` 需要满足概念 `pdn::concepts::stoppable`。  
 
-``` C++
+```C++
 template <typename type>
 concept stoppable = requires(add_const_t<type> stop)
 {
@@ -1258,7 +1258,7 @@ concept stoppable = requires(add_const_t<type> stop)
 
 本库的 `parse` 函数允许为不同的解析阶段提供不同的 `function_package`，如为文件名提供的 `parse` 函数接受分别满足以下三个概念的 `function_package`：  
 
-``` C++
+```C++
 pdn::concepts::function_package_for_code_point_iterator<fp_type>;
 pdn::concepts::function_package_for_lexer<fp_type>;
 pdn::concepts::function_package_for_parser<fp_type, char_type>;
@@ -1436,7 +1436,7 @@ enum class serialize_separator_ts
 
 `PDN_USER_TERMINATE` 定义参考：  
 
-``` C++
+```C++
 #include <iostream>
 #define PDN_NO_EXCEPTIONS
 #define PDN_USER_TERMINATE(func_name, reason)\
@@ -1455,7 +1455,7 @@ enum class serialize_separator_ts
 
 定义参考：  
 
-``` C++
+```C++
 #define PDN_USER_FROM_CHARS_FLOAT(first, last, value, fmt) ::my_code::from_chars(first, last, value, fmt)
 #include "spdn.h"
 // ...
@@ -1463,7 +1463,7 @@ enum class serialize_separator_ts
 
 使用 `fast_float` 和本库自带的 `from_chars_hex_float` 的参考：  
 
-``` C++
+```C++
 #include <charconv>
 #include "fast_float/fast_float.h" // 假设 fast_float 已经处于包含目录
 #include "pdn_from_chars_hex_float.h"
@@ -1521,7 +1521,7 @@ namespace user_charconv
 
 定义参考：  
 
-``` C++
+```C++
 #define PDN_USER_FORMAT(fmt_arg, val) ::fmt::format(fmt_arg, val)
 #include "spdn.h"
 // ...
