@@ -79,8 +79,11 @@
     <Filter Include="pdn_dependent_false">
       <UniqueIdentifier>{4787452c-43e7-47a2-a185-6d51da189ee8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="pdn_stop">
+    <Filter Include="pdn_stoppable">
       <UniqueIdentifier>{155bf27e-2c35-470a-9b99-39441f6758d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdn_concept_utility">
+      <UniqueIdentifier>{a6ed1a31-b264-4c41-ba2a-6a137cb3c3b6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -328,16 +331,16 @@
       <Filter>pdn_lexer</Filter>
     </ClInclude>
     <ClInclude Include="include\pdn\pdn_stop_reason.h">
-      <Filter>pdn_stop</Filter>
+      <Filter>pdn_stoppable</Filter>
     </ClInclude>
     <ClInclude Include="include\pdn\pdn_stoppable_utility.h">
-      <Filter>pdn_stop</Filter>
+      <Filter>pdn_stoppable</Filter>
     </ClInclude>
     <ClInclude Include="include\pdn\pdn_adjacent_2_buffer.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
     <ClInclude Include="include\pdn\pdn_stoppable_concept.h">
-      <Filter>pdn_stop</Filter>
+      <Filter>pdn_stoppable</Filter>
     </ClInclude>
     <ClInclude Include="include\pdn\pdn_eof_detector.h">
       <Filter>pdn_filestream_adapter</Filter>
@@ -350,6 +353,9 @@
     </ClInclude>
     <ClInclude Include="include\pdn\pdn_parse_result.h">
       <Filter>pdn_parser</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pdn\pdn_decayed_same_as_concept.h">
+      <Filter>pdn_concept_utility</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
