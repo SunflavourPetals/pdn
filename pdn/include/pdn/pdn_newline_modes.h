@@ -5,6 +5,9 @@
 
 namespace pdn
 {
+	// Newline kinds found in the source, one bit per kind. CRLF is a bit of its own: it is a single
+	// line terminator, not CR followed by LF. Combine with | / |= and test membership with &, because
+	// == only holds when exactly one kind occurred.
 	enum class newline_modes
 	{
 		NONE = 0x00,
