@@ -163,6 +163,8 @@ namespace pdn::lexer_utility
 			case U'\u200C':
 			case U'\u200D':
 			case U'\u202A':
+			case U'\u202B':
+			case U'\u202C':
 			case U'\u202D':
 			case U'\u202E':
 			case U'\u203F':
@@ -234,7 +236,7 @@ namespace pdn::lexer_utility
 		// | 1DC0-1DFF
 		// | 20D0-20FF
 		// | FE20-FE2F
-		return is_alpha(c) || c == U'_' // for optimization, ASCII compatible characters are preferentially processed. 
+		return is_alpha(c) || c == U'_' // for optimization, ASCII compatible characters are preferentially processed.
 			|| is_digit(c)
 			|| is_allowed_as_first_char_of_identifier(c)
 			|| in_range(c, U'\u0300', U'\u036F')
