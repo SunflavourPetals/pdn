@@ -20,6 +20,12 @@ namespace pdn
 		user_cancelled, // for user defined function package
 	};
 
+	// 0 is the 'no error' value: parse_result reports it on success and it is the reason the enumerators
+	// start at 1. parse_error (1) is the generic failure - recoverable lexical/syntax errors were reported but
+	// nothing requested a stop; open_file_failed (4) is only produced by the stream/file overloads of parse.
+	// The remaining six values mirror stop_reason_code one to one, and every one of them is listed below:
+	// the switch has no default, so a stop reason added without a mapping here is reported by -Wswitch
+	// instead of silently turning into another value.
 	constexpr auto to_parse_error_code(stop_reason_code c) noexcept -> parse_error_code
 	{
 		using enum parse_error_code;
@@ -31,14 +37,13 @@ namespace pdn
 		case stop_reason_code::stream_operation_failed: return stream_operation_failed;
 		case stop_reason_code::incomplete_code_unit:    return incomplete_code_unit;
 		case stop_reason_code::user_cancelled:          return user_cancelled;
-		default:
-#ifdef __cpp_lib_unreachable
-			::std::unreachable();
-#else
-			assert(false && "[pdn] unknown stop reason");
-#endif
-			return user_cancelled; // unreachable
 		}
+#ifdef __cpp_lib_unreachable
+		::std::unreachable();
+#else
+		assert(false && "[pdn] unknown stop reason");
+#endif
+		return parse_error; // unreachable: every stop_reason_code has a case above
 	}
 }
 
