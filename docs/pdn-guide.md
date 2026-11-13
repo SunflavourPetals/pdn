@@ -37,6 +37,8 @@ greeting: "Hello world!"
 
 注意：`spdn` 文件的编码格式只可以是 `UTF-8` `UTF-16` `UTF-32` 其中之一，因为实现的解析器不支持其他编码。  
 
+解析文件时编码由文件开头的 BOM（byte order mark）自动识别：`EF BB BF` 是 UTF-8，`FF FE` / `FE FF` 是 UTF-16 小端 / 大端，`FF FE 00 00` / `00 00 FE FF` 是 UTF-32 小端 / 大端，没有 BOM 时按 UTF-8 处理。对于解析 Unicode 字符串或其迭代器的重载，输入编码由字符串自身的字符类型（`u8string` / `u16string` / `u32string`）决定。  
+
 ### 在 C++ 程序中访问 spdn 数据文件
 
 现在我们尝试在 C++ 程序中获取 `hello.spdn` 中的内容：  

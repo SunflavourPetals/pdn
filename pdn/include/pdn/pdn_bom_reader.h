@@ -38,12 +38,21 @@
 
 namespace pdn::unicode::concepts
 {
+	// A byte input stream as required by pdn::unicode::read_bom: one byte wide
+	// char_type plus the operations the BOM probe performs on it.
 	template <typename istream>
 	concept ibyte_stream = requires(istream input)
 	{
 		typename ::std::remove_reference_t<istream>::char_type;
 		requires sizeof(typename ::std::remove_reference_t<istream>::char_type) == 1;
+
 		input.seekg(::std::declval<::std::streamoff>(), ::std::ios_base::cur);
+		input.read(::std::declval<typename ::std::remove_reference_t<istream>::char_type*>(), ::std::declval<::std::streamsize>());
+		input.gcount();
+		input.fail();
+		input.clear(::std::declval<::std::ios_base::iostate>());
+		input.rdstate();
+		static_cast<bool>(input);
 	};
 }
 
@@ -71,8 +80,15 @@ namespace pdn::unicode
 		}
 	}
 
-	// read bom from input stream
-	// using input.seekg(...) to sets the input position indicator to the original position when failed in read BOM.
+	// Reads at most 4 bytes, detects the byte order mark and seeks back over the
+	// bytes that do not belong to it, so the rest of the input stays unread.
+	// The stream must be seekable and seekg must succeed: this layer only probes
+	// the mark, it never buffers the input for a second pass. A stream that is
+	// not good on entry yields no_bom without being touched. An input shorter
+	// than 4 bytes makes the probe read set failbit (and eofbit); the failbit is
+	// cleared here, the eofbit is kept. If the stream carries failbit or badbit
+	// in its exception mask, that short probe read throws std::ios_base::failure
+	// instead of reporting the failure through the stream state.
 	template <concepts::ibyte_stream istream_t>
 	auto read_bom(istream_t& input) -> bom_type
 	{
@@ -87,7 +103,7 @@ namespace pdn::unicode
 		}
 		::std::array<byte_type, 4> my_bom{}; // BOM byte sequence
 
-		input.read(reinterpret_cast<char_type*>(my_bom.data()), 4);
+		input.read(reinterpret_cast<char_type*>(my_bom.data()), ::std::streamsize{ 4 });
 
 		if (input.fail())
 		{
