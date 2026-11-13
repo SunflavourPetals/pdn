@@ -3,6 +3,9 @@
 
 namespace pdn
 {
+	// The trailing comments of the form "extra(T)" name the raw_error_message_type alternative
+	// that the error payload holds when this code is posted; the code alone carries no payload.
+	// The value 0 is left unused: a default-constructed syntax_error_code does not name an error.
 	enum class syntax_error_code
 	{
 		entity_redefine = 1,  // extra(identifier)
