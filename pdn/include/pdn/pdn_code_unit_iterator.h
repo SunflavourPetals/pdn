@@ -5,9 +5,7 @@
 #include <concepts>
 #include <utility>
 #include <bit>
-#include <limits>
-#include <memory>
-#include <iterator>
+#include <cstddef>
 
 #include "pdn_unicode_base.h"
 #include "pdn_false.h"
@@ -324,7 +322,7 @@ namespace pdn::detail
 		{
 			return lhs.compressed.eof();
 		}
-		mb_code_unit_iterator(it_begin_t bytes_begin)  requires concepts::eof_detector<it_begin_t> :
+		explicit mb_code_unit_iterator(it_begin_t bytes_begin)  requires concepts::eof_detector<it_begin_t> :
 			compressed{ ::std::move(bytes_begin) }
 		{
 			first_to_next();
@@ -359,7 +357,6 @@ namespace pdn::detail
 		template <typename it_t, typename t>
 		concept can_ret_ref = ::std::same_as<it_value_t<it_t>, t>&& ::std::is_lvalue_reference_v<deref_t<it_t>>;
 	}
-
 
 	template <typename it_t>
 	class u8_code_unit_iterator
