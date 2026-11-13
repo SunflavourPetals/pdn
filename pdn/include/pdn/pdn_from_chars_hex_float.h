@@ -8,6 +8,22 @@
 #include <concepts>
 #include <charconv>
 
+// Hexadecimal floating point parser, a drop-in replacement for
+// std::from_chars(first, last, value, std::chars_format::hex) on platforms whose standard
+// library lacks the floating point overload. It is meant to be plugged into
+// PDN_USER_FROM_CHARS_FLOAT, see the guide.
+//
+// Input:  [-] hex_digits [ '.' hex_digits ] [ 'p' [sign] decimal_digits ]
+// with at least one hexadecimal digit (either side of the point may be empty). The text
+// follows std::from_chars: no leading '+', no "0x"/"0X" prefix (the lexer strips it before
+// calling), parsing stops at the first character that cannot continue the number, value is
+// left untouched when ec != errc{}, the result is rounded to nearest with ties to even,
+// subnormals are supported, and a value outside the range of T reports
+// errc::result_out_of_range.
+//
+// PDN itself requires the 'p' exponent on hexadecimal literals; this function does not, the
+// lexer rejects a missing exponent before any conversion happens.
+
 namespace pdn::detail
 {
 	constexpr int digit_char_to_int(char c) noexcept
@@ -30,7 +46,7 @@ namespace pdn::detail::charconv
 	concept supported_float = ::std::same_as<T, float> || ::std::same_as<T, double>;
 
 	template <supported_float T>
-	using bits_for = ::std::conditional_t<::std::same_as<T, float>, std::uint32_t, std::uint64_t>;
+	using bits_for = ::std::conditional_t<::std::same_as<T, float>, ::std::uint32_t, ::std::uint64_t>;
 
 	template <supported_float T>
 	constexpr int mantissa_bit_count = ::std::same_as<T, float> ? 23 : 52;
@@ -67,8 +83,8 @@ namespace pdn::detail::charconv
 	inline auto parse_mantissa(const char* const first, const char* const last) noexcept -> parse_mantissa_result
 	{
 		// overflow protection: mantissa_result.exponent + exponent_result.exponent + shift(0~-63) + 63
-		constexpr auto exponent_overflow_limit = std::numeric_limits<exponent_t>::max() / 2 - 32 - 4;
-		constexpr auto exponent_underflow_limit = std::numeric_limits<exponent_t>::min() / 2 + 32 + 4;
+		constexpr auto exponent_overflow_limit = ::std::numeric_limits<exponent_t>::max() / 2 - 32 - 4;
+		constexpr auto exponent_underflow_limit = ::std::numeric_limits<exponent_t>::min() / 2 + 32 + 4;
 		auto next = first;
 		auto mantissa = mantissa_t{};
 		auto exponent = exponent_t{};
@@ -100,7 +116,7 @@ namespace pdn::detail::charconv
 
 			seen_digit = true;
 
-			if (mantissa <= (std::numeric_limits<mantissa_t>::max() >> 4))
+			if (mantissa <= (::std::numeric_limits<mantissa_t>::max() >> 4))
 			{
 				mantissa = (mantissa << 4) | static_cast<mantissa_t>(d);
 				// adjustment with saturation to avoid underflow
@@ -149,7 +165,7 @@ namespace pdn::detail::charconv
 	inline auto parse_exponent(const char* const first, const char* const last) noexcept -> parse_exponent_result
 	{
 		// overflow protection: mantissa_result.exponent + exponent_result.exponent + shift(0~-63) + 63
-		constexpr auto exponent_overflow_limit = (std::numeric_limits<exponent_t>::max() / 2 - 32 - 9) / 10;
+		constexpr auto exponent_overflow_limit = (::std::numeric_limits<exponent_t>::max() / 2 - 32 - 9) / 10;
 		auto next = first;
 		auto exponent = exponent_t{};
 		auto seen_digit = false;
@@ -208,7 +224,7 @@ namespace pdn::detail::charconv
 		mantissa_t mantissa, // normal form: 1.n (n = low 63 bits)
 		exponent_t exponent,
 		bool is_negative,
-		bool inherited_sticky) noexcept -> std::from_chars_result
+		bool inherited_sticky) noexcept -> ::std::from_chars_result
 	{
 		constexpr auto guard_bit_mask = mantissa_t{ 1 } << (63 - mantissa_bit_count<T>);
 		constexpr auto sticky_bit_mask = ~mantissa_t{} >> (mantissa_bit_count<T> +1);
@@ -221,7 +237,8 @@ namespace pdn::detail::charconv
 			auto sticky = inherited_sticky;
 			if (shift >= mantissa_bit_count<T>)
 			{
-				// shift >= mantissa_bit_count<T>, it means all the digits at the end are dropped
+				// Every bit of the significand is shifted out here. When shift == mantissa_bit_count<T> the
+				// leading 1 is the guard bit, and sticky tells whether any bit below it is set.
 				if (shift == mantissa_bit_count<T>)
 				{
 					constexpr auto highest_bit_mask = mantissa_t{ 1 } << 63;
@@ -229,12 +246,11 @@ namespace pdn::detail::charconv
 					guard = mantissa & highest_bit_mask;
 					sticky = sticky || (mantissa & low63_bit_mask);
 				}
-				else
-				{
-					// shift > mantissa_bit_count<T>, it means all the digits at the end are dropped, and guard is 0
-					// mantissa must >= 0, all bits are sticky
-					sticky = true;
-				}
+				// Deleted code: else { sticky = true; }
+				// When shift > mantissa_bit_count<T> the leading 1 falls below the guard bit as well, so guard
+				// keeps its initial false and the value always rounds to zero. sticky is left unset on purpose:
+				// the test below short-circuits on guard, and a future "guard || sticky" criterion must not
+				// pick up a stale sticky from this path.
 				mantissa = 0;
 				if (!(guard && sticky))
 				{
