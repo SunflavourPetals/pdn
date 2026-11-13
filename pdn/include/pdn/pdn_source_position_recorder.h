@@ -10,9 +10,14 @@ namespace pdn
 	class source_position_recorder
 	{
 	public:
+		// Restores the state of a freshly constructed recorder: position { 1, 1 } and
+		// "the previous code point was not CR", so an LF right after clear() counts as
+		// its own line break instead of completing a CRLF from before the clear.
+		// Assigning a value-initialized object resets every member, including members
+		// added later with a default initializer.
 		constexpr void clear() noexcept
 		{
-			pos = {};
+			*this = {};
 		}
 		constexpr source_position position() const noexcept
 		{

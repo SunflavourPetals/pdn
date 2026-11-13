@@ -13,7 +13,16 @@ namespace pdn
 	class source_position_and_newline_recorder
 	{
 	public:
-		constexpr void clear()            noexcept { pos = {}; }
+		// Restores the state of a freshly constructed recorder: position { 1, 1 },
+		// every counter back to zero, and "the previous code point was not CR".
+		// Without resetting the counters, newline_mode() would keep reporting newline
+		// styles consumed before the clear, and an LF right after clear() would still
+		// be folded into a CRLF from before the clear. Assigning a value-initialized
+		// object resets every member, including members added later.
+		constexpr void clear() noexcept
+		{
+			*this = {};
+		}
 		constexpr auto position()   const noexcept { return pos; }
 		constexpr auto CRLF_count() const noexcept { return CRLF_cnt; }
 		constexpr auto LF_count()   const noexcept { return LF_cnt; }
@@ -21,7 +30,7 @@ namespace pdn
 		constexpr auto NEL_count()  const noexcept { return NEL_cnt; }
 		constexpr auto LS_count()   const noexcept { return LS_cnt; }
 		constexpr auto PS_count()   const noexcept { return PS_cnt; }
-		constexpr newline_modes newline_mode() const noexcept
+		constexpr auto newline_mode() const noexcept -> newline_modes
 		{
 			newline_modes result{};
 			if (CRLF_count()) result |= newline_modes::CRLF;
@@ -36,6 +45,8 @@ namespace pdn
 		{
 			return newline_mode() == newline_modes::NONE;
 		}
+		// Zero line breaks count as coincident (vacuously true): a document without any
+		// line break does not mix styles either.
 		constexpr bool is_coincident_newline() const noexcept
 		{
 			switch (newline_mode())
@@ -104,7 +115,6 @@ namespace pdn
 				break;
 			}
 		}
-		source_position_and_newline_recorder() = default;
 	private:
 		source_position pos{};
 		::std::size_t   CRLF_cnt{};
