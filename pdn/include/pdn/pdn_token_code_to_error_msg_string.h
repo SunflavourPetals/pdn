@@ -6,6 +6,10 @@
 
 namespace pdn
 {
+	// Human readable name of a token for diagnostics ('expect expression but receiving ...'). Symbol
+	// tokens return their literal spelling, literals use a descriptive <name>-val form, and the two
+	// markers 'code-invalid'/'unknown-code' are not user facing: 'invalid' is the zero value used as a
+	// DFA placeholder, and values outside the enumeration fall through to the trailing return.
 	constexpr auto token_code_to_error_msg_string_view(pdn_token_code c) noexcept -> error_msg_string_view
 	{
 		using namespace error_message_literals;
@@ -48,9 +52,11 @@ namespace pdn
 		case comma:                  return u8","_emv;
 		case dot:                    return u8"."_emv;
 		case question_mark:          return u8"?"_emv;
+		// 'invalid' is the zero value, used as a DFA placeholder and never produced for a real token. Every
+		// enumerator is listed and the switch has no default, so a missing case is a -Wswitch warning.
 		case invalid:                return u8"code-invalid"_emv;
-		default:                     return u8"unknown-code"_emv;
 		}
+		return u8"unknown-code"_emv;
 	}
 	constexpr auto token_code_to_error_msg_string(pdn_token_code c) -> error_msg_string
 	{
