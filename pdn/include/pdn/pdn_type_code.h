@@ -5,6 +5,8 @@ namespace pdn
 {
 	enum class type_code
 	{
+		// Not a PDN type: an empty reference reports this code, the parser uses it for "no type
+		// was written", and type_to_type_code falls back to it for types PDN does not have.
 		unknown,
 		i8,
 		i16,

@@ -8,13 +8,13 @@ namespace pdn
 		invalid,
 
 		eof,
-		at_identifier,          // variant(string)
-		identifier,             // variant(string)
-		literal_integer,        // variant(int or other int type)
+		at_identifier,          // variant(at_iden_string_proxy)
+		identifier,             // variant(proxy<string>)
+		literal_integer,        // variant(i8..u64)
 		literal_floating_point, // variant(f64)
-		literal_string,         // variant(string)
+		literal_string,         // variant(proxy<string>)
 		literal_character,      // variant(character)
-		literal_boolean,        // variant(boolean)
+		literal_boolean,        // variant(boolean); no lexer state produces it
 
 		tilde,                // ~
 		exclamation_mark,     // !

@@ -30,7 +30,7 @@ namespace pdn
 
 		infinity,
 
-		// special state process by lexer ^^^
+		flag_special_state_end = infinity, // ^^^
 
 
 
@@ -161,8 +161,10 @@ namespace pdn
 		dot,                  // . 
 		question_mark,        // ? 
 	};
+	static_assert(dfa_state_code::flag_special_state_end < dfa_state_code::flag_error_state_begin,
+	              "[pdn] dfa_state_code error: FLAG_SPECIAL_STATE_END < FLAG_ERROR_STATE_BEGIN is false");
 	static_assert(dfa_state_code::flag_error_state_end < dfa_state_code::flag_final_state_begin,
-	              "[pdn] dfa_state_code error: FLAG_ERRER_STATE_END < FLAG_FINAL_STATE_BEGIN is false");
+	              "[pdn] dfa_state_code error: FLAG_ERROR_STATE_END < FLAG_FINAL_STATE_BEGIN is false");
 
 	constexpr bool is_final_dfa_state(dfa_state_code state) noexcept
 	{
