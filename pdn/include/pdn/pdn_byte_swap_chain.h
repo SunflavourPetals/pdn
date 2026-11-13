@@ -6,6 +6,7 @@
 #include <cassert>
 #include <memory>
 #include <type_traits>
+#include <concepts>
 
 #include "pdn_adjacent_2_buffer.h"
 #include "pdn_stop_reason.h"
@@ -78,7 +79,7 @@ namespace pdn
 		{
 			return lhs.eof();
 		}
-		explicit byte_iterator_from_byte_swap_chain(swap_chain_type&& swap) : swap_chain{::std::move(swap)} {}
+		explicit byte_iterator_from_byte_swap_chain(swap_chain_type&& swap) : swap_chain{ ::std::move(swap) } {}
 	private:
 		swap_chain_type swap_chain{};
 	};
@@ -93,7 +94,15 @@ namespace pdn
 	{
 		return byte_iterator_end_from_byte_swap_chain{};
 	}
+}
 
+namespace pdn::detail
+{
+	inline constexpr auto default_swap_chain_buffer_size = ::std::size_t{ 16 * 1024 };
+}
+
+namespace pdn
+{
 	// Two chunks of chunk_size() bytes are kept adjacent in one allocation, so the second chunk
 	// begins exactly where the first one ends and the end of the pair can be wrapped back by
 	// resetting current_pos. Neither get() nor eof() touches the stream, so both are noexcept and
@@ -113,7 +122,7 @@ namespace pdn
 		static_assert(sizeof(value_type) == 1, "[pdn] unsupported istream");
 	private:
 		using buffers_manager = detail::adjacent_2_buffer<char_type, deleter_type>;
-		static constexpr auto default_buffer_size = size_type{ 16 * 1024 };
+		static constexpr auto default_buffer_size = detail::default_swap_chain_buffer_size;
 	private:
 		void request_stop(stop_reason_code reason) noexcept
 		{
@@ -212,12 +221,17 @@ namespace pdn
 			return buffers_mng.get_buffer_2() + chunk_size();
 		}
 	public:
+		// The caller supplied buffer must not be empty: make_byte_swap_chain turns a zero size into
+		// default_buffer_size, and code that builds a chain directly must pass a buffer owning at least one
+		// element. An empty buffer is a precondition violation, asserted in debug builds; should it reach a
+		// release build anyway, the chain reports eof() immediately instead of spinning on zero sized chunks.
 		byte_swap_chain(
 			istream_type& istream, // should be opened(if is ifstream) and not bad or fail but not eof
-			buffers_manager&& adjacent_2_buf = {}) : // adjacent_2_buf have (2 * buf_size) char_type object
-			buffers_mng{ adjacent_2_buf ? ::std::move(adjacent_2_buf) : buffers_manager{ default_buffer_size } },
+			buffers_manager&& adjacent_2_buf) : // adjacent_2_buf have (2 * buf_size) char_type object
+			buffers_mng{ ::std::move(adjacent_2_buf) },
 			istream_ptr{ &istream }
 		{
+			assert(buffers_mng.chunk_size() != 0 && "[pdn] byte_swap_chain requires a non-empty buffer");
 			if (istream_ptr->bad()) [[unlikely]]
 			{
 				request_stop(stop_reason_code::bad_stream);
@@ -232,7 +246,11 @@ namespace pdn
 			current_pos = current_buffer;
 			current_end = calc_end_of_current_buffer();
 			eof_pos = nullptr;
-			if (istream_ptr->eof())
+			if (buffers_mng.chunk_size() == 0) // release build: never spin on a zero sized chunk
+			{
+				eof_pos = current_pos;
+			}
+			else if (istream_ptr->eof())
 			{
 				eof_pos = current_pos;
 			}
@@ -241,6 +259,10 @@ namespace pdn
 				fill_to(current_buffer);
 			}
 		}
+		// Allocates 2 * default_buffer_size char_type objects; not available with a custom deleter.
+		explicit byte_swap_chain(istream_type& istream)
+			requires ::std::same_as<deleter_type, ::std::default_delete<char_type[]>> :
+			byte_swap_chain{ istream, buffers_manager{ default_buffer_size } } {}
 	private:
 		buffers_manager buffers_mng{};
 		istream_type* istream_ptr{};
@@ -260,7 +282,9 @@ namespace pdn
 	template <typename istream_t>
 	auto make_byte_swap_chain(istream_t& istream, ::std::size_t buf_size)
 	{
-		return byte_swap_chain{ istream, detail::adjacent_2_buffer<typename istream_t::char_type>{ buf_size } };
+		using char_t = typename istream_t::char_type;
+		auto buf = detail::adjacent_2_buffer<char_t>{ buf_size ? buf_size : detail::default_swap_chain_buffer_size };
+		return byte_swap_chain{ istream, ::std::move(buf) };
 	}
 }
 

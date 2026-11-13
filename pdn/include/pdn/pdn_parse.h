@@ -28,8 +28,6 @@
 
 namespace pdn::detail
 {
-	inline constexpr ::std::size_t default_swap_chain_buffer_size = 16 * 1024;
-
 	template <typename stream>
 	concept stream_constructible_from_wchar_cstring = ::std::constructible_from<stream, const wchar_t*>;
 
