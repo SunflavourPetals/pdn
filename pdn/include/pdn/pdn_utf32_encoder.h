@@ -8,6 +8,9 @@
 
 namespace pdn::unicode::utf32
 {
+	// Encodes one code point into the single code unit that represents it.
+	// Values that are not Unicode scalar values (surrogates and values above U+10FFFF) fail with
+	// not_scalar_value and yield no code units.
 	enum class encode_error_code : ::std::uint16_t
 	{
 		not_scalar_value = 1,

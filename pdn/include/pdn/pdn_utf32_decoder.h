@@ -2,11 +2,15 @@
 #define PDN_Header_pdn_utf32_decoder
 
 #include <type_traits>
+#include <cstdint>
 
 #include "pdn_unicode_base.h"
 
 namespace pdn::unicode::utf32
 {
+	// Decodes one code point from a range of code units.
+	// reach_next_code_point == false stops on the last code unit of the decoded sequence, so the
+	// caller advances once to leave it; that is what the code point iterator relies on.
 	enum class decode_error_code : ::std::uint16_t
 	{
 		invalid_code_point = 1, // decode result is not scalar value
@@ -81,7 +85,7 @@ namespace pdn::unicode::utf32
 
 			using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
 			using ucu_t          = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
-			
+
 			decode_result result{};
 
 			if (begin == end) [[unlikely]]
@@ -106,7 +110,7 @@ namespace pdn::unicode::utf32
 			++result.distance_count;
 		}
 	};
-	
+
 	template <bool reach_next_code_point>
 	auto decode(auto&& begin, auto end) -> decode_result
 	{

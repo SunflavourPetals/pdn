@@ -12,6 +12,9 @@
 
 namespace pdn::unicode::utf8
 {
+	// Decodes one code point from a range of code units.
+	// reach_next_code_point == false stops on the last code unit of the decoded sequence, so the
+	// caller advances once to leave it; that is what the code point iterator relies on.
 	enum class decode_error_code : ::std::uint16_t
 	{
 		invalid_code_point = 1, // decode result is not scalar value
@@ -156,8 +159,13 @@ namespace pdn::unicode::utf8
 			}
 			else
 			{
+				// False means the iterator still points at a code unit that has to be skipped; true means
+				// the next decode can start where the iterator is.
 				using enum decode_error_code;
-				return r.distance() > 0 && r.errc() != invalid_code_point && r.errc() != non_code_point;
+				return r.distance() > 0
+					&& r.errc() != invalid_code_point
+					&& r.errc() != non_code_point
+					&& r.errc() != non_shortest_sequence;
 			}
 		}
 		template <bool reach_next_code_point>

@@ -2,12 +2,20 @@
 #define PDN_Header_pdn_utf16_decoder
 
 #include <type_traits>
+#include <cstdint>
 
 #include "pdn_unicode_base.h"
 #include "pdn_stoppable_concept.h"
 
 namespace pdn::unicode::utf16
 {
+	// Decodes one code point from a range of code units.
+	// reach_next_code_point == false stops on the last code unit of the decoded sequence, so the
+	// caller advances once to leave it; that is what the code point iterator relies on.
+	//
+	// invalid_code_point and non_code_point exist for parity with the utf-8 and utf-32 decoders,
+	// but this decoder never produces them: a well formed surrogate pair always folds into
+	// U+10000..U+10FFFF, which is a scalar value by construction.
 	enum class decode_error_code : ::std::uint16_t
 	{
 		invalid_code_point = 1, // decode result is not scalar value, but utf-16 will never make this error
@@ -68,6 +76,8 @@ namespace pdn::unicode::utf16
 			}
 			else
 			{
+				// The first two exclusions cannot trigger here (see the enum above); they only keep
+				// this predicate shaped like the utf-8 and utf-32 ones.
 				using enum decode_error_code;
 				return r.distance() > 0 && r.errc() != invalid_code_point && r.errc() != non_code_point;
 			}

@@ -2,13 +2,15 @@
 #define PDN_Header_pdn_utf16_encoder
 
 #include <array>
-#include <utility>
 #include <cstdint>
 
 #include "pdn_unicode_base.h"
 
 namespace pdn::unicode::utf16
 {
+	// Encodes one code point into 1 code unit, or 2 for U+10000..U+10FFFF (a surrogate pair).
+	// Values that are not Unicode scalar values (surrogates and values above U+10FFFF) fail with
+	// not_scalar_value and yield no code units.
 	enum class encode_error_code : ::std::uint16_t
 	{
 		not_scalar_value = 1,
