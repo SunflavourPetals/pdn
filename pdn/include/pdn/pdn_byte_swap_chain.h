@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <utility>
 #include <cassert>
+#include <memory>
+#include <type_traits>
 
 #include "pdn_adjacent_2_buffer.h"
 #include "pdn_stop_reason.h"
@@ -78,7 +80,7 @@ namespace pdn
 		}
 		explicit byte_iterator_from_byte_swap_chain(swap_chain_type&& swap) : swap_chain{::std::move(swap)} {}
 	private:
-		swap_chain_type swap_chain{}; // swap_ptr == nullptr means it is end
+		swap_chain_type swap_chain{};
 	};
 
 	template <typename istream_t, typename deleter_t>
@@ -92,7 +94,12 @@ namespace pdn
 		return byte_iterator_end_from_byte_swap_chain{};
 	}
 
-	// to_next maybe requests stop; get and eof is safe
+	// Two chunks of chunk_size() bytes are kept adjacent in one allocation, so the second chunk
+	// begins exactly where the first one ends and the end of the pair can be wrapped back by
+	// resetting current_pos. Neither get() nor eof() touches the stream, so both are noexcept and
+	// safe to call at any time; only to_next() may request a stop. Once stop_requested() is true,
+	// get() and eof() are no longer meaningful: check the stop reason first. get() must not be
+	// called when eof() is true.
 	template <typename istream_t, typename buffer_deleter_t = ::std::default_delete<typename istream_t::char_type[]>>
 	class byte_swap_chain
 	{
