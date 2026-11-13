@@ -6,6 +6,10 @@
 
 namespace pdn
 {
+	// Canonical PDN spelling of a type, used by diagnostics and, for 'name : type value'
+	// annotations, by the serializer; because it splices these strings in as type names, they also
+	// happen to be valid PDN type names (the test keeps that true). What this header promises is the
+	// spelling itself; 'unknown' is not a PDN type, it is the sentinel for an absent type.
 	constexpr auto type_code_to_error_msg_string_view(type_code c) noexcept -> error_msg_string_view
 	{
 		using namespace error_message_literals;
