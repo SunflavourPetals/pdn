@@ -3,6 +3,9 @@
 
 namespace pdn
 {
+	// Forward declarations only, so a header can name these types without including the definition.
+	// That is what pdn_type.h needs: it uses entity<char_t> in its list/object aliases, while
+	// pdn_entity.h includes pdn_type.h, so pulling the definition from pdn_type.h would cycle.
 	template <typename char_t>
 	class entity;
 
