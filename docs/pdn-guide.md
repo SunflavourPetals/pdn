@@ -1317,6 +1317,12 @@ pdn::concepts::function_package_for_parser<fp_type, char_type>;
 
 本库提供的 `pdn::default_function_package` 满足 `pdn::concepts::stoppable`，并会在累计处理的错误达到上限(数值可自由设置)时 请求 `stop`，以防止可能出现的死循环(暂未测试出有解析时死循环的情况)。  
 
+## 数据的嵌套深度限制
+
+本库的 `parser` 使用递归下降分析，当待解析数据的嵌套深度过深时，不停递归的解析函数的调用将导致栈溢出。因此 `parser` 设置了默认嵌套深度限制 `256`，用户可以通过提供满足概念 `pdn::concepts::nesting_depth_limiter` 的函数包给 `parser`，即定义 `std::size_t nesting_depth_limit()` 来改变这一行为，通过目标平台的了解返回合理的返回值。  
+
+本库提供的 `pdn::default_function_package` 满足 `pdn::concepts::nesting_depth_limiter`，并且返回值恒为 `256`。  
+
 ## 配置自定义的解析器的常量
 
 解析器遇到at常量时会从函数包的 `generate_constant` 获取对应的数据，`generate_constant` 最终会调用 [`pdn_constant_generator_std.h`](../pdn/include/pdn/pdn_constant_generator_std.h) 中的 `constant_generator_std_function` 获取常量。  
