@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_proxy
 #define PDN_Header_pdn_proxy
 
+#include <cstddef>
 #include <type_traits>
 #include <utility>
 #include <memory>
@@ -29,10 +30,10 @@ namespace pdn
 	private:
 		using handle_type = ::std::unique_ptr<t>;
 	public:
-		using element_type  = typename handle_type::element_type;
-		using pointer       = typename handle_type::pointer;
+		using element_type = typename handle_type::element_type;
+		using pointer = typename handle_type::pointer;
 		using const_pointer = typename ::std::pointer_traits<pointer>::template rebind<::std::add_const_t<t>>;
-		using deleter_type  = typename handle_type::deleter_type;
+		using deleter_type = typename handle_type::deleter_type;
 		explicit PDN_CONSTEXPR_PROXY operator bool() const noexcept
 		{
 			return static_cast<bool>(handle);
@@ -90,37 +91,40 @@ namespace pdn
 		static_assert(detail::false_v<type[]>, "[pdn] cannot create proxy class for array");
 	};
 
+	template <typename type, ::std::size_t n>
+	class proxy<type[n]>
+	{
+		static_assert(detail::false_v<type[n]>, "[pdn] cannot create proxy class for array");
+	};
+
 	template <typename type, typename... args_t>
 	auto make_proxy(args_t&&... args) -> proxy<type>
 	{
 		return proxy<type>{ ::std::make_unique<type>(::std::forward<args_t>(args)...) };
 	}
+}
+
+namespace pdn::detail
+{
+	template <typename t>
+	struct remove_proxy_helper
+	{
+		using type = t;
+	};
 
 	template <typename t>
-	struct remove_proxy
+	struct remove_proxy_helper<proxy<t>>
 	{
 		using type = t;
 	};
+}
+
+namespace pdn
+{
+	// The type behind a proxy, with cv-qualifiers and references removed, like std::remove_cvref_t.
 	template <typename t>
-	struct remove_proxy<proxy<t>>
-	{
-		using type = t;
-	};
-	template <typename t>
-	struct remove_proxy<const proxy<t>>
-	{
-		using type = t;
-	};
-	template <typename t>
-	struct remove_proxy<volatile proxy<t>>
-	{
-		using type = t;
-	};
-	template <typename t>
-	struct remove_proxy<const volatile proxy<t>>
-	{
-		using type = t;
-	};
+	struct remove_proxy : detail::remove_proxy_helper<::std::remove_cvref_t<t>> {};
+
 	template <typename t>
 	using remove_proxy_t = typename remove_proxy<t>::type;
 }
