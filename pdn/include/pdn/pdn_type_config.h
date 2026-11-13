@@ -12,7 +12,6 @@
 #include "pdn_type_character.h"
 
 #ifdef PDN_ENABLE_ORDERED_MAP
-// keep the order in parse
 #include "pdn_ordered_map.h"
 #endif
 
@@ -42,6 +41,8 @@ namespace pdn::type::config
 	template <typename entity_t>
 	using list = ::std::vector<entity_t>;
 	
+	// Hashes identifier text without building a key object: is_transparent plus these three
+	// overloads let find/count/contains take a string view of the object's character type.
 	struct key_hasher
 	{
 		using is_transparent = void; // enables heterogeneous operations.
@@ -63,6 +64,9 @@ namespace pdn::type::config
 		}
 	};
 
+// Without PDN_ENABLE_ORDERED_MAP this is an unordered_map, whose find/count/contains accept a
+// string view thanks to key_hasher; at() converts to the key type, so lookups by view use find.
+// With the macro it is detail::ordered_map, which keeps insertion order (and accepts at(view)).
 #ifdef PDN_ENABLE_ORDERED_MAP
 	// keep the order in parse
 	template <typename iden_t, typename entity_t>

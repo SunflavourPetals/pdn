@@ -1,6 +1,9 @@
 #ifndef PDN_Header_pdn_type_basic
 #define PDN_Header_pdn_type_basic
 
+#include <concepts>
+#include <type_traits>
+
 #include "pdn_type_config.h"
 
 namespace pdn::type
@@ -23,6 +26,8 @@ namespace pdn::type::detail
 {
 	using ::std::same_as;
 
+	// The primary template's `type` is void for "this exact type has no PDN integer alias"; the
+	// simu_*_t aliases below rely on that to fall back.
 	template <typename     int_t> struct alias_sint        { using type = void; };
 	template <same_as<i8>  int_t> struct alias_sint<int_t> { using type = i8;   };
 	template <same_as<i16> int_t> struct alias_sint<int_t> { using type = i16;  };
@@ -41,6 +46,8 @@ namespace pdn::type::detail
 	template <typename int_t>
 	constexpr bool uint_has_alias_v = !same_as<alias_uint_t<int_t>, void>;
 
+	// On a platform where int is not exactly one of i8..i64, the PDN integer that mirrors `int`
+	// is i32 (and unsigned int mirrors u32).
 	template <typename int_t>
 	using simu_int_t  = ::std::conditional_t<sint_has_alias_v<int_t>, alias_sint_t<int_t>, i32>;
 	template <typename int_t>
@@ -55,6 +62,8 @@ namespace pdn::type
 
 namespace pdn::type::concepts
 {
+	// Exact-type predicates: `const i8` or `i8&` do not satisfy pdn_sint, on purpose, because
+	// callers pass the decayed types they got from an entity.
 	template <typename int_t>
 	concept pdn_sint
 		 = ::std::same_as<int_t, i8>
