@@ -18,7 +18,7 @@ namespace pdn::unicode
 	using u8char_t  = char8_t;
 	using u16char_t = char16_t;
 	using u32char_t = char32_t;
-	
+
 	template <typename char_t, typename traits = ::std::char_traits<char_t>, typename alloc = ::std::allocator<char_t>>
 	using basic_string = ::std::basic_string<char_t, traits, alloc>;
 
@@ -107,9 +107,9 @@ namespace pdn::unicode::bom
 
 namespace pdn::unicode
 {
-	constexpr auto to_encode_type(bom_type bom_type) noexcept -> encode_type
+	constexpr auto to_encode_type(bom_type bom_type_c) noexcept -> encode_type
 	{
-		switch (bom_type)
+		switch (bom_type_c)
 		{
 		case bom_type::no_bom:
 		case bom_type::utf8:     return encode_type::utf8;
@@ -127,9 +127,9 @@ namespace pdn::unicode
 		return encode_type::utf8; // for the build where assert is removed
 	}
 
-	constexpr auto to_endian(encode_type encode_type) noexcept -> ::std::endian
+	constexpr auto to_endian(encode_type encode_type_c) noexcept -> ::std::endian
 	{
-		switch (encode_type)
+		switch (encode_type_c)
 		{
 		using enum pdn::unicode::encode_type;
 		using enum ::std::endian;
@@ -240,15 +240,15 @@ namespace pdn::unicode
 
 namespace pdn::inline literals::inline unicode_literals
 {
-	[[nodiscard]] inline unicode::u8string operator ""_s(const unicode::u8char_t* ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u8string operator ""_s(const unicode::u8char_t* ptr, ::std::size_t length)
 	{
 		return unicode::u8string{ ptr, length };
 	}
-	[[nodiscard]] inline unicode::u16string operator ""_s(const unicode::u16char_t* ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u16string operator ""_s(const unicode::u16char_t* ptr, ::std::size_t length)
 	{
 		return unicode::u16string{ ptr, length };
 	}
-	[[nodiscard]] inline unicode::u32string operator ""_s(const unicode::u32char_t * ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u32string operator ""_s(const unicode::u32char_t* ptr, ::std::size_t length)
 	{
 		return unicode::u32string{ ptr, length };
 	}
@@ -256,11 +256,11 @@ namespace pdn::inline literals::inline unicode_literals
 	{
 		return unicode::u8string_view{ ptr, length };
 	}
-	[[nodiscard]] constexpr unicode::u16string_view operator ""_sv(const unicode::u16char_t * ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u16string_view operator ""_sv(const unicode::u16char_t* ptr, ::std::size_t length)
 	{
 		return unicode::u16string_view{ ptr, length };
 	}
-	[[nodiscard]] constexpr unicode::u32string_view operator ""_sv(const unicode::u32char_t * ptr, ::std::size_t length)
+	[[nodiscard]] constexpr unicode::u32string_view operator ""_sv(const unicode::u32char_t* ptr, ::std::size_t length)
 	{
 		return unicode::u32string_view{ ptr, length };
 	}
