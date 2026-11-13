@@ -3,6 +3,9 @@
 
 namespace pdn
 {
+	// The trailing comments of the form "extra(T)" name the raw_error_message_type alternative
+	// that the error payload holds when this code is posted; the code alone carries no payload.
+	// The value 0 is left unused: a default-constructed lexical_error_code does not name an error.
 	enum class lexical_error_code
 	{
 		not_unicode_scalar_value = 1, // extra(not_unicode_scalar_value)
@@ -15,7 +18,7 @@ namespace pdn
 		character_literal_terminated_by_LF, // extra(error_string) character
 
 		// character literal length not 1
-		character_literal_length_is_zero, // extra(character_length_error)
+		character_literal_length_is_zero,             // extra(character_length_error)
 		character_literal_length_is_greater_than_one, // extra(character_length_error)
 
 		// comment not closed
@@ -69,10 +72,10 @@ namespace pdn
 		// raw string/identifier raw string error
 		// extra(delimiter_error) delimiter sequence
 		d_seq_error_cannot_find_end_sign, // @"... EOF
-		// extra(delimiter_error) delimiter sequence and last is invalid character 
+		// extra(delimiter_error) delimiter sequence and last is invalid character
 		d_seq_error_invalid_character_in_raw_string_delimiter, // @"d_seq...@
 		// extra(delimiter_error) delimiter sequence
-		d_seq_error_raw_string_delimiter_longer_than_16_characters, // A"aaaabbbbccccdddd@...()..."
+		d_seq_error_raw_string_delimiter_longer_than_16_characters, // @"aaaabbbbccccdddd@...()..."
 	};
 }
 
