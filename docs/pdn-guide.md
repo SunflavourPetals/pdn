@@ -848,7 +848,7 @@ int main()
 
 使用 as 系列函数时，整数、浮点数和布尔值会被转换到目标类型，如对表示 `100.0` 的数据实体使用 `as_bool`，会得到 `true`，再举一个例子，对表示 `200` 的实体 `e` 使用 `as_int(e, i8_tag)`，那么可能会得到 `127`(clamp 到目标类型 `i8` 的范围)。  
 
-对表示 `character` 的实体使用 `as_bool`，如果实体表示 NUL 字符，得到 `false`，否则得到 `true`，除了 `bool` 字符不能转换成其他类型的值。  
+对表示 `character` 的实体使用 `as_bool`，如果实体表示 NUL 字符，得到 `false`，否则得到 `true`，除了 `bool`，字符不能转换成其他类型的值。  
 
 `pdn::as` 和 `pdn::entity<char_t>::as` 则是对 `as_...` 函数的汇总，填入模板参数或者想要的 `tag` 来使用，如 `pdn::int_tag`(位于 `pdn::inline type_tag`)。  
 

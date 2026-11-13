@@ -16,6 +16,12 @@ namespace pdn::type::detail
 	class character
 	{
 	private:
+		static_assert(::std::same_as<char_t, ::std::remove_cv_t<char_t>>,
+		              "[pdn] character requires a char type without cv-qualifiers");
+		// A plain value type storing at most max_size() code units plus a size. That
+		// they encode exactly one Unicode scalar value is the caller's requirement (the
+		// lexer guarantees it for PDN source), not an invariant checked here; (first,
+		// count) copies trunc_size(count) units, so count truncates to max_size().
 		static constexpr auto max_sz = detail::max_code_unit_count_for_character_v<char_t>;
 		using data_type = ::std::array<char_t, max_sz>;
 		static constexpr auto trunc_size(::std::size_t sz) noexcept { return sz > max_sz ? max_sz : sz; }
