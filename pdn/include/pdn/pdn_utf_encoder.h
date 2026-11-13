@@ -6,6 +6,10 @@
 #include "pdn_utf16_encoder.h"
 #include "pdn_utf32_encoder.h"
 
+// Codec facade over the per-charset encoders: encode<char_t> encodes a code point with the
+// encoding of char_t, the tag overloads pick the encoding from the type of their (unused)
+// second argument, and encoder<char_t> names the matching encoder class.
+
 namespace pdn::unicode::detail
 {
 	template <typename char_t>
@@ -46,7 +50,7 @@ namespace pdn::unicode
 	{
 		return utf32::encode(character);
 	}
-	template <typename char_t>
+	template <concepts::code_unit char_t>
 	constexpr auto encode(code_point_t character) -> detail::encode_result_t<char_t>
 	{
 		return detail::encoder<char_t>::encode(character);

@@ -9,6 +9,11 @@
 #include "pdn_utf16_decoder.h"
 #include "pdn_utf32_decoder.h"
 
+// Codec facade over the per-charset decoders: the iterator's value type selects the encoding
+// (u8char_t -> utf-8, u16char_t -> utf-16, u32char_t -> utf-32), reach_next_code_point is
+// forwarded unchanged (see pdn_utf8_decoder.h for what the two modes promise), and
+// decoder<char_t> names the matching decoder class.
+
 namespace pdn::unicode::detail
 {
 	template <typename type>
@@ -53,7 +58,7 @@ namespace pdn::unicode
 namespace pdn::unicode::detail
 {
 	template <typename char_t> struct suitable_decoder {};
-	template <> struct suitable_decoder<u8char_t>  { using type = utf8 ::decoder; };
+	template <> struct suitable_decoder<u8char_t>  { using type = utf8::decoder; };
 	template <> struct suitable_decoder<u16char_t> { using type = utf16::decoder; };
 	template <> struct suitable_decoder<u32char_t> { using type = utf32::decoder; };
 
