@@ -231,10 +231,11 @@ namespace pdn::detail
 		}
 	}
 
-	inline auto get_esc_not_scalar_err_msg(error_msg_string      escape_sign, // e.g. "u" means "\u"
-		                                   error_msg_string      sequence,    // escape sequence
-		                                   unicode::code_point_t parse_val,
-		                                   bool                  is_with_curly_brackets) -> raw_error_message_type::escape_not_unicode_scalar_value
+	inline auto get_esc_not_scalar_err_msg(
+		error_msg_string      escape_sign, // e.g. "u" means "\u"
+		error_msg_string      sequence,    // escape sequence
+		unicode::code_point_t parse_val,
+		bool                  is_with_curly_brackets) -> raw_error_message_type::escape_not_unicode_scalar_value
 	{
 		using namespace literals::error_message_literals;
 		auto l_bracket = is_with_curly_brackets ? u8"{"_em : u8""_em;
@@ -243,10 +244,11 @@ namespace pdn::detail
 		return { ::std::move(escape_sign), parse_val };
 	};
 
-	inline void get_numeric_escape_sequence(::std::string& sequence,
-		                                             auto& begin,
-		                                             auto  end,
-		     ::std::predicate<unicode::code_point_t> auto  is_valid_char)
+	inline void get_numeric_escape_sequence(
+		::std::string& sequence,
+		auto&          begin,
+		auto           end,
+		::std::predicate<unicode::code_point_t> auto is_valid_char)
 	{
 		using begin_t = ::std::remove_reference_t<decltype(begin)>;
 		while (begin != end)
@@ -262,11 +264,12 @@ namespace pdn::detail
 		}
 	}
 
-	inline auto get_numeric_escape_sequence(::std::size_t  count,
-		                                    ::std::string& sequence,
-		                                             auto& begin,
-		                                             auto  end,
-		     ::std::predicate<unicode::code_point_t> auto  is_valid_char) -> ::std::size_t
+	inline auto get_numeric_escape_sequence(
+		::std::size_t  count,
+		::std::string& sequence,
+		auto&          begin,
+		auto           end,
+		::std::predicate<unicode::code_point_t> auto is_valid_char) -> ::std::size_t
 	{
 		using begin_t = ::std::remove_reference_t<decltype(begin)>;
 		for (::std::size_t read_count{ 0 }; read_count < count && begin != end; ++read_count)
@@ -283,12 +286,13 @@ namespace pdn::detail
 		return 0;
 	}
 
-	inline void process_from_chars_error(const ::std::from_chars_result            from_chars_r,
-		                                 const ::std::string_view                  src,
-		                                 const source_position                     pos,
-		                                 const raw_error_message_type::number_type lit_type,
-		                                 const bool                                for_escape,
-		                                 auto                                      helper)
+	inline void process_from_chars_error(
+		const ::std::from_chars_result            from_chars_r,
+		const ::std::string_view                  src,
+		const source_position                     pos,
+		const raw_error_message_type::number_type lit_type,
+		const bool                                for_escape,
+		auto                                      helper)
 	{
 		using raw_err = raw_error_message_type::from_chars_error;
 		auto [unresolved_char_ptr, err_code] = from_chars_r;
@@ -327,11 +331,12 @@ namespace pdn::detail
 		}
 	}
 
-	inline bool get_escape(auto& oc,    // out param, the result of get escape
-		                   auto& begin, // pointing first char witch after '\'
-		                   auto  end,
-		                   bool  enable_escape_back_quote, // is enable escape sequence \`
-		                   auto  helper)
+	inline bool get_escape(
+		auto& oc,    // out param, the result of get escape
+		auto& begin, // pointing first char witch after '\'
+		auto  end,
+		bool  enable_escape_back_quote, // is enable escape sequence \`
+		auto  helper)
 	{
 		using escape_value_t = ::std::uint_least32_t;
 		using begin_t = ::std::remove_reference_t<decltype(begin)>;
@@ -380,9 +385,7 @@ namespace pdn::detail
 
 			if (begin == end || *begin != U'{')
 			{
-				helper.post_err(position,
-				                escape_error_o_not_followed_by_left_brackets,
-				                to_raw_err_str(u8"o"_em));
+				helper.post_err(position, escape_error_o_not_followed_by_left_brackets, to_raw_err_str(u8"o"_em));
 				return false;
 			}
 			c = *begin;
@@ -412,9 +415,7 @@ namespace pdn::detail
 			if (sequence.empty())
 			{
 				// The contents of the curly braces cannot be empty
-				helper.post_err(position,
-				                escape_error_o_empty_delimited_escape_sequence,
-				                to_raw_err_str(u8"o{}"_em));
+				helper.post_err(position, escape_error_o_empty_delimited_escape_sequence,  to_raw_err_str(u8"o{}"_em));
 				return false;
 			}
 
@@ -431,9 +432,8 @@ namespace pdn::detail
 			}
 			if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
 			{
-				helper.post_err(position,
-				                escape_error_not_unicode_scalar_value,
-				                get_esc_not_scalar_err_msg(u8"o"_em, seq_to_err_msg_str(), parse_val, true));
+				auto msg = get_esc_not_scalar_err_msg(u8"o"_em, seq_to_err_msg_str(), parse_val, true);
+				helper.post_err(position, escape_error_not_unicode_scalar_value, ::std::move(msg));
 				rt_flag = true;
 			}
 			if (rt_flag) [[unlikely]]
@@ -451,9 +451,7 @@ namespace pdn::detail
 
 			if (begin == end)
 			{
-				helper.post_err(position,
-				                escape_error_x_used_with_no_following_hex_digits,
-				                to_raw_err_str(u8"x"_em));
+				helper.post_err(position, escape_error_x_used_with_no_following_hex_digits, to_raw_err_str(u8"x"_em));
 				return false;
 			}
 			c = *begin;
@@ -491,9 +489,8 @@ namespace pdn::detail
 			if (sequence.empty())
 			{
 				// length of hexadecimal number sequence cannot be 0 in \x... and \x{...}
-				helper.post_err(position,
-				                escape_error_x_empty_delimited_escape_sequence,
-				                to_raw_err_str(is_with_curly_brackets ? u8"x{}"_em : u8"x"_em));
+				auto msg = to_raw_err_str(is_with_curly_brackets ? u8"x{}"_em : u8"x"_em);
+				helper.post_err(position, escape_error_x_empty_delimited_escape_sequence, ::std::move(msg));
 				return false;
 			}
 
@@ -511,9 +508,7 @@ namespace pdn::detail
 			if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
 			{
 				auto msg = get_esc_not_scalar_err_msg(u8"x"_em, seq_to_err_msg_str(), parse_val, is_with_curly_brackets);
-				helper.post_err(position,
-				                escape_error_not_unicode_scalar_value,
-				                ::std::move(msg));
+				helper.post_err(position, escape_error_not_unicode_scalar_value, ::std::move(msg));
 				rt_flag = true;
 			}
 			if (rt_flag) [[unlikely]]
@@ -530,9 +525,7 @@ namespace pdn::detail
 			if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 			if (begin == end)
 			{
-				helper.post_err(position,
-				                escape_error_u_incomplete_universal_character_name,
-				                to_raw_err_str(u8"u"_em));
+				helper.post_err(position, escape_error_u_incomplete_universal_character_name, to_raw_err_str(u8"u"_em));
 				return false;
 			}
 			c = *begin;
@@ -561,7 +554,8 @@ namespace pdn::detail
 					if (helper.post_err(
 						position,
 						escape_error_u_not_terminated_with_right_brackets,
-						to_raw_err_str(u8"u{"_em + seq_to_err_msg_str()))) [[unlikely]] return false;
+						to_raw_err_str(u8"u{"_em + seq_to_err_msg_str())))
+						[[unlikely]] return false;
 					if (sequence.empty()) helper.post_err(
 						position,
 						escape_error_u_empty_delimited_escape_sequence,
@@ -575,9 +569,7 @@ namespace pdn::detail
 				if (sequence.empty())
 				{
 					// length of hexadecimal number sequence cannot be 0 in \u{n...}
-					helper.post_err(position,
-					                escape_error_u_empty_delimited_escape_sequence,
-					                to_raw_err_str(u8"u{}"_em));
+					helper.post_err(position, escape_error_u_empty_delimited_escape_sequence, to_raw_err_str(u8"u{}"_em));
 					return false;
 				}
 			}
@@ -586,9 +578,8 @@ namespace pdn::detail
 				if (sequence.size() != 4)
 				{
 					// length of hexadecimal number sequence cannot be number other than 4 in \unnnn
-					helper.post_err(position,
-					                escape_error_u_incomplete_universal_character_name,
-					                to_raw_err_str(u8"u"_em + seq_to_err_msg_str()));
+					auto msg = to_raw_err_str(u8"u"_em + seq_to_err_msg_str());
+					helper.post_err(position, escape_error_u_incomplete_universal_character_name, ::std::move(msg));
 					return false;
 				}
 			}
@@ -606,9 +597,8 @@ namespace pdn::detail
 			}
 			if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
 			{
-				helper.post_err(position,
-				                escape_error_not_unicode_scalar_value,
-				                get_esc_not_scalar_err_msg(u8"u"_em, seq_to_err_msg_str(), parse_val, is_with_curly_brackets));
+				auto msg = get_esc_not_scalar_err_msg(u8"u"_em, seq_to_err_msg_str(), parse_val, is_with_curly_brackets);
+				helper.post_err(position, escape_error_not_unicode_scalar_value, ::std::move(msg));
 				rt_flag = true;
 			}
 			if (rt_flag) [[unlikely]]
@@ -626,9 +616,7 @@ namespace pdn::detail
 
 			if (begin == end)
 			{
-				helper.post_err(position,
-				                escape_error_U_incomplete_universal_character_name,
-				                to_raw_err_str(u8"U"_em));
+				helper.post_err(position, escape_error_U_incomplete_universal_character_name, to_raw_err_str(u8"U"_em));
 				return false;
 			}
 
@@ -640,9 +628,8 @@ namespace pdn::detail
 			if (sequence.size() != 8)
 			{
 				// length of hexadecimal number sequence cannot be number other than 8 in \Unnnnnnnn
-				helper.post_err(position,
-				                escape_error_U_incomplete_universal_character_name,
-				                to_raw_err_str(u8"U"_em + seq_to_err_msg_str()));
+				auto msg = to_raw_err_str(u8"U"_em + seq_to_err_msg_str());
+				helper.post_err(position, escape_error_U_incomplete_universal_character_name, ::std::move(msg));
 				return false;
 			}
 
@@ -659,9 +646,8 @@ namespace pdn::detail
 			}
 			if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
 			{
-				helper.post_err(position,
-				                escape_error_not_unicode_scalar_value,
-				                get_esc_not_scalar_err_msg(u8"U"_em, seq_to_err_msg_str(), parse_val, false));
+				auto msg = get_esc_not_scalar_err_msg(u8"U"_em, seq_to_err_msg_str(), parse_val, false);
+				helper.post_err(position, escape_error_not_unicode_scalar_value, ::std::move(msg));
 				rt_flag = true;
 			}
 			if (rt_flag) [[unlikely]]
@@ -695,9 +681,8 @@ namespace pdn::detail
 				}
 				if (!unicode::is_scalar_value(parse_val)) [[unlikely]]
 				{
-					helper.post_err(position,
-					                escape_error_not_unicode_scalar_value,
-					                get_esc_not_scalar_err_msg(u8""_em, seq_to_err_msg_str(), parse_val, false));
+					auto msg = get_esc_not_scalar_err_msg(u8""_em, seq_to_err_msg_str(), parse_val, false);
+					helper.post_err(position, escape_error_not_unicode_scalar_value, ::std::move(msg));
 					if constexpr (stoppable<helper_t>) if (helper.stop_requested()) [[unlikely]] return false;
 					rt_flag = true;
 				}
@@ -721,11 +706,12 @@ namespace pdn::detail
 	// or to ')' if it is an empty string.
 	// Returns false when the d_seq is longer than 16 or contains illegal characters,
 	// but '(' will be handled by the function just as normal
-	inline bool get_raw_string_opening_d_seq(unicode::ucpstring& out_sequence,
-		                                                   auto& begin,
-		                                                   auto  end,
-		                                                   bool  is_raw_id_s,
-		                                                   auto  helper)
+	inline bool get_raw_string_opening_d_seq(
+		unicode::ucpstring& out_sequence,
+		auto&               begin,
+		auto                end,
+		bool                is_raw_id_s,
+		auto                helper)
 	{
 		// begin pointing:
 		// 
@@ -758,9 +744,8 @@ namespace pdn::detail
 				if constexpr (stoppable<begin_t>) if (begin.stop_requested()) [[unlikely]] return false;
 				if (out_sequence.length() > 16) [[unlikely]]
 				{
-					helper.post_err(position,
-						            d_seq_error_raw_string_delimiter_longer_than_16_characters,
-						            raw_err{ code_convert<err_ms>(out_sequence), is_raw_id_s });
+					auto msg = raw_err{ code_convert<err_ms>(out_sequence), is_raw_id_s };
+					helper.post_err(position, d_seq_error_raw_string_delimiter_longer_than_16_characters, ::std::move(msg));
 					return false;
 				}
 				return !invalid_character_in_raw_string_delimiter;
@@ -793,11 +778,12 @@ namespace pdn::detail
 	//     begin points to the first character that is not processed
 	// On success, the double/back quote is read in and it is skipped,
 	//     so that begin points to the first character after the double/back quote.
-	inline bool get_raw_string_closing_d_seq(unicode::ucpstring_view in_sequence,  // delimiter sequence for reference
-		                                     unicode::ucpstring&     out_sequence, // closing delimiter sequence we are reading
-		                                     auto&                   begin,
-		                                     auto                    end,
-		                                     unicode::code_point_t   end_quote)
+	inline bool get_raw_string_closing_d_seq(
+		unicode::ucpstring_view in_sequence,  // delimiter sequence for reference
+		unicode::ucpstring&     out_sequence, // closing delimiter sequence we are reading
+		auto&                   begin,
+		auto                    end,
+		unicode::code_point_t   end_quote)
 	{
 		using begin_t = ::std::remove_reference_t<decltype(begin)>;
 		using concepts::stoppable;
@@ -843,8 +829,8 @@ namespace pdn::detail
 			using enum raw_error_message_type::number_type;
 			constexpr auto ec = lex_ec::number_cannot_end_with_separator;
 			if (helper.post_err(pos, ec, raw_err{ num_seq_to_ems(), hex_floating })) [[unlikely]] return;
-			[[fallthrough]];
 		}
+			[[fallthrough]];
 		case hex_fp_dec_part_first_after_hex_with_dot: // <<< ERROR STATE
 		case hex_fp_dec_part:          // <<< ERROR STATE
 		case hex_fp_exp_sign_or_first: // <<< ERROR STATE
@@ -881,11 +867,12 @@ namespace pdn::detail
 		}
 	}
 
-	inline void process_string_like_error(dfa_state_code          dfa_state_c,
-		                                  source_position         position,
-		                                  error_msg_string        err_s,
-		                                  unicode::ucpstring_view d_seq,
-		                                  auto                    helper)
+	inline void process_string_like_error(
+		dfa_state_code          dfa_state_c,
+		source_position         position,
+		error_msg_string        err_s,
+		unicode::ucpstring_view d_seq,
+		auto                    helper)
 	{
 		using lex_ec = lexical_error_code;
 		using enum dfa_state_code;
@@ -1122,7 +1109,8 @@ namespace pdn
 					new_dfa_state = dfa_state_objects::start_state();
 					auto cp = unicode::code_point_t(c);
 					auto view = unicode::ucpstring_view{ &cp, 1 };
-					if (post_err(get_pos(), lex_ec::unacceptable_character, detail::to_raw_err_str(code_convert<err_ms>(view)))) [[unlikely]] return result;
+					if (post_err(get_pos(), lex_ec::unacceptable_character, detail::to_raw_err_str(code_convert<err_ms>(view))))
+						[[unlikely]] return result;
 					break;
 				}
 				case infinity:
@@ -1137,19 +1125,22 @@ namespace pdn
 				case identifier_string_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::identifier_string_closed;
-					if (post_err(position, lex_ec::identifier_string_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)))) [[unlikely]] return result;
+					if (post_err(position, lex_ec::identifier_string_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text))))
+						[[unlikely]] return result;
 					goto label_update_dfa_state;
 				}
 				case string_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::string_closed;
-					if (post_err(position, lex_ec::string_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)))) [[unlikely]] return result;
+					if (post_err(position, lex_ec::string_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text))))
+						[[unlikely]] return result;
 					goto label_update_dfa_state;
 				}
 				case character_with_LF:
 				{
 					new_dfa_state = dfa_state_objects::character_closed;
-					if (post_err(position, lex_ec::character_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text)))) [[unlikely]] return result;
+					if (post_err(position, lex_ec::character_literal_terminated_by_LF, detail::to_raw_err_str(code_convert<err_ms>(text))))
+						[[unlikely]] return result;
 					goto label_update_dfa_state;
 				}
 				case start:
@@ -1433,7 +1424,8 @@ namespace pdn
 					number_sequence += char(c);
 					if (cont_n_delimiter_count > 1)
 					{
-						if (post_err(get_pos(), lex_ec::more_than_one_separators_between_numbers, detail::to_raw_err_str(num_seq_to_ems()))) [[unlikely]] return result;
+						if (post_err(get_pos(), lex_ec::more_than_one_separators_between_numbers, detail::to_raw_err_str(num_seq_to_ems())))
+							[[unlikely]] return result;
 					}
 					cont_n_delimiter_count = 0;
 					break;
@@ -1573,14 +1565,16 @@ namespace pdn
 			case fp_exp_with_quote:       // <<< ERROR STATE
 				if (dfa_state.state_code == fp_exp_sign_or_first || dfa_state.state_code == fp_exp_first)
 				{
-					if (post_err(position, lex_ec::fp_dec_expect_exponent, detail::to_raw_err_str(num_seq_to_ems()))) [[unlikely]] return result;
+					if (post_err(position, lex_ec::fp_dec_expect_exponent, detail::to_raw_err_str(num_seq_to_ems())))
+						[[unlikely]] return result;
 					number_sequence += '0'; // add 0 for exponent
 				}
 				else if (dfa_state.state_code == fp_dec_part_with_quote || dfa_state.state_code == fp_exp_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
 					using enum raw_error_message_type::number_type;
-					if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), dec_floating })) [[unlikely]] return result;
+					if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), dec_floating }))
+						[[unlikely]] return result;
 				}
 				[[fallthrough]];
 			case fp_dec_part_first_after_dec_with_dot:
@@ -1612,9 +1606,10 @@ namespace pdn
 			{
 				using raw_err = raw_error_message_type::number_end_with_separator;
 				using enum raw_error_message_type::number_type;
-				if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), oct_integer })) [[unlikely]] return result;
-				[[fallthrough]];
+				if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), oct_integer }))
+					[[unlikely]] return result;
 			}
+				[[fallthrough]];
 			case zero:
 			case oct_seq:
 			{
@@ -1639,14 +1634,16 @@ namespace pdn
 			case bin_seq_with_quote:  // <<< ERROR STATE
 				if (dfa_state.state_code == bin_seq_first)
 				{
-					if (post_err(position, lex_ec::bin_prefix_expect_bin_number_sequence, detail::to_raw_err_str(num_seq_to_ems()))) [[unlikely]] return result;
+					if (post_err(position, lex_ec::bin_prefix_expect_bin_number_sequence, detail::to_raw_err_str(num_seq_to_ems())))
+						[[unlikely]] return result;
 					number_sequence += '0';
 				}
 				else if (dfa_state.state_code == bin_seq_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
 					using enum raw_error_message_type::number_type;
-					if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), bin_integer })) [[unlikely]] return result;
+					if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), bin_integer }))
+						[[unlikely]] return result;
 				}
 				[[fallthrough]];
 			case bin_seq:
@@ -1673,14 +1670,16 @@ namespace pdn
 			case hex_seq_with_quote:  // <<< ERROR STATE
 				if (dfa_state.state_code == hex_seq_first)
 				{
-					if (post_err(position, lex_ec::hex_prefix_expect_hex_number_sequence, detail::to_raw_err_str(num_seq_to_ems()))) [[unlikely]] return result;
+					if (post_err(position, lex_ec::hex_prefix_expect_hex_number_sequence, detail::to_raw_err_str(num_seq_to_ems())))
+						[[unlikely]] return result;
 					number_sequence += '0';
 				}
 				else if (dfa_state.state_code == hex_seq_with_quote)
 				{
 					using raw_err = raw_error_message_type::number_end_with_separator;
 					using enum raw_error_message_type::number_type;
-					if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_integer })) [[unlikely]] return result;
+					if (post_err(position, lex_ec::number_cannot_end_with_separator, raw_err{ num_seq_to_ems(), hex_integer }))
+						[[unlikely]] return result;
 				}
 				[[fallthrough]];
 			case hex_seq:

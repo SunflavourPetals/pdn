@@ -112,7 +112,8 @@ namespace pdn
 						if (post_err(tk.position, syn_ec::entity_redefine, raw_err_iden{ code_convert<err_ms>(*iden_p) }))
 							[[unlikely]] return;
 						parse_decl(begin, end);
-						if (stop_requested()) [[unlikely]] return;
+						if (stop_requested())
+							[[unlikely]] return;
 					}
 				}
 				else
@@ -120,20 +121,23 @@ namespace pdn
 					using parser_utility::to_raw_error_token;
 					if (tk.code == semicolon)
 					{
-						if (update_token(begin, end)) [[unlikely]] return;
+						if (update_token(begin, end))
+							[[unlikely]] return;
 					}
 					else if (is_expr_first(tk.code))
 					{
 						if (post_err(tk.position, syn_ec::expect_entity_name, to_raw_error_token(tk)))
 							[[unlikely]] return;
 						parse_expr(begin, end);
-						if (stop_requested()) [[unlikely]] return;
+						if (stop_requested())
+							[[unlikely]] return;
 					}
 					else
 					{
 						if (post_err(tk.position, syn_ec::expect_definition_of_named_entity, to_raw_error_token(tk)))
 							[[unlikely]] return;
-						if (update_token(begin, end)) [[unlikely]] return;
+						if (update_token(begin, end))
+							[[unlikely]] return;
 					}
 				}
 			}
@@ -150,17 +154,21 @@ namespace pdn
 			type_code type_c = type_code::unknown;
 			auto type_pos = tk.position;
 
-			if (update_token(begin, end)) [[unlikely]] return default_ent(type_c);
+			if (update_token(begin, end))
+				[[unlikely]] return default_ent(type_c);
 			if (tk.code == colon)
 			{
-				if (update_token(begin, end)) [[unlikely]] return default_ent(type_c);
+				if (update_token(begin, end))
+					[[unlikely]] return default_ent(type_c);
 				type_pos = tk.position;
 
 				if (tk.code == identifier)
 				{
 					type_c = parse_type_spec();
-					if (stop_requested()) [[unlikely]] return default_ent(type_c);
-					if (update_token(begin, end)) [[unlikely]] return default_ent(type_c);
+					if (stop_requested())
+						[[unlikely]] return default_ent(type_c);
+					if (update_token(begin, end))
+						[[unlikely]] return default_ent(type_c);
 					// ... iden : typename CURPOS(expect expr) ...
 				}
 				// ... iden : CURPOS(expect expr) ...
@@ -435,8 +443,10 @@ namespace pdn
 			if (tk.code == pdn_token_code::identifier)
 			{
 				type_c = parse_type_spec();
-				if (stop_requested()) [[unlikely]] return default_ent(type_c);
-				if (update_token(begin, end)) [[unlikely]] return default_ent(type_c);
+				if (stop_requested())
+					[[unlikely]] return default_ent(type_c);
+				if (update_token(begin, end))
+					[[unlikely]] return default_ent(type_c);
 				if (tk.code == pdn_token_code::colon)
 				{
 					if (update_token(begin, end))
@@ -491,7 +501,8 @@ namespace pdn
 					if (auto it = result.find(*iden_p); it == result.end())
 					{
 						result[::std::move(*iden_p)] = parse_decl(begin, end);
-						if (stop_requested()) [[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
+						if (stop_requested())
+							[[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 					}
 					else
 					{
@@ -499,7 +510,8 @@ namespace pdn
 						if (post_err(tk.position, syn_ec::entity_redefine, raw_err_iden{ code_convert<err_ms>(*iden_p) }))
 							[[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 						parse_decl(begin, end);
-						if (stop_requested()) [[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
+						if (stop_requested())
+							[[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 					}
 				}
 				else if (tk.code == pdn_token_code::semicolon)
@@ -514,7 +526,8 @@ namespace pdn
 					if (post_err(tk.position, syn_ec::expect_entity_name, to_raw_error_token(tk)))
 						[[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 					parse_expr(begin, end);
-					if (stop_requested()) [[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
+					if (stop_requested())
+						[[unlikely]] return make_proxy<type::object<char_t>>(::std::move(result));
 				}
 				else if (tk.code == pdn_token_code::eof)
 				{
