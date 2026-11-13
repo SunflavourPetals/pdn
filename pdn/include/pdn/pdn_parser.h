@@ -764,7 +764,7 @@ namespace pdn
 			{
 				tk = ::std::move(*begin);
 				++begin;
-				if constexpr (concepts::stoppable<::std::remove_reference_t<decltype(begin)>>)
+				if constexpr (concepts::stoppable<decltype(begin)>)
 				{
 					if (begin.stop_requested()) [[unlikely]]
 					{

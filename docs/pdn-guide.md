@@ -1296,10 +1296,10 @@ int main()
 
 ```C++
 template <typename type>
-concept stoppable = requires(add_const_t<type> stop)
+concept stoppable = requires(add_const_t<remove_reference_t<type>> stop)
 {
-    { stop.stop_requested() } -> convertible_to<bool>;
-    { stop.stop_reason() } -> convertible_to<stop_reason_code>;
+    { stop.stop_requested() } -> same_as<bool>;
+    { stop.stop_reason() } -> same_as<stop_reason_code>;
 };
 ```
 

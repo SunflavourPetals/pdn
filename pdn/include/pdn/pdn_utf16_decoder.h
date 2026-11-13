@@ -107,7 +107,7 @@ namespace pdn::unicode::utf16
 			{
 				result.code_point = ((result.code_point & value_type(0x03FF)) << 10) + value_type(0x10000U);
 				to_next(begin, result);
-				if constexpr (pdn::concepts::stoppable<::std::remove_reference_t<decltype(begin)>>)
+				if constexpr (pdn::concepts::stoppable<decltype(begin)>)
 				{
 					if (begin.stop_requested()) [[unlikely]]
 					{
