@@ -12,6 +12,9 @@
 
 namespace pdn::type::detail
 {
+	// The alternatives an entity<char_t> stores, in this order. The order is only the variant's
+	// index order (so `index()` and value-initialization follow it - the first alternative, i32,
+	// is what a value-initialized entity holds); it is not related to type_code's order.
 	template <typename char_t>
 	using entity_variant = ::std::variant<
 		i32, i64, i8, i16,
@@ -26,6 +29,13 @@ namespace pdn::type::detail
 
 namespace pdn::detail
 {
+	// The conversion rules of the as_* family, for the types an entity can hold:
+	// - boolean, integer and floating point arguments convert; a value out of the target's range
+	//   is clamped to the target's min/max (a plain static_cast would be undefined behavior), and
+	//   a NaN becomes 0 (as_int, as_uint) or false (as_bool);
+	// - character, string, list and object arguments never convert (PDN has no such rule), so
+	//   they yield 0 / false / an empty value.
+	// The target type is the second template parameter and defaults to i64 / u64 / f64.
 	using as_int_default_t  = type::i64;
 	using as_uint_default_t = type::u64;
 	using as_fp_default_t   = type::f64;
@@ -132,6 +142,11 @@ namespace pdn::detail
 		}
 	}
 
+	// Front for the entity accessors: each static member takes one variant alternative and returns
+	// the converted value. as_string / as_list / as_object return a reference to a single shared
+	// empty value when the alternative does not hold that type (never null, stable address, the
+	// reference stays valid for the lifetime of the program), and as_char returns a default
+	// character in the same situation.
 	template <typename char_t>
 	struct as_accessor
 	{
@@ -231,6 +246,8 @@ namespace pdn::detail
 
 namespace pdn::detail
 {
+	// True when the entity stores the type behind proxy<t> rather than as the alternative itself.
+	// get<T> / get_if<T> / get_opt<T> consult this to decide whether to unwrap the proxy.
 	template <typename t>
 	struct has_proxy
 	{
@@ -257,6 +274,10 @@ namespace pdn::detail
 
 namespace pdn::detail
 {
+	// Type tags: the runtime spelling of the second parameter of as_int(tag) / as_uint(tag) /
+	// as_fp(tag) / as<T>(tag). Each tag names one PDN type; tag_to_type below maps it back to the
+	// C++ type it stands for (the character and string tags exist because their mapping depends on
+	// the entity's char_t).
 	struct auto_int_tag_t {};
 	struct i8_tag_t {};
 	struct i16_tag_t {};
@@ -284,6 +305,8 @@ namespace pdn::detail
 
 namespace pdn::detail
 {
+	// Tag families. The *_tag concepts accept only the tags above; *_or_tag also accept the C++
+	// type they stand for (so both as_int(pdn::i8_tag) and as_int<pdn::type::i8>(entity) work).
 	template <typename tag_t>
 	concept sint_tag
 		 = ::std::same_as<tag_t, auto_int_tag_t>
@@ -339,6 +362,10 @@ namespace pdn::detail
 		|| ::std::same_as<tag_t, list_tag_t>
 		|| ::std::same_as<tag_t, object_tag_t>;
 
+	// basic_type here means the u8 flavored basic types (the flavour type::concepts::basic_type
+	// uses for its char_t parameter) plus the two other character types. as_tparam is what the
+	// tag overloads accept; as_tparam_pure additionally accepts the spellings that name a concrete
+	// character or container type (u8/u16/u32string, list<char_t>, object<char_t>) for as<T>.
 	template <typename t>
 	concept basic_type
 		 = type::concepts::basic_type<t, unicode::u8char_t>
@@ -355,7 +382,7 @@ namespace pdn::detail
 		|| ::std::same_as<tar_t, type::u16string>
 		|| ::std::same_as<tar_t, type::u32string>
 		|| ::std::same_as<tar_t, type::list<char_t>>
-		|| ::std::same_as<tar_t, type::object<char_t>>;;
+		|| ::std::same_as<tar_t, type::object<char_t>>;
 }
 
 namespace pdn::detail
@@ -412,7 +439,13 @@ namespace pdn::detail
 	template <typename tag_t, typename char_t>
 	using tag_to_type_t = typename tag_to_type<tag_t, char_t>::type;
 
-	// return type helper for pdn::as series function
+	// Return type of the as_* / as<T> family:
+	// - scalar, boolean and character targets are returned by value;
+	// - string / list / object targets are returned by const reference, because the entity already
+	//   owns them (as_string on the wrong alternative returns a reference to a shared empty value);
+	// - a string target whose character type differs from the entity's is converted, and such a
+	//   converted string is returned by value.
+	// Any other target makes the primary template's static_assert fire.
 	template <typename target_t, typename char_t>
 	struct as_rttype
 	{
