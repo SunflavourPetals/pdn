@@ -8,7 +8,6 @@
 #include "pdn_false.h"
 #include "pdn_type_code.h"
 #include "pdn_unicode_base.h"
-#include "pdn_type_generator.h"
 
 namespace pdn::detail
 {
@@ -71,6 +70,12 @@ namespace pdn::detail
 
 namespace pdn
 {
+	// The type names and aliases listed by docs/pdn-reference.md (the section that enumerates the
+	// standard aliases), plus two non-standard spellings, cppint and cppuint, which docs/pdn-guide.md
+	// notes as accepted by this implementation only. int/i and uint/u resolve through
+	// type::auto_int and type::auto_uint, i.e. to whichever fixed-width type C++ int/unsigned int
+	// is, with i32/u32 as the fallback. The u16/u32 tables are derived from this one, which is
+	// safe because every type name is ASCII.
 	template <typename char_t>
 	class type_table
 	{
@@ -111,10 +116,10 @@ namespace pdn
 			self[u8"list"_s]      = list;
 			self[u8"object"_s]    = object;
 			self[u8"obj"_s]       = object;
-			self[u8"cppint"_s]    = pl_int;
+			self[u8"cppint"_s]    = pl_int; // non-standard type name
 			self[u8"int"_s]       = pl_int;
 			self[u8"i"_s]         = pl_int;
-			self[u8"cppuint"_s]   = pl_uint;
+			self[u8"cppuint"_s]   = pl_uint; // non-standard type name
 			self[u8"uint"_s]      = pl_uint;
 			self[u8"u"_s]         = pl_uint;
 		}

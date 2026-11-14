@@ -448,6 +448,8 @@ score 100 // 分数的范围为 0 到 100 分
 
 在 `spdn` 里浮点数形式的的数据都是 `f64` 类型的，想要得到 `f32` 类型的数据只能使用[类型指定](#类型指定的语法)来转换，将整数转换为 `f32` 浮点数：`num1:f32 123`；将 `f64` 浮点数转换为 `f32` 浮点数：`num2:f32 123.0`。  
 
+此外，本库的实现还额外接受两个非标准拼写 `cppint` 与 `cppuint`，分别等价于 `int`、`uint`。它们只是实验内容，不属于 PDN 规范。  
+
 [数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
 [整数字面量参考 pdn_reference](./pdn-reference.md#整数字面量)  
 [浮点数字面量参考 pdn_reference](./pdn-reference.md#浮点数字面量)  
