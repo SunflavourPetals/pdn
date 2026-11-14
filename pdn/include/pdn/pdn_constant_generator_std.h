@@ -134,9 +134,9 @@ namespace pdn
 			self[u8"inv_sqrt3"_s]     = inv_sqrt3;
 			self[u8"egamma"_s]        = egamma;
 			self[u8"phi"_s]           = phi;
-			self[u8"\u03C0"_s]        = pi;     // Greek Small Letter Pi,    not std
-			self[u8"\u03B3"_s]        = egamma; // Greek Small Letter Gamma, not std
-			self[u8"\u03A6"_s]        = phi;    // Greek Capital Letter Phi, not std
+			self[u8"\u03C0"_s]        = pi;     // non-standard, Greek Small Letter Pi
+			self[u8"\u03B3"_s]        = egamma; // non-standard, Greek Small Letter Gamma
+			self[u8"\u03A6"_s]        = phi;    // non-standard, Greek Capital Letter Phi
 			self[u8"infinity"_s]      = f64_inf;
 			self[u8"inf"_s]           = f64_inf;
 			self[u8"quiet_NaN"_s]     = f64_qNaN;
@@ -147,9 +147,9 @@ namespace pdn
 			self[u8"signaling_NaN"_s] = f64_sNaN;
 			self[u8"sNaN"_s]          = f64_sNaN;
 			self[u8"snan"_s]          = f64_sNaN;
-			self[u8"hello"_s]         = detail::test_string_hello<char_t>(); // not std
-			self[u8"fib_10_list"_s]   = detail::test_list_fib_10<char_t>();  // not std
-			self[u8"me_object"_s]     = detail::test_object_me<char_t>();    // not std
+			self[u8"hello"_s]         = detail::test_string_hello<char_t>(); // non-standard
+			self[u8"fib_10_list"_s]   = detail::test_list_fib_10<char_t>();  // non-standard
+			self[u8"me_object"_s]     = detail::test_object_me<char_t>();    // non-standard
 		}
 		static auto instance() -> const constant_table<char_t>&
 		{
