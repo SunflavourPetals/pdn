@@ -151,9 +151,9 @@ namespace pdn
 				}
 				++offset;
 			}
+			using decision = unicode::convert_decision<::std::basic_string_view<code_unit_type>, unicode::ucpstring>;
 			while (!eof())
 			{
-				using decision = unicode::convert_decision<::std::basic_string_view<code_unit_type>, unicode::ucpstring>;
 				auto result = decision::template decode<false>(begin, end);
 				offset += result.distance();
 				if (result) [[likely]]
