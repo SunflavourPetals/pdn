@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <cstddef>
-#include <stdexcept>
 
 #include "pdn_error_message.h"
 #include "pdn_error_handler_concept.h"
@@ -23,6 +23,9 @@ namespace pdn::detail
 
 namespace pdn
 {
+	// Collects errors: prints each message to std::cerr (or to the stream passed in) and counts them.
+	// handle_error() without a message only counts. The handler holds per-parse state, so call
+	// clear() before reusing it.
 	class default_error_handler
 	{
 	public:
@@ -54,6 +57,9 @@ namespace pdn
 	};
 	static_assert(concepts::error_handler<default_error_handler>);
 
+	// Wraps default_error_handler, counts the errors and asks to stop with parse_error_limit once the
+	// accumulated count reaches limit (hence limit == 0 stops at the first error). The first stop
+	// reason wins; clear() resets both the count and the stop reason.
 	class default_threshold_error_handler
 	{
 	public:
