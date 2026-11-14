@@ -4,15 +4,22 @@
 #include <system_error>
 #include <cstddef>
 
-#include "pdn_type.h"
-#include "pdn_unicode.h"
+#include "pdn_unicode_base.h"
+#include "pdn_utf_decoder.h"
+#include "pdn_utf_encoder.h"
 #include "pdn_error_string.h"
 #include "pdn_token_value_variant.h"
 #include "pdn_token.h"
 #include "pdn_type_code.h"
 
+// The payload types carried by error codes. A lexical or syntax error code names one of these structs in
+// the "extra(T)" annotation next to the enumerator, and the message generator reports the error by reading
+// that structure (pdn_raw_error_message_variant.h wraps them into one std::variant). The types are plain
+// aggregates: their fields are exactly what the reporting site knows and the message text needs.
 namespace pdn::raw_error_message_type
 {
+	// Decoding and encoding failures carry the codec result plus, for decoding, the code unit that could not
+	// be consumed and its offset (the decoder stops at the last unit of the malformed sequence).
 	struct utf8_decode_error final
 	{
 		unicode::utf8::decode_result result;
