@@ -15,7 +15,7 @@ namespace pdn
 	// while parsing. The alternative order is an implementation detail; do not rely on
 	// variant::index().
 	using error_code_variant = ::std::variant<
-		unicode::utf8 ::decode_error_code,
+		unicode::utf8::decode_error_code,
 		unicode::utf16::decode_error_code,
 		unicode::utf32::decode_error_code,
 		lexical_error_code,
