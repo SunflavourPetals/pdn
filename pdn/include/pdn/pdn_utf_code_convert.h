@@ -1,10 +1,10 @@
 #ifndef PDN_Header_pdn_utf_code_convert
 #define PDN_Header_pdn_utf_code_convert
 
-#include <string>
-#include <utility>
+#include <concepts>
+#include <cstddef>
 #include <iterator>
-#include <type_traits>
+#include <string>
 
 #include "pdn_unicode.h"
 #include "pdn_convert_decision.h"
@@ -20,12 +20,21 @@ namespace pdn::unicode::detail
 	template <typename cvt_src, typename cvt_des>
 	using dec_char = typename convert_decision<cvt_src, cvt_des>::target_char;
 
+	// A handler answers "finish converting now?" for one failed code point; it may write more code
+	// units into the target it is given. Received: the target built so far, the failed result and the
+	// source offset (in code units, from the start of the source) where the failure happened.
+	template <typename handler_t, typename target_t, typename result_t>
+	concept code_convert_handler = requires(handler_t handler, target_t& target, result_t result, ::std::size_t offset)
+	{
+		{ handler(target, result, offset) } -> ::std::convertible_to<bool>;
+	};
+
 	template <typename cvt_src, typename cvt_des>
 	bool default_decode_error_handler(cvt_des& des, dec_res<cvt_src, cvt_des>, ::std::size_t)
 	{
 		// replace with Replacement Character
 		auto rep = get_replace<dec_char<cvt_src, cvt_des>>();
-		des.append(rep.cbegin(), rep.cend());
+		des.insert(des.end(), rep.cbegin(), rep.cend());
 		// return true to finish converting, return false to continue
 		return false;
 	}
@@ -35,7 +44,7 @@ namespace pdn::unicode::detail
 	{
 		// replace with Replacement Character
 		auto rep = get_replace<dec_char<cvt_src, cvt_des>>();
-		des.append(rep.cbegin(), rep.cend());
+		des.insert(des.end(), rep.cbegin(), rep.cend());
 		// return true to finish converting, return false to continue
 		return false;
 	}
@@ -43,15 +52,24 @@ namespace pdn::unicode::detail
 
 namespace pdn::unicode
 {
+	// Decodes source one code point at a time and appends it to the result in the target encoding.
+	// decode<true> consumes the whole sequence it looked at even when it reports an error, so the
+	// loop always advances while a handler returns false; returning true from a handler ends the
+	// conversion and keeps whatever was already appended.
 	// param decode_error_handler: see detail::default_decode_error_handler
 	// param encode_error_handler: see detail::default_encode_error_handler
-	template <typename target_string,
-	          typename source_string_view,
-	          typename decode_error_handler_t,
-	          typename encode_error_handler_t>
-	auto code_convert(const source_string_view& source,
-	                         decode_error_handler_t    decode_error_handler,
-	                         encode_error_handler_t    encode_error_handler) -> target_string
+	template <
+		typename target_string,
+		typename source_string_view,
+		typename decode_error_handler_t,
+		typename encode_error_handler_t>
+		requires
+			detail::code_convert_handler<decode_error_handler_t, target_string, detail::dec_res<source_string_view, target_string>> &&
+			detail::code_convert_handler<encode_error_handler_t, target_string, detail::enc_res<source_string_view, target_string>>
+	auto code_convert(
+		const source_string_view& source,
+		decode_error_handler_t    decode_error_handler,
+		encode_error_handler_t    encode_error_handler) -> target_string
 	{
 		using decision = convert_decision<source_string_view, target_string>;
 
@@ -61,7 +79,7 @@ namespace pdn::unicode
 		{
 			auto curr = begin;
 			auto decode_result = decision::template decode<true>(begin, ::std::cend(source));
-			if (!decode_result)
+			if (!decode_result) [[unlikely]]
 			{
 				if (decode_error_handler(convert_result, decode_result, static_cast<::std::size_t>(curr - ::std::cbegin(source))))
 				{
@@ -70,7 +88,7 @@ namespace pdn::unicode
 				continue;
 			}
 			auto encode_result = decision::encode(decode_result.value());
-			if (!encode_result)
+			if (!encode_result) [[unlikely]]
 			{
 				if (encode_error_handler(convert_result, encode_result, static_cast<::std::size_t>(curr - ::std::cbegin(source))))
 				{
@@ -78,7 +96,7 @@ namespace pdn::unicode
 				}
 				continue;
 			}
-			convert_result.append(encode_result.cbegin(), encode_result.cend());
+			convert_result.insert(convert_result.end(), encode_result.cbegin(), encode_result.cend());
 		}
 		return convert_result;
 	}

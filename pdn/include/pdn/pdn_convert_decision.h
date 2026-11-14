@@ -28,12 +28,12 @@ namespace pdn::unicode::concepts
 		{
 			typename string_t::value_type;
 			requires ::std::same_as<typename string_t::value_type, code_unit_t>;
-			destination.append(s.cbegin(), s.cend());
+			destination.insert(destination.end(), s.cbegin(), s.cend());
 		};
 	}
 
 	// A source is a string-like sequence of one code unit type (string, string_view, vector,
-	// array, deque); a destination is anything with append(first, last) over that same code unit
+	// array, deque); a destination is anything with insert(end(), first, last) over that same code
 	// type. Only the code unit types matter to convert_decision below, not the containers
 	// themselves.
 	template <typename string_t> concept utf8_convert_src  = detail::convert_src_base<string_t, u8char_t>;
