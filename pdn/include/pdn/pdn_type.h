@@ -6,6 +6,22 @@
 #include "pdn_unicode_base.h"
 #include "pdn_entity_forward_decl.h"
 
+// The public type names of the library, all in pdn::type: the configured string and character
+// types, plus the encoding-specific spellings below. (The integer, floating point and boolean
+// names come in through pdn_type_basic.h.)
+//
+// list and object are built on entity, which is only forward declared here: pdn_entity.h
+// includes this header to name its own members, so including pdn_entity.h back would close a
+// cycle. Naming these aliases needs nothing more, but anything that needs entity's definition
+// (creating elements, iterating, comparing) also needs pdn_entity.h.
+//
+// The storage behind each name is a configuration decision (see pdn_type_config.h): string is
+// std::basic_string, list is std::vector, object is std::unordered_map or, with
+// PDN_ENABLE_ORDERED_MAP, the insertion-ordered detail::ordered_map.
+//
+// u8char/u16char/u32char are single character values (character<char_t>), not code units; the
+// code unit types are unicode::u8char_t/u16char_t/u32char_t.
+
 namespace pdn::type
 {
 	using config::string;
