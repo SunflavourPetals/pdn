@@ -6,6 +6,11 @@
 
 namespace pdn
 {
+	// Maps a C++ type back to the PDN type code that entity reports for a value of it.
+	// The key is exact: cv-qualified and reference forms do not match, and for the
+	// character/string/list/object families char_t is part of the key, so a u8string
+	// does not match a utf-16 mapping. The primary template answers unknown, which is
+	// also the answer for void and for types PDN has no notion of.
 	template <typename unknown_type, typename char_t>
 	struct type_to_type_code
 	{

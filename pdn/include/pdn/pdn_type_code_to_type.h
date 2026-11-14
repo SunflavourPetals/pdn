@@ -6,6 +6,11 @@
 
 namespace pdn
 {
+	// Maps a PDN type code to the C++ type that entity stores: the fixed-width aliases
+	// from pdn_type_basic.h for scalars, and the character/string/list/object templates
+	// instantiated with the caller's char_t. The primary template answers void, so
+	// type_code::unknown (and any future code without a specialization) maps to a type
+	// that no PDN value has.
 	template <type_code type_c, typename char_t>
 	struct type_code_to_type
 	{
