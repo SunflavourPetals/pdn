@@ -1150,6 +1150,7 @@ public:
     static auto generate_constant(const pdn::unicode::u8string& iden) -> ::std::optional<pdn::entity<char_t>>;
     
     // function_package 必需品：类型指定时生成类型码供 parser 使用，不要求 static
+    // 当 iden 不是 PDN 的类型名时返回 type_code::unknown，parser 会据此报告 unknown_type 语法错误
     static auto generate_type(const type::string<char_t>& iden) -> type_code;
     
     // 无需关注
