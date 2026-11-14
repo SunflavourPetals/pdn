@@ -332,7 +332,7 @@ string_test: {
 		];
 		oct: [
 			"\0A00£ǿ",
-			"\07A70807£7ǿ777",
+			"\o{0}7A70807£7ǿ777",
 		];
 		oct_with_curly_brackets: [
 			"Aa01",
