@@ -2,7 +2,6 @@
 #define PDN_Header_pdn_constant_generator_std
 
 #include <cstddef>
-#include <variant>
 #include <numbers>
 #include <limits>
 #include <optional>
@@ -12,11 +11,17 @@
 #include "pdn_unicode_base.h"
 #include "pdn_type.h"
 #include "pdn_proxy.h"
-#include "pdn_token_value_variant.h"
 #include "pdn_entity.h"
 
+// The default constant table behind default_constant_generator. Keys are the spellings of At
+// identifiers without the leading '@'; the lexer always stores an At identifier as UTF-8 text,
+// whatever char_t the token uses, so the keys are UTF-8 regardless of char_t, while the values
+// are entities in char_t.
+// The table holds the identifiers the reference requires, plus a few non-standard entries used
+// by the feature tests (Greek letters, @hello, @fib_10_list, @me_object).
 namespace pdn::detail
 {
+	// Transparent, so the table can be queried with a u8string_view without building a key.
 	struct constant_table_key_hasher
 	{
 		using is_transparent = void; // enables heterogeneous operations.
@@ -33,6 +38,8 @@ namespace pdn::detail
 		constant_table_key_hasher,
 		::std::equal_to<>>;
 
+	// Non-standard fixtures used by the feature tests; the reference documents them as
+	// test-only extras.
 	template <typename char_t>
 	auto test_string_hello() -> entity<char_t>
 	{
@@ -84,6 +91,10 @@ namespace pdn::detail
 
 namespace pdn
 {
+	// 51 entries: the 45 identifiers the reference requires (type min/max pairs, int/uint
+	// min/max, true/false, std::numbers, infinity/inf, quiet/signaling NaN aliases) plus the 6
+	// non-standard entries above. The bare character U+221E is not a table key: the lexer turns
+	// it into the At identifier "infinity" while scanning.
 	template <typename char_t>
 	class constant_table : public detail::constant_table_base<char_t>
 	{
@@ -158,10 +169,13 @@ namespace pdn
 		}
 	};
 
+	// Returns a copy of the constant's value (proxy-bearing entities deep-copy), or nullopt when
+	// the identifier is unknown.
 	template <typename char_t>
 	auto constant_generator_std_function(const unicode::u8string& s) -> ::std::optional<entity<char_t>>
 	{
-		if (auto result = constant_table<char_t>::instance().find(s); result != constant_table<char_t>::instance().end())
+		const auto& table = constant_table<char_t>::instance();
+		if (auto result = table.find(s); result != table.end())
 		{
 			return ::std::make_optional<entity<char_t>>(result->second);
 		}
