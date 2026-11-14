@@ -7,6 +7,7 @@
 #include <variant>
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <optional>
 #include <exception>
 #include <stdexcept>
@@ -120,6 +121,8 @@ namespace pdn::detail
 
 namespace pdn
 {
+	// A nullable, read-only view of an entity. It stores only a pointer, so copying is cheap; an empty
+	// refer (no pointer) is how at() reports a miss, a type mismatch and an out-of-range index.
 	template <typename char_t>
 	class const_refer : public detail::crtp_accessor<const_refer<char_t>, char_t>
 	{
@@ -154,6 +157,8 @@ namespace pdn
 		const entity_type* ptr{};
 	};
 
+	// A nullable, mutable view of an entity; get() casts the pointer held by const_refer back to
+	// non-const, so a refer obtained from a non-const entity can be used to modify the entity.
 	template <typename char_t>
 	class refer : public const_refer<char_t>
 	{
@@ -195,6 +200,11 @@ namespace pdn
 
 namespace pdn
 {
+	// A value of a PDN document: a std::variant of the fifteen PDN types (type::detail::entity_variant).
+	// A default constructed entity holds type::i32{ 0 }. String, list and object are stored behind
+	// pdn::proxy so the variant itself stays small; copying an entity deep-copies those proxies.
+	// The variant is a public base, so std::get and std::visit can be used as an escape hatch; the
+	// accessors below are the intended interface and translate a proxy back to its value.
 	template <typename char_t = unicode::u8char_t>
 	class entity : public detail::crtp_accessor_e<entity<char_t>, char_t>, public type::detail::entity_variant<char_t>
 	{
@@ -281,6 +291,8 @@ namespace pdn
 			return refer<char_type>{};
 		}
 
+	// Indexed access without bounds or type checking, like std::vector::operator[]; a non-list entity
+	// throws std::bad_variant_access. Use at() for a checked form that returns an empty refer on a miss.
 		auto operator[](index_type index) const& -> const entity&
 		{
 			return get<list>(*this)[index];
@@ -334,6 +346,9 @@ namespace pdn
 		}
 	};
 
+	// Value equality: entities holding different alternatives are never equal, and string, list and
+	// object are compared through their proxies' values (objects therefore compare irrespective of
+	// insertion order). A null refer compares equal only to another null refer.
 	template <typename char_t>
 	auto operator==(const entity<char_t>& lhs, const entity<char_t>& rhs) -> bool
 	{
@@ -814,6 +829,10 @@ namespace pdn
 // get, get_if, get_opt, type_test accessors
 namespace pdn
 {
+	// get() unwraps a proxy: get<type::string<char_t>>(e) returns the string itself rather than
+	// proxy<string>. get_if() is deleted for rvalues, because the pointer it would return points
+	// into the temporary entity; get() on an rvalue returns a reference into the moved-out value and
+	// is only valid until the end of the full expression.
 	template <typename target_t, typename char_t>
 	[[nodiscard]] constexpr auto get(const entity<char_t>& e) -> const target_t&
 	{
@@ -973,6 +992,7 @@ namespace pdn
 		return (type_test<target_ts>(e) || ...);
 	}
 
+	// An empty refer reports type_code::unknown; this is the only type a refer can report without
 	template <typename char_t>
 	[[nodiscard]] constexpr auto type_of(const entity<char_t>& e) -> type_code
 	{
