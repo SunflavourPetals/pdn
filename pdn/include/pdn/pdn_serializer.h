@@ -24,7 +24,8 @@
 #include "pdn_type_to_type_code.h"
 #include "pdn_type_code_to_error_msg_string.h"
 
-#include "pdn_unicode.h"
+#include "pdn_unicode_base.h"
+#include "pdn_utf_decoder.h"
 #include "pdn_utf_code_convert.h"
 
 #include "pdn_proxy.h"
@@ -33,6 +34,13 @@
 
 #include "pdn_false.h"
 
+// The serializer writes an object entity back to PDN text: the body of the top-level object
+// (one definition per member), which is what a .spdn file contains.
+//
+// A type specification is written only where PDN implicit typing would otherwise change the type
+// on re-parse: f64, boolean, character and string need none; every other type is written as
+// "name: type value". Values without a literal form use the At constant that reproduces them
+// (@inf, -@inf, @NaN, @i64_min, and the <numbers> constants by name).
 namespace pdn::detail
 {
 	template <typename t>
@@ -49,7 +57,10 @@ namespace pdn::detail
 		return result;
 	}
 
-	// inf and nan not support
+	// Doesn't support inf and nan
+	// Exact-value tables for the <numbers> constants: a value bit-equal to one of them is written
+	// as its @-name. The f32 table holds the f32-rounded values, so it also matches a value that
+	// went through a f64 -> f32 conversion. inf and nan are handled separately.
 	template <typename char_t>
 	class f64_at_constant_string_table : public ::std::unordered_map<type::f64, type::string<char_t>>
 	{
@@ -82,7 +93,7 @@ namespace pdn::detail
 		}
 	};
 
-	// inf and nan not support
+	// Doesn't support inf and nan
 	template <typename char_t>
 	class f32_at_constant_string_table : public ::std::unordered_map<type::f32, type::string<char_t>>
 	{
@@ -120,16 +131,16 @@ namespace pdn::detail
 	{
 		if constexpr (::std::same_as<fp, type::f32>)
 		{
-			if (auto result = f32_at_constant_string_table<char_t>::instance().find(val);
-				result != f32_at_constant_string_table<char_t>::instance().end())
+			const auto& table = f32_at_constant_string_table<char_t>::instance();
+			if (auto result = table.find(val); result != table.end())
 			{
 				return result->second;
 			}
 		}
 		else
 		{
-			if (auto result = f64_at_constant_string_table<char_t>::instance().find(val);
-				result != f64_at_constant_string_table<char_t>::instance().end())
+			const auto& table = f64_at_constant_string_table<char_t>::instance();
+			if (auto result = table.find(val); result != table.end())
 			{
 				return result->second;
 			}
@@ -137,6 +148,8 @@ namespace pdn::detail
 		return as_accessor<char_t>::null_string_val();
 	}
 
+	// Writes the value part only; the caller decides whether a type specification is needed.
+	// i64 min has no literal form (its magnitude does not fit in i64), so it becomes @i64_min.
 	template <typename char_t>
 	void to_pdn_format(type::string<char_t>& out, type::concepts::pdn_integral auto val)
 	{
@@ -162,6 +175,10 @@ namespace pdn::detail
 		}
 	}
 
+	// Non-finite values have no literal form and become @inf / -@inf / @NaN. A finite value equal
+	// to one of the <numbers> constants becomes its @-name. Otherwise std::format (or the user
+	// provided PDN_USER_FORMAT) is used, and ".0" is appended when the plain rendering would
+	// parse back as an integer.
 	template <typename char_t>
 	void to_pdn_format(type::string<char_t>& out, type::concepts::pdn_fp auto val)
 	{
@@ -221,6 +238,9 @@ namespace pdn::detail
 		}
 	}
 
+	// Escapes the single code point of the character. A value that does not hold exactly one
+	// scalar value is written as the replacement character: PDN source cannot produce such a
+	// value, so it does not round-trip and the original content is dropped.
 	template <typename char_t, typename src_char_t>
 	void to_pdn_format(type::string<char_t>& out, type::character<src_char_t> val)
 	{
@@ -242,6 +262,7 @@ namespace pdn::detail
 		}
 	}
 
+	// Escapes the string body; invalid code units decode to U+FFFD, as in the decoder.
 	template <typename char_t, typename src_char_t>
 	void to_pdn_format(type::string<char_t>& out, const type::string<src_char_t>& val)
 	{
@@ -259,13 +280,17 @@ namespace pdn::detail
 namespace pdn
 {
 	template <unicode::concepts::code_unit my_char_t = char8_t>
+	// Object -> text serializer. Indentation, separators and terminators are public data members
+	// (see the defaults below); make_serializer builds a configured one from style enums.
 	class serializer
 	{
 	public:
 		using char_t = my_char_t; // target char type
 		using string_t = type::string<char_t>;
 		using string_view_t = ::std::basic_string_view<char_t>;
-		// dom to .spdn format
+		// Object -> text. An empty object gives an empty string (an empty file); otherwise every
+		// member is terminated, so the result always ends with last_sep.
+		// use_last_sep_for_lo controls whether a named list/object value gets last_sep too.
 		template <typename src_char_t>
 		auto serialize(
 			const type::object<src_char_t>& dom, // only object is allowed(spdn text is an object)
@@ -286,7 +311,10 @@ namespace pdn
 			return result;
 		}
 	private:
-		// to "[`]slashed_iden[`] [: [type]] pdn_form[;]"
+		// "name[: type] value[;]"
+		// The type specification is omitted when implicit typing recovers the same type on re-parse;
+		// i32 min is written as "i32 -2147483648" because the bare literal parses back as i64, and
+		// i64 min has no literal form at all so it uses @i64_min. "out" cannot alias "val".
 		// out argument cannot be an alias of val
 		template <typename src_char_t, detail::nonlist_nonobj<src_char_t> value_t>
 		void serialize(string_t& out, const type::string<src_char_t>& iden, const value_t& val) const
@@ -375,7 +403,8 @@ namespace pdn
 			serialize_list(out, val, layer, use_line_feed, use_last_sep_for_lo);
 			if (use_last_sep_for_lo) out += last_sep;
 		}
-		// identifier to "[`]slashed[`]"
+		// Writes the identifier, adding backticks when it is not a valid PDN identifier; backticks and
+		// other characters that need it are escaped by make_slashes_id_string.
 		template <typename src_char_t>
 		void serialize_iden(string_t& out, const type::string<src_char_t>& iden) const
 		{
@@ -421,7 +450,8 @@ namespace pdn
 		{
 			detail::to_pdn_format<char_t>(out, val);
 		}
-		// object to "{ ... }"
+		// "{ ... }": members one per line and indented when use_line_feed, otherwise separated by
+		// spaces.
 		template <typename src_char_t>
 		void serialize_object(
 			string_t& out,
@@ -454,7 +484,8 @@ namespace pdn
 			}
 			out += char_t('}');
 		}
-		// object member to "name [:[type]] value [;]..."
+		// One member of an object: dispatch on the variant alternative. Scalars go through the named
+		// overload, containers through the list/object ones (which carry the nesting layer).
 		template <typename src_char_t>
 		void serialize_object_member(
 			string_t& out,
@@ -479,7 +510,7 @@ namespace pdn
 				}
 			}, val);
 		}
-		// list to "[ ..., ]"
+		// "[ ... ]": comma separated elements; the trailing comma is always written (PDN allows it).
 		template <typename src_char_t>
 		void serialize_list(
 			string_t& out,
@@ -513,7 +544,7 @@ namespace pdn
 			}
 			out += char_t(']');
 		}
-		// list element to "[type:] pdn_form,"
+		// A list element has no name, so a type specification takes the form "type: value".
 		template <typename src_char_t>
 		void serialize_list_element(
 			string_t& out,
@@ -604,7 +635,7 @@ namespace pdn
 
 	enum class serialize_tab
 	{
-		table,   // "\t"
+		tab,     // "\t"
 		space_1, // " "
 		space_2, // "  "
 		space_3, // "   "
@@ -642,15 +673,15 @@ namespace pdn
 				using enum serialize_tab;
 				switch (serialize_e)
 				{
-				case table:   return s{ c('\t') };
+				case tab:     return s{ c('\t') };
 				case space_1: return s{ c(' ') };
 				case space_2: return s{ c(' '), c(' ') };
 				case space_3: return s{ c(' '), c(' '), c(' ') };
 				case space_4: return s{ c(' '), c(' '), c(' '), c(' ') };
 				case space_8: return s{ c(' '), c(' '), c(' '), c(' '), c(' '), c(' '), c(' '), c(' ') };
 				case no_tab:  return s{};
-				default:      return s{ c('\t') };
 				}
+				return s{ c('\t') };
 			}
 			else if constexpr (::std::same_as<e, serialize_last_semi>)
 			{
@@ -659,8 +690,8 @@ namespace pdn
 				{
 				case semi_yes: return s{ c(';') };
 				case no_semi:  return s{};
-				default:       return s{ c(';') };
 				}
+				return s{ c(';') };
 			}
 			else if constexpr (::std::same_as<e, serialize_separator>)
 			{
@@ -671,8 +702,8 @@ namespace pdn
 				case sep_semi:              return s{ c(':') };
 				case sep_space_around_semi: return s{ c(' '), c(':'), c(' ') };
 				case sep_space:             return s{ c(' ') };
-				default:                    return s{ c(':'), c(' ') };
 				}
+				return s{ c(':'), c(' ') };
 			}
 			else if constexpr (::std::same_as<e, serialize_separator_ts>)
 			{
@@ -682,8 +713,8 @@ namespace pdn
 				case sts_semi_with_space:   return s{ c(':'), c(' ') };
 				case sts_semi:              return s{ c(':') };
 				case sts_space_around_semi: return s{ c(' '), c(':'), c(' ') };
-				default:                    return s{ c(':'), c(' ') };
 				}
+				return s{ c(':'), c(' ') };
 			}
 			else
 			{
@@ -691,6 +722,9 @@ namespace pdn
 			}
 		}
 	}
+
+	// Builds a serializer whose separator strings correspond to the given style enums;
+	// make_u8/u16/u32serializer are wrappers that fix the character type.
 
 	template <typename char_t>
 	auto make_serializer(

@@ -1405,7 +1405,7 @@ private:
 
 ### 使用序列化器
 
-序列化器将一个 object 实体序列号为 spdn 文本。  
+序列化器将一个 object 实体序列化为 spdn 文本。  
 
 ```C++
 pdn::make_u8serializer(). serialize(entity.as_object()); // 转换为 utf8 编码的文本(u8string)
@@ -1432,7 +1432,7 @@ auto make_u8serializer(
 }
 enum class serialize_tab
 {
-    table,   // "\t"
+    tab,     // "\t"
     space_1, // " "
     space_2, // "  "
     space_3, // "   "
@@ -1460,7 +1460,7 @@ enum class serialize_separator_ts
 };
 ```
 
-在 `make_unserializer` 时填入不同的枚举，即可配置序列化风格。  
+在 `make_uNserializer` 时填入不同的枚举，即可配置序列化风格。  
 
 如果觉得枚举的自由度不够高，还可以直接操作 `serializer<char_t>` 对象的相关成员属性，但是可能会导致生成的文本不符合 `spdn` 规范，一般不推荐这样使用。  
 
