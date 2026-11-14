@@ -11,6 +11,11 @@
 
 namespace pdn
 {
+	// The category label of an error code, without position or details: "lexical error",
+	// "syntax error", "utf-8 decode error". The caller (the default message generator) appends
+	// "(line:column) " and then the detailed text. The view points into static storage, so it
+	// stays valid for the lifetime of the program. An alternative that is not handled here falls
+	// into the static_assert below, so adding one to error_code_variant cannot go unnoticed.
 	inline auto error_code_variant_to_error_msg_string_view(error_code_variant err_c) -> error_msg_string_view
 	{
 		return ::std::visit([](auto c) -> error_msg_string_view
@@ -22,25 +27,13 @@ namespace pdn
 			{
 				return u8"utf-8 decode error"_emv;
 			}
-			else if constexpr (::std::same_as<error_type, unicode::utf8::encode_error_code>)
-			{
-				return u8"utf-8 encode error"_emv;
-			}
 			else if constexpr (::std::same_as<error_type, unicode::utf16::decode_error_code>)
 			{
 				return u8"utf-16 decode error"_emv;
 			}
-			else if constexpr (::std::same_as<error_type, unicode::utf16::encode_error_code>)
-			{
-				return u8"utf-16 encode error"_emv;
-			}
 			else if constexpr (::std::same_as<error_type, unicode::utf32::decode_error_code>)
 			{
 				return u8"utf-32 decode error"_emv;
-			}
-			else if constexpr (::std::same_as<error_type, unicode::utf32::encode_error_code>)
-			{
-				return u8"utf-32 encode error"_emv;
 			}
 			else if constexpr (::std::same_as<error_type, lexical_error_code>)
 			{
