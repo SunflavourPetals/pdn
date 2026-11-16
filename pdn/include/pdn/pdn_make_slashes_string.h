@@ -25,12 +25,36 @@ namespace pdn::detail
 		++it;
 		return it != end && is_octal_digit(*it);
 	}
+	// The twelve code points with the Unicode Bidi_Control property. They take no room but can
+	// reorder how the rest of the line is displayed, so a diagnostic must not carry them verbatim.
+	[[nodiscard]] constexpr auto is_bidi_control(unicode::code_point_t c) noexcept -> bool
+	{
+		switch (c)
+		{
+		case U'\u061c':  // ARABIC LETTER MARK
+		case U'\u200e':  // LEFT-TO-RIGHT MARK
+		case U'\u200f':  // RIGHT-TO-LEFT MARK
+		case U'\u202a':  // LEFT-TO-RIGHT EMBEDDING
+		case U'\u202b':  // RIGHT-TO-LEFT EMBEDDING
+		case U'\u202c':  // POP DIRECTIONAL FORMATTING
+		case U'\u202d':  // LEFT-TO-RIGHT OVERRIDE
+		case U'\u202e':  // RIGHT-TO-LEFT OVERRIDE
+		case U'\u2066':  // LEFT-TO-RIGHT ISOLATE
+		case U'\u2067':  // RIGHT-TO-LEFT ISOLATE
+		case U'\u2068':  // FIRST STRONG ISOLATE
+		case U'\u2069':  // POP DIRECTIONAL ISOLATE
+			return true;
+		default:
+			return false;
+		}
+	}
 	// A message is one line of text, so a non-printable code point must not reach it: C0/C1 controls
-	// and DEL would be invisible or break the line. PDN has escapes for the ones a literal can
-	// write; the others become the fixed width \uXXXX form.
+	// and DEL would be invisible or break the line, and a Bidi_Control code point can reorder it.
+	// PDN has escapes for the ones a literal can write; the others become the fixed width \uXXXX
+	// form. Every other code point is written as itself: the message only has to point at the error.
 	[[nodiscard]] constexpr auto is_printable(unicode::code_point_t c) noexcept -> bool
 	{
-		return c >= U' ' && c != U'\u007f' && (c < U'\u0080' || c > U'\u009f');
+		return c >= U' ' && c != U'\u007f' && (c < U'\u0080' || c > U'\u009f') && !is_bidi_control(c);
 	}
 	// The fixed width form, used where a variable width escape could swallow what follows.
 	template <typename string_t>
@@ -87,7 +111,7 @@ namespace pdn::detail
 		default:
 			if constexpr (escape_every_non_printable)
 			{
-				if (!is_printable(c))
+				if (!is_printable(c)) [[unlikely]]
 				{
 					append_u_escape<string_t>(s, c);
 					return;
