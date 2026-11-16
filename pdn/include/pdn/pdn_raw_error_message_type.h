@@ -6,20 +6,21 @@
 
 #include "pdn_unicode_base.h"
 #include "pdn_utf_decoder.h"
-#include "pdn_utf_encoder.h"
 #include "pdn_error_string.h"
 #include "pdn_token_value_variant.h"
 #include "pdn_token.h"
 #include "pdn_type_code.h"
 
-// The payload types carried by error codes. A lexical or syntax error code names one of these structs in
-// the "extra(T)" annotation next to the enumerator, and the message generator reports the error by reading
-// that structure (pdn_raw_error_message_variant.h wraps them into one std::variant). The types are plain
-// aggregates: their fields are exactly what the reporting site knows and the message text needs.
+// The payload types carried by error codes. Decoding payloads are passed on by the code point iterator;
+// lexical and syntax payloads are named by the "extra(T)" annotation next to the enumerator. The message
+// generator reports an error by reading the struct that matches the code (pdn_raw_error_message_variant.h
+// wraps them into one std::variant). The types are plain aggregates: their fields are exactly what the
+// reporting site knows and the message text needs.
 namespace pdn::raw_error_message_type
 {
-	// Decoding and encoding failures carry the codec result plus, for decoding, the code unit that could not
-	// be consumed and its offset (the decoder stops at the last unit of the malformed sequence).
+	// A decoding failure carries the codec result plus the code unit that could not be consumed and its
+	// offset (the decoder stops at the last unit of the malformed sequence). There is no encoding payload:
+	// encoding is only applied to code points a decoder produced, so it cannot fail while parsing.
 	struct utf8_decode_error final
 	{
 		unicode::utf8::decode_result result;
@@ -37,21 +38,6 @@ namespace pdn::raw_error_message_type
 		unicode::utf32::decode_result result;
 		unicode::utf32::code_unit_t   last_code_unit;
 		::std::size_t                 last_code_unit_offset;
-	};
-	struct utf8_encode_error final
-	{
-		unicode::utf8::encode_result result;
-		unicode::code_point_t        source;
-	};
-	struct utf16_encode_error final
-	{
-		unicode::utf16::encode_result result;
-		unicode::code_point_t         source;
-	};
-	struct utf32_encode_error final
-	{
-		unicode::utf32::encode_result result;
-		unicode::code_point_t         source;
 	};
 }
 
