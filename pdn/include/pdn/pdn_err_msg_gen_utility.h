@@ -133,12 +133,7 @@ namespace pdn::detail::err_msg_gen_util
 #else
 				auto formatted = ::std::format("{}", arg);
 #endif
-				auto result = error_msg_string{};
-				for (auto c : formatted)
-				{
-					result.push_back(static_cast<error_msg_char>(c));
-				}
-				return result;
+				return error_msg_string(formatted.cbegin(), formatted.cend());
 			}
 		}, variant);
 	}

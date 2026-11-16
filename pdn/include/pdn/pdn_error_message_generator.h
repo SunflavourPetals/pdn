@@ -23,14 +23,15 @@ namespace pdn
 		{
 			using namespace literals::error_message_literals;
 			auto errc = src.error_code;
-			auto pos  = src.position;
-			return error_code_variant_to_error_msg_string(errc)
-				.append(u8"("_em)
+			auto pos = src.position;
+			auto result = error_code_variant_to_error_msg_string(errc)
+				.append(u8"("_emv)
 				.append(reinterpret_to_err_msg_str(::std::to_string(pos.line)))
-				.append(u8":"_em)
+				.append(u8":"_emv)
 				.append(reinterpret_to_err_msg_str(::std::to_string(pos.column)))
-				.append(u8") "_em)
+				.append(u8") "_emv)
 				.append(error_message_generator_en(::std::move(src)));
+			return result;
 		}
 	};
 	static_assert(concepts::error_message_generator<default_error_message_generator>);
