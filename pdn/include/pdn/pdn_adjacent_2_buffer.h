@@ -104,7 +104,7 @@ namespace pdn::detail
 
 		auto operator=(adjacent_2_buffer&& other) noexcept -> adjacent_2_buffer&
 		{
-			adjacent_2_buffer temporary{ ::std::move(other) };
+			auto temporary = ::std::move(other);
 			swap(temporary);
 			return *this;
 		}

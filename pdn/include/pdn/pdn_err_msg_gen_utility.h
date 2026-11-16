@@ -109,11 +109,9 @@ namespace pdn::detail::err_msg_gen_util
 	}
 	inline auto description_of(const token<error_msg_char>& token_val) -> error_msg_string
 	{
-		return is_mono(token_val.value)
-			? token_code_to_error_msg_string(token_val.code)
-			: token_code_to_error_msg_string(token_val.code)
-			+ u8" with value "_em
-			+ token_value_variant_to_s(token_val.value);
+		return is_mono(token_val.value) ?
+			token_code_to_error_msg_string(token_val.code) :
+			token_code_to_error_msg_string(token_val.code) + u8" with value "_em + token_value_variant_to_s(token_val.value);
 	}
 }
 

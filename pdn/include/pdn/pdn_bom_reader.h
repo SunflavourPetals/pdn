@@ -101,7 +101,7 @@ namespace pdn::unicode
 		{
 			return no_bom;
 		}
-		::std::array<byte_type, 4> my_bom{}; // BOM byte sequence
+		auto my_bom = ::std::array<byte_type, 4>{}; // BOM byte sequence
 
 		input.read(reinterpret_cast<char_type*>(my_bom.data()), ::std::streamsize{ 4 });
 

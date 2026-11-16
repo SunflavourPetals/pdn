@@ -102,14 +102,14 @@ namespace pdn
 	template <typename string_t>
 	constexpr string_t make_slashes_string(unicode::code_point_t c)
 	{
-		string_t s{};
+		auto s = string_t{};
 		detail::append_slashes_string<string_t>(s, c, false);
 		return s;
 	}
 	template <typename string_t>
 	constexpr string_t make_slashes_string(unicode::ucpstring_view sv)
 	{
-		string_t r{};
+		auto r = string_t{};
 		for (auto it = sv.cbegin(); it != sv.cend(); ++it)
 		{
 			detail::append_slashes_string<string_t>(r, *it, detail::next_is_octal_digit_at(it, sv.cend()));
@@ -119,14 +119,14 @@ namespace pdn
 	template <typename string_t>
 	constexpr string_t make_slashes_id_string(unicode::code_point_t c)
 	{
-		string_t s{};
+		auto s = string_t{};
 		detail::append_slashes_id_string<string_t>(s, c, false);
 		return s;
 	}
 	template <typename string_t>
 	constexpr string_t make_slashes_id_string(unicode::ucpstring_view sv)
 	{
-		string_t r{};
+		auto r = string_t{};
 		for (auto it = sv.cbegin(); it != sv.cend(); ++it)
 		{
 			detail::append_slashes_id_string<string_t>(r, *it, detail::next_is_octal_digit_at(it, sv.cend()));

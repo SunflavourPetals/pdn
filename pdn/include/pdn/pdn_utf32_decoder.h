@@ -86,7 +86,7 @@ namespace pdn::unicode::utf32
 			using code_unit_type = ::std::remove_reference_t<decltype(*begin)>;
 			using ucu_t          = ::std::make_unsigned_t<code_unit_type>; // unsigned code unit type
 
-			decode_result result{};
+			auto result = decode_result{};
 
 			if (begin == end) [[unlikely]]
 			{

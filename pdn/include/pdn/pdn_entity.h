@@ -138,12 +138,12 @@ namespace pdn
 		auto operator[](index_type index)   const -> const_refer { return at(index); }
 		auto operator[](const key_type key) const -> const_refer { return at(key); }
 
-		[[nodiscard]] constexpr bool has_value() const noexcept { return get(); }
-		// get() returns pointer to entity, not pointer to value of entity, nullable if no value
-		[[nodiscard]] constexpr const entity_type* get() const noexcept { return ptr; }
-		[[nodiscard]] constexpr const entity_type* operator->() const noexcept { return get(); }
-		[[nodiscard]] constexpr const entity_type& operator*() const noexcept { return *get(); }
+		[[nodiscard]] constexpr bool has_value()         const noexcept { return get(); }
 		[[nodiscard]] explicit constexpr operator bool() const noexcept { return has_value(); }
+		// get() returns pointer to entity, not pointer to value of entity, nullable if no value
+		[[nodiscard]] constexpr auto get()        const noexcept -> const entity_type* { return ptr; }
+		[[nodiscard]] constexpr auto operator->() const noexcept -> const entity_type* { return get(); }
+		[[nodiscard]] constexpr auto operator*()  const noexcept -> const entity_type& { return *get(); }
 		// get_if() returns pointer to value of entity, not pointer to entity, nullable if no value or type mismatch
 		template <typename target_t>
 		[[nodiscard]] constexpr auto get_if() const noexcept -> const target_t*;
@@ -176,12 +176,12 @@ namespace pdn
 		auto operator[](index_type index)   const -> refer { return at(index); }
 		auto operator[](const key_type key) const -> refer { return at(key); }
 
-		[[nodiscard]] constexpr bool has_value() const noexcept { return get(); }
-		// get() returns pointer to entity, not pointer to value of entity, nullable if no value
-		[[nodiscard]] constexpr entity_type* get() const noexcept { return get_from_base(); }
-		[[nodiscard]] constexpr entity_type* operator->() const noexcept { return get(); }
-		[[nodiscard]] constexpr entity_type& operator*() const noexcept { return *get(); }
+		[[nodiscard]] constexpr bool has_value()         const noexcept { return get(); }
 		[[nodiscard]] explicit constexpr operator bool() const noexcept { return has_value(); }
+		// get() returns pointer to entity, not pointer to value of entity, nullable if no value
+		[[nodiscard]] constexpr auto get()        const noexcept -> entity_type* { return get_from_base(); }
+		[[nodiscard]] constexpr auto operator->() const noexcept -> entity_type* { return get(); }
+		[[nodiscard]] constexpr auto operator*()  const noexcept -> entity_type& { return *get(); }
 		// get_if() returns pointer to value of entity, nullable if no value or type mismatch
 		template <typename target_t>
 		[[nodiscard]] constexpr auto get_if() const noexcept -> target_t*;

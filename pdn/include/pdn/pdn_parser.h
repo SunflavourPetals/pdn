@@ -151,7 +151,7 @@ namespace pdn
 			using enum pdn_token_code;
 			using parser_utility::is_expr_first;
 
-			type_code type_c = type_code::unknown;
+			auto type_c = type_code::unknown;
 			auto type_pos = tk.position;
 
 			if (update_token(begin, end))
@@ -391,7 +391,7 @@ namespace pdn
 
 			return result;
 		}
-		
+
 		auto parse_list_expr(auto& begin, auto end, source_position left_brackets_pos) -> entity_type
 		{
 			// ... [ CURRPOS ...

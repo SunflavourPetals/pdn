@@ -79,7 +79,7 @@ namespace pdn::unicode::utf8
 
 		static constexpr auto encode(code_point_t character) noexcept -> encode_result
 		{
-			encode_result result{};
+			auto result = encode_result{};
 
 			if (!is_scalar_value(character)) [[unlikely]]
 			{

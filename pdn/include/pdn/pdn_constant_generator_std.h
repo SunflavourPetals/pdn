@@ -164,7 +164,7 @@ namespace pdn
 		}
 		static auto instance() -> const constant_table<char_t>&
 		{
-			static constant_table<char_t> obj{};
+			static auto obj = constant_table<char_t>{};
 			return obj;
 		}
 	};

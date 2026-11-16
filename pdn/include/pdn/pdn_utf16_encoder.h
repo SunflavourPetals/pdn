@@ -81,7 +81,7 @@ namespace pdn::unicode::utf16
 			using cp_t = code_point_t;
 			using cu_t = code_unit_t;
 
-			encode_result result{};
+			auto result = encode_result{};
 
 			if (is_scalar_value(character)) [[likely]]
 			{
