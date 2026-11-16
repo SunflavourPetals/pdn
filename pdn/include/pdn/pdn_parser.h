@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cassert>
 #include <utility>
-#include <cstdint>
 #include <variant>
 #include <limits>
 #include <concepts>
@@ -19,7 +18,6 @@
 #include "pdn_token_code.h"
 #include "pdn_token.h"
 #include "pdn_token_convert.h"
-#include "pdn_token_code_to_error_msg_string.h"
 
 #include "pdn_error_string.h"
 #include "pdn_syntax_error_code.h"
@@ -35,13 +33,17 @@
 #include "pdn_type_generator_concept.h"
 #include "pdn_constant_generator_concept.h"
 
-#include "pdn_make_slashes_string.h"
 #include "pdn_parser_utility.h"
 
 #include "pdn_stop_reason.h"
 
 #include "pdn_nesting_depth_limiter_concept.h"
 
+// The recursive descent parser. It consumes a token stream, reports syntax errors through the
+// function package, and never throws: every helper returns as soon as the stream cannot produce
+// what the grammar asks for. The current token lives in `tk`; `update_token` moves it forward and
+// synthesizes the eof token (keeping the position of the last real token) once the stream is
+// exhausted. A parser instance may be reused: `parse` resets the stop state of the previous run.
 namespace pdn::concepts
 {
 	template <typename type, typename char_t>
@@ -72,15 +74,11 @@ namespace pdn
 		{
 			return stop_reason_c;
 		}
-		void parse(concepts::token_iterator<char_t> auto&& begin, auto end, type::object<char_t>& o)
-		{
-			using enum pdn_token_code;
-			parse_start(begin, end, o);
-		}
+		// A failed parse still returns an object: the entities parsed before the error are kept.
 		auto parse(concepts::token_iterator<char_t> auto&& begin, auto end) -> entity_type
 		{
 			auto o = type::object<char_t>{};
-			parse(begin, end, o);
+			parse_start(begin, end, o);
 			return make_proxy<type::object<char_t>>(::std::move(o));
 		}
 		explicit parser(function_package& function_pkg) : func_pkg{ &function_pkg } {}
@@ -93,6 +91,7 @@ namespace pdn
 			using parser_utility::is_expr_first;
 
 			nesting_depth = 0;
+			stop_reason_c = stop_reason_code{};
 
 			if (update_token(begin, end)) [[unlikely]] return;
 			while (tk.code != eof)
@@ -549,6 +548,7 @@ namespace pdn
 			return make_proxy<type::object<char_t>>(::std::move(result));
 		}
 
+		// Dispatches on the declared type code; every type code but unknown has a case.
 		auto entity_cast(entity_type src, type_code target_type_c, source_position type_pos) -> entity_type
 		{
 			using enum type_code;
@@ -570,11 +570,12 @@ namespace pdn
 			case list:      return entity_cast<list>     (::std::move(src), type_pos);
 			case object:    return entity_cast<object>   (::std::move(src), type_pos);
 			case unknown:   assert(0 && "[pdn] cast to unknown type"); break;
-			default:        assert(0 && "[pdn] unhandled type cast");  break;
 			}
 			return default_ent();
 		}
 
+		// Converts the entity held by `src` to `target_type_c` and reports illegal or out-of-range
+		// conversions; the caller gets a default entity of the target type either way.
 		template <type_code target_type_c>
 		auto entity_cast(entity_type src, source_position type_pos) -> entity_type
 		{
@@ -717,6 +718,7 @@ namespace pdn
 			}, src);
 		}
 
+		// Materializes the value of a literal token; at-identifiers are looked up in the constant table.
 		auto token_value_to_entity(token<char_t> src) -> entity<char_t>
 		{
 			return ::std::visit([&]<typename arg_t>(arg_t arg) -> entity<char_t>
@@ -757,7 +759,9 @@ namespace pdn
 			return default_ent(type_code::unknown);
 		}
 
-		// if begin is stoppable then returns begin.stop_requested() else returns false
+		// Moves the next token into `tk`. Returns true when the caller must stop: either the iterator
+		// is stoppable and stopped after advancing, or the stream is exhausted (then `tk` becomes eof
+		// and keeps the last position, so "missing closing X" points at the opening token).
 		bool update_token(auto& begin, auto end)
 		{
 			if (begin != end)
@@ -780,12 +784,14 @@ namespace pdn
 			return false;
 		}
 
+		// The limit that `parse_expr_without_unary` checks before descending into a list or object.
 		auto nesting_depth_limit() const noexcept(noexcept(::std::declval<function_package&>().nesting_depth_limit()))
 			requires concepts::nesting_depth_limiter<function_package>
 		{
 			return func_pkg->nesting_depth_limit();
 		}
 
+		// Fallback for function packages that do not provide a limit of their own.
 		static constexpr auto nesting_depth_limit() noexcept requires (!concepts::nesting_depth_limiter<function_package>)
 		{
 			return default_nesting_depth_limit;
@@ -809,7 +815,8 @@ namespace pdn
 			return func_pkg->generate_error_message(raw_error_message{ { err_c }, pos, ::std::move(raw_msg) });
 		}
 
-		// if function_package is stoppable then returns func_pkg->stop_requested() else returns false
+		// Reports one syntax error to the function package. Returns true when the package is stoppable
+		// and requested a stop, so the caller can unwind without emitting further diagnostics.
 		bool post_err(source_position pos, auto err_c, raw_error_message_variant raw_msg)
 		{
 			func_pkg->handle_error(error_message{ err_c, pos, err_msg_gen(pos, err_c, ::std::move(raw_msg)) });
