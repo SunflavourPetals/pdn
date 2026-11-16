@@ -7,15 +7,29 @@
 #include "pdn_token_code.h"
 #include "pdn_dfa_state_object.h"
 
+// The DFA state table used by the lexer: one dfa_state_object per dfa_state_code.
+//
+// Every object holds a state code, a token code and a transformer. The lexer starts at
+// `start`, feeds each code point to transformer(c) (see pdn_lexer.h) and switches on the
+// returned state code. Whether a state is final or an error state is decided by its state
+// code alone (see the three contiguous ranges in pdn_dfa_state_code.h).
+//
+// Objects are first declared with `inline extern cdfaso` and defined later in this header
+// with `inline cdfaso`. The declarations are required rather than redundant: a const
+// namespace-scope variable has internal linkage unless it is declared extern first, so
+// without them every translation unit would get its own copy instead of one inline
+// variable. Some objects are declared in more than one group (e.g. slash, at_sign) so that
+// each group can be read on its own.
+//
+// The transformer of the states listed below is nullptr; the lexer handles them by state
+// code before the next transformer call, so nothing ever calls a null transformer.
 namespace pdn::dfa_state_objects
 {
 	using unicode::code_point_t;
 	using cdfaso = const dfa_state_object; // const dfa state object
 
-	// transformer member of following states are nullptr
-	//     state unmatched: lexer is required to stop dfa
-	//     state other:     process and transform to other state by lexer
-	// list:
+	// transformer of the following states is nullptr; the lexer recognizes them by state
+	// code before the next transformer call, so a null transformer is never invoked:
 	//     unmatched
 	//     unacceptable_character
 	//     identifier_string_escape
@@ -31,7 +45,7 @@ namespace pdn::dfa_state_objects
 	//     identifier_raw_string_received_CR
 	//     identifier_raw_string_received_right_parentheses
 
-	// (some dfo state objects are redeclared in different group)
+	// some objects are declared again in a later group (see the file comment above)
 
 	inline extern cdfaso
 		start;
@@ -51,7 +65,7 @@ namespace pdn::dfa_state_objects
 		identifier_string_escape,
 		identifier_string,
 		identifier_string_with_LF;
-		
+
 	inline extern cdfaso
 		string_opened,
 		string_closed,
@@ -65,7 +79,7 @@ namespace pdn::dfa_state_objects
 		character_escape,
 		character,
 		character_with_LF;
-		
+
 	inline extern cdfaso
 		at_sign,
 		at_identifier;
@@ -121,7 +135,7 @@ namespace pdn::dfa_state_objects
 		line_comment,
 		block_comment,
 		block_comment_closing;
-			
+
 	inline extern cdfaso
 		less_than,
 		nested_block_comment,
@@ -131,34 +145,34 @@ namespace pdn::dfa_state_objects
 		nested_block_comment_closed;
 
 	inline extern cdfaso
-		at_sign,              // @ 
-		tilde,                // ~ 
-		exclamation_mark,     // ! 
-		hash,                 // # 
-		dollar,               // $ 
-		percent,              // % 
-		caret,                // ^ 
-		ampersand,            // & 
-		asterisk,             // * 
-		left_parentheses,     // ( 
-		right_parentheses,    // ) 
-		left_brackets,        // [ 
-		right_brackets,       // ] 
-		left_curly_brackets,  // { 
-		right_curly_brackets, // } 
-		minus,                // - 
-		plus,                 // + 
-		equal,                // = 
-		slash,                // (/) 
-		back_slash,           // (\) 
-		bar,                  // | 
-		colon,                // : 
-		semicolon,            // ; 
-		less_than,            // < 
-		greater_than,         // > 
-		comma,                // , 
-		dot,                  // . 
-		question_mark;        // ? 
+		at_sign,              // @
+		tilde,                // ~
+		exclamation_mark,     // !
+		hash,                 // #
+		dollar,               // $
+		percent,              // %
+		caret,                // ^
+		ampersand,            // &
+		asterisk,             // *
+		left_parentheses,     // (
+		right_parentheses,    // )
+		left_brackets,        // [
+		right_brackets,       // ]
+		left_curly_brackets,  // {
+		right_curly_brackets, // }
+		minus,                // -
+		plus,                 // +
+		equal,                // =
+		slash,                // (/)
+		back_slash,           // (\)
+		bar,                  // |
+		colon,                // :
+		semicolon,            // ;
+		less_than,            // <
+		greater_than,         // >
+		comma,                // ,
+		dot,                  // .
+		question_mark;        // ?
 
 	inline extern cdfaso
 		infinity;
@@ -233,7 +247,7 @@ namespace pdn::dfa_state_objects
 			return unmatched;
 		}
 	};
-		
+
 	inline cdfaso identifier_string_opened{
 		dfa_state_code::identifier_string_opened,
 		pdn_token_code::identifier,
@@ -272,7 +286,7 @@ namespace pdn::dfa_state_objects
 	};
 	inline cdfaso identifier_string_escape{
 		dfa_state_code::identifier_string_escape,
-		pdn_token_code::identifier // transformer is nullptr
+		pdn_token_code::identifier
 	};
 	inline cdfaso identifier_string_with_LF{
 		dfa_state_code::identifier_string_with_LF,
@@ -458,7 +472,7 @@ namespace pdn::dfa_state_objects
 		dfa_state_code::string_with_LF,
 		pdn_token_code::literal_string
 	};
-		
+
 	inline cdfaso character_opened{
 		dfa_state_code::character_opened,
 		pdn_token_code::literal_character,
