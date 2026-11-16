@@ -52,9 +52,7 @@ namespace pdn::detail
 	template <typename char_t>
 	static auto ascii_to_at_constant_string(unicode::u8string_view sv) -> type::string<char_t>
 	{
-		auto result = type::string<char_t>(sv.size(), char_t{});
-		::std::copy(sv.cbegin(), sv.cend(), result.begin());
-		return result;
+		return type::string<char_t>(sv.cbegin(), sv.cend());
 	}
 
 	// Doesn't support inf and nan
@@ -409,28 +407,27 @@ namespace pdn
 		void serialize_iden(string_t& out, const type::string<src_char_t>& iden) const
 		{
 			auto cp_s = unicode::code_convert<unicode::ucpstring>(iden);
-			bool need_quote{};
+			auto need_quote = false;
+			if (cp_s.empty())
 			{
-				if (cp_s.empty())
+				need_quote = true;
+			}
+			else if (!lexer_utility::is_allowed_as_first_char_of_identifier(cp_s[0]))
+			{
+				need_quote = true;
+			}
+			else
+			{
+				for (auto c : unicode::ucpstring_view{ cp_s.cbegin() + 1, cp_s.cend() })
 				{
-					need_quote = true;
-				}
-				else if (!lexer_utility::is_allowed_as_first_char_of_identifier(cp_s[0]))
-				{
-					need_quote = true;
-				}
-				else
-				{
-					for (auto c : unicode::ucpstring_view{ cp_s.cbegin() + 1, cp_s.cend() })
+					if (!lexer_utility::is_allowed_in_identifier(c))
 					{
-						if (!lexer_utility::is_allowed_in_identifier(c))
-						{
-							need_quote = true;
-							break;
-						}
+						need_quote = true;
+						break;
 					}
 				}
 			}
+
 			auto slashes = make_slashes_id_string<string_t>(cp_s);
 			
 			if (need_quote)
@@ -619,7 +616,7 @@ namespace pdn
 		}
 		void append_tabs(string_t& out, ::std::size_t layer) const
 		{
-			for (::std::size_t i{}; i != layer; ++i)
+			for (auto i = ::std::size_t{}; i != layer; ++i)
 			{
 				out += tab;
 			}
