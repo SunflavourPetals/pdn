@@ -14,7 +14,11 @@
 
 namespace pdn::detail
 {
+	// English text for the UTF-32 decoding errors, one case per enumerator. There is deliberately no
+	// default: a new code without a message must fail -Wswitch instead of falling back to a generic
+	// text. The position is not used here; the caller prefixes "code(line:column)".
 	using utf32_decode_error_code = unicode::utf32::decode_error_code;
+
 	inline auto err_msg_gen_en(utf32_decode_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string
 	{
 		using namespace err_msg_gen_util;
@@ -25,20 +29,20 @@ namespace pdn::detail
 		{
 		case invalid_code_point:
 			return u8"invalid code point: 0x"_em + to_s<16, 8>(msg.result.value())
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 4) + u8"(if with BOM then +4), "_em
+				+ u8", in the sequence at offset "_em + offset_of_leading(msg, 4) + u8" (add 4 if the input starts with a BOM), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case non_code_point:
-			return u8"non-code point: 0x"_em + to_s<16, 8>(msg.result.value())
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 4) + u8"(if with BOM then +4), "_em
+			return u8"not a code point: 0x"_em + to_s<16, 8>(msg.result.value())
+				+ u8", in the sequence at offset "_em + offset_of_leading(msg, 4) + u8" (add 4 if the input starts with a BOM), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case unexpected_eof: // theoretically unreachable by implementation
-			return u8"eof when read code unit, sequence at offset "_em + offset_of_leading(msg, 4) + u8"(if with BOM then +4)"_em;
-		default:
-			assert(0 && "[pdn] UTF-32 decode error and error_message_generator_en unresolved");
-			return u8"UTF-32 decode error and error_message_generator_en unresolved"_em;
+			return u8"unexpected end of input while reading a code unit of the sequence at offset "_em
+				+ offset_of_leading(msg, 4) + u8" (add 4 if the input starts with a BOM)"_em;
 		}
+		assert(false && "[pdn] UTF-32 decode error code without an English message");
+		return u8"unhandled UTF-32 decode error code"_em;
 	}
 }
 

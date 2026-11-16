@@ -14,7 +14,11 @@
 
 namespace pdn::detail
 {
+	// English text for the UTF-16 decoding errors, one case per enumerator. There is deliberately no
+	// default: a new code without a message must fail -Wswitch instead of falling back to a generic
+	// text. The position is not used here; the caller prefixes "code(line:column)".
 	using utf16_decode_error_code = unicode::utf16::decode_error_code;
+
 	inline auto err_msg_gen_en(utf16_decode_error_code errc, source_position, raw_err_v_cref raw) -> error_msg_string
 	{
 		using namespace err_msg_gen_util;
@@ -25,34 +29,33 @@ namespace pdn::detail
 		{
 		case invalid_code_point: // theoretically unreachable, UTF-16 should not make this error
 			return u8"invalid code point: 0x"_em + to_s<16, 4>(msg.result.value())
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
+				+ u8", in the sequence at offset "_em + offset_of_leading(msg, 2) + u8" (add 2 if the input starts with a BOM), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case non_code_point: // theoretically unreachable, UTF-16 should not make this error
-			return u8"non code point: 0x"_em + to_s<16, 4>(msg.result.value())
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
+			return u8"not a code point: 0x"_em + to_s<16, 4>(msg.result.value())
+				+ u8", in the sequence at offset "_em + offset_of_leading(msg, 2) + u8" (add 2 if the input starts with a BOM), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case incomplete_sequence:
-			return u8"incomplete sequence(expect utf-16 trailing surrogate), code unit: 0x"_em + to_s<16, 4>(msg.last_code_unit)
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
+			return u8"incomplete sequence (expected a UTF-16 trailing surrogate), code unit: 0x"_em + to_s<16, 4>(msg.last_code_unit)
+				+ u8", in the sequence at offset "_em + offset_of_leading(msg, 2) + u8" (add 2 if the input starts with a BOM), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case trailing_as_start:
-			return u8"trailing as start(alone utf-16 trailing surrogate), code unit: 0x"_em + to_s<16, 4>(msg.last_code_unit)
-				+ u8", sequence at offset "_em + offset_of_leading(msg, 2) + u8"(if with BOM then +2), "_em
+			return u8"lone UTF-16 trailing surrogate where a leading surrogate is expected, code unit: 0x"_em + to_s<16, 4>(msg.last_code_unit)
+				+ u8", in the sequence at offset "_em + offset_of_leading(msg, 2) + u8" (add 2 if the input starts with a BOM), "_em
 				+ to_s(msg.result.distance() + 1)
 				+ (msg.result.distance() ? u8" code units were read"_em : u8" code unit was read"_em);
 		case unexpected_eof_offset0: // theoretically unreachable by implementation
-			return u8"eof when read code unit(or utf-16 leading surrogate), sequence at offset "_em
-				+ offset_of_leading(msg, 2) + u8"(if with BOM then +2)"_em;
+			return u8"unexpected end of input while reading the first code unit of the sequence at offset "_em
+				+ offset_of_leading(msg, 2) + u8" (add 2 if the input starts with a BOM)"_em;
 		case unexpected_eof_offset1:
-			return u8"eof when read utf-16 trailing surrogate, sequence at offset "_em
-				+ offset_of_leading(msg, 2) + u8"(if with BOM then +2)"_em;
-		default:
-			assert(0 && "[pdn] UTF-16 decode error and error_message_generator_en unresolved");
-			return u8"UTF-16 decode error and error_message_generator_en unresolved"_em;
+			return u8"unexpected end of input while reading the UTF-16 trailing surrogate of the sequence at offset "_em
+				+ offset_of_leading(msg, 2) + u8" (add 2 if the input starts with a BOM)"_em;
 		}
+		assert(false && "[pdn] UTF-16 decode error code without an English message");
+		return u8"unhandled UTF-16 decode error code"_em;
 	}
 }
 
