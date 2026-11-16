@@ -4,14 +4,12 @@
 #include <cassert>
 #include <cstdint>
 #include <string>
-#include <memory>
+#include <string_view>
 #include <limits>
 #include <utility>
 #include <concepts>
 #include <charconv>
-#include <iterator>
 #include <algorithm>
-#include <type_traits>
 
 #include "pdn_dfa_state_code.h"
 #include "pdn_dfa_state_object.h"
@@ -26,7 +24,6 @@
 
 #include "pdn_stop_reason.h"
 #include "pdn_stoppable_concept.h"
-#include "pdn_stoppable_utility.h"
 
 namespace pdn::concepts
 {
@@ -37,11 +34,26 @@ namespace pdn::concepts
 		&& concepts::error_message_generator<type>;
 }
 
+// The lexer turns code points into tokens, one token per get_token() call. It is
+// driven by the state table in pdn_dfa_state_objects.h: the transformer of the
+// current state maps the next code point to the next state, and get_token() keeps
+// the text of the token being scanned while the table says the token continues.
+//
+// When the table stops the scan, a second switch interprets the final state: error
+// states report why the literal is malformed, value states convert the collected
+// text, and single-character punctuation needs nothing at all. Errors are reported
+// through function_package and the scan resumes at the next token, so one malformed
+// literal does not hide the rest of the input.
 namespace pdn
 {
 	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
 	class lexer;
 
+	// One-token lookahead over a lexer: the constructor and every ++ fetch the next
+	// token, so the iterator holds the token it points at. The end iterator is a
+	// separate empty type, and operator== only asks whether eof was reached. The
+	// iterator deliberately does not model std::input_iterator: the parser only needs
+	// 'it != end' and '*it', so the concept tags stay void.
 	struct token_iterator_end_from_lexer {};
 
 	template <typename char_t, typename function_package, typename it_begin_t, typename it_end_t>
@@ -119,6 +131,9 @@ namespace pdn
 	}
 }
 
+// Helpers for the character level scans below: state classification, ASCII prefix
+// and from_chars checks, and the scanners for escape sequences and raw string
+// delimiters.
 namespace pdn::detail
 {
 	constexpr bool is_non_token_state(dfa_state_code c) noexcept
@@ -169,21 +184,25 @@ namespace pdn::detail
 		return !check_no_0x_prefix(seq);
 	}
 
+	// from_chars succeeded only if it consumed the whole sequence without an error.
 	inline bool check_from_chars_succeed(const ::std::from_chars_result from_chars_r, const char* expected)
 	{
 		return (from_chars_r.ec == ::std::errc{}) && (from_chars_r.ptr == expected);
 	}
 
+	// PDN allows ' between digits; from_chars must see the digits only.
 	inline void remove_all_separator(::std::string& num_str)
 	{
 		::std::erase(num_str, '\'');
 	}
 
+	// Every lexer error carries the offending text as an error_string payload.
 	inline auto to_raw_err_str(error_msg_string err_msg_str) -> raw_error_message_type::error_string
 	{
 		return raw_error_message_type::error_string{ ::std::move(err_msg_str) };
 	}
 
+	// Diagnostic text is always UTF-8; convert only when the token is not.
 	template <typename char_t>
 	auto to_err_ms(::std::basic_string_view<char_t> s) -> error_msg_string
 	{
@@ -197,6 +216,9 @@ namespace pdn::detail
 		}
 	}
 
+	// Chooses the alternative of token_value_variant for an integer literal: the
+	// default integer type when the value fits, then wider signed types, and type::u64
+	// last. The i8/i16/i32 branches are unreachable because type::auto_int is i32.
 	template <typename char_t>
 	void to_appropriate_int_type(token_value_variant<char_t>& target, type::u64 val)
 	{
@@ -244,6 +266,9 @@ namespace pdn::detail
 		return { ::std::move(escape_sign), parse_val };
 	};
 
+	// Consumes the digits of an escape sequence while is_valid_char accepts them.
+	// The caller inspects sequence.size() afterwards to detect a short read; the
+	// stoppable checks live in the loop so a stop request ends the scan early.
 	inline void get_numeric_escape_sequence(
 		::std::string& sequence,
 		auto&          begin,
@@ -264,6 +289,8 @@ namespace pdn::detail
 		}
 	}
 
+	// Same as above, reading at most count digits; the return value is the number of
+	// digits read before an invalid character, 0 when the scan reached the count.
 	inline auto get_numeric_escape_sequence(
 		::std::size_t  count,
 		::std::string& sequence,
@@ -286,6 +313,9 @@ namespace pdn::detail
 		return 0;
 	}
 
+	// Maps a from_chars result onto the lexer's error codes: a clean but partial
+	// parse is an incomplete error, any other errc is classified as out of range,
+	// invalid argument, or other. The payload keeps the text, the offset and the errc.
 	inline void process_from_chars_error(
 		const ::std::from_chars_result            from_chars_r,
 		const ::std::string_view                  src,
@@ -331,6 +361,10 @@ namespace pdn::detail
 		}
 	}
 
+	// Decodes one escape sequence. begin points at the character after the backslash;
+	// on success oc receives the code point and begin is left after the sequence, on
+	// failure begin stays at the first character that could not be consumed so the
+	// caller can keep scanning the literal.
 	inline bool get_escape(
 		auto& oc,    // out param, the result of get escape
 		auto& begin, // pointing first char witch after '\'
@@ -814,6 +848,9 @@ namespace pdn::detail
 		return false;
 	}
 
+	// Hex floats can stop in a state from which from_chars cannot parse anything (no
+	// exponent, or no digits after "0x."). This reports the reason and patches the
+	// text so the fallthrough in the caller still has something to convert.
 	inline void process_hex_fp_errors(dfa_state_code c, ::std::string& num_seq, source_position pos, auto helper)
 	{
 		using lex_ec = lexical_error_code;
@@ -867,6 +904,8 @@ namespace pdn::detail
 		}
 	}
 
+	// Reports why a string like literal ended without its closing delimiter; the
+	// text collected so far and the raw string delimiter are the payload.
 	inline void process_string_like_error(
 		dfa_state_code          dfa_state_c,
 		source_position         position,
@@ -914,6 +953,8 @@ namespace pdn::detail
 		helper.post_err(position, lex_ec::character_missing_terminating_character, to_raw_err_str(::std::move(err_s)));
 	}
 
+	// "0" followed by digits is an invalid octal literal, and a trailing separator
+	// is its own error; both are reported before the fallthrough converts the value.
 	inline void process_dec_seq_error(const dfa_state_code code, source_position position, error_msg_string error_str, auto helper)
 	{
 		using lex_ec = lexical_error_code;
@@ -937,6 +978,8 @@ namespace pdn::detail
 	}
 
 	template <typename char_t>
+	// Builds the character entity from the text between the quotes, reporting an
+	// empty or a too long literal on the way.
 	auto process_char_literal(::std::basic_string_view<char_t> src, const source_position& position, auto helper) -> type::character<char_t>
 	{
 		using unicode::code_convert;
@@ -963,6 +1006,8 @@ namespace pdn::detail
 	}
 
 	template <typename lexer_t>
+	// The scanners above are templates over anything that can post errors; this adapter
+	// is the narrow interface they need from the lexer.
 	class lexer_helper
 	{
 	public:
@@ -996,6 +1041,8 @@ namespace pdn::detail
 	};
 
 	template <bool has_stop_reason_code>
+	// Only the stoppable instantiations need a slot for the reason, so the member lives
+	// in a base selected by that condition.
 	class lexer_base {};
 
 	template <>
@@ -1012,6 +1059,8 @@ namespace pdn::detail
 namespace pdn
 {
 	template <unicode::concepts::code_unit char_t, concepts::function_package_for_lexer function_package, typename cp_it_t>
+	// Scans one token at a time. The DFA runs until a state says the token ended, then
+	// the token switch below turns the final state and the collected text into a token.
 	class lexer : private detail::lexer_base<detail::is_lexer_stoppable<function_package, cp_it_t>>
 	{
 	private:
@@ -1059,6 +1108,10 @@ namespace pdn
 			using lex_ec = lexical_error_code;
 			using err_ms = error_msg_string;
 
+			// The loop consumes one code point per iteration and leaves the iterator at the
+			// first code point of the next token: a token ends either at a state whose
+			// transformer returns unmatched (the token switch then runs with the previous
+			// state) or at end of input (it runs with the current state).
 			while (begin != end)
 			{
 				auto c = *begin;
@@ -1467,6 +1520,10 @@ namespace pdn
 			result.code = dfa_state.token_code;
 			result.position = position;
 
+			// Single character punctuation needs no case here: its transformer is to_unmatched,
+			// so it reaches this switch only when the next code point starts a new token, and its
+			// token code already names the punctuation. default: below asserts that every state
+			// without a case is final.
 			using enum dfa_state_code;
 			switch (dfa_state.state_code)
 			{
