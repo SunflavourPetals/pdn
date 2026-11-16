@@ -150,6 +150,7 @@ namespace pdn
 	{
 		constexpr auto cond = escape_every_non_printable;
 		auto r = string_t{};
+		r.reserve(sv.size());
 		for (auto it = sv.cbegin(); it != sv.cend(); ++it)
 		{
 			detail::append_slashes_string<string_t, cond>(r, *it, detail::next_is_octal_digit_at(it, sv.cend()));
@@ -168,6 +169,7 @@ namespace pdn
 	{
 		constexpr auto cond = escape_every_non_printable;
 		auto r = string_t{};
+		r.reserve(sv.size());
 		for (auto it = sv.cbegin(); it != sv.cend(); ++it)
 		{
 			detail::append_slashes_id_string<string_t, cond>(r, *it, detail::next_is_octal_digit_at(it, sv.cend()));
