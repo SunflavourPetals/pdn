@@ -16,10 +16,10 @@
 //     +---> BOM reader (provide: get BOM)
 //     |
 //     v
-// >> byte iterator (provide: get byte, move backward(++it), check EOF)
+//    byte iterator (provide: get byte, advance(++it), check EOF)
 //     |
 //     v
-//    code unit iterator (provide: get code unit, move backward(++it), check EOF)
+//    code unit iterator (provide: get code unit, advance(++it), check EOF)
 //     |
 //     +---- utf-8 decoder ---+
 //     |                      |
@@ -27,7 +27,7 @@
 //     |                      |
 //     +---- utf-32 decoder --+
 //     v
-//    code point iterator (provide: get code point, move backward(++it), check EOF)
+// >> code point iterator (provide: get code point, advance(++it), check EOF)
 //     |
 //     v
 //    lexer (provide: get token{ token code, value, token position })

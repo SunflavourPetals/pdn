@@ -12,15 +12,15 @@
 
 #include "pdn_unicode_base.h"
 
-//    byte input stream (provide: get byte) // such as ifstream
+//    byte input stream (provide: read byte...) such as ifstream
 //     |
-// >>  +---> BOM reader (provide: get BOM)
-//     |         extra: requires byte input stream has operation seekg
-//     v
-//    swap chain (provide: get byte)
+//     +---> BOM reader (provide: get BOM)
 //     |
 //     v
-//    code unit iterator (provide: get code unit, move backward(++it), check EOF)
+//    byte iterator (provide: get byte, advance(++it), check EOF)
+//     |
+//     v
+//    code unit iterator (provide: get code unit, advance(++it), check EOF)
 //     |
 //     +---- utf-8 decoder ---+
 //     |                      |
@@ -28,13 +28,13 @@
 //     |                      |
 //     +---- utf-32 decoder --+
 //     v
-//    code point iterator (provide: get code point, move backward(++it), check EOF)
+// >> code point iterator (provide: get code point, advance(++it), check EOF)
 //     |
 //     v
 //    lexer (provide: get token{ token code, value, token position })
 //     |
 //     v
-//    parser (provide: parse) ----> pdn document object model
+//    parser (provide: parse) --> pdn document object model
 
 namespace pdn::unicode::concepts
 {
