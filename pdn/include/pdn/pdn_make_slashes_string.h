@@ -25,6 +25,13 @@ namespace pdn::detail
 		++it;
 		return it != end && is_octal_digit(*it);
 	}
+	// A message is one line of text, so a non-printable code point must not reach it: C0/C1 controls
+	// and DEL would be invisible or break the line. PDN has escapes for the ones a literal can
+	// write; the others become the fixed width \uXXXX form.
+	[[nodiscard]] constexpr auto is_printable(unicode::code_point_t c) noexcept -> bool
+	{
+		return c >= U' ' && c != U'\u007f' && (c < U'\u0080' || c > U'\u009f');
+	}
 	// The fixed width form, used where a variable width escape could swallow what follows.
 	template <typename string_t>
 	constexpr void append_u_escape(string_t& s, unicode::code_point_t c)
@@ -41,7 +48,7 @@ namespace pdn::detail
 	}
 	// Write one code point back as the body of a string or character literal: a backslash escape
 	// when PDN has one, the code point itself otherwise.
-	template <typename string_t>
+	template <typename string_t, bool escape_every_non_printable = false>
 	constexpr void append_slashes_string(string_t& s, unicode::code_point_t c, bool next_is_octal_digit)
 	{
 		using char_t = ::std::remove_cv_t<typename string_t::value_type>;
@@ -78,12 +85,20 @@ namespace pdn::detail
 			append_u_escape<string_t>(s, c);
 			break;
 		default:
+			if constexpr (escape_every_non_printable)
+			{
+				if (!is_printable(c))
+				{
+					append_u_escape<string_t>(s, c);
+					return;
+				}
+			}
 			s += unicode::code_convert<string_t>(unicode::ucpstring_view{ &c, 1 });
 		}
 	}
 	// Same, for the body of a string-form identifier (backtick), which additionally escapes the
 	// backtick itself.
-	template <typename string_t>
+	template <typename string_t, bool escape_every_non_printable = false>
 	constexpr void append_slashes_id_string(string_t& s, unicode::code_point_t c, bool next_is_octal_digit)
 	{
 		using char_t = ::std::remove_cv_t<typename string_t::value_type>;
@@ -93,43 +108,45 @@ namespace pdn::detail
 			s += { char_t('\\'), char_t('`') };
 			return;
 		}
-		append_slashes_string<string_t>(s, c, next_is_octal_digit);
+		append_slashes_string<string_t, escape_every_non_printable>(s, c, next_is_octal_digit);
 	}
 }
 
 namespace pdn
 {
-	template <typename string_t>
+	template <typename string_t, bool escape_every_non_printable = false>
 	constexpr string_t make_slashes_string(unicode::code_point_t c)
 	{
 		auto s = string_t{};
-		detail::append_slashes_string<string_t>(s, c, false);
+		detail::append_slashes_string<string_t, escape_every_non_printable>(s, c, false);
 		return s;
 	}
-	template <typename string_t>
+	template <typename string_t, bool escape_every_non_printable = false>
 	constexpr string_t make_slashes_string(unicode::ucpstring_view sv)
 	{
+		constexpr auto cond = escape_every_non_printable;
 		auto r = string_t{};
 		for (auto it = sv.cbegin(); it != sv.cend(); ++it)
 		{
-			detail::append_slashes_string<string_t>(r, *it, detail::next_is_octal_digit_at(it, sv.cend()));
+			detail::append_slashes_string<string_t, cond>(r, *it, detail::next_is_octal_digit_at(it, sv.cend()));
 		}
 		return r;
 	}
-	template <typename string_t>
+	template <typename string_t, bool escape_every_non_printable = false>
 	constexpr string_t make_slashes_id_string(unicode::code_point_t c)
 	{
 		auto s = string_t{};
-		detail::append_slashes_id_string<string_t>(s, c, false);
+		detail::append_slashes_id_string<string_t, escape_every_non_printable>(s, c, false);
 		return s;
 	}
-	template <typename string_t>
+	template <typename string_t, bool escape_every_non_printable = false>
 	constexpr string_t make_slashes_id_string(unicode::ucpstring_view sv)
 	{
+		constexpr auto cond = escape_every_non_printable;
 		auto r = string_t{};
 		for (auto it = sv.cbegin(); it != sv.cend(); ++it)
 		{
-			detail::append_slashes_id_string<string_t>(r, *it, detail::next_is_octal_digit_at(it, sv.cend()));
+			detail::append_slashes_id_string<string_t, cond>(r, *it, detail::next_is_octal_digit_at(it, sv.cend()));
 		}
 		return r;
 	}

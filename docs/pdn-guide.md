@@ -1573,7 +1573,7 @@ namespace user_charconv
 
 ## format 替换
 
-在 `pdn_serializer.h` 中使用了两次 `std::format`(底层可能是 `std::to_chars`)，`pdn_err_msg_gen_utility.h` 中也使用了一次(把错误消息里的浮点值渲染成最短往返形式)，它也可能成为兼容性问题(部分平台或环境可能编译不通过)，这里使用 `format` 只是为了将整数或浮点数转换为字符串的形式，使用方式均为 `format("{}", val)`。用户可以通过提供 `PDN_USER_FORMAT` 来提供替代对 `std::format` 的依赖，推荐引入 `{fmt}` 库。  
+在 `pdn_serializer.h` 中使用了两次 `std::format`(底层可能是 `std::to_chars`)，`pdn_err_msg_gen_utility.h` 中也使用了一次(把错误消息里 token 的数值渲染成文本：整数按十进制、浮点按最短往返形式)，它也可能成为兼容性问题(部分平台或环境可能编译不通过)，这里使用 `format` 只是为了将整数或浮点数转换为字符串的形式，使用方式均为 `format("{}", val)`。用户可以通过提供 `PDN_USER_FORMAT` 来提供替代对 `std::format` 的依赖，推荐引入 `{fmt}` 库。  
 
 如果没有 `format` 的替代品，也可以忽略 `"{}"` 参数，使用其他 `to_string` 等形式的函数替代(可能不如 `format` 精确)，要求返回值是可以 `foreach` 遍历的容器(如 `std::string`，用于 `for(const auto c : PDN_USER_FORMAT("{}", val))`) 且 `elememt` 可以用于构造目标字符类型(可能是 `char8_t` `char16_t` `char32_t`)。  
 

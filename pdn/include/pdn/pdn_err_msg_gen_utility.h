@@ -4,7 +4,6 @@
 #include <type_traits>
 #include <concepts>
 #include <variant>
-#include <string>
 #include <array>
 #include <limits>
 #include <cstddef>
@@ -89,45 +88,12 @@ namespace pdn::detail::err_msg_gen_util
 	}
 
 	namespace raw_details = raw_error_message_type;
-	// A message is one line of text, so a non-printable code point must not reach it: C0/C1 controls
-	// and DEL would be invisible or break the line. PDN has escapes for the ones a literal can
-	// write; the others become the fixed width \uXXXX form.
-	[[nodiscard]] constexpr auto is_printable(unicode::code_point_t c) noexcept -> bool
-	{
-		return c >= U' ' && c != U'\u007f' && (c < U'\u0080' || c > U'\u009f');
-	}
+
+	// Escape a message fragment so that it stays on one line: PDN escapes for what a literal can
+	// write, the fixed width \uXXXX form for every other non-printable code point.
 	inline auto make_slashes(error_msg_string_view view) -> error_msg_string
 	{
-		auto escaped = make_slashes_string<error_msg_string>(unicode::code_convert<unicode::ucpstring>(view));
-		auto result = error_msg_string{};
-		for (auto c : unicode::code_convert<unicode::ucpstring>(escaped))
-		{
-			if (is_printable(c))
-			{
-				result += unicode::code_convert<error_msg_string>(unicode::ucpstring_view{ &c, 1 });
-			}
-			else
-			{
-				append_u_escape(result, c);
-			}
-		}
-		return result;
-	}
-	// Floating-point values take the shortest form that reads back as the same value: "3.5",
-	// "1e+300", "inf", "nan". std::format can be replaced the same way as in the serializer.
-	inline auto fp_to_s(::std::floating_point auto val) -> error_msg_string
-	{
-#ifdef PDN_USER_FORMAT
-		auto formatted = PDN_USER_FORMAT("{}", val);
-#else
-		auto formatted = ::std::format("{}", val);
-#endif
-		auto result = error_msg_string{};
-		for (auto c : formatted)
-		{
-			result.push_back(static_cast<error_msg_char>(c));
-		}
-		return result;
+		return make_slashes_string<error_msg_string, true>(unicode::code_convert<unicode::ucpstring>(view));
 	}
 	// How a token value is shown in a message: a character in single quotes (escaped the same way as
 	// a string), a string quoted and escaped, "true"/"false", an at identifier with its @, integers
@@ -160,14 +126,19 @@ namespace pdn::detail::err_msg_gen_util
 			}
 			else
 			{
-				if constexpr (::std::floating_point<arg_t>)
+				static_assert(::std::integral<arg_t> || ::std::floating_point<arg_t>,
+					"[pdn] err msg: every remaining token value alternative is a number");
+#ifdef PDN_USER_FORMAT
+				auto formatted = PDN_USER_FORMAT("{}", arg);
+#else
+				auto formatted = ::std::format("{}", arg);
+#endif
+				auto result = error_msg_string{};
+				for (auto c : formatted)
 				{
-					return fp_to_s(arg);
+					result.push_back(static_cast<error_msg_char>(c));
 				}
-				else
-				{
-					return reinterpret_to_err_msg_str(::std::to_string(arg));
-				}
+				return result;
 			}
 		}, variant);
 	}
