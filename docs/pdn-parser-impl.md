@@ -110,7 +110,7 @@ struct my_function_package : pdn::default_function_package<char8_t>
 
 ### 自定义终止
 
-在 `handle_error` 中请求终止，可以让解析在某次错误处理时停下。下面的示例添加对 `syntax_error_code::expect_entity_name` 这个错误请求终止的功能：`error_message::error_code` 是一个 `std::variant`，用 `std::get_if` 取出具体类型再比较。要确定应该针对哪个错误，可以先不请求终止地解析一次，从 `parse_result::what()` 的错误消息里看到具体的错误，再到 `handle_error` 里做对应的判断。
+在 `handle_error` 中请求终止，可以让解析在某次错误处理时停下。下面的示例添加对 `syntax_error_code::expect_entity_name` 这个错误请求终止的功能：`error_message::error_code` 是一个 `std::variant`，用 `std::get_if` 取出具体类型再比较。要确定应该针对哪个错误，可以先不请求终止地解析一次，从打印出来的诊断文本（`handle_error` 收到的 `error_message`）里看到具体的错误，再到 `handle_error` 里做对应的判断；`parse_result::what()` 只给出 `parse_error` 这类粗粒度的停止原因，不含位置与细节。
 
 ``` C++
 #include <string_view>
