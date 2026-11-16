@@ -85,6 +85,9 @@
     <Filter Include="pdn_concept_utility">
       <UniqueIdentifier>{a6ed1a31-b264-4c41-ba2a-6a137cb3c3b6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pdn_nesting_depth_limiter">
+      <UniqueIdentifier>{aff822ba-1807-4831-91a4-147158faabc1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\pdn\pdn_unicode_base.h">
@@ -345,9 +348,6 @@
     <ClInclude Include="include\pdn\pdn_eof_detector_concept.h">
       <Filter>pdn_filestream_adapter</Filter>
     </ClInclude>
-    <ClInclude Include="include\pdn\pdn_nesting_depth_limiter_concept.h">
-      <Filter>pdn_parser</Filter>
-    </ClInclude>
     <ClInclude Include="include\pdn\pdn_parse_error_code.h">
       <Filter>pdn_parser</Filter>
     </ClInclude>
@@ -356,6 +356,12 @@
     </ClInclude>
     <ClInclude Include="include\pdn\pdn_remove_cvref_same_as_concept.h">
       <Filter>pdn_concept_utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pdn\pdn_nesting_depth_limiter_concept.h">
+      <Filter>pdn_nesting_depth_limiter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pdn\pdn_nesting_depth_limiter.h">
+      <Filter>pdn_nesting_depth_limiter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

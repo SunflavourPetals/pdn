@@ -37,6 +37,7 @@
 
 #include "pdn_stop_reason.h"
 
+#include "pdn_nesting_depth_limiter.h"
 #include "pdn_nesting_depth_limiter_concept.h"
 
 // The recursive descent parser. It consumes a token stream, reports syntax errors through the
@@ -56,7 +57,6 @@ namespace pdn::concepts
 
 namespace pdn
 {
-	constexpr auto default_nesting_depth_limit = ::std::size_t{ 256 };
 	template <unicode::concepts::code_unit char_t, concepts::function_package_for_parser<char_t> function_package>
 	class parser
 	{
@@ -794,7 +794,7 @@ namespace pdn
 		// Fallback for function packages that do not provide a limit of their own.
 		static constexpr auto nesting_depth_limit() noexcept requires (!concepts::nesting_depth_limiter<function_package>)
 		{
-			return default_nesting_depth_limit;
+			return default_nesting_depth_limiter::nesting_depth_limit();
 		}
 
 		void request_stop(stop_reason_code reason) noexcept

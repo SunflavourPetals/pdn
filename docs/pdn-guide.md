@@ -1076,8 +1076,8 @@ public:
     using error_count_t = default_threshold_error_handler::error_count_t;
     // 默认的解析错误数量限制，错误超过限制时pdn默认功能包会请求终止本次解析
     static constexpr auto default_error_limit = default_threshold_error_handler::default_limit;
-    // 默认的数据嵌套深度限制，嵌套超过限制时pdn默认功能包会请求终止本次解析
-    static constexpr auto default_nesting_limit = ::std::size_t{ 256 };
+    // 默认的数据嵌套深度限制，数值来自 pdn::default_nesting_depth_limiter（pdn_nesting_depth_limiter.h），
+    // 嵌套超过限制时 pdn 默认功能包会请求终止本次解析
 
 
 
@@ -1142,6 +1142,7 @@ public:
     // 输出错误信息到 out，并在错误数量抵达上限时请求停止解析
     void handle_error(const pdn::error_message& msg, ::std::ostream& out);
     // 另一个版本，供用户定制时使用，非必需
+    // 只累计错误数量、不输出（供“不想打印但需要 error_count()”的用户定制使用）
     // 在错误数量抵达上限时请求停止解析
     void handle_error();
 
@@ -1327,6 +1328,7 @@ pdn::concepts::function_package_for_parser<fp_type, char_type>;
 本库的 `parser` 使用递归下降分析，当待解析数据的嵌套深度过深时，不停递归的解析函数的调用将导致栈溢出。因此 `parser` 设置了默认嵌套深度限制 `256`，用户可以通过提供满足概念 `pdn::concepts::nesting_depth_limiter` 的函数包给 `parser`，即定义 `std::size_t nesting_depth_limit()` 来改变这一行为，通过目标平台的了解返回合理的返回值。  
 
 本库提供的 `pdn::default_function_package` 满足 `pdn::concepts::nesting_depth_limiter`，并且返回值恒为 `256`。  
+默认实现位于 [`pdn_nesting_depth_limiter.h`](../pdn/include/pdn/pdn_nesting_depth_limiter.h) 的 `pdn::default_nesting_depth_limiter`，它也是 `256` 这个数值的唯一来源，`parser` 的兜底分支同样转发到它。  
 
 ## 配置自定义的解析器的常量
 
