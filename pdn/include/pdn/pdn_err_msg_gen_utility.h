@@ -22,13 +22,15 @@
 #include "pdn_type_code_to_error_msg_string.h"
 #include "pdn_token_code_to_error_msg_string.h"
 
-#include "pdn_unicode.h"
-
 namespace pdn::detail
 {
 	using raw_err_v_cref = const raw_error_message_variant&;
 }
 
+// The vocabulary shared by the error message generators. Two halves:
+// - formatting helpers: quoting, base conversion, escaping, and the textual form of a token value;
+// - readers that fetch one field of a raw_error_message_variant alternative, grouped by the layer
+//   that produced the error: syntax payloads first, then lexical payloads.
 namespace pdn::detail::err_msg_gen_util
 {
 	using namespace literals::error_message_literals;
@@ -40,27 +42,42 @@ namespace pdn::detail::err_msg_gen_util
 	{
 		return u8"'"_em.append(src).append(u8"'");
 	}
-	template <int base = 10, ::std::size_t width = 1>
+	// base is 2..36, width is the minimum number of characters, filling pads the result up to it.
+	// Padding goes after the sign, so to_s<10, 5>(-42) is "-0042" and to_s<10, 5, u8'_'>(-42) is
+	// "-__42". Callers pass non-negative code units, offsets and counts, or a negative int with the
+	// default width.
+	template <int base = 10, ::std::size_t width = 1, error_msg_char filling = u8'0'>
 	auto to_s(::std::integral auto const val) -> error_msg_string
 	{
-		constexpr ::std::size_t buffer_size = 72;
+		constexpr auto buffer_size = ::std::size_t{ 72 };
 		static_assert(base >= 2 && base <= 36, "[pdn] unsupported base");
 		static_assert(::std::numeric_limits<::std::remove_cv_t<decltype(val)>>::digits + 1 < buffer_size, "[pdn] unsupported type");
-		::std::array<char, buffer_size> buffer{}; // int64_min in base 2 = "-" + 64 digits = 65 chars; 72 leaves margin
+		auto buffer = ::std::array<char, buffer_size>{}; // int64_min in base 2 = "-" + 64 digits = 65 chars; 72 leaves margin
 		auto to_chars_result = ::std::to_chars(buffer.data(), buffer.data() + buffer.size(), val, base);
 		assert(to_chars_result.ec == ::std::errc{} && "[pdn] to_chars error"); // unreachable
 		assert(to_chars_result.ptr > buffer.data());
 		auto n_count = static_cast<::std::size_t>(to_chars_result.ptr - buffer.data());
-		auto prefix0_count = n_count < width ? width - n_count : 0;
-		auto length = prefix0_count + n_count;
-		auto result = error_msg_string(length, u8'0');
-		auto buf_begin = buffer.cbegin();
-		for (auto i = prefix0_count; i < length; ++i, ++buf_begin)
+		auto buf_begin = buffer.data();
+		auto has_sign = *buf_begin == '-';
+		auto digit_count = n_count - static_cast<::std::size_t>(has_sign);
+		auto length = n_count < width ? width : n_count;
+		auto result = error_msg_string(length, filling);
+		auto result_begin = result.begin();
+		if (has_sign)
 		{
-			result[i] = static_cast<error_msg_char>(*buf_begin);
+			*result_begin = u8'-';
+			++buf_begin;
+		}
+		result_begin += static_cast<decltype(result_begin)::difference_type>(length - digit_count);
+		for (; buf_begin != to_chars_result.ptr; ++buf_begin, ++result_begin)
+		{
+			*result_begin = static_cast<error_msg_char>(*buf_begin);
 		}
 		return result;
 	}
+	// Offset of the first code unit of the failing sequence, in hex. multi is the width of one code
+	// unit in bytes: 1 for utf-8, 2 for utf-16, 4 for utf-32; BOM bytes are not counted, the callers
+	// mention that separately in the message.
 	// for utf8|16|32_decode_error
 	inline auto offset_of_leading(const auto& msg, const int multi = 1) -> error_msg_string
 	{
@@ -68,10 +85,16 @@ namespace pdn::detail::err_msg_gen_util
 	}
 
 	namespace raw_details = raw_error_message_type;
+	// Escape the UTF-8 text so it can be shown between quotes: backslashes, quotes and the control
+	// characters PDN has an escape for become escape sequences, other code points stay as they are.
 	inline auto make_slashes(error_msg_string_view view) -> error_msg_string
 	{
 		return make_slashes_string<error_msg_string>(unicode::code_convert<unicode::ucpstring>(view));
 	}
+	// How a token value is shown in a message: a character in single quotes (not escaped, the text
+	// is only for humans), a string quoted and escaped, "true"/"false", an at identifier with its @,
+	// and numbers in their decimal form. monostate has no text of its own, the callers test is_mono
+	// first and print only the token code then.
 	inline auto token_value_variant_to_s(const token_value_variant<error_msg_char>& variant) -> error_msg_string
 	{
 		return ::std::visit([](const auto& arg) -> error_msg_string
@@ -103,10 +126,12 @@ namespace pdn::detail::err_msg_gen_util
 			}
 		}, variant);
 	}
+	// True when the token carries no value, e.g. a keyword or a punctuation token.
 	inline auto is_mono(const token_value_variant<error_msg_char>& variant) -> bool
 	{
 		return static_cast<bool>(::std::get_if<::std::monostate>(&variant));
 	}
+	// The token code, followed by its value when the token has one: "integer with value 42".
 	inline auto description_of(const token<error_msg_char>& token_val) -> error_msg_string
 	{
 		return is_mono(token_val.value) ?
@@ -115,6 +140,7 @@ namespace pdn::detail::err_msg_gen_util
 	}
 }
 
+// Readers for the syntax payloads: casting_msg and unary_operation.
 namespace pdn::detail::err_msg_gen_util::syntax_err_msg_gen_util
 {
 	// for identifier
@@ -155,6 +181,8 @@ namespace pdn::detail::err_msg_gen_util::syntax_err_msg_gen_util
 		}
 	}
 
+	// casting_msg's source_type and target_type are documented as the eight integer codes, so the
+	// default branch is unreachable; i64/u64 can hold every minimum/maximum of those codes.
 	// for casting_msg from casting_domain_error
 	inline auto get_integer_min_value(type_code c) -> type::i64
 	{
@@ -253,14 +281,13 @@ namespace pdn::detail::err_msg_gen_util::syntax_err_msg_gen_util
 	inline auto get_description_for_unary_operation(raw_err_v_cref raw) -> error_msg_string
 	{
 		const auto& msg = ::std::get<raw_details::unary_operation>(raw);
-		return is_mono(msg.operand)
-			? get_operand_type_name(raw)
-			: get_operand_type_name(raw)
-			+ u8" with value "_em
-			+ token_value_variant_to_s(msg.operand);
+		return is_mono(msg.operand) ?
+			get_operand_type_name(raw) :
+			get_operand_type_name(raw) + u8" with value "_em + token_value_variant_to_s(msg.operand);
 	}
 }
 
+// Readers for the payloads the lexer reports through lexical_error_code.
 namespace pdn::detail::err_msg_gen_util::lexical_err_msg_gen_util
 {
 	// for not_unicode_scalar_value
@@ -354,8 +381,8 @@ namespace pdn::detail::err_msg_gen_util::lexical_err_msg_gen_util
 		case hex_integer:  return u8"integer, base 16"_em;
 		case dec_floating: return u8"floating, default chars_format(general)"_em;
 		case hex_floating: return u8"floating, chars_format hex"_em;
-		default: assert(0 && "enum unhandled"); return u8"unknown"_em;
 		}
+		return u8"unknown"_em; // unreachable: every number_type enumerator is handled above
 	}
 	// for from_chars_error
 	inline auto get_from_chars_errc_s(raw_err_v_cref raw) -> error_msg_string
