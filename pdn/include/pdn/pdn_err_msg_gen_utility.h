@@ -11,6 +11,10 @@
 #include <charconv>
 #include <cassert>
 
+#ifndef PDN_USER_FORMAT
+#include <format>
+#endif
+
 #include "pdn_type.h"
 #include "pdn_proxy.h"
 #include "pdn_error_string.h"
@@ -85,16 +89,50 @@ namespace pdn::detail::err_msg_gen_util
 	}
 
 	namespace raw_details = raw_error_message_type;
-	// Escape the UTF-8 text so it can be shown between quotes: backslashes, quotes and the control
-	// characters PDN has an escape for become escape sequences, other code points stay as they are.
+	// A message is one line of text, so a non-printable code point must not reach it: C0/C1 controls
+	// and DEL would be invisible or break the line. PDN has escapes for the ones a literal can
+	// write; the others become the fixed width \uXXXX form.
+	[[nodiscard]] constexpr auto is_printable(unicode::code_point_t c) noexcept -> bool
+	{
+		return c >= U' ' && c != U'\u007f' && (c < U'\u0080' || c > U'\u009f');
+	}
 	inline auto make_slashes(error_msg_string_view view) -> error_msg_string
 	{
-		return make_slashes_string<error_msg_string>(unicode::code_convert<unicode::ucpstring>(view));
+		auto escaped = make_slashes_string<error_msg_string>(unicode::code_convert<unicode::ucpstring>(view));
+		auto result = error_msg_string{};
+		for (auto c : unicode::code_convert<unicode::ucpstring>(escaped))
+		{
+			if (is_printable(c))
+			{
+				result += unicode::code_convert<error_msg_string>(unicode::ucpstring_view{ &c, 1 });
+			}
+			else
+			{
+				append_u_escape(result, c);
+			}
+		}
+		return result;
 	}
-	// How a token value is shown in a message: a character in single quotes (not escaped, the text
-	// is only for humans), a string quoted and escaped, "true"/"false", an at identifier with its @,
-	// and numbers in their decimal form. monostate has no text of its own, the callers test is_mono
-	// first and print only the token code then.
+	// Floating-point values take the shortest form that reads back as the same value: "3.5",
+	// "1e+300", "inf", "nan". std::format can be replaced the same way as in the serializer.
+	inline auto fp_to_s(::std::floating_point auto val) -> error_msg_string
+	{
+#ifdef PDN_USER_FORMAT
+		auto formatted = PDN_USER_FORMAT("{}", val);
+#else
+		auto formatted = ::std::format("{}", val);
+#endif
+		auto result = error_msg_string{};
+		for (auto c : formatted)
+		{
+			result.push_back(static_cast<error_msg_char>(c));
+		}
+		return result;
+	}
+	// How a token value is shown in a message: a character in single quotes (escaped the same way as
+	// a string), a string quoted and escaped, "true"/"false", an at identifier with its @, integers
+	// in decimal form and floating-point values in their shortest form. monostate has no text of its
+	// own, the callers test is_mono first and print only the token code then.
 	inline auto token_value_variant_to_s(const token_value_variant<error_msg_char>& variant) -> error_msg_string
 	{
 		return ::std::visit([](const auto& arg) -> error_msg_string
@@ -102,7 +140,7 @@ namespace pdn::detail::err_msg_gen_util
 			using arg_t = ::std::decay_t<decltype(arg)>;
 			if constexpr (::std::same_as<arg_t, type::character<error_msg_char>>)
 			{
-				return add_single_quote(arg.to_string_view());
+				return add_single_quote(make_slashes(arg.to_string_view()));
 			}
 			else if constexpr (::std::same_as<arg_t, proxy<type::string<error_msg_char>>>)
 			{
@@ -122,7 +160,14 @@ namespace pdn::detail::err_msg_gen_util
 			}
 			else
 			{
-				return reinterpret_to_err_msg_str(::std::to_string(arg));
+				if constexpr (::std::floating_point<arg_t>)
+				{
+					return fp_to_s(arg);
+				}
+				else
+				{
+					return reinterpret_to_err_msg_str(::std::to_string(arg));
+				}
 			}
 		}, variant);
 	}
