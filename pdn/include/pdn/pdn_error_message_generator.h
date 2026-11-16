@@ -1,12 +1,10 @@
 #ifndef PDN_Header_pdn_error_message_generator
 #define PDN_Header_pdn_error_message_generator
 
-#include <type_traits>
 #include <utility>
 #include <string>
 
 #include "pdn_raw_error_message.h"
-#include "pdn_error_code_variant.h"
 #include "pdn_error_code_variant_to_error_msg_string.h"
 #include "pdn_error_string.h"
 #include "pdn_error_message_generator_concept.h"
@@ -14,6 +12,10 @@
 
 namespace pdn
 {
+	// The built-in message generator: "<category>(<line>:<column>) <detail>", for example
+	// "syntax error(3:7) expected entity name (identifier), but got integer-val with value 3".
+	// Positions are 1-based (see source_position); a filename, when the function package knows one,
+	// is prepended separately by detail::error_msg_for_filename (pdn_error_handler.h).
 	class default_error_message_generator
 	{
 	public:
