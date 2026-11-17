@@ -2,6 +2,7 @@
 #define PDN_Header_pdn_lexer_utility
 
 #include "pdn_unicode_base.h"
+#include "pdn_unicode_xid.h"
 
 // set of tool functions for lexer & dfa that serves pdn
 // these tools are based on the Unicode character set, but serve the implementation of pdn
@@ -88,161 +89,16 @@ namespace pdn::lexer_utility
 		return is_whitespace(c);
 	}
 	// is c allowed as first character of identifier
-	// https://learn.microsoft.com/en-us/cpp/cpp/identifiers-cpp
+	// https://en.cppreference.com/cpp/language/identifiers
 	constexpr bool is_allowed_as_first_char_of_identifier(code_point_t c) noexcept
 	{
-		if (is_alpha(c) || c == U'_')
-		{
-			return true;
-		}
-		switch (c)
-		{
-		case U'\u00A8':
-		case U'\u00AA':
-		case U'\u00AD':
-		case U'\u00AF':
-			return true;
-		default:
-			break;
-		}
-		if (in_range(c, U'\U00010000', U'\U000EFFFD'))
-		{
-			//	10000-1FFFD,
-			//	20000-2FFFD,
-			//	30000-3FFFD,
-			//	40000-4FFFD,
-			//	50000-5FFFD,
-			//	60000-6FFFD,
-			//	70000-7FFFD,
-			//	80000-8FFFD,
-			//	90000-9FFFD,
-			//	A0000-AFFFD,
-			//	B0000-BFFFD,
-			//	C0000-CFFFD,
-			//	D0000-DFFFD,
-			//	E0000-EFFFD
-			return (c & U'\uFFFE') != U'\uFFFE';
-		}
-		if (c >= U'\u3000')
-		{
-			if (in_range(c, U'\u3004', U'\u3007')  // 3004-3007,
-			 || in_range(c, U'\u3021', U'\u302F')  // 3021-302F,
-			 || in_range(c, U'\u3031', U'\uD7FF')) // 3031-303F, 3040-D7FF,
-			{
-				return true;
-			}
-			if (in_range(c, U'\uF900', U'\uFFFD'))
-			{
-				//	F900-FD3D,
-				//	FD40-FDCF,
-				//	FDF0-FE1F,
-				//	FE30-FE44,
-				//	FE47-FFFD,
-				switch (c)
-				{
-				case U'\uFD3E':
-				case U'\uFD3F':
-				case U'\uFE45':
-				case U'\uFE46':
-					return false;
-				default:
-					return !(in_range(c, U'\uFDD0', U'\uFDEF') || in_range(c, U'\uFE20', U'\uFE2F'));
-				}
-			}
-			return false;
-		}
-		if (c >= U'\u2000')
-		{
-			switch (c)
-			{
-			//	200B-200D,
-			//	202A-202E,
-			//	203F-2040,
-			//	2054,
-			case U'\u200B':
-			case U'\u200C':
-			case U'\u200D':
-			case U'\u202A':
-			case U'\u202B':
-			case U'\u202C':
-			case U'\u202D':
-			case U'\u202E':
-			case U'\u203F':
-			case U'\u2040':
-			case U'\u2054':
-				return true;
-			default:
-				break;
-			}
-			if (in_range(c, U'\u2060', U'\u20CF')  // 2060-206F, 2070 - 20CF,
-			 || in_range(c, U'\u2100', U'\u218F')  // 2100-218F,
-			 || in_range(c, U'\u2460', U'\u24FF')  // 2460-24FF,
-			 || in_range(c, U'\u2776', U'\u2793')  // 2776-2793,
-			 || in_range(c, U'\u2C00', U'\u2DFF')  // 2C00-2DFF,
-			 || in_range(c, U'\u2E80', U'\u2FFF')) // 2E80-2FFF,
-			{
-				return true;
-			}
-			return false;
-		}
-
-		if (in_range(c, U'\u00B2', U'\u02FF'))
-		{
-			//	00B2-00B5,
-			//	00B7-00BA,
-			//	00BC-00BE,
-			//	00C0-00D6,
-			//	00D8-00F6,
-			//	00F8-00FF, 0100-02FF,
-			switch (c)
-			{
-			case U'\u00B6':
-			case U'\u00BB':
-			case U'\u00BF':
-			case U'\u00D7':
-			case U'\u00F7':
-				return false;
-			default:
-				return true;
-			}
-		}
-		if (in_range(c, U'\u0370', U'\u1DBF'))
-		{
-			//	0370-167F,
-			//	1681-180D,
-			//	180F-1DBF,
-			switch (c)
-			{
-			case U'\u1680':
-			case U'\u180E':
-				return false;
-			default:
-				return true;
-			}
-		}
-		if (in_range(c, U'\u1E00', U'\u1FFF')) // 1E00-1FFF,
-		{
-			return true;
-		}
-		return false;
+		return is_alpha(c) || c == U'_' || unicode::is_xid_start(c);
 	}
 	// is c allowed in identifier
-	// https://learn.microsoft.com/en-us/cpp/cpp/identifiers-cpp
+	// https://en.cppreference.com/cpp/language/identifiers
 	constexpr bool is_allowed_in_identifier(code_point_t c) noexcept
 	{
-		//   is_allowed_in_identifier_first
-		// | '0'-'9'
-		// | 0300-036F
-		// | 1DC0-1DFF
-		// | 20D0-20FF
-		// | FE20-FE2F
-		return is_alpha(c) || c == U'_' // for optimization, ASCII compatible characters are preferentially processed.
-			|| is_digit(c)
-			|| is_allowed_as_first_char_of_identifier(c)
-			|| in_range(c, U'\u0300', U'\u036F')
-			|| in_range(c, U'\u1DC0', U'\u1DFF')
-			|| in_range(c, U'\u20D0', U'\u20FF')
-			|| in_range(c, U'\uFE20', U'\uFE2F');
+		return is_alpha(c) || c == U'_' || is_digit(c) || unicode::is_xid_continue(c);
 	}
 	// is c in basic character set (ref c++26)
 	// https://en.cppreference.com/w/cpp/language/charset#Basic_character_set

@@ -764,9 +764,9 @@ raw_identifier_string_test: {
 	};
 	delimiter: {
 		``: 0;
-		🍓num: 0;
+		`🍓num`: 0;
 		`signs 1🍓`: 0;
-		signs🍓2: 0;
+		`signs🍓2`: 0;
 		`uppercase🍓letters 1`: 0;
 		`lowercase letters🍓1`: 0;
 		`uppercase letters🍓2`: 0;

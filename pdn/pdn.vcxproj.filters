@@ -363,6 +363,15 @@
     <ClInclude Include="include\pdn\pdn_nesting_depth_limiter.h">
       <Filter>pdn_nesting_depth_limiter</Filter>
     </ClInclude>
+    <ClInclude Include="include\pdn\pdn_unicode_xid.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pdn\pdn_unicode_xid_data_continue.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
+    <ClInclude Include="include\pdn\pdn_unicode_xid_data_start.h">
+      <Filter>pdn_unicode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

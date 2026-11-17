@@ -152,6 +152,9 @@
     <ClInclude Include="include\pdn\pdn_stoppable_concept.h" />
     <ClInclude Include="include\pdn\pdn_stoppable_utility.h" />
     <ClInclude Include="include\pdn\pdn_stop_reason.h" />
+    <ClInclude Include="include\pdn\pdn_unicode_xid.h" />
+    <ClInclude Include="include\pdn\pdn_unicode_xid_data_continue.h" />
+    <ClInclude Include="include\pdn\pdn_unicode_xid_data_start.h" />
     <ClInclude Include="include\pdn\pdn_utf_code_convert.h" />
     <ClInclude Include="include\pdn\pdn_code_point_iterator.h" />
     <ClInclude Include="include\pdn\pdn_code_unit_iterator.h" />

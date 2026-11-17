@@ -152,7 +152,7 @@ void serialization_test()
 	std::cout << "serialization_test end\n";
 }
 
-int main() try
+int main()
 {
 	error_test();
 	serialization_test();
@@ -166,12 +166,4 @@ int main() try
 	auto& e = *e_opt;
 	std::cout << e[u8"hello"sv].as_string() << "\n";
 	std::cout << pdn::make_u8serializer().serialize(e.as_object()) << "\n";
-}
-catch (std::exception& e)
-{
-	std::cerr << e.what() << "\n";
-}
-catch (...)
-{
-	std::cerr << "unknown exception\n";
 }
