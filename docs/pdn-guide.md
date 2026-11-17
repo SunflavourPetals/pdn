@@ -1151,13 +1151,14 @@ public:
     // function_package 必需品：查询累计的已发生错误数量，仅供 pdn::parse 函数判断是否解析失败使用
     // 不要求 const 或 noexcept
     auto error_count() const noexcept;
-    // function_package 必需品：处理错误，默认行为是输出错误信息到 std::cerr，并在错误数量抵达上限时请求停止解析
+    // function_package 必需品：处理错误
+    // 默认行为是输出错误诊断信息到 std::cerr、记录错误数量、并在错误数量抵达上限时请求停止解析
     void handle_error(const pdn::error_message& msg);
     // 另一个版本，供用户定制时使用，非必需
-    // 输出错误信息到 out，并在错误数量抵达上限时请求停止解析
+    // 输出错误信息到 out、记录错误数量、并在错误数量抵达上限时请求停止解析
     void handle_error(const pdn::error_message& msg, ::std::ostream& out);
     // 另一个版本，供用户定制时使用，非必需
-    // 只累计错误数量、不输出（供“不想打印但需要 error_count()”的用户定制使用）
+    // 只累计错误数量，不输出（供“不想打印错误诊断信息”的用户定制使用，错误计数必须正确提供，否则视为未定义行为）
     // 在错误数量抵达上限时请求停止解析
     void handle_error();
 
