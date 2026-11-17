@@ -181,9 +181,9 @@ namespace pdn
 		char_t               char_tag = {},
 		::std::size_t        buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
-		// The stream is read as-is: only the file stream overload below looks for a BOM, so
-		// the caller decides where the input starts. A leading U+FEFF is not stripped here;
-		// the lexer treats it as a separator, so UTF-8 input usually parses anyway.
+		// The stream is read as-is: only the file stream overload below detects and strips a
+		// BOM, so a stream that still starts with U+FEFF must not be passed here: the BOM is
+		// a code point, and counting it shifts every line/column the diagnostics report.
 		// bad -> null; good | fail | eof -> continue
 		if (source_input_stream.bad()) [[unlikely]]
 		{

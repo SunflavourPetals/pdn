@@ -38,7 +38,7 @@ greeting: "Hello world!"
 注意：`spdn` 文件的编码格式只可以是 `UTF-8` `UTF-16` `UTF-32` 其中之一，因为实现的解析器不支持其他编码。  
 
 解析文件时编码由文件开头的 BOM（byte order mark）自动识别：`EF BB BF` 是 UTF-8，`FF FE` / `FE FF` 是 UTF-16 小端 / 大端，`FF FE 00 00` / `00 00 FE FF` 是 UTF-32 小端 / 大端，没有 BOM 时按 UTF-8 处理。对于解析 Unicode 字符串或其迭代器的重载，输入编码由字符串自身的字符类型（`u8string` / `u16string` / `u32string`）决定。  
-只有"文件流 / 文件名"重载会探测并剥掉 BOM；直接传入 `std::istream` 时按原样读取，起点由调用方决定（开头的 `U+FEFF` 不会被去掉——UTF-8 下它会被词法器当作分隔符跳过，所以通常无感，其它编码下则可能被当成数据）。  
+只有“文件流 / 文件名”重载会探测并剥掉 BOM；`std::istream` 重载按原样读取，但是不应该为 `std::istream` 重载传入带 BOM 的流，因为会干扰行列位置记录器的记录从而影响错误诊断信息。  
 
 ### 在 C++ 程序中访问 spdn 数据文件
 
