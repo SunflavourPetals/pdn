@@ -132,11 +132,11 @@ namespace pdn
 		using index_type  = ::std::size_t;
 		using key_type    = ::std::basic_string_view<char_type>;
 	public:
-		auto at(index_type index)   const -> const_refer { return get() ? get()->at(index) : const_refer{}; }
-		auto at(const key_type key) const -> const_refer { return get() ? get()->at(key)   : const_refer{}; }
+		[[nodiscard]] auto at(index_type index)   const -> const_refer { return get() ? get()->at(index) : const_refer{}; }
+		[[nodiscard]] auto at(const key_type key) const -> const_refer { return get() ? get()->at(key)   : const_refer{}; }
 
-		auto operator[](index_type index)   const -> const_refer { return at(index); }
-		auto operator[](const key_type key) const -> const_refer { return at(key); }
+		[[nodiscard]] auto operator[](index_type index)   const -> const_refer { return at(index); }
+		[[nodiscard]] auto operator[](const key_type key) const -> const_refer { return at(key); }
 
 		[[nodiscard]] constexpr bool has_value()         const noexcept { return get(); }
 		[[nodiscard]] explicit constexpr operator bool() const noexcept { return has_value(); }
@@ -170,11 +170,11 @@ namespace pdn
 		using index_type  = ::std::size_t;
 		using key_type    = ::std::basic_string_view<char_type>;
 	public:
-		auto at(index_type index)   const -> refer { return get() ? get()->at(index) : refer{}; }
-		auto at(const key_type key) const -> refer { return get() ? get()->at(key)   : refer{}; }
+		[[nodiscard]] auto at(index_type index)   const -> refer { return get() ? get()->at(index) : refer{}; }
+		[[nodiscard]] auto at(const key_type key) const -> refer { return get() ? get()->at(key)   : refer{}; }
 
-		auto operator[](index_type index)   const -> refer { return at(index); }
-		auto operator[](const key_type key) const -> refer { return at(key); }
+		[[nodiscard]] auto operator[](index_type index)   const -> refer { return at(index); }
+		[[nodiscard]] auto operator[](const key_type key) const -> refer { return at(key); }
 
 		[[nodiscard]] constexpr bool has_value()         const noexcept { return get(); }
 		[[nodiscard]] explicit constexpr operator bool() const noexcept { return has_value(); }
@@ -237,12 +237,12 @@ namespace pdn
 	public:
 		auto  ref() const&& -> const_refer<char_type> = delete;
 		auto cref() const&& -> const_refer<char_type> = delete;
-		constexpr auto  ref()      &  ->       refer<char_type> { return       refer<char_type>{ *this }; }
-		constexpr auto  ref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
-		constexpr auto cref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
+		[[nodiscard]] constexpr auto  ref()      &  ->       refer<char_type> { return       refer<char_type>{ *this }; }
+		[[nodiscard]] constexpr auto  ref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
+		[[nodiscard]] constexpr auto cref() const&  -> const_refer<char_type> { return const_refer<char_type>{ *this }; }
 
 		auto at(index_type) const&& ->const_refer<char_type> = delete;
-		auto at(index_type index) const& -> const_refer<char_type>
+		[[nodiscard]] auto at(index_type index) const& -> const_refer<char_type>
 		{
 			if (auto prp = ::std::get_if<list_proxy>(this); prp) // pointer to proxy of list
 			{
@@ -253,7 +253,7 @@ namespace pdn
 			}
 			return const_refer<char_type>{};
 		}
-		auto at(index_type index) & -> refer<char_type>
+		[[nodiscard]] auto at(index_type index) & -> refer<char_type>
 		{
 			if (auto prp = ::std::get_if<list_proxy>(this); prp) // pointer to proxy of list
 			{
@@ -266,7 +266,7 @@ namespace pdn
 		}
 
 		auto at(const key_type) const&& -> const_refer<char_type> = delete;
-		auto at(const key_type key) const& -> const_refer<char_type>
+		[[nodiscard]] auto at(const key_type key) const& -> const_refer<char_type>
 		{
 			if (auto prp = ::std::get_if<object_proxy>(this); prp) // pointer to proxy of object
 			{
@@ -278,7 +278,7 @@ namespace pdn
 			}
 			return const_refer<char_type>{};
 		}
-		auto at(const key_type key) & -> refer<char_type>
+		[[nodiscard]] auto at(const key_type key) & -> refer<char_type>
 		{
 			if (auto prp = ::std::get_if<object_proxy>(this); prp) // pointer to proxy of object
 			{
@@ -293,20 +293,20 @@ namespace pdn
 
 	// Indexed access without bounds or type checking, like std::vector::operator[]; a non-list entity
 	// throws std::bad_variant_access. Use at() for a checked form that returns an empty refer on a miss.
-		auto operator[](index_type index) const& -> const entity&
+		[[nodiscard]] auto operator[](index_type index) const& -> const entity&
 		{
 			return get<list>(*this)[index];
 		}
-		auto operator[](index_type index) & -> entity&
+		[[nodiscard]] auto operator[](index_type index) & -> entity&
 		{
 			return get<list>(*this)[index];
 		}
-		auto operator[](index_type index) && -> entity&&
+		[[nodiscard]] auto operator[](index_type index) && -> entity&&
 		{
 			return ::std::move((*this)[index]);
 		}
 
-		auto operator[](const key_type key) const& -> const entity&
+		[[nodiscard]] auto operator[](const key_type key) const& -> const entity&
 		{
 			const auto& o = get<object>(*this);
 			auto it = o.find(key);
@@ -323,7 +323,7 @@ namespace pdn
 			}
 			return it->second;
 		}
-		auto operator[](const key_type key) & -> entity&
+		[[nodiscard]] auto operator[](const key_type key) & -> entity&
 		{
 			auto& o = get<object>(*this);
 			auto it = o.find(key);
@@ -340,7 +340,7 @@ namespace pdn
 			}
 			return it->second;
 		}
-		auto operator[](const key_type key) && -> entity&&
+		[[nodiscard]] auto operator[](const key_type key) && -> entity&&
 		{
 			return ::std::move((*this)[key]);
 		}
@@ -350,7 +350,7 @@ namespace pdn
 	// object are compared through their proxies' values (objects therefore compare irrespective of
 	// insertion order). A null refer compares equal only to another null refer.
 	template <typename char_t>
-	auto operator==(const entity<char_t>& lhs, const entity<char_t>& rhs) -> bool
+	[[nodiscard]] auto operator==(const entity<char_t>& lhs, const entity<char_t>& rhs) -> bool
 	{
 		return ::std::visit([](const auto& v1, const auto& v2)
 		{
@@ -379,7 +379,7 @@ namespace pdn
 	}
 
 	template <typename char_t>
-	auto operator== (const const_refer<char_t>& lhs, const const_refer<char_t>& rhs) -> bool
+	[[nodiscard]] auto operator== (const const_refer<char_t>& lhs, const const_refer<char_t>& rhs) -> bool
 	{
 		if (lhs.get() == rhs.get()) return true;
 		if (lhs && rhs) return *lhs == *rhs;
@@ -387,7 +387,7 @@ namespace pdn
 	}
 
 	template <typename char_t>
-	auto operator== (const entity<char_t>& lhs, const const_refer<char_t>& rhs) -> bool
+	[[nodiscard]] auto operator== (const entity<char_t>& lhs, const const_refer<char_t>& rhs) -> bool
 	{
 		if (!rhs) return false;
 		if (&lhs == rhs.get()) return true;
