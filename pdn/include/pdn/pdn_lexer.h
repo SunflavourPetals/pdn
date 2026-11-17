@@ -1169,7 +1169,9 @@ namespace pdn
 						[[unlikely]] return result;
 					break;
 				}
-				case infinity: // TODO add comment for PDN_NO_EXTENSIONS
+				// Not reachable when PDN_NO_EXTENSIONS is defined: no input enters the infinity
+				// state. Kept so the switch still covers every state code.
+				case infinity:
 				{
 					using namespace unicode_literals;
 					using ct = char_t;

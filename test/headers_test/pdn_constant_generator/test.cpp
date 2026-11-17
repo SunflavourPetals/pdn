@@ -55,6 +55,7 @@ namespace
         check(i8_min.has_value(), "i8_min is a known constant");
         check(i8_min && i8_min->as_int() == -128, "i8_min value");
 
+#ifndef PDN_NO_EXTENSIONS
         const auto hello = gen_u8::generate_constant(u8"hello");
         check(hello.has_value(), "hello is a known constant");
         check(hello && hello->as_string() == u8"Hello, world!", "hello value");
@@ -67,6 +68,12 @@ namespace
         const auto me = gen_u8::generate_constant(u8"me_object");
         check(me.has_value(), "me_object is a known constant");
         check(me && me->as_object().size() == 2, "me_object size");
+#else
+        // The six non-standard constants are absent when PDN_NO_EXTENSIONS is defined.
+        check(!gen_u8::generate_constant(u8"hello").has_value(), "hello is an extension");
+        check(!gen_u8::generate_constant(u8"fib_10_list").has_value(), "fib_10_list is an extension");
+        check(!gen_u8::generate_constant(u8"me_object").has_value(), "me_object is an extension");
+#endif
 
         const auto infinity = gen_u8::generate_constant(u8"infinity");
         check(infinity.has_value(), "infinity is a known constant");
@@ -106,9 +113,15 @@ namespace
         gen_u8 generator{};
         check(generator.generate_constant(u8"pi").has_value(), "call through an instance");
 
+#ifndef PDN_NO_EXTENSIONS
         u8string iden = u8"hello";
         const auto by_lvalue = gen_u8::generate_constant(iden);
         check(by_lvalue && by_lvalue->as_string() == u8"Hello, world!", "call with an lvalue key");
+#else
+        u8string iden = u8"pi";
+        const auto by_lvalue = gen_u8::generate_constant(iden);
+        check(by_lvalue && by_lvalue->as_fp() == std::numbers::pi, "call with an lvalue key");
+#endif
 
         const auto first = gen_u8::generate_constant(u8"i8_min");
         const auto second = gen_u8::generate_constant(u8"i8_min");

@@ -145,6 +145,7 @@ namespace
         check(at_id.tokens.front().code == pdn::pdn_token_code::at_identifier, "at identifier: code");
         check(id_of(at_id.tokens.front()) == u8"i32_max", "at identifier: text");
 
+#ifndef PDN_NO_EXTENSIONS
         const auto inf = lex(u8"\u221e");
         check(inf.tokens.size() == 1, "infinity: token count");
         check(inf.tokens.front().code == pdn::pdn_token_code::at_identifier, "infinity: code");
@@ -155,6 +156,18 @@ namespace
         check(inf_at.tokens[0].code == pdn::pdn_token_code::at_sign, "at infinity: at sign");
         check(inf_at.tokens[1].code == pdn::pdn_token_code::at_identifier, "at infinity: identifier");
         check(id_of(inf_at.tokens[1]) == u8"infinity", "at infinity: text");
+#else
+        // The bare U+221E spelling is an extension: it is rejected, and after '@' only the at
+        // sign is produced.
+        const auto inf = lex(u8"\u221e");
+        check(inf.tokens.empty(), "infinity: no token without the extension");
+        check(inf.errors.size() == 1, "infinity: reported as unacceptable");
+
+        const auto inf_at = lex(u8"@\u221e");
+        check(inf_at.tokens.size() == 1, "at infinity: at sign only");
+        check(inf_at.tokens[0].code == pdn::pdn_token_code::at_sign, "at infinity: at sign");
+        check(inf_at.errors.size() == 1, "at infinity: reported as unacceptable");
+#endif
     }
 
     void test_integers()

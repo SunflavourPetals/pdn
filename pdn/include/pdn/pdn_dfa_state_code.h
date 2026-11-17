@@ -28,7 +28,10 @@ namespace pdn
 		identifier_raw_string_received_CR,
 		identifier_raw_string_received_right_parentheses,
 
-		infinity, // TODO add comment for PDN_NO_EXTENSIONS
+		// Only a bare U+221E in the start transformer enters this state. Defining
+		// PDN_NO_EXTENSIONS compiles that case out, but the enumerator stays so the
+		// state numbering below and the lexer's switch do not change.
+		infinity,
 
 		flag_special_state_end = infinity, // ^^^
 

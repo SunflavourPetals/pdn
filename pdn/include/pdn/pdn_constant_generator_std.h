@@ -155,6 +155,8 @@ namespace pdn
 			self[u8"signaling_NaN"_s] = f64_sNaN;
 			self[u8"sNaN"_s]          = f64_sNaN;
 			self[u8"snan"_s]          = f64_sNaN;
+			// Extension entries: Greek letter aliases and the constants the test suite uses.
+			// PDN_NO_EXTENSIONS keeps only the names defined by the PDN reference.
 #ifndef PDN_NO_EXTENSIONS
 			self[u8"\u03C0"_s]        = pi;     // non-standard, Greek Small Letter Pi
 			self[u8"\u03B3"_s]        = egamma; // non-standard, Greek Small Letter Gamma

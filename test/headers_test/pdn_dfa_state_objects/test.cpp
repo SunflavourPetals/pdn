@@ -248,7 +248,12 @@ int main()
     check(objs::start.transformer(U'0').state_code == dsc::zero, "start '0'");
     check(objs::start.transformer(U'1').state_code == dsc::dec_seq, "start '1'");
     check(objs::start.transformer(U'9').state_code == dsc::dec_seq, "start '9'");
+#ifndef PDN_NO_EXTENSIONS
     check(objs::start.transformer(U'\u221e').state_code == dsc::infinity, "start infinity");
+#else
+    check(objs::start.transformer(U'\u221e').state_code == dsc::unacceptable_character,
+          "start infinity is an extension");
+#endif
     check(objs::start.transformer(U' ').state_code == dsc::start, "start space loops");
     check(objs::start.transformer(U'\n').state_code == dsc::start, "start newline loops");
     check(objs::start.transformer(U'a').state_code == dsc::identifier, "start 'a'");

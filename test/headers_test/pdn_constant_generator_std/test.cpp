@@ -62,6 +62,7 @@ namespace
 		{ u8"snan", pdn::type_code::f64 },
 	};
 
+#ifndef PDN_NO_EXTENSIONS
 	// The six non-standard entries the reference documents as test-only extras.
 	constexpr name_and_type extra_names[]
 	{
@@ -72,6 +73,7 @@ namespace
 		{ u8"fib_10_list", pdn::type_code::list },
 		{ u8"me_object", pdn::type_code::object },
 	};
+#endif
 
 	void test_table_shape()
 	{
@@ -79,9 +81,14 @@ namespace
 		static_assert(pdn::concepts::constant_generator<pdn::default_constant_generator<u16_t>, u16_t>);
 		static_assert(pdn::concepts::constant_generator<pdn::default_constant_generator<u32_t>, u32_t>);
 
-		CHECK(pdn::constant_table<u8_t>::instance().size() == 51u);
-		CHECK(pdn::constant_table<u16_t>::instance().size() == 51u);
-		CHECK(pdn::constant_table<u32_t>::instance().size() == 51u);
+#ifndef PDN_NO_EXTENSIONS
+		constexpr ::std::size_t expected_size = 51u;
+#else
+		constexpr ::std::size_t expected_size = 45u;
+#endif
+		CHECK(pdn::constant_table<u8_t>::instance().size() == expected_size);
+		CHECK(pdn::constant_table<u16_t>::instance().size() == expected_size);
+		CHECK(pdn::constant_table<u32_t>::instance().size() == expected_size);
 		// one instance per character type, stable across calls
 		CHECK(&pdn::constant_table<u8_t>::instance() == &pdn::constant_table<u8_t>::instance());
 	}
@@ -94,12 +101,22 @@ namespace
 			CHECK(v.has_value());
 			if (v) CHECK(v->type_of() == n.type);
 		}
+#ifndef PDN_NO_EXTENSIONS
 		for (const auto& n : extra_names)
 		{
 			auto v = gen(n.iden);
 			CHECK(v.has_value());
 			if (v) CHECK(v->type_of() == n.type);
 		}
+#else
+		// The six non-standard constants must be gone.
+		CHECK(!gen(u8"\u03C0").has_value());
+		CHECK(!gen(u8"\u03B3").has_value());
+		CHECK(!gen(u8"\u03A6").has_value());
+		CHECK(!gen(u8"hello").has_value());
+		CHECK(!gen(u8"fib_10_list").has_value());
+		CHECK(!gen(u8"me_object").has_value());
+#endif
 
 		// unknown spellings, including case changes and a trailing space
 		CHECK(!gen(u8"zzz").has_value());
@@ -143,9 +160,11 @@ namespace
 		CHECK(pdn::as_fp(*gen(u8"pi")) == ::std::numbers::pi);
 		CHECK(pdn::as_fp(*gen(u8"e")) == ::std::numbers::e);
 		CHECK(pdn::as_fp(*gen(u8"phi")) == ::std::numbers::phi);
+#ifndef PDN_NO_EXTENSIONS
 		CHECK(pdn::as_fp(*gen(u8"\u03C0")) == ::std::numbers::pi);
 		CHECK(pdn::as_fp(*gen(u8"\u03B3")) == ::std::numbers::egamma);
 		CHECK(pdn::as_fp(*gen(u8"\u03A6")) == ::std::numbers::phi);
+#endif
 		CHECK(::std::isinf(pdn::as_fp(*gen(u8"infinity"))));
 		CHECK(::std::isinf(pdn::as_fp(*gen(u8"inf"))));
 		CHECK(::std::isnan(pdn::as_fp(*gen(u8"quiet_NaN"))));
@@ -154,6 +173,7 @@ namespace
 
 	void test_test_values()
 	{
+#ifndef PDN_NO_EXTENSIONS
 		CHECK(pdn::as_string(*gen(u8"hello")) == u8s{ u8"Hello, world!" });
 
 		auto fib_entity = gen(u8"fib_10_list");
@@ -184,10 +204,14 @@ namespace
 			CHECK(m != date.end() && pdn::as_int(m->second) == 12);
 			CHECK(d != date.end() && pdn::as_int(d->second) == 21);
 		}
+#else
+		// These six constants are absent when PDN_NO_EXTENSIONS is defined (checked by test_names).
+#endif
 	}
 
 	void test_copies_are_independent()
 	{
+#ifndef PDN_NO_EXTENSIONS
 		// every lookup hands out a copy: proxy-bearing entities deep-copy, so writing to a
 		// returned string must not change the table
 		auto a = gen(u8"hello");
@@ -203,6 +227,7 @@ namespace
 		a->get<u8s>()[0] = u8'X';
 		CHECK(pdn::as_string(*b) == u8s{ u8"Hello, world!" });
 		CHECK(pdn::as_string(*gen(u8"hello")) == u8s{ u8"Hello, world!" });
+#endif
 	}
 
 	void test_other_char_types()
@@ -210,6 +235,7 @@ namespace
 		auto p16 = pdn::constant_generator_std_function<u16_t>(u8s{ u8"pi" });
 		CHECK(p16.has_value());
 		if (p16) CHECK(p16->type_of() == pdn::type_code::f64);
+#ifndef PDN_NO_EXTENSIONS
 		// keys stay UTF-8 whatever char_t the value uses
 		auto g16 = pdn::constant_generator_std_function<u16_t>(u8s{ u8"\u03C0" });
 		CHECK(g16.has_value());
@@ -217,6 +243,11 @@ namespace
 		auto h32 = pdn::constant_generator_std_function<u32_t>(u8s{ u8"hello" });
 		CHECK(h32.has_value());
 		if (h32) CHECK(pdn::as_string(*h32) == pdn::unicode::u32string{ U"Hello, world!" });
+#else
+		// The extension keys are absent for every character width.
+		CHECK(!pdn::constant_generator_std_function<u16_t>(u8s{ u8"\u03C0" }).has_value());
+		CHECK(!pdn::constant_generator_std_function<u32_t>(u8s{ u8"hello" }).has_value());
+#endif
 		auto none = pdn::constant_generator_std_function<u16_t>(u8s{ u8"zzz" });
 		CHECK(!none.has_value());
 	}
@@ -236,6 +267,7 @@ namespace
 		CHECK(pdn::as_fp(value_of(u8"x: @pi")) == ::std::numbers::pi);
 		CHECK(value_of(u8"x: @i8_min").type_of() == pdn::type_code::i8);
 		CHECK(pdn::as_int(value_of(u8"x: @i8_min")) == -128);
+#ifndef PDN_NO_EXTENSIONS
 		CHECK(value_of(u8"x: @hello").type_of() == pdn::type_code::string);
 		CHECK(pdn::as_string(value_of(u8"x: @hello")) == u8s{ u8"Hello, world!" });
 		CHECK(value_of(u8"x: @me_object").type_of() == pdn::type_code::object);
@@ -244,6 +276,12 @@ namespace
 		CHECK(value_of(u8"x: \u221E").type_of() == pdn::type_code::f64);
 		CHECK(::std::isinf(pdn::as_fp(value_of(u8"x: \u221E"))));
 		CHECK(pdn::as_fp(value_of(u8"x: \u221E")) == pdn::as_fp(*gen(u8"infinity")));
+#else
+		// The extension spellings must be rejected end to end (value_of would assert, so parse directly).
+		CHECK(!pdn::parse(::std::u8string_view{ u8"x: @hello" }, pdn::utf8_tag));
+		CHECK(!pdn::parse(::std::u8string_view{ u8"x: @\u03C0" }, pdn::utf8_tag));
+		CHECK(!pdn::parse(::std::u8string_view{ u8"x: \u221E" }, pdn::utf8_tag));
+#endif
 		// unknown constants are reported by the parser
 		auto bad = pdn::parse(::std::u8string_view{ u8"x: @zzz" }, pdn::utf8_tag);
 		CHECK(!(bool)bad);

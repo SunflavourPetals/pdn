@@ -47,11 +47,17 @@ namespace
             entry{ u8"string", type_code::string }, entry{ u8"str", type_code::string },
             entry{ u8"s", type_code::string },      entry{ u8"list", type_code::list },
             entry{ u8"object", type_code::object }, entry{ u8"obj", type_code::object },
-            entry{ u8"cppint", type_code::i32 },    entry{ u8"int", type_code::i32 },
-            entry{ u8"i", type_code::i32 },         entry{ u8"cppuint", type_code::u32 },
+            entry{ u8"int", type_code::i32 },       entry{ u8"i", type_code::i32 },
+#ifndef PDN_NO_EXTENSIONS
+            entry{ u8"cppint", type_code::i32 },    entry{ u8"cppuint", type_code::u32 },
+#endif
             entry{ u8"uint", type_code::u32 },      entry{ u8"u", type_code::u32 },
         };
+#ifndef PDN_NO_EXTENSIONS
         static_assert(table.size() == 30);
+#else
+        static_assert(table.size() == 28);
+#endif
         for (const auto& e : table)
         {
             CHECK(gen8::generate_type(::std::u8string(e.name.begin(), e.name.size())) == e.code);
@@ -68,6 +74,11 @@ namespace
         {
             CHECK(gen8::generate_type(::std::u8string(name.data(), name.size())) == pdn::type_code::unknown);
         }
+#ifdef PDN_NO_EXTENSIONS
+        // The two extension spellings are unknown when the macro is defined.
+        CHECK(gen8::generate_type(u8"cppint") == pdn::type_code::unknown);
+        CHECK(gen8::generate_type(u8"cppuint") == pdn::type_code::unknown);
+#endif
     }
 
     void test_other_char_types()

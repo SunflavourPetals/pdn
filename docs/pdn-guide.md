@@ -449,7 +449,7 @@ score 100 // 分数的范围为 0 到 100 分
 
 在 `spdn` 里浮点数形式的的数据都是 `f64` 类型的，想要得到 `f32` 类型的数据只能使用[类型指定](#类型指定的语法)来转换，将整数转换为 `f32` 浮点数：`num1:f32 123`；将 `f64` 浮点数转换为 `f32` 浮点数：`num2:f32 123.0`。  
 
-此外，本库的实现还额外接受两个非标准拼写 `cppint` 与 `cppuint`，分别等价于 `int`、`uint`。它们只是实验内容，不属于 PDN 规范。  
+此外，本库的实现还额外接受两个非标准拼写 `cppint` 与 `cppuint`，分别等价于 `int`、`uint`。它们只是实验内容，不属于 PDN 规范；定义 `PDN_NO_EXTENSIONS` 后这两个拼写不再被接受，详见[禁用非标准扩展](#禁用非标准扩展)。  
 
 [数据类型参考 pdn_reference](./pdn-reference.md#数据类型)  
 [整数字面量参考 pdn_reference](./pdn-reference.md#整数字面量)  
@@ -1592,4 +1592,20 @@ namespace user_charconv
 
 ## 禁用非标准扩展
 
-// TODO PDN_NO_EXTENSIONS
+在 [`pdn_reference`](./pdn-reference.md) 描述的 PDN 规范之外，本库的实现还额外接受三类非标准扩展：  
+
+* 裸字符 `∞`(U+221E) 可以作为 `@infinity` 的另一种拼写，例如 `x: ∞`；  
+* 两个类型名 `cppint` 与 `cppuint`，分别等价于 `int`、`uint`；  
+* 六个常量：希腊字母 `π` `γ` `Φ`(分别等价于 `@pi` `@egamma` `@phi`) 与 `hello` `fib_10_list` `me_object`，后三个只用于本库的测试。  
+
+这些扩展只是让解析器多接受一些输入，不改变规范要求的行为。如果只希望接受规范内的 PDN，可以在包含本库的头文件之前定义 `PDN_NO_EXTENSIONS`：  
+
+```C++
+#define PDN_NO_EXTENSIONS
+#include <pdn/spdn.h>
+// ...
+```
+
+定义之后，词法分析器不再把裸 `∞` 识别为 at 标识符的开头，类型名生成器不再接受 `cppint` `cppuint`，常量生成器也不再提供上面六个常量；`@infinity` `@inf`、`int` `uint`、`@pi` 等规范内的名字不受影响。
+
+注意不要让不同翻译单元的 `PDN_NO_EXTENSIONS` 定义不一致，否则可能违反 ODR。  

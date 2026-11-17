@@ -120,6 +120,7 @@ namespace pdn
 			self[u8"i"_s]         = pl_int;
 			self[u8"uint"_s]      = pl_uint;
 			self[u8"u"_s]         = pl_uint;
+			// Extension spellings; PDN_NO_EXTENSIONS keeps only the PDN names.
 #ifndef PDN_NO_EXTENSIONS
 			self[u8"cppint"_s]    = pl_int;  // non-standard type name
 			self[u8"cppuint"_s]   = pl_uint; // non-standard type name

@@ -53,8 +53,10 @@ namespace
 		{ "string", type_code::string }, { "str", type_code::string },
 		{ "s", type_code::string },     { "list", type_code::list },
 		{ "object", type_code::object }, { "obj", type_code::object },
-		{ "cppint", type_code::i32 },   { "int", type_code::i32 },
-		{ "i", type_code::i32 },        { "cppuint", type_code::u32 },
+		{ "int", type_code::i32 },      { "i", type_code::i32 },
+#ifndef PDN_NO_EXTENSIONS
+		{ "cppint", type_code::i32 },   { "cppuint", type_code::u32 },
+#endif
 		{ "uint", type_code::u32 },     { "u", type_code::u32 },
 	};
 
@@ -124,7 +126,11 @@ namespace
 }
 
 static_assert(names_are_distinct(), "the probe table lists a spelling twice");
+#ifndef PDN_NO_EXTENSIONS
 static_assert(names_count == 30, "the reference lists 28 spellings, plus cppint/cppuint");
+#else
+static_assert(names_count == 28, "with PDN_NO_EXTENSIONS only the reference spellings remain");
+#endif
 
 // The integer aliases must follow C++ int / unsigned int, as the reference requires.
 static_assert(std::is_same_v<pdn::type::auto_int, pdn::type::i32>);
@@ -163,6 +169,10 @@ int main()
 	check(pdn::type_generator_function<u8_t>(to_key<u8_t>("int8")) == type_code::unknown, "int8");
 	check(pdn::type_generator_function<u8_t>(to_key<u8_t>("i128")) == type_code::unknown, "i128");
 	check(pdn::type_generator_function<u8_t>(to_key<u8_t>("i 8")) == type_code::unknown, "i 8");
+#ifdef PDN_NO_EXTENSIONS
+	check(pdn::type_generator_function<u8_t>(to_key<u8_t>("cppint")) == type_code::unknown, "cppint");
+	check(pdn::type_generator_function<u8_t>(to_key<u8_t>("cppuint")) == type_code::unknown, "cppuint");
+#endif
 	check(pdn::type_generator_function<u8_t>(pdn::type::string<u8_t>{}) == type_code::unknown, "empty");
 	check(pdn::type_generator_function<u8_t>(pdn::type::string<u8_t>{ u8"\u00E9" }) == type_code::unknown,
 	      "non-ascii u8");
@@ -180,7 +190,11 @@ int main()
 
 	// End to end: the names reach the parser through default_type_generator.
 	{
+#ifdef PDN_NO_EXTENSIONS
+		const auto r = pdn::parse(std::u8string_view{ u8"a: i 1\nb: int 2\nc: f 1.5\nd: obj {x 1}\n" }, pdn::utf8_tag);
+#else
 		const auto r = pdn::parse(std::u8string_view{ u8"a: cppint 1\nb: int 2\nc: f 1.5\nd: obj {x 1}\n" }, pdn::utf8_tag);
+#endif
 		check(r.success(), "parse with aliases");
 		if (r.success())
 		{
@@ -190,7 +204,7 @@ int main()
 			// auto, so it must be written explicitly.
 			check(sv.find(u8"c: f32 1.5;") != std::u8string_view::npos, "f32 type is written");
 			check(sv.find(u8"b: 2;") != std::u8string_view::npos, "auto int type is omitted");
-			check(sv.find(u8"a: 1;") != std::u8string_view::npos, "cppint type is omitted like int");
+			check(sv.find(u8"a: 1;") != std::u8string_view::npos, "the int alias type is omitted");
 			check(sv.find(u8"d: {") != std::u8string_view::npos, "obj alias");
 		}
 	}

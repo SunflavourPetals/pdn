@@ -222,6 +222,8 @@ namespace pdn::dfa_state_objects
 			case U'.': return dot;
 			case U'?': return question_mark;
 			case U'0': return zero;
+			// Extension: a bare U+221E starts the at identifier "infinity". With
+			// PDN_NO_EXTENSIONS the case is gone; the state itself stays (pdn_dfa_state_code.h).
 #ifndef PDN_NO_EXTENSIONS
 			case U'\u221e': return infinity;
 #endif
