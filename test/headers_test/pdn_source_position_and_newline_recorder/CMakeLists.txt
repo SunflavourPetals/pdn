@@ -1,0 +1,4 @@
+add_executable(test_pdn_source_position_and_newline_recorder test.cpp)
+target_include_directories(test_pdn_source_position_and_newline_recorder PRIVATE "${PDN_INCLUDE_DIR}")
+target_compile_features(test_pdn_source_position_and_newline_recorder PRIVATE cxx_std_20)
+add_test(NAME pdn_source_position_and_newline_recorder COMMAND test_pdn_source_position_and_newline_recorder)

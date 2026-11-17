@@ -1,0 +1,4 @@
+add_executable(test_pdn_err_msg_gen_en_lex test.cpp)
+target_include_directories(test_pdn_err_msg_gen_en_lex PRIVATE "${PDN_INCLUDE_DIR}")
+target_compile_features(test_pdn_err_msg_gen_en_lex PRIVATE cxx_std_20)
+add_test(NAME pdn_err_msg_gen_en_lex COMMAND test_pdn_err_msg_gen_en_lex)

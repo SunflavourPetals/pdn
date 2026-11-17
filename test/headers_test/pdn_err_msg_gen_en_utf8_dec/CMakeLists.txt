@@ -1,0 +1,4 @@
+add_executable(test_pdn_err_msg_gen_en_utf8_dec test.cpp)
+target_include_directories(test_pdn_err_msg_gen_en_utf8_dec PRIVATE "${PDN_INCLUDE_DIR}")
+target_compile_features(test_pdn_err_msg_gen_en_utf8_dec PRIVATE cxx_std_20)
+add_test(NAME pdn_err_msg_gen_en_utf8_dec COMMAND test_pdn_err_msg_gen_en_utf8_dec)

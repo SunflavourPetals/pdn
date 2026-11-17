@@ -1,0 +1,4 @@
+add_executable(test_pdn_utf_code_convert test.cpp)
+target_include_directories(test_pdn_utf_code_convert PRIVATE "${PDN_INCLUDE_DIR}")
+target_compile_features(test_pdn_utf_code_convert PRIVATE cxx_std_20)
+add_test(NAME pdn_utf_code_convert COMMAND test_pdn_utf_code_convert)

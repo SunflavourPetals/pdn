@@ -1,0 +1,4 @@
+add_executable(test_pdn_raw_error_message test.cpp)
+target_include_directories(test_pdn_raw_error_message PRIVATE "${PDN_INCLUDE_DIR}")
+target_compile_features(test_pdn_raw_error_message PRIVATE cxx_std_20)
+add_test(NAME pdn_raw_error_message COMMAND test_pdn_raw_error_message)

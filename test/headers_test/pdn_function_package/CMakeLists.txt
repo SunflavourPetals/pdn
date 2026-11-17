@@ -1,0 +1,4 @@
+add_executable(test_pdn_function_package test.cpp)
+target_include_directories(test_pdn_function_package PRIVATE "${PDN_INCLUDE_DIR}")
+target_compile_features(test_pdn_function_package PRIVATE cxx_std_20)
+add_test(NAME pdn_function_package COMMAND test_pdn_function_package)

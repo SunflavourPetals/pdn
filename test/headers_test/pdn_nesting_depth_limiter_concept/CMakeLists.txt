@@ -1,0 +1,4 @@
+add_executable(test_pdn_nesting_depth_limiter_concept test.cpp)
+target_include_directories(test_pdn_nesting_depth_limiter_concept PRIVATE "${PDN_INCLUDE_DIR}")
+target_compile_features(test_pdn_nesting_depth_limiter_concept PRIVATE cxx_std_20)
+add_test(NAME pdn_nesting_depth_limiter_concept COMMAND test_pdn_nesting_depth_limiter_concept)
