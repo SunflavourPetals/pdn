@@ -32,7 +32,7 @@ namespace pdn::detail
 	// The conversion rules of the as_* family, for the types an entity can hold:
 	// - boolean, integer and floating point arguments convert; a value out of the target's range
 	//   is clamped to the target's min/max (a plain static_cast would be undefined behavior), and
-	//   a NaN becomes 0 (as_int, as_uint) or false (as_bool);
+	//   a NaN becomes 0 (as_int, as_uint) and true (as_bool);
 	// - character, string, list and object arguments never convert (PDN has no such rule), so
 	//   they yield 0 / false / an empty value.
 	// The target type is the second template parameter and defaults to i64 / u64 / f64.
