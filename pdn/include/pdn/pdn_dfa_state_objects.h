@@ -222,7 +222,9 @@ namespace pdn::dfa_state_objects
 			case U'.': return dot;
 			case U'?': return question_mark;
 			case U'0': return zero;
+#ifndef PDN_NO_EXTENSIONS
 			case U'\u221e': return infinity;
+#endif
 			default:
 				using namespace lexer_utility;
 				if (in_range(c, U'1', U'9'))

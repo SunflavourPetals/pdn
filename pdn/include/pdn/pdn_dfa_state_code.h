@@ -28,7 +28,7 @@ namespace pdn
 		identifier_raw_string_received_CR,
 		identifier_raw_string_received_right_parentheses,
 
-		infinity,
+		infinity, // TODO add comment for PDN_NO_EXTENSIONS
 
 		flag_special_state_end = infinity, // ^^^
 

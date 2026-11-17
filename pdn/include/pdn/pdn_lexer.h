@@ -1169,7 +1169,7 @@ namespace pdn
 						[[unlikely]] return result;
 					break;
 				}
-				case infinity:
+				case infinity: // TODO add comment for PDN_NO_EXTENSIONS
 				{
 					using namespace unicode_literals;
 					using ct = char_t;

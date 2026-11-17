@@ -1589,3 +1589,7 @@ namespace user_charconv
 #include <pdn/spdn.h>
 // ...
 ```
+
+## 禁用非标准扩展
+
+// TODO PDN_NO_EXTENSIONS
