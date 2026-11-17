@@ -1,5 +1,7 @@
 #include <pdn/pdn_lexer_utility.h>
 
+#include <pdn/pdn_unicode_xid.h>
+
 #include <cassert>
 #include <cstdint>
 
@@ -11,31 +13,6 @@ namespace
 	{
 		char32_t first;
 		char32_t last;
-	};
-
-	// docs/pdn-reference.md:225 -- the Unicode part of the identifier starter set
-	// (the ASCII letters and '_' are checked separately).
-	constexpr code_point_range starter_ranges[] =
-	{
-		{ 0x00A8, 0x00A8 }, { 0x00AA, 0x00AA }, { 0x00AD, 0x00AD }, { 0x00AF, 0x00AF },
-		{ 0x00B2, 0x00B5 }, { 0x00B7, 0x00BA }, { 0x00BC, 0x00BE }, { 0x00C0, 0x00D6 },
-		{ 0x00D8, 0x00F6 }, { 0x00F8, 0x00FF }, { 0x0100, 0x02FF }, { 0x0370, 0x167F },
-		{ 0x1681, 0x180D }, { 0x180F, 0x1DBF }, { 0x1E00, 0x1FFF }, { 0x200B, 0x200D },
-		{ 0x202A, 0x202E }, { 0x203F, 0x2040 }, { 0x2054, 0x2054 }, { 0x2060, 0x206F },
-		{ 0x2070, 0x20CF }, { 0x2100, 0x218F }, { 0x2460, 0x24FF }, { 0x2776, 0x2793 },
-		{ 0x2C00, 0x2DFF }, { 0x2E80, 0x2FFF }, { 0x3004, 0x3007 }, { 0x3021, 0x302F },
-		{ 0x3031, 0x303F }, { 0x3040, 0xD7FF }, { 0xF900, 0xFD3D }, { 0xFD40, 0xFDCF },
-		{ 0xFDF0, 0xFE1F }, { 0xFE30, 0xFE44 }, { 0xFE47, 0xFFFD },
-		{ 0x10000, 0x1FFFD }, { 0x20000, 0x2FFFD }, { 0x30000, 0x3FFFD }, { 0x40000, 0x4FFFD },
-		{ 0x50000, 0x5FFFD }, { 0x60000, 0x6FFFD }, { 0x70000, 0x7FFFD }, { 0x80000, 0x8FFFD },
-		{ 0x90000, 0x9FFFD }, { 0xA0000, 0xAFFFD }, { 0xB0000, 0xBFFFD }, { 0xC0000, 0xCFFFD },
-		{ 0xD0000, 0xDFFFD }, { 0xE0000, 0xEFFFD },
-	};
-
-	// docs/pdn-reference.md:234 -- characters allowed anywhere but the first position.
-	constexpr code_point_range non_starter_ranges[] =
-	{
-		{ 0x0030, 0x0039 }, { 0x0300, 0x036F }, { 0x1DC0, 0x1DFF }, { 0x20D0, 0x20FF }, { 0xFE20, 0xFE2F },
 	};
 
 	// Unicode White_Space=Yes: 25 code points.
@@ -65,16 +42,6 @@ namespace
 		return false;
 	}
 
-	constexpr bool doc_starter(char32_t c) noexcept
-	{
-		return c == U'_' || (U'A' <= c && c <= U'Z') || (U'a' <= c && c <= U'z') || in_any(c, starter_ranges);
-	}
-
-	constexpr bool doc_in_identifier(char32_t c) noexcept
-	{
-		return doc_starter(c) || in_any(c, non_starter_ranges);
-	}
-
 	// C++26 basic character set: the graphic ASCII characters, space, HT, LF, VT and FF.
 	constexpr bool doc_basic_character_set(char32_t c) noexcept
 	{
@@ -92,17 +59,23 @@ int main()
 {
 	constexpr char32_t last_code_point = 0x10FFFF;
 
-	// 1. Identifier starter set: must be exactly the set documented in the reference. This is the
-	//    exhaustive form of the examples in docs/pdn-reference.md:238-245.
+	// 1. Identifier sets: the ASCII fast paths plus the XID_Start / XID_Continue properties that
+	//    docs/pdn-reference.md:214-230 defines identifiers with. The tables themselves are tested
+	//    by pdn_unicode_xid; here the point is that the lexer predicates are exactly the
+	//    documented union.
 	int starter_errors = 0;
 	int in_identifier_errors = 0;
 	for (char32_t c = 0; c <= last_code_point; ++c)
 	{
-		if (lu::is_allowed_as_first_char_of_identifier(c) != doc_starter(c))
+		const bool ascii_letter = (U'A' <= c && c <= U'Z') || (U'a' <= c && c <= U'z');
+		const bool ascii_digit = U'0' <= c && c <= U'9';
+		const bool expected_starter = ascii_letter || c == U'_' || pdn::unicode::is_xid_start(c);
+		const bool expected_in_identifier = ascii_letter || ascii_digit || c == U'_' || pdn::unicode::is_xid_continue(c);
+		if (lu::is_allowed_as_first_char_of_identifier(c) != expected_starter)
 		{
 			++starter_errors;
 		}
-		if (lu::is_allowed_in_identifier(c) != doc_in_identifier(c))
+		if (lu::is_allowed_in_identifier(c) != expected_in_identifier)
 		{
 			++in_identifier_errors;
 		}
@@ -110,12 +83,13 @@ int main()
 	assert(starter_errors == 0);
 	assert(in_identifier_errors == 0);
 
-	// The two directional formatting characters that used to be dropped from the 202A-202E range.
-	assert(lu::is_allowed_as_first_char_of_identifier(U'\u202A'));
-	assert(lu::is_allowed_as_first_char_of_identifier(U'\u202B'));
-	assert(lu::is_allowed_as_first_char_of_identifier(U'\u202C'));
-	assert(lu::is_allowed_as_first_char_of_identifier(U'\u202D'));
-	assert(lu::is_allowed_as_first_char_of_identifier(U'\u202E'));
+	// The directional formatting characters are not XID_Start. The previous, MSVC-derived
+	// table accepted the whole 202A-202E range; the XID rule accepts none of them.
+	assert(!lu::is_allowed_as_first_char_of_identifier(U'\u202A'));
+	assert(!lu::is_allowed_as_first_char_of_identifier(U'\u202B'));
+	assert(!lu::is_allowed_as_first_char_of_identifier(U'\u202C'));
+	assert(!lu::is_allowed_as_first_char_of_identifier(U'\u202D'));
+	assert(!lu::is_allowed_as_first_char_of_identifier(U'\u202E'));
 	assert(!lu::is_allowed_as_first_char_of_identifier(U'\u2029'));
 	assert(!lu::is_allowed_as_first_char_of_identifier(U'\u202F'));
 

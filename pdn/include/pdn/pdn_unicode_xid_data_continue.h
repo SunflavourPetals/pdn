@@ -3,6 +3,8 @@
 
 // Source: DerivedCoreProperties.txt, Unicode 18.0.0
 // Property: XID_Continue  (821 ranges, 162081 code points)
+// Adjacent ranges of the source file are merged; every range is closed (lo[i] <= hi[i]) and
+// the ranges are sorted and disjoint (hi[i] < lo[i + 1]).
 
 #include <cstddef>
 
