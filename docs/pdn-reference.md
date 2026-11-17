@@ -257,6 +257,8 @@ test2 { `\u3042`: 100 } // OK 使用字符串标识符
 
 PDN 对标识符的定义参考了 C++ 标识符的语法。  
 
+本库暂未支持对 NFC 的检查，不允许使用非 NFC 的普通标识符，它会通过词法检查，但在使用时会出现问题。  
+
 [参考 C++ Reference](https://zh.cppreference.com/cpp/language/identifiers)  
 
 #### 字符串标识符
