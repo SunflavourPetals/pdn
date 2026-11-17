@@ -24,27 +24,25 @@ namespace pdn::type
 
 namespace pdn::type::detail
 {
-	using ::std::same_as;
-
 	// The primary template's `type` is void for "this exact type has no PDN integer alias"; the
 	// simu_*_t aliases below rely on that to fall back.
-	template <typename     int_t> struct alias_sint        { using type = void; };
-	template <same_as<i8>  int_t> struct alias_sint<int_t> { using type = i8;   };
-	template <same_as<i16> int_t> struct alias_sint<int_t> { using type = i16;  };
-	template <same_as<i32> int_t> struct alias_sint<int_t> { using type = i32;  };
-	template <same_as<i64> int_t> struct alias_sint<int_t> { using type = i64;  };
-	template <typename     int_t> using  alias_sint_t  =  typename alias_sint<int_t>::type;
-	template <typename     int_t> struct alias_uint        { using type = void; };
-	template <same_as<u8>  int_t> struct alias_uint<int_t> { using type = u8;   };
-	template <same_as<u16> int_t> struct alias_uint<int_t> { using type = u16;  };
-	template <same_as<u32> int_t> struct alias_uint<int_t> { using type = u32;  };
-	template <same_as<u64> int_t> struct alias_uint<int_t> { using type = u64;  };
-	template <typename     int_t> using  alias_uint_t  =  typename alias_uint<int_t>::type;
+	template <typename            int_t> struct alias_sint        { using type = void; };
+	template <::std::same_as<i8>  int_t> struct alias_sint<int_t> { using type = i8;   };
+	template <::std::same_as<i16> int_t> struct alias_sint<int_t> { using type = i16;  };
+	template <::std::same_as<i32> int_t> struct alias_sint<int_t> { using type = i32;  };
+	template <::std::same_as<i64> int_t> struct alias_sint<int_t> { using type = i64;  };
+	template <typename            int_t> using  alias_sint_t  =  typename alias_sint<int_t>::type;
+	template <typename            int_t> struct alias_uint        { using type = void; };
+	template <::std::same_as<u8>  int_t> struct alias_uint<int_t> { using type = u8;   };
+	template <::std::same_as<u16> int_t> struct alias_uint<int_t> { using type = u16;  };
+	template <::std::same_as<u32> int_t> struct alias_uint<int_t> { using type = u32;  };
+	template <::std::same_as<u64> int_t> struct alias_uint<int_t> { using type = u64;  };
+	template <typename            int_t> using  alias_uint_t  =  typename alias_uint<int_t>::type;
 
 	template <typename int_t>
-	constexpr bool sint_has_alias_v = !same_as<alias_sint_t<int_t>, void>;
+	constexpr bool sint_has_alias_v = !::std::same_as<alias_sint_t<int_t>, void>;
 	template <typename int_t>
-	constexpr bool uint_has_alias_v = !same_as<alias_uint_t<int_t>, void>;
+	constexpr bool uint_has_alias_v = !::std::same_as<alias_uint_t<int_t>, void>;
 
 	// On a platform where int is not exactly one of i8..i64, the PDN integer that mirrors `int`
 	// is i32 (and unsigned int mirrors u32).

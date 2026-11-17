@@ -19,6 +19,8 @@
 #include "pdn_error_handler_concept.h"
 #include "pdn_error_message_generator_concept.h"
 
+#include "pdn_raw_error_message_type.h"
+
 #include "pdn_utf_code_convert.h"
 #include "pdn_lexical_error_code.h"
 
