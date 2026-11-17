@@ -271,4 +271,4 @@ list [
 
 ## 其他
 
-Unicode 部分参考标准为 `Unicode 15.0`。  
+Unicode 部分参考标准为 `Unicode 18.0.0`。  

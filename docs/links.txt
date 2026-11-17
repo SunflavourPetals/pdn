@@ -6,6 +6,7 @@ cppreference : [
 	"https://zh.cppreference.com/w/cpp/language/escape",
 	"https://zh.cppreference.com/w/cpp/language/charset",
 	"https://zh.cppreference.com/w/cpp/numeric/constants",
+	"https://zh.cppreference.com/cpp/language/identifiers",
 ]
 
 Unicode : [
@@ -13,8 +14,4 @@ Unicode : [
 	"https://www.unicode.org/charts/collation/chart_Whitespace.html",
 	"https://www.unicode.org/reports/tr14/",
 	"https://www.unicode.org/Public/UCD/latest/ucd/NameAliases.txt",
-]
-
-`learn.microsoft.com` : [
-	"https://learn.microsoft.com/zh-cn/cpp/cpp/identifiers-cpp",
 ]
