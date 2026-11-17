@@ -1086,14 +1086,15 @@ namespace pdn
 		token<char_t> get_token(cp_it_t& begin, auto&& end)
 		{
 			using begin_it_t = ::std::remove_reference_t<decltype(begin)>;
-			token<char_t>              result{};
-			type::string<char_t>       text{};            // rename text
-			unicode::ucpstring         open_d_seq{};      // delimiter-sequence for raw string
-			::std::string              number_sequence{}; // Unicode[U+0000, U+007f] -> ASCII -> form_chars
-			::std::size_t              nested_block_comment_layer{};
-			::std::size_t              cont_n_delimiter_count{}; // consecutive number delimiters' count
-			source_position            position{ get_pos() };
-			auto                       dfa_state = dfa_state_objects::start_state();
+
+			auto result = token<char_t>{};
+			auto text = type::string<char_t>{}; // rename text
+			auto open_d_seq = unicode::ucpstring{}; // delimiter-sequence for raw string
+			auto number_sequence = ::std::string{}; // Unicode[U+0000, U+007f] -> ASCII -> form_chars
+			auto nested_block_comment_layer = ::std::size_t{};
+			auto cont_n_delimiter_count = ::std::size_t{}; // consecutive number delimiters' count
+			auto position = source_position{ get_pos() };
+			auto dfa_state = dfa_state_objects::start_state();
 
 			auto num_seq_to_ems = [&]() { return reinterpret_to_err_msg_str(number_sequence); };
 			auto append = [](type::string<char_t>& src, unicode::code_point_t c)

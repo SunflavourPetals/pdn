@@ -1,7 +1,6 @@
 #ifndef PDN_Header_pdn_parse
 #define PDN_Header_pdn_parse
 
-#include <type_traits>
 #include <concepts>
 #include <cassert>
 #include <utility>
@@ -26,6 +25,12 @@
 #include "pdn_parse_error_code.h"
 #include "pdn_parse_result.h"
 
+// The pdn::parse family: from a token stream, a UTF code unit stream or a byte stream
+// (memory, std::istream, file, file name) to an entity. Each overload delegates to the
+// next lower level, so the versions differ only in where the input comes from and which
+// function packages the caller can supply. char_t names the encoding of the parsed
+// entity: pass pdn::utf8_tag / utf16_tag / utf32_tag (or any char_t value) to deduce it.
+//
 namespace pdn::detail
 {
 	template <typename stream>
@@ -34,6 +39,9 @@ namespace pdn::detail
 	template <typename stream>
 	concept stream_constructible_from_wchar_string = ::std::constructible_from<stream, const ::std::wstring&>;
 
+	// The wide-character file stream constructors exist only where the platform provides
+	// them; constraining the opener keeps the wstring / const wchar_t* parse overloads out
+	// of overload resolution elsewhere.
 	template <stream_constructible_from_wchar_cstring stream, typename dummy>
 	stream open_stream_by_wchar_cstring(const wchar_t* filename, ::std::ios::openmode mode) { return stream(filename, mode); }
 
@@ -41,6 +49,8 @@ namespace pdn::detail
 	stream open_stream_by_wchar_string(const ::std::wstring& filename, ::std::ios::openmode mode) { return stream(filename, mode); }
 }
 
+// Encoding tags. Passing one of these as the last parse argument makes char_t deducible
+// without spelling parse<char8_t>(...); the objects carry no data, only the character type.
 namespace pdn::inline utf_tag
 {
 	inline constexpr unicode::u8char_t  utf8_tag{};
@@ -57,6 +67,7 @@ namespace pdn
 		concepts::function_package_for_parser<char_t> fn_pkg>
 	[[nodiscard]] auto parse(it_t begin, auto end, fn_pkg& fp, char_t = {}) -> parse_result<char_t>
 	{
+		// a package or iterator that is already stopped never starts a parse
 		if constexpr (concepts::stoppable<it_t>) if (begin.stop_requested()) [[unlikely]]
 		{
 			return parse_result<char_t>{ to_parse_error_code(begin.stop_reason()) };
@@ -99,6 +110,7 @@ namespace pdn
 		fn_pkg_for_parser& par_fp,
 		char_t             char_tag = {}) -> parse_result<char_t>
 	{
+		// a package or iterator that is already stopped never starts a parse
 		if constexpr (concepts::stoppable<it_t>) if (begin.stop_requested()) [[unlikely]]
 		{
 			return parse_result<char_t>{ to_parse_error_code(begin.stop_reason()) };
@@ -112,6 +124,8 @@ namespace pdn
 		auto token_it = make_token_iterator(::std::move(lex), ::std::move(cp_it), end);
 		auto token_end = make_token_iterator_end();
 		auto result = parse(::std::move(token_it), ::std::move(token_end), par_fp, char_tag);
+		// The parser inspects only its own package. Errors recorded by the lexer or by the
+		// code point iterator are folded into parse_error here.
 		if (result && (lex_fp.error_count() || cp_it_fp.error_count())) [[unlikely]]
 		{
 			return { parse_error_code::parse_error, ::std::move(result.value()) };
@@ -167,6 +181,9 @@ namespace pdn
 		char_t               char_tag = {},
 		::std::size_t        buffer_size = detail::default_swap_chain_buffer_size) -> parse_result<char_t>
 	{
+		// The stream is read as-is: only the file stream overload below looks for a BOM, so
+		// the caller decides where the input starts. A leading U+FEFF is not stripped here;
+		// the lexer treats it as a separator, so UTF-8 input usually parses anyway.
 		// bad -> null; good | fail | eof -> continue
 		if (source_input_stream.bad()) [[unlikely]]
 		{
@@ -185,6 +202,9 @@ namespace pdn
 		case utf32_le: return parse(make_code_unit_iterator<utf32_le>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
 		case utf32_be: return parse(make_code_unit_iterator<utf32_be>(::std::move(byte_it), end), end, cp_it_fp, lex_fp, par_fp, char_tag);
 		}
+		// The switch handles every encode_type enumerator, which is why no default: is written
+		// (a future enumerator must make -Wswitch complain instead of silently falling back).
+		// The tail only gives the function a return path where the assert is compiled out.
 #ifdef __cpp_lib_unreachable
 		::std::unreachable();
 #else
