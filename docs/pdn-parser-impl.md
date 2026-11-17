@@ -268,3 +268,7 @@ list [
     assert(test_as_string == string<char8_t>{});
 }
 ```
+
+## 其他
+
+Unicode 部分参考标准为 `Unicode 15.0`。  
