@@ -77,7 +77,9 @@ namespace pdn::detail
 			return size_per_chunk > half_max_size ? half_max_size : size_per_chunk;
 		}
 
-		adjacent_2_buffer() = default;
+		// Available only when the deleter can be default constructed; the member
+		// buffer_manager has no default constructor otherwise.
+		adjacent_2_buffer() requires ::std::is_default_constructible_v<deleter_type> = default;
 
 		// Allocates 2 * chunk_size() elements. A requested size of 0 leaves the buffer empty
 		// (has_buffer() is false); oversized requests are truncated by truncate_chunk_size.

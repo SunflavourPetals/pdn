@@ -3,7 +3,7 @@ target_include_directories(test_pdn_constant_generator_std PRIVATE "${PDN_INCLUD
 target_compile_features(test_pdn_constant_generator_std PRIVATE cxx_std_20)
 # this TU pulls in pdn/spdn.h; the MinGW assembler rejects the resulting object
 # as "file too big" at -O0, so ask GNU as for COFF big objects
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+if(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     target_compile_options(test_pdn_constant_generator_std PRIVATE "-Wa,-mbig-obj")
 endif()
 add_test(NAME pdn_constant_generator_std COMMAND test_pdn_constant_generator_std)

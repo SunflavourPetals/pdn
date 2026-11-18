@@ -179,8 +179,8 @@ namespace
 	static_assert(u8"abc"_sv.size() == 3);
 	static_assert(u"abc"_sv.size() == 3);
 	static_assert(U"abc"_sv.size() == 3);
-	static_assert(u8"abc"_s.size() == 3);
-	static_assert(U"\U0001F600"_s.size() == 1);
+	// The _s literal is constexpr, but building a std::basic_string inside a constant
+	// expression is not portable across compilers; those checks live in main().
 	static_assert(::std::is_same_v<decltype(u8"abc"_s), u8string>);
 	static_assert(::std::is_same_v<decltype(u8"abc"_sv), u8string_view>);
 	static_assert(::std::is_same_v<decltype(u"abc"_sv), u16string_view>);
@@ -189,6 +189,8 @@ namespace
 
 int main()
 {
+	assert(u8"abc"_s.size() == 3);
+	assert(U"\U0001F600"_s.size() == 1);
 	u8string text8 = u8"hello"_s;
 	u16string text16 = u"hello"_s;
 	u32string text32 = U"hello"_s;

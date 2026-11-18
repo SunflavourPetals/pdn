@@ -25,16 +25,23 @@ namespace
     using t32 = pdn::token<u32c>;
 
     static_assert(::std::is_aggregate_v<t8>);
+#if defined(__GNUC__) && !defined(__clang__)
+    // libstdc++'s variant happens to be a standard-layout type and GCC agrees; clang's
+    // standard-layout evaluation and other standard libraries do not guarantee that, so the
+    // layout assertions below only hold there.
     static_assert(::std::is_standard_layout_v<t8>);
+#endif
     static_assert(!::std::is_trivially_copyable_v<t8>);   // the payload variant owns proxies
     static_assert(::std::is_copy_constructible_v<t8>);
     static_assert(::std::is_nothrow_move_constructible_v<t8>);
     static_assert(::std::is_nothrow_move_assignable_v<t8>);
     static_assert(sizeof(t8) == 40 && alignof(t8) == 8);
     static_assert(sizeof(t16) == 40 && sizeof(t32) == 40);
+#if defined(__GNUC__) && !defined(__clang__)
     static_assert(offsetof(t8, position) == 0);
     static_assert(offsetof(t8, code) == 16);
     static_assert(offsetof(t8, value) == 24);                // 4 bytes of padding after code
+#endif
 
     void test_default_token()
     {
