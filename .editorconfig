@@ -1,0 +1,15 @@
+root = true
+
+# Stored form is LF; see .gitattributes for the matching git rules.
+[*]
+end_of_line = lf
+
+# Visual Studio rewrites MSVC project files as CRLF on save.
+[*.{sln,vcxproj,vcxproj.filters,vcxproj.user}]
+end_of_line = crlf
+
+# Test inputs whose exact bytes are part of the test data; never rewrite them.
+[*.spdn]
+end_of_line = unset
+trim_trailing_whitespace = false
+insert_final_newline = unset
