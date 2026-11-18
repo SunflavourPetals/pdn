@@ -172,13 +172,13 @@ namespace pdn::unicode::concepts
 namespace pdn::unicode::type_traits
 {
 	template <typename char_t>
-	constexpr bool is_utf8_code_unit_v  = concepts::utf8_code_unit<char_t>;
+	inline constexpr bool is_utf8_code_unit_v  = concepts::utf8_code_unit<char_t>;
 	template <typename char_t>
-	constexpr bool is_utf16_code_unit_v = concepts::utf16_code_unit<char_t>;
+	inline constexpr bool is_utf16_code_unit_v = concepts::utf16_code_unit<char_t>;
 	template <typename char_t>
-	constexpr bool is_utf32_code_unit_v = concepts::utf32_code_unit<char_t>;
+	inline constexpr bool is_utf32_code_unit_v = concepts::utf32_code_unit<char_t>;
 	template <typename char_t>
-	constexpr bool is_code_unit_v = concepts::code_unit<char_t>;
+	inline constexpr bool is_code_unit_v = concepts::code_unit<char_t>;
 
 	template <typename char_t>
 	struct is_utf8_code_unit  : public ::std::bool_constant<is_utf8_code_unit_v<char_t>> {};

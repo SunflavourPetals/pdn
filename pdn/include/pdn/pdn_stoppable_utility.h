@@ -17,13 +17,13 @@ namespace pdn::detail
 	struct noexcept_stop_requested : ::std::bool_constant<noexcept(::std::declval<const type&>().stop_requested())> {};
 
 	template <concepts::stoppable type>
-	constexpr bool noexcept_stop_requested_v = noexcept_stop_requested<type>::value;
+	inline constexpr bool noexcept_stop_requested_v = noexcept_stop_requested<type>::value;
 
 	template <concepts::stoppable type>
 	struct noexcept_stop_reason : ::std::bool_constant<noexcept(::std::declval<const type&>().stop_reason())> {};
 
 	template <concepts::stoppable type>
-	constexpr bool noexcept_stop_reason_v = noexcept_stop_reason<type>::value;
+	inline constexpr bool noexcept_stop_reason_v = noexcept_stop_reason<type>::value;
 }
 
 #endif

@@ -40,9 +40,9 @@ namespace pdn::type::detail
 	template <typename            int_t> using  alias_uint_t  =  typename alias_uint<int_t>::type;
 
 	template <typename int_t>
-	constexpr bool sint_has_alias_v = !::std::same_as<alias_sint_t<int_t>, void>;
+	inline constexpr bool sint_has_alias_v = !::std::same_as<alias_sint_t<int_t>, void>;
 	template <typename int_t>
-	constexpr bool uint_has_alias_v = !::std::same_as<alias_uint_t<int_t>, void>;
+	inline constexpr bool uint_has_alias_v = !::std::same_as<alias_uint_t<int_t>, void>;
 
 	// On a platform where int is not exactly one of i8..i64, the PDN integer that mirrors `int`
 	// is i32 (and unsigned int mirrors u32).

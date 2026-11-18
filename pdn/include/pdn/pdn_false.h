@@ -10,7 +10,7 @@ namespace pdn::detail
 	// cppint_to_type_code, proxy<type[]>), and the trailing else of if constexpr
 	// chains (entity::as, serializer, error-message generation). Never read as a value.
 	template <typename>
-	constexpr bool false_v = false;
+	inline constexpr bool false_v = false;
 }
 
 #endif

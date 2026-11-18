@@ -269,7 +269,7 @@ namespace pdn::detail
 		static constexpr bool value = true;
 	};
 	template <typename t>
-	constexpr bool has_proxy_v = has_proxy<t>::value;
+	inline constexpr bool has_proxy_v = has_proxy<t>::value;
 }
 
 namespace pdn::detail
