@@ -11,10 +11,6 @@
 #include "pdn_unicode_base.h"
 #include "pdn_type_character.h"
 
-#ifdef PDN_ENABLE_ORDERED_MAP
-#include "pdn_ordered_map.h"
-#endif
-
 namespace pdn::type::config
 {
 	using i8  = ::std::int8_t;
@@ -64,13 +60,12 @@ namespace pdn::type::config
 		}
 	};
 
-// Without PDN_ENABLE_ORDERED_MAP this is an unordered_map, whose find/count/contains accept a
+// Without PDN_USER_OBJECT this is an unordered_map, whose find/count/contains accept a
 // string view thanks to key_hasher; at() converts to the key type, so lookups by view use find.
-// With the macro it is detail::ordered_map, which keeps insertion order (and accepts at(view)).
-#ifdef PDN_ENABLE_ORDERED_MAP
-	// keep the order in parse
+// With the macro it is PDN_USER_OBJECT<iden_t, entity_t>.
+#ifdef PDN_USER_OBJECT
 	template <typename iden_t, typename entity_t>
-	using object = detail::ordered_map<iden_t, entity_t>;
+	using object = PDN_USER_OBJECT<iden_t, entity_t>;
 #else
 	template <typename iden_t, typename entity_t>
 	using object = ::std::unordered_map<iden_t, entity_t, key_hasher, ::std::equal_to<>>;
