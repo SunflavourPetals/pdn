@@ -108,7 +108,7 @@ auto r3 = pdn::parse<char32_t>(::std::u32string_view{ U"x: 1" });        // 显�
 ### 输入源与编码
 
 - 字符串视图与迭代器：编码由码元类型决定（`u8string` 即 UTF-8），调用者保证码元序列合法、完整。
-- `std::istream`：编码由 `encode_type` 指定。该重载**不剥 BOM**——带 BOM 的流必须先自行处理，因为 BOM 会被当成一个码点，之后所有行列都会整体偏移。
+- `std::istream`：编码由 `encode_type` 指定。该重载**不剥 BOM**——带 BOM 的流必须先自行处理，因为 BOM 会被当成正文的一个码点，之后所有行列都会整体偏移。
 - `std::ifstream` 与文件名：读开头几个字节识别 BOM（UTF-8 / UTF-16 小端大端 / UTF-32 小端大端），没有 BOM 时按 UTF-8 处理。
 
 ### 解析上限
@@ -124,11 +124,11 @@ auto r3 = pdn::parse<char32_t>(::std::u32string_view{ U"x: 1" });        // 显�
 | 成员 | 说明 |
 | :---: | :---: |
 | `error_code()` | `pdn::parse_error_code`；成功时为零值（0 不是枚举项） |
-| `success()` / `failed()` | 是否成功 |
+| `success()` / `failed()` | 是否成功 / 失败 |
 | `has_value()` / `operator bool` | 与 `success()` 相同 |
 | `value()` | 解析出的 `entity<char_t>` 的引用（`&` 与 `const&`），失败时是前置条件违反 |
-| `operator*` / `operator->` | 同 `value()`，四个值类别齐全 |
-| `what()` | 停止原因的粗粒度 C 字符串，见下表 |
+| `operator*` / `operator->` | 同 `value()`，按值类别提供重载 |
+| `what()` | 停止原因的粗粒度 ASCII C 字符串，见下表 |
 
 ### 错误码
 
@@ -142,7 +142,7 @@ auto r3 = pdn::parse<char32_t>(::std::u32string_view{ U"x: 1" });        // 显�
 | `bad_stream` | `"bad_stream"` | 流处于 `bad()` 状态 |
 | `stream_operation_failed` | `"stream_operation_failed"` | 流操作失败 |
 | `incomplete_code_unit` | `"incomplete_code_unit"` | 输入在码元中间结束（如半个 UTF-8 序列） |
-| `user_cancelled` | `"user_cancelled"` | 用户通过函数包请求取消(非定制不会使用此代码) |
+| `user_cancelled` | `"user_cancelled"` | 因其他原因的用户请求取消(非定制不会使用此代码) |
 
 ### 解析示例
 
