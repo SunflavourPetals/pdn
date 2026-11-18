@@ -1,11 +1,11 @@
 cppreference : [
-	"https://zh.cppreference.com/w/cpp/language/integer_literal",
-	"https://zh.cppreference.com/w/cpp/language/floating_literal",
-	"https://zh.cppreference.com/w/cpp/language/character_literal",
-	"https://zh.cppreference.com/w/cpp/language/string_literal",
-	"https://zh.cppreference.com/w/cpp/language/escape",
-	"https://zh.cppreference.com/w/cpp/language/charset",
-	"https://zh.cppreference.com/w/cpp/numeric/constants",
+	"https://zh.cppreference.com/cpp/language/integer_literal",
+	"https://zh.cppreference.com/cpp/language/floating_literal",
+	"https://zh.cppreference.com/cpp/language/character_literal",
+	"https://zh.cppreference.com/cpp/language/string_literal",
+	"https://zh.cppreference.com/cpp/language/escape",
+	"https://zh.cppreference.com/cpp/language/charset",
+	"https://zh.cppreference.com/cpp/numeric/constants",
 	"https://zh.cppreference.com/cpp/language/identifiers",
 ]
 
