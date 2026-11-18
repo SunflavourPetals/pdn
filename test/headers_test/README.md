@@ -113,12 +113,12 @@ endif()
 1. 新建 `test/headers_test/pdn_<名字>/` 目录，放 `test.cpp`：只 include 被测头（需要时再补标准头），写 `int main()`，用 `assert` 或自己的 `CHECK` 宏断言，失败返回非 0。
 2. 同目录放 `CMakeLists.txt`，四行：
 
-```cmake
-add_executable(test_pdn_<name> test.cpp)
-target_include_directories(test_pdn_<name> PRIVATE "${PDN_INCLUDE_DIR}")
-target_compile_features(test_pdn_<name> PRIVATE cxx_std_20)
-add_test(NAME pdn_<name> COMMAND test_pdn_<name>)
-```
+    ```cmake
+    add_executable(test_pdn_<name> test.cpp)
+    target_include_directories(test_pdn_<name> PRIVATE "${PDN_INCLUDE_DIR}")
+    target_compile_features(test_pdn_<name> PRIVATE cxx_std_20)
+    add_test(NAME pdn_<name> COMMAND test_pdn_<name>)
+    ```
 
 3. 在 `test/headers_test/CMakeLists.txt` 末尾追加 `add_subdirectory(pdn_<name>)`。
 
