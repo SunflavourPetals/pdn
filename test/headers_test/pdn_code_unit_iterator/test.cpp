@@ -58,8 +58,10 @@ namespace
 		chars8& operator++() noexcept { ++p; return *this; }
 	};
 
+	// By value on purpose: operator* returns a reference into the iterator's own storage, so
+	// returning decltype(auto) here would hand out a dangling reference to a destroyed local.
 	template <encode_type et, typename source_t>
-	auto read_one(source_t source) -> decltype(auto)
+	auto read_one(source_t source) -> typename code_unit_iterator<et, source_t, source_t>::code_unit_type
 	{
 		code_unit_iterator<et, source_t, source_t> it{ ::std::move(source) };
 		return *it;
