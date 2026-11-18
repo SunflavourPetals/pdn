@@ -18,11 +18,11 @@ namespace pdn::unicode::detail
 	// Binary search in a sorted list of disjoint closed ranges.
 	// Invariant: all ranges before `first` end before cp, all ranges from `last`
 	// on start after cp.
-	template <::std::size_t N>
-	[[nodiscard]] constexpr bool in_ranges(const char32_t(&lo)[N], const char32_t(&hi)[N], char32_t cp) noexcept
+	template <::std::size_t n>
+	[[nodiscard]] constexpr bool in_ranges(const char32_t(&lo)[n], const char32_t(&hi)[n], char32_t cp) noexcept
 	{
 		auto first = ::std::size_t{};
-		auto last = N;
+		auto last = n;
 		while (first < last)
 		{
 			const auto mid = first + (last - first) / 2;
@@ -43,10 +43,10 @@ namespace pdn::unicode::detail
 	}
 
 	// Sanity check on the generated data: sorted, disjoint, non-inverted.
-	template <::std::size_t N>
-	constexpr bool is_sorted_disjoint(const char32_t(&lo)[N], const char32_t(&hi)[N]) noexcept
+	template <::std::size_t n>
+	constexpr bool is_sorted_disjoint(const char32_t(&lo)[n], const char32_t(&hi)[n]) noexcept
 	{
-		for (auto i = ::std::size_t{}; i < N; ++i)
+		for (auto i = ::std::size_t{}; i < n; ++i)
 		{
 			if (lo[i] > hi[i])
 			{
