@@ -1,0 +1,3 @@
+cmake -S test/feature_test -B build/feature_test -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+cmake --build build/feature_test -j 4
+ctest --test-dir build/feature_test --output-on-failure
