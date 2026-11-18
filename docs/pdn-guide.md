@@ -623,6 +623,8 @@ int main()
 
 代码见 [`guide-source/learn-parse.cpp`](./guide-source/learn-parse.cpp)。  
 
+[参考 pdn-api](./pdn-api.md)  
+
 [参考 pdn-parser-impl](./pdn-parser-impl.md#parse)  
 
 ## 解析结果 parse_result
@@ -654,6 +656,8 @@ auto operator*() const&& noexcept -> const entity_type&&;
 ```
 
 ## 访问不同类型数据的方法
+
+本章是有关 entity 数据访问相关的章节，除了 guide 文档，有关 api 的使用也可以查阅 [pdn-api](./pdn-api.md)。  
 
 ### 用键从对象中查询数据
 
