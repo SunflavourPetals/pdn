@@ -1,0 +1,14 @@
+# Store text files with LF in the repository. The .spdn files are test inputs whose
+# bytes are part of the test data (mixed CRLF/LF, plus UTF-16/UTF-32 encoded ones),
+# so they must never be normalized. MSVC project files stay CRLF because Visual
+# Studio rewrites them as CRLF on save.
+* text=auto eol=lf
+
+*.sln             text eol=crlf
+*.vcxproj         text eol=crlf
+*.vcxproj.filters text eol=crlf
+*.vcxproj.user    text eol=crlf
+*.filters         text eol=crlf
+*.user            text eol=crlf
+
+*.spdn            -text
