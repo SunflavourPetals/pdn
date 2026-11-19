@@ -27,13 +27,35 @@ weekend_plan {
 
 `pdn` 是 header-only 库，仓库根目录的 CMake 负责构建 demo、测试和安装配置。
 
+以 Windows + MinGW 为例：  
+
+```shell
+cmake -S . -B build -G "MinGW Makefiles"
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+Linux/macOS 去掉 `-G "MinGW Makefiles"` 即可：  
+
 ```shell
 cmake -S . -B build
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
+Windows 上如果省略 `-G`，CMake 可能回退到 NMake；当 `nmake` 不在 `PATH` 时会配置失败。也可以直接使用 `cmake --preset mingw-debug`。
+
 只需要 demo 时：
+
+以 Windows + MinGW 为例：  
+
+```shell
+cmake -S . -B build -G "MinGW Makefiles" -DPDN_BUILD_TESTS=OFF
+cmake --build build
+build/pdn_demo
+```
+
+Linux/macOS 同样去掉 `-G "MinGW Makefiles"` 即可：  
 
 ```shell
 cmake -S . -B build -DPDN_BUILD_TESTS=OFF

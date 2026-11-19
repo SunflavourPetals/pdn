@@ -101,7 +101,17 @@ int main()
 
 本仓库提供的 PDN 解析器和其他工具都是使用 C++20 标准进行编写的，所以你的编译器必须支持其所用到的特性才行(如 `std::format`、支持浮点数的 `std::from_chars` 等)。  
 
-如果使用 CMake，可以在仓库根目录执行以下命令构建本目录的示例：  
+如果使用 CMake，可以在仓库根目录执行以下命令构建本目录的示例。Windows + MinGW 需要显式指定生成器；Linux/macOS 去掉 `-G "MinGW Makefiles"` 即可。  
+
+Windows + MinGW：  
+
+```shell
+cmake -S docs/guide-source -B build/guide-source -G "MinGW Makefiles"
+cmake --build build/guide-source
+ctest --test-dir build/guide-source --output-on-failure
+```
+
+Linux/macOS：  
 
 ```shell
 cmake -S docs/guide-source -B build/guide-source
@@ -109,7 +119,17 @@ cmake --build build/guide-source
 ctest --test-dir build/guide-source --output-on-failure
 ```
 
-也可以在仓库根目录启用 `PDN_BUILD_DOC_EXAMPLES`：  
+也可以在仓库根目录启用 `PDN_BUILD_DOC_EXAMPLES`。  
+
+Windows + MinGW：  
+
+```shell
+cmake -S . -B build -G "MinGW Makefiles" -DPDN_BUILD_DOC_EXAMPLES=ON
+cmake --build build
+ctest --test-dir build -R guide_ --output-on-failure
+```
+
+Linux/macOS：  
 
 ```shell
 cmake -S . -B build -DPDN_BUILD_DOC_EXAMPLES=ON

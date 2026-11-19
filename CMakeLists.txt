@@ -1,5 +1,18 @@
 cmake_minimum_required(VERSION 3.20)
 
+# A plain `cmake -S . -B build` on Windows can fall back to NMake when no
+# supported Visual Studio generator is available.  Fail with an actionable
+# message instead of the generic "nmake not found" error from project().
+if(CMAKE_GENERATOR MATCHES "^NMake Makefiles")
+    find_program(PDN_NMAKE_EXECUTABLE nmake)
+    if(NOT PDN_NMAKE_EXECUTABLE)
+        message(FATAL_ERROR
+            "The '${CMAKE_GENERATOR}' generator requires nmake in PATH. "
+            "Use -G \"MinGW Makefiles\", or run CMake from a Visual Studio "
+            "developer prompt.")
+    endif()
+endif()
+
 # ---------------------------------------------------------------------------
 # Version: pdn/include/pdn/pdn_version.h is the single source of truth.
 # ---------------------------------------------------------------------------
