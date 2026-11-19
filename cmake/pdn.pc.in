@@ -1,0 +1,8 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: pdn
+Description: Petals Data Notation, a header-only C++20 library
+Version: @PROJECT_VERSION@
+Cflags: -I${includedir}

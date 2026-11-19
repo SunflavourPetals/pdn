@@ -3,6 +3,10 @@
 
 *.exe
 *.obj
+*.pdb
+*.ilk
+*.exp
+*.idb
 *.TMP
 
 .vs/

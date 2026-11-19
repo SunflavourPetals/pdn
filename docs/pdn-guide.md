@@ -99,8 +99,28 @@ int main()
 
 完成代码的编写，现在可以试着编译并运行它。  
 
-本仓库提供的 PDN 解析器和其他工具都是使用 C++20 标准进行编写的，所以你的编译器必须支持其所用到的特性才行(如 `std::format`、支持浮点数的 `std::from_chars` 等)。另外，使用编译命令时需要正确指定包含目录，如果你熟悉 `CMAKE` `xmake` 或是其他构建工具，那这些对你应该不成问题。  
-如果不是，这里有一个使用 `g++` 进行编译的模板：  
+本仓库提供的 PDN 解析器和其他工具都是使用 C++20 标准进行编写的，所以你的编译器必须支持其所用到的特性才行(如 `std::format`、支持浮点数的 `std::from_chars` 等)。  
+
+如果使用 CMake，可以在仓库根目录执行以下命令构建本目录的示例：  
+
+```shell
+cmake -S docs/guide-source -B build/guide-source
+cmake --build build/guide-source
+ctest --test-dir build/guide-source --output-on-failure
+```
+
+也可以在仓库根目录启用 `PDN_BUILD_DOC_EXAMPLES`：  
+
+```shell
+cmake -S . -B build -DPDN_BUILD_DOC_EXAMPLES=ON
+cmake --build build
+ctest --test-dir build -R guide_ --output-on-failure
+```
+
+示例会从工作目录读取 `hello.spdn`、`example.spdn` 等文件；上面的 CTest 命令已经把工作目录设为构建目录，直接运行可执行文件时也请在构建目录中进行。  
+
+如果不使用 CMake，可以直接使用编译器的编译命令，使用编译命令时只需要正确指定包含目录。  
+这里有一个使用 `g++` 进行编译的模板：  
 `g++ -std=c++20 -I<包含目录> -o <输出文件> <源文件>`  
 
 例如，移动到 `.../pdn/docs/guide-source` 目录下使用以下命令：  
@@ -109,7 +129,7 @@ int main()
 g++ -std=c++20 -I../../pdn/include -o hello-spdn ./hello-spdn.cpp
 ```
 
-编译之后运行它(`hello-spdn.exe`)，程序会输出 `Hello world!`。
+编译之后运行它(`hello-spdn.exe`)，程序会输出 `Hello world!`。  
 
 ### 关于使用 u8string 的疑问
 
