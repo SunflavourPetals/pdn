@@ -22,7 +22,8 @@ int main()
 	auto& greeting = entity[u8"greeting"];
 	try
 	{
-		greeting[u8""]; // (maybe)std::get: wrong index for variant
+		[[maybe_unused]]
+		auto unused = greeting[u8""]; // (maybe)std::get: wrong index for variant
 	}
 	catch (std::exception& e)
 	{
@@ -30,7 +31,8 @@ int main()
 	}
 	try
 	{
-		entity[u8"name"]; // out_of_range
+		[[maybe_unused]]
+		auto unused = entity[u8"name"]; // out_of_range
 	}
 	catch (std::exception& e)
 	{
