@@ -1,8 +1,8 @@
-#include <pdn/pdn_err_msg_gen_en_syn.h>
-
 #include <cstdio>
 #include <type_traits>
 #include <variant>
+
+#include <pdn/pdn_err_msg_gen_en_syn.h>
 
 namespace
 {

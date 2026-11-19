@@ -3,11 +3,11 @@
 // bool. These checks pin down what that admits and what it rejects, and that the library's
 // eof() versus begin/end dispatch keeps working for both kinds of source.
 
-#include <pdn/pdn_eof_detector_concept.h>
-
 #include <istream>
 #include <sstream>
 #include <string>
+
+#include <pdn/pdn_eof_detector_concept.h>
 
 namespace
 {

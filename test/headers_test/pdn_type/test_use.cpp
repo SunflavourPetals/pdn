@@ -3,15 +3,15 @@
 // Splitting this out matters: asking whether entity is complete before and after its definition
 // in the same translation unit would make the answer depend on the point of instantiation.
 
-#include <pdn/pdn_type.h>
-#include <pdn/pdn_entity.h>
-
 #include <cstddef>
 #include <cstdio>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <vector>
+
+#include <pdn/pdn_type.h>
+#include <pdn/pdn_entity.h>
 
 namespace
 {

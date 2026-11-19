@@ -1,8 +1,8 @@
-#include <pdn/pdn_utf_encoder.h>
-
 #include <concepts>
 #include <cstddef>
 #include <cstdio>
+
+#include <pdn/pdn_utf_encoder.h>
 
 namespace
 {

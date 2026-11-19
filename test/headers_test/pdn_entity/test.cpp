@@ -1,11 +1,11 @@
 // Tests for pdn/include/pdn/pdn_entity.h.
-#include <pdn/spdn.h>
-
 #include <cstdio>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/spdn.h>
 
 namespace un = pdn::unicode;
 namespace type = pdn::type;

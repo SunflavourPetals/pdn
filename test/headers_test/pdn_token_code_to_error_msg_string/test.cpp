@@ -1,8 +1,8 @@
-#include <pdn/pdn_token_code_to_error_msg_string.h>
-
 #include <array>
 #include <cassert>
 #include <cstddef>
+
+#include <pdn/pdn_token_code_to_error_msg_string.h>
 
 namespace
 {

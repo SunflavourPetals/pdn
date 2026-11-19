@@ -6,11 +6,11 @@
 //   * the numbering 1..N with no gap, because 0 means "no lexical error" (see the header);
 //   * the fact that a default-constructed value is 0 and therefore not a real error code.
 
-#include <pdn/pdn_lexical_error_code.h>
-
 #include <array>
 #include <cstddef>
 #include <cstdint>
+
+#include <pdn/pdn_lexical_error_code.h>
 
 namespace
 {

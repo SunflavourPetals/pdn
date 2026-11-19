@@ -1,11 +1,11 @@
-#include <pdn/pdn_constant_generator.h>
-
 #include <cmath>
 #include <cstdio>
 #include <numbers>
 #include <optional>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/pdn_constant_generator.h>
 
 namespace
 {

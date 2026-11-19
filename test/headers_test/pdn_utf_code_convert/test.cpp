@@ -1,13 +1,13 @@
 // Tests pdn_utf_code_convert.h: cross-width conversion, replacement of malformed input, and the
 // error handler contract (offsets, "return true to stop", handlers may write into the target).
-#include <pdn/pdn_utf_code_convert.h>
-
 #include <array>
 #include <cstdio>
 #include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
+
+#include <pdn/pdn_utf_code_convert.h>
 
 namespace
 {

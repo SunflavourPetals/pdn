@@ -2,14 +2,14 @@
 // inspect the entity, serialize it back. The umbrella is intentionally the only pdn header
 // included here, so a missing include shows up as a compile error rather than a happy path.
 
-#include <pdn/spdn.h>
-
 #include <concepts>
 #include <cstddef>
 #include <iostream>
 #include <string>
 #include <string_view>
 #include <type_traits>
+
+#include <pdn/spdn.h>
 
 namespace
 {

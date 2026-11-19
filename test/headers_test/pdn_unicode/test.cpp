@@ -4,13 +4,13 @@
 // test includes those headers, and every name used below comes from one of them, so if an
 // include is dropped from the umbrella this file stops compiling.
 
-#include <pdn/pdn_unicode.h>
-
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <string_view>
 #include <type_traits>
+
+#include <pdn/pdn_unicode.h>
 
 namespace
 {

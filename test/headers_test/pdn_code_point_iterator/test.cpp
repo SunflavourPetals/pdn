@@ -1,7 +1,3 @@
-#include <pdn/pdn_code_point_iterator.h>
-#include <pdn/pdn_error_message_generator.h>
-#include <pdn/pdn_source_position_recorder.h>
-
 #include <cstddef>
 #include <cstdio>
 #include <string>
@@ -9,6 +5,10 @@
 #include <utility>
 #include <variant>
 #include <vector>
+
+#include <pdn/pdn_code_point_iterator.h>
+#include <pdn/pdn_error_message_generator.h>
+#include <pdn/pdn_source_position_recorder.h>
 
 namespace
 {

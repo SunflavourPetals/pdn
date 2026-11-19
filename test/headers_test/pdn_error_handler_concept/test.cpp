@@ -1,8 +1,8 @@
-#include <pdn/pdn_error_handler.h>
-#include <pdn/pdn_error_handler_concept.h>
-
 #include <cstddef>
 #include <cstdio>
+
+#include <pdn/pdn_error_handler.h>
+#include <pdn/pdn_error_handler_concept.h>
 
 namespace
 {

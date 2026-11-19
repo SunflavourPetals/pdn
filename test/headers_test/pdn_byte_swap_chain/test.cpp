@@ -5,10 +5,6 @@
 // value), report eof() only after the last byte, and turn stream failures into stop reasons
 // instead of throwing. get()/eof() never touch the stream; only to_next() may request a stop.
 
-#include <pdn/pdn_adjacent_2_buffer.h>
-#include <pdn/pdn_byte_swap_chain.h>
-#include <pdn/pdn_stop_reason.h>
-
 #include <cassert>
 #include <cstddef>
 #include <ios>
@@ -17,6 +13,10 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/pdn_adjacent_2_buffer.h>
+#include <pdn/pdn_byte_swap_chain.h>
+#include <pdn/pdn_stop_reason.h>
 
 namespace
 {

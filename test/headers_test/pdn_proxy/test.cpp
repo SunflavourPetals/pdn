@@ -5,14 +5,14 @@
 // construction, copying is a deep copy, moving empties the source (the guide documents that), the
 // const accessors hand out const pointers, and no public constructor accepts a raw pointer.
 
-#include <pdn/pdn_proxy.h>
-
 #include <concepts>
 #include <cstdio>
 #include <memory>
 #include <string>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/pdn_proxy.h>
 
 namespace
 {

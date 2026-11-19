@@ -1,5 +1,3 @@
-#include <pdn/pdn_parser_utility.h>
-
 #include <cstddef>
 #include <cstdio>
 #include <iterator>
@@ -8,6 +6,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include <pdn/pdn_parser_utility.h>
 
 namespace
 {

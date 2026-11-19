@@ -1,15 +1,15 @@
 // Tests the type aliases and the object container alias declared by pdn_type_config.h.
-#ifdef PDN_USER_OBJECT
-#include <pdn/pdn_ordered_map.h>
-#endif
-#include <pdn/pdn_type_config.h>
-
 #include <cstdint>
 #include <cstdio>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+
+#ifdef PDN_USER_OBJECT
+#include <pdn/pdn_ordered_map.h>
+#endif
+#include <pdn/pdn_type_config.h>
 
 namespace
 {

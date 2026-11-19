@@ -6,9 +6,9 @@
 // included; the second part, after the full definition is visible, checks that the declarations
 // name exactly the classes the public API returns.
 
-#include <pdn/pdn_entity_forward_decl.h>
-
 #include <type_traits>
+
+#include <pdn/pdn_entity_forward_decl.h>
 
 namespace
 {

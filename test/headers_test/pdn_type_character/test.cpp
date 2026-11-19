@@ -1,11 +1,10 @@
-#include <pdn/pdn_type_character.h>
-
 #include <cstdint>
 #include <cstdio>
 #include <string>
 #include <string_view>
 #include <type_traits>
 
+#include <pdn/pdn_type_character.h>
 #include <pdn/spdn.h>
 
 namespace

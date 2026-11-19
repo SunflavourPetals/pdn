@@ -2,15 +2,15 @@
 // type_code is the runtime name of a PDN type. The checks below pin the enumerator set, the
 // round trip through both mapping tables, and the names used in error messages.
 
-#include <pdn/pdn_type_code.h>
-#include <pdn/pdn_type_code_to_error_msg_string.h>
-#include <pdn/pdn_type_code_to_type.h>
-#include <pdn/pdn_type_to_type_code.h>
-
 #include <array>
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
+
+#include <pdn/pdn_type_code.h>
+#include <pdn/pdn_type_code_to_error_msg_string.h>
+#include <pdn/pdn_type_code_to_type.h>
+#include <pdn/pdn_type_to_type_code.h>
 
 namespace
 {

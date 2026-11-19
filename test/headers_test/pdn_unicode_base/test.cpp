@@ -6,13 +6,13 @@
 // Almost everything here is constexpr, so most checks are static_asserts; main() only exercises
 // the literals at run time.
 
-#include <pdn/pdn_unicode_base.h>
-
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+
+#include <pdn/pdn_unicode_base.h>
 
 namespace
 {

@@ -1,8 +1,8 @@
-#include <pdn/pdn_parse_error_code.h>
-
 #include <array>
 #include <cassert>
 #include <cstddef>
+
+#include <pdn/pdn_parse_error_code.h>
 
 namespace
 {

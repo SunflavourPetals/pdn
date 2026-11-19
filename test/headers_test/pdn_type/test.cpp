@@ -5,8 +5,6 @@
 // before the entity definition exists (pdn_entity.h includes pdn_type.h, not the other way
 // around).
 
-#include <pdn/pdn_type.h>
-
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
@@ -15,6 +13,8 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+
+#include <pdn/pdn_type.h>
 
 template <typename t>
 concept complete = requires { sizeof(t); };

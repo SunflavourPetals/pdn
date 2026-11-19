@@ -1,8 +1,8 @@
-#include <pdn/pdn_utf_decoder.h>
-
 #include <concepts>
 #include <cstdio>
 #include <string_view>
+
+#include <pdn/pdn_utf_decoder.h>
 
 namespace
 {

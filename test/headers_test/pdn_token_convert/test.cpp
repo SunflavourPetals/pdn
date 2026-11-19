@@ -1,11 +1,11 @@
 // Tests for pdn/include/pdn/pdn_token_convert.h.
-#include <pdn/pdn_token_convert.h>
-
 #include <cstdio>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <variant>
+
+#include <pdn/pdn_token_convert.h>
 
 namespace type = pdn::type;
 namespace un = pdn::unicode;

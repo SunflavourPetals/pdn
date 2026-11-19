@@ -1,12 +1,12 @@
 // tests for pdn_entity_utility.h: the as_* conversion matrix, the tag machinery and the
 // return type table used by entity's accessors
-#include <pdn/spdn.h>
-
 #include <cmath>
 #include <cstdio>
 #include <limits>
 #include <type_traits>
 #include <variant>
+
+#include <pdn/spdn.h>
 
 using namespace pdn;
 

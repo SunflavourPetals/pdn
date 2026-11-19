@@ -1,12 +1,11 @@
-#include <pdn/pdn_constant_generator_concept.h>
-
-#include <pdn/pdn_entity.h>
-
 #include <cstdio>
 #include <optional>
 #include <string_view>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/pdn_constant_generator_concept.h>
+#include <pdn/pdn_entity.h>
 
 namespace
 {

@@ -1,11 +1,11 @@
-#include <pdn/pdn_dfa_state_object.h>
-
 #include <array>
 #include <cstddef>
 #include <cstdio>
 #include <iterator>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/pdn_dfa_state_object.h>
 
 namespace
 {

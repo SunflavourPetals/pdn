@@ -9,15 +9,15 @@
 //   * type_of() uses this mapping: values parsed from PDN source report the type that was
 //     written, and an empty reference reports unknown.
 
-#include <pdn/pdn_type_to_type_code.h>
-#include <pdn/pdn_type_code_to_type.h>
-#include <pdn/spdn.h>
-
 #include <cstddef>
 #include <cstdio>
 #include <string>
 #include <string_view>
 #include <type_traits>
+
+#include <pdn/pdn_type_to_type_code.h>
+#include <pdn/pdn_type_code_to_type.h>
+#include <pdn/spdn.h>
 
 namespace
 {

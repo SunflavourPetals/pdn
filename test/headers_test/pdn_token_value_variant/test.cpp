@@ -1,8 +1,3 @@
-#include <pdn/spdn.h>
-#include <pdn/pdn_token.h>
-#include <pdn/pdn_token_value_variant.h>
-#include <pdn/pdn_token_value_variant_convert.h>
-
 #include <cstdint>
 #include <cstdio>
 #include <limits>
@@ -11,6 +6,11 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
+
+#include <pdn/spdn.h>
+#include <pdn/pdn_token.h>
+#include <pdn/pdn_token_value_variant.h>
+#include <pdn/pdn_token_value_variant_convert.h>
 
 namespace
 {

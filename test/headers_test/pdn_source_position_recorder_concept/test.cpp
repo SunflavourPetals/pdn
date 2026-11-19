@@ -1,7 +1,7 @@
-#include <pdn/pdn_source_position_recorder_concept.h>
-
 #include <cassert>
 #include <cstddef>
+
+#include <pdn/pdn_source_position_recorder_concept.h>
 
 namespace
 {

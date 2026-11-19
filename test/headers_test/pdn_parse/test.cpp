@@ -7,8 +7,6 @@
 // an explicit encoding, the file level strips the BOM, and the name level reports a missing
 // file as open_file_failed instead of throwing.
 
-#include <pdn/pdn_parse.h>
-
 #include <concepts>
 #include <cstddef>
 #include <filesystem>
@@ -22,6 +20,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include <pdn/pdn_parse.h>
 
 namespace
 {

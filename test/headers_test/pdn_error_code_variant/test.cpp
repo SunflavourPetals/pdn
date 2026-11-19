@@ -10,14 +10,6 @@
 //     by appending to it;
 //   * the string overload returns the same text as the view overload.
 
-#include <pdn/pdn_error_code_variant.h>
-#include <pdn/pdn_error_code_variant_to_error_msg_string.h>
-
-// Only to name the encode error codes that the variant must not contain.
-#include <pdn/pdn_utf8_encoder.h>
-#include <pdn/pdn_utf16_encoder.h>
-#include <pdn/pdn_utf32_encoder.h>
-
 #include <array>
 #include <cstddef>
 #include <cstdio>
@@ -26,6 +18,14 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
+
+#include <pdn/pdn_error_code_variant.h>
+#include <pdn/pdn_error_code_variant_to_error_msg_string.h>
+
+// Only to name the encode error codes that the variant must not contain.
+#include <pdn/pdn_utf8_encoder.h>
+#include <pdn/pdn_utf16_encoder.h>
+#include <pdn/pdn_utf32_encoder.h>
 
 namespace
 {

@@ -5,9 +5,9 @@
 // A package that returns another integer type is treated as "not provided" (the parser keeps its
 // default 256), which is why the negative cases below matter as much as the positive ones.
 
-#include <pdn/pdn_nesting_depth_limiter_concept.h>
-
 #include <cstddef>
+
+#include <pdn/pdn_nesting_depth_limiter_concept.h>
 
 namespace
 {

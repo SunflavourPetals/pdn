@@ -7,12 +7,12 @@
 //
 // Assertions are compiled out here, so failures are reported through the process exit code.
 
-#include <pdn/pdn_adjacent_2_buffer.h>
-#include <pdn/pdn_byte_swap_chain.h>
-
 #include <cstdio>
 #include <sstream>
 #include <string>
+
+#include <pdn/pdn_adjacent_2_buffer.h>
+#include <pdn/pdn_byte_swap_chain.h>
 
 namespace
 {

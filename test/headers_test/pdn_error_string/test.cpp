@@ -6,13 +6,13 @@
 // generators actually rely on (ASCII digits, UTF-8 fragments) and the append chain shown in
 // the guide.
 
-#include <pdn/pdn_error_string.h>
-
 #include <cassert>
 #include <cstddef>
 #include <string>
 #include <string_view>
 #include <type_traits>
+
+#include <pdn/pdn_error_string.h>
 
 namespace
 {

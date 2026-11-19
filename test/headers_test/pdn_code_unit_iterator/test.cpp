@@ -4,12 +4,12 @@
 // cut short (stop_reason_code::incomplete_code_unit), how eof() is answered for eof()-driven
 // and begin/end-driven sources, and that utf-8 is a straight pass-through.
 
-#include <pdn/pdn_code_unit_iterator.h>
-
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <type_traits>
+
+#include <pdn/pdn_code_unit_iterator.h>
 
 namespace
 {

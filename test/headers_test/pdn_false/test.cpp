@@ -2,10 +2,10 @@
 // This TU includes only the header under review (plus the standard library), so it also
 // checks that the header is self-contained.
 
-#include <pdn/pdn_false.h>
-
 #include <cstdio>
 #include <type_traits>
+
+#include <pdn/pdn_false.h>
 
 namespace
 {

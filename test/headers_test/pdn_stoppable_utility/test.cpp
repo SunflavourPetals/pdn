@@ -1,8 +1,8 @@
-#include <pdn/pdn_stoppable_utility.h>
-
 #include <cassert>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/pdn_stoppable_utility.h>
 
 namespace
 {

@@ -1,9 +1,8 @@
-#include <pdn/pdn_type_character_utility.h>
-
 #include <cstddef>
 #include <cstdio>
 #include <type_traits>
 
+#include <pdn/pdn_type_character_utility.h>
 #include <pdn/pdn_type_config.h>
 
 namespace

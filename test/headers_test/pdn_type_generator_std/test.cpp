@@ -4,15 +4,15 @@
 // docs/pdn-reference.md ("标准规定了如下别名"), and every table must resolve them to the
 // same type codes. The u16/u32 tables are derived from the u8 table, so their key sets are
 // checked to be the widened u8 keys.
-#include <pdn/pdn_type_generator_std.h>
-#include <pdn/pdn_type_generator_concept.h>
-#include <pdn/spdn.h>
-
 #include <cstdio>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/pdn_type_generator_std.h>
+#include <pdn/pdn_type_generator_concept.h>
+#include <pdn/spdn.h>
 
 namespace
 {

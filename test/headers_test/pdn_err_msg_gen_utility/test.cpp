@@ -1,5 +1,3 @@
-#include <pdn/pdn_err_msg_gen_utility.h>
-
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -10,6 +8,8 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
+
+#include <pdn/pdn_err_msg_gen_utility.h>
 
 namespace
 {

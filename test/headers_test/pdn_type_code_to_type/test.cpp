@@ -7,11 +7,11 @@
 //   * char_t only takes part in the key for the character/string/list/object families,
 //     where it is forwarded into the type; scalars ignore it.
 
-#include <pdn/pdn_type_code_to_type.h>
-
 #include <string>
 #include <cstdio>
 #include <type_traits>
+
+#include <pdn/pdn_type_code_to_type.h>
 
 namespace
 {

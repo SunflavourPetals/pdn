@@ -1,7 +1,3 @@
-#include <pdn/spdn.h>
-
-#include <pdn/pdn_constant_generator_std.h>
-
 #include <cmath>
 #include <cstdio>
 #include <limits>
@@ -9,6 +5,9 @@
 #include <optional>
 #include <string>
 #include <string_view>
+
+#include <pdn/spdn.h>
+#include <pdn/pdn_constant_generator_std.h>
 
 namespace
 {

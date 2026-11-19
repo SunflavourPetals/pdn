@@ -10,13 +10,13 @@
 //     const type_code& is accepted (that is what convertible_to allows today);
 //   * the real implementation, pdn::default_type_generator, satisfies the concept.
 
-#include <pdn/pdn_type_generator_concept.h>
-#include <pdn/pdn_type_generator.h>
-
 #include <cstdio>
 #include <string>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/pdn_type_generator_concept.h>
+#include <pdn/pdn_type_generator.h>
 
 namespace
 {

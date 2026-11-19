@@ -1,5 +1,3 @@
-#include <pdn/pdn_bom_reader.h>
-
 #include <array>
 #include <cstdio>
 #include <filesystem>
@@ -7,6 +5,8 @@
 #include <iterator>
 #include <sstream>
 #include <string>
+
+#include <pdn/pdn_bom_reader.h>
 
 namespace
 {

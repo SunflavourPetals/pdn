@@ -1,9 +1,9 @@
-#include <pdn/pdn_type_code_to_error_msg_string.h>
-#include <pdn/pdn_type_generator.h>
-
 #include <array>
 #include <cassert>
 #include <cstddef>
+
+#include <pdn/pdn_type_code_to_error_msg_string.h>
+#include <pdn/pdn_type_generator.h>
 
 namespace
 {

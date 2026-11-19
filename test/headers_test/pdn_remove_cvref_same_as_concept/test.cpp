@@ -4,10 +4,10 @@
 // History: this concept is the merge of decayed_same_as (one-sided normalization) and
 // remove_cvref_same_as from parser_utility (two-sided normalization).
 
-#include <pdn/pdn_remove_cvref_same_as_concept.h>
-
 #include <cstdio>
 #include <optional>
+
+#include <pdn/pdn_remove_cvref_same_as_concept.h>
 
 namespace
 {

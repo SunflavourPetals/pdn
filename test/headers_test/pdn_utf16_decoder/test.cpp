@@ -1,7 +1,7 @@
-#include <pdn/pdn_utf16_decoder.h>
-
 #include <array>
 #include <cstdio>
+
+#include <pdn/pdn_utf16_decoder.h>
 
 namespace
 {

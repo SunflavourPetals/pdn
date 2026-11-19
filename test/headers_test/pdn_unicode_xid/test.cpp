@@ -6,14 +6,14 @@
 // rest of the checks cover the binary search, the XID_Start is a subset of XID_Continue invariant, the lexer
 // predicates built on top of the tables, and one parse of a non-ASCII identifier.
 
-#include <pdn/pdn_lexer_utility.h>
-#include <pdn/pdn_parse.h>
-#include <pdn/pdn_unicode_xid.h>
-
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include <string_view>
+
+#include <pdn/pdn_lexer_utility.h>
+#include <pdn/pdn_parse.h>
+#include <pdn/pdn_unicode_xid.h>
 
 namespace
 {

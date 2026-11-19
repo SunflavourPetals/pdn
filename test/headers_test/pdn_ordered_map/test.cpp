@@ -18,19 +18,19 @@
 //   - appending to the default std::deque invalidates every iterator but keeps references and
 //     pointers to the existing elements valid; that is pinned down by test_append_keeps_references().
 
-#define PDN_USER_OBJECT ::pdn::ordered_map
-
-#include <pdn/pdn_ordered_map.h>
-#include <pdn/pdn_parse.h>
-#include <pdn/pdn_serializer.h>
-#include <pdn/pdn_type_config.h>
-
 #include <algorithm>
 #include <cassert>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
+
+#define PDN_USER_OBJECT ::pdn::ordered_map
+
+#include <pdn/pdn_ordered_map.h>
+#include <pdn/pdn_parse.h>
+#include <pdn/pdn_serializer.h>
+#include <pdn/pdn_type_config.h>
 
 namespace
 {

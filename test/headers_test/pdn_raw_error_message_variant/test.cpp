@@ -1,10 +1,10 @@
-#include <pdn/pdn_raw_error_message_variant.h>
-
 #include <cstddef>
 #include <cstdio>
 #include <type_traits>
 #include <utility>
 #include <variant>
+
+#include <pdn/pdn_raw_error_message_variant.h>
 
 namespace
 {

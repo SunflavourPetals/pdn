@@ -1,6 +1,4 @@
 // Tests the decoder/encoder pairing decided by convert_decision from two string types.
-#include <pdn/pdn_convert_decision.h>
-
 #include <array>
 #include <cstddef>
 #include <cstdio>
@@ -11,6 +9,8 @@
 #include <string_view>
 #include <type_traits>
 #include <vector>
+
+#include <pdn/pdn_convert_decision.h>
 
 namespace
 {

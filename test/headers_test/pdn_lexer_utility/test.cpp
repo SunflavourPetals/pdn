@@ -1,9 +1,8 @@
-#include <pdn/pdn_lexer_utility.h>
-
-#include <pdn/pdn_unicode_xid.h>
-
 #include <cassert>
 #include <cstdint>
+
+#include <pdn/pdn_lexer_utility.h>
+#include <pdn/pdn_unicode_xid.h>
 
 namespace
 {

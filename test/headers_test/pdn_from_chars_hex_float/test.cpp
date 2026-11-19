@@ -15,8 +15,6 @@
 // The library never calls this header itself (it is opt-in through PDN_USER_FROM_CHARS_FLOAT),
 // so these tests are the only thing keeping it from rotting.
 
-#include <pdn/pdn_from_chars_hex_float.h>
-
 #include <cassert>
 #include <cerrno>
 #include <cmath>
@@ -28,6 +26,8 @@
 #include <limits>
 #include <string>
 #include <type_traits>
+
+#include <pdn/pdn_from_chars_hex_float.h>
 
 namespace
 {

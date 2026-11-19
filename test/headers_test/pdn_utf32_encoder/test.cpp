@@ -1,8 +1,8 @@
-#include <pdn/pdn_utf32_decoder.h>
-#include <pdn/pdn_utf32_encoder.h>
-
 #include <array>
 #include <cstdio>
+
+#include <pdn/pdn_utf32_decoder.h>
+#include <pdn/pdn_utf32_encoder.h>
 
 namespace
 {

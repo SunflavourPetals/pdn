@@ -2,12 +2,12 @@
 // The enumerator set is the lexer's whole vocabulary. The checks below pin its size, the zero
 // value, and the names the parser prints when it meets a token it did not expect.
 
+#include <array>
+#include <cstddef>
+
 #include <pdn/pdn_token.h>
 #include <pdn/pdn_token_code.h>
 #include <pdn/pdn_token_code_to_error_msg_string.h>
-
-#include <array>
-#include <cstddef>
 
 namespace
 {

@@ -12,11 +12,6 @@
 //   * the rendered text is delivered only through handle_error; parse_result::what()
 //     keeps the coarse parse_error_code name.
 
-#include <pdn/pdn_error_message.h>
-#include <pdn/pdn_error_handler.h>
-#include <pdn/pdn_error_handler_concept.h>
-#include <pdn/spdn.h>
-
 #include <cstddef>
 #include <cstdio>
 #include <iostream>
@@ -26,6 +21,11 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
+
+#include <pdn/pdn_error_message.h>
+#include <pdn/pdn_error_handler.h>
+#include <pdn/pdn_error_handler_concept.h>
+#include <pdn/spdn.h>
 
 namespace
 {

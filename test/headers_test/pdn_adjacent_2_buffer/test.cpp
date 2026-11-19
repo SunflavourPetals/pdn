@@ -4,14 +4,14 @@
 // and swap (including self-move and self-swap), size truncation, a custom deleter, and the
 // type-level guarantees the library relies on.
 
-#include <pdn/pdn_adjacent_2_buffer.h>
-
 #include <cassert>
 #include <cstddef>
 #include <cstdio>
 #include <limits>
 #include <type_traits>
 #include <utility>
+
+#include <pdn/pdn_adjacent_2_buffer.h>
 
 namespace
 {

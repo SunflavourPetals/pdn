@@ -1,9 +1,9 @@
 // Tests the integer alias table, the auto_int/auto_uint resolution and the type concepts
 // declared by pdn_type_basic.h.
-#include <pdn/pdn_type_basic.h>
-
 #include <cstdio>
 #include <type_traits>
+
+#include <pdn/pdn_type_basic.h>
 
 namespace
 {

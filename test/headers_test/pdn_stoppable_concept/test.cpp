@@ -1,8 +1,8 @@
-#include <pdn/pdn_function_package.h>
-#include <pdn/pdn_stoppable_concept.h>
-
 #include <cassert>
 #include <cstdio>
+
+#include <pdn/pdn_function_package.h>
+#include <pdn/pdn_stoppable_concept.h>
 
 namespace
 {

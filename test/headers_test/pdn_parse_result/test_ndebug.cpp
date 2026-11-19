@@ -1,10 +1,10 @@
 // The fallback of parse_result's accessors only exists when NDEBUG is defined: the debug build
 // asserts success() instead, so a separate target (built with NDEBUG) pins the release behavior.
-#include <pdn/pdn_parse_result.h>
-
 #include <cstdio>
 #include <string_view>
 #include <type_traits>
+
+#include <pdn/pdn_parse_result.h>
 
 namespace
 {

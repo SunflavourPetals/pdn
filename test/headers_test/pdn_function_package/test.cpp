@@ -1,5 +1,3 @@
-#include <pdn/pdn_function_package.h>
-
 #include <cmath>
 #include <cstddef>
 #include <iostream>
@@ -7,6 +5,8 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
+
+#include <pdn/pdn_function_package.h>
 
 namespace
 {

@@ -1,7 +1,7 @@
-#include <pdn/pdn_source_position_and_newline_recorder.h>
-
 #include <cstdio>
 #include <type_traits>
+
+#include <pdn/pdn_source_position_and_newline_recorder.h>
 
 namespace
 {

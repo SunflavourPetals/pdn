@@ -3,10 +3,10 @@
 // predicates are just comparisons against those sentinels. The checks below pin the partition
 // itself, so adding a state without deciding its region breaks this test.
 
-#include <pdn/pdn_dfa_state_code.h>
-
 #include <array>
 #include <cstddef>
+
+#include <pdn/pdn_dfa_state_code.h>
 
 namespace
 {

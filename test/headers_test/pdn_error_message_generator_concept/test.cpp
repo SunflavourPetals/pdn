@@ -1,7 +1,7 @@
-#include <pdn/pdn_error_message_generator_concept.h>
-
 #include <cstdio>
 #include <type_traits>
+
+#include <pdn/pdn_error_message_generator_concept.h>
 
 namespace
 {
