@@ -1488,24 +1488,28 @@ enum class serialize_separator_ts
 
 ### 使用 ordered_map 配合解析与序列化
 
-本库使用宏定义 `PDN_USER_OBEJCT` 便利配置 `object` 使用的底层容器类型，默认使用的是元素顺序不保持解析顺序的 `std::unordered_map`，序列化 `spdn` 实体后，对象成员数据的定义顺序相对于数据源可能会发生改变。  
+本库使用宏定义 `PDN_USER_OBJECT` 来配置 `object` 使用的底层容器类型，默认使用的是元素顺序不保持解析顺序的 `std::unordered_map`，序列化 `spdn` 实体后，对象成员数据的定义顺序相对于数据源可能会发生改变。  
 
 对于保持解析顺序的需求，本库有一个基于顺序容器的包装的实现原型 `pdn::ordered_map`，位于 `pdn_ordered_map.h`，使用它代替 `std::unordered_map` 可以在解析时保留对象成员数据定义的顺序，以便序列化时可以得到正确的顺序。  
 
-编译本库头文件时如果有宏定义 `PDN_USER_OBEJCT`，会将 `pdn::type::config::object` 的定义改为 `PDN_USER_OBEJCT<iden_t, entity_t>`，`PDN_USER_OBEJCT` 的定义应当是接受模板参数为键和值的类型的容器类模板，`pdn::ordered_map` 满足这个要求。  
+编译本库头文件时如果有宏定义 `PDN_USER_OBJECT`，会将 `pdn::type::config::object` 的定义改为 `PDN_USER_OBJECT<iden_t, entity_t>`。该宏只负责改写别名，不负责包含容器头：容器头需要使用者自行包含，且要在包含本库头文件之前定义该宏。`PDN_USER_OBJECT` 应当是一个接受“键”和“值”两个模板参数的容器类模板，`pdn::ordered_map` 满足这个要求。  
 
 使用 `ordered_map` 的参考：  
 
 ```C++
 #include <pdn/pdn_ordered_map.h>
-#define PDN_USER_OBEJCT ::pdn::ordered_map
+#define PDN_USER_OBJECT ::pdn::ordered_map
 #include <pdn/spdn.h>
 // ...
 ```
 
-注意不要让不同翻译单元之间的 `PDN_USER_OBEJCT` 定义不一致，否则可能违反 ODR。  
+完整可编译示例见 [`guide-source/ordered-map.cpp`](./guide-source/ordered-map.cpp)。  
 
-虽然将 `object` 底层容器替换为 `ordered_map` 可以保证序列化的顺序，但是对各项性能可能会有影响：`ordered_map` 的查找、下标和 `at` 都是线性复杂度，修改该类型对象时还需要额外关注迭代器失效问题。如果程序依赖 `ordered_map` 没有提供的、属于 `std::unordered_map` 的功能，可能导致编译错误或行为改变，建议评估后再做考虑。如无必要，不推荐使用 `ordered_map`。  
+注意不要让不同翻译单元之间的 `PDN_USER_OBJECT` 定义不一致，否则可能违反 ODR。  
+
+虽然将 `object` 底层容器替换为 `ordered_map` 可以保证序列化的顺序，但是对各项性能可能会有影响：`ordered_map` 的查找、下标和 `at` 都是线性复杂度。修改该类型对象时还需要额外关注迭代器失效问题，具体规则取决于 `ordered_map` 的底层容器，默认的底层容器是 `std::deque`。  
+
+如果程序依赖 `pdn::type::object<k, v>::value_type` 等 `std::unordered_map` 与 `ordered_map` 的定义不同的部分或依赖 `ordered_map` 没有提供的、属于 `std::unordered_map` 的功能，可能导致编译错误或行为改变，建议评估后再做考虑。如无必要，不推荐使用 `ordered_map`。  
 
 更深度地更换底层 C++ 类型可以通过修改 `pdn_type_config.h` 实现。  
 

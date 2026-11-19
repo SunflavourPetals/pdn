@@ -21,7 +21,7 @@ cmake --build build\benchmark --config Release -j
 会生成两个可执行文件：
 
 - `pdn_benchmark`：默认的 `unordered_map` DOM。
-- `pdn_benchmark_ordered`：定义 `PDN_ENABLE_ORDERED_MAP` 的 DOM。
+- `pdn_benchmark_ordered`：定义 `PDN_USER_OBJECT=::pdn::ordered_map` 的 DOM。
 
 ## 运行
 
@@ -70,4 +70,3 @@ cmake --build build\benchmark --config Release -j
 ## 关于本 benchmark
 
 本 benchmark 和 readme 由 Deepseek v4.1flash 1017 按要求生成，库作者审查与提交。  
-

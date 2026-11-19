@@ -186,7 +186,7 @@ auto from_iter = pdn::parse(src.cbegin(), src.cend(), pdn::utf8_tag);
 | `character` | `character<char_t>` | 单个字符（可存多个码元，见下） |
 | `string` | `string<char_t>` | `std::basic_string` |
 | `list` | `list<char_t>` | `std::vector<entity<char_t>>` |
-| `object` | `object<char_t>` | `std::unordered_map`；定义 `PDN_ENABLE_ORDERED_MAP` 时换成保序容器 |
+| `object` | `object<char_t>` | `std::unordered_map`；定义 `PDN_USER_OBJECT` 时换成指定的容器模板（如 `pdn::ordered_map`） |
 
 “实体类型的名字”是 `pdn::type_code` 的枚举值：`i8`、`i16`、`i32`、`i64`、`u8`、`u16`、`u32`、`u64`、`f32`、`f64`、`boolean`、`character`、`string`、`list`、`object`，外加不属于 PDN 类型的 `unknown`（空引用）。
 
@@ -412,7 +412,7 @@ auto no_last = ser.serialize(o, true, false);  // 命名容器值不带结尾分
 - 列表元素之间用 `,`，并且**总是写尾逗号**（PDN 允许）；对象成员之间用分号隔开。
 - 名字不是合法 PDN 标识符时，会自动加反引号并转义。
 
-成员顺序取决于底层容器：默认的 `unordered_map` 不保证顺序（写回文本后顺序可能变化）；定义 `PDN_ENABLE_ORDERED_MAP` 后保持插入顺序。
+成员顺序取决于底层容器：默认的 `unordered_map` 不保证顺序（写回文本后顺序可能变化）；定义 `PDN_USER_OBJECT` 为 `pdn::ordered_map` 之类的保序容器后，按容器自身的迭代顺序输出。
 
 ### 类型标注
 
@@ -490,7 +490,7 @@ auto styled = pdn::make_serializer<char8_t>(
 
 | 宏 | 作用 |
 | :---: | :---: |
-| `PDN_ENABLE_ORDERED_MAP` | `type::object` 换成保持插入顺序的 `ordered_map`（默认 `std::unordered_map`） |
+| `PDN_USER_OBJECT` | 将 `type::object` 换成 `PDN_USER_OBJECT` |
 | `PDN_NO_EXTENSIONS` | 关闭非标准扩展：裸 `∞` 拼写、`cppint`/`cppuint`、六个非标准 at 常量 |
 | `PDN_NO_EXCEPTIONS` `PDN_USER_TERMINATE` | 无异常环境：涉及越界/失败的 `throw` 改为调用 `std::terminate` 或 `PDN_USER_TERMINATE` |
 | `PDN_USER_FORMAT` | 替代 `<format>` 的浮点格式化 |

@@ -1,4 +1,7 @@
 // Tests the type aliases and the object container alias declared by pdn_type_config.h.
+#ifdef PDN_USER_OBJECT
+#include <pdn/pdn_ordered_map.h>
+#endif
 #include <pdn/pdn_type_config.h>
 
 #include <cstdint>
@@ -43,8 +46,8 @@ namespace
 
 	using u8map = t::object<std::u8string, int>;
 
-#ifdef PDN_ENABLE_ORDERED_MAP
-	static_assert(std::is_same_v<u8map, pdn::type::detail::ordered_map<std::u8string, int>>);
+#ifdef PDN_USER_OBJECT
+	static_assert(std::is_same_v<u8map, pdn::ordered_map<std::u8string, int>>);
 #else
 	static_assert(std::is_same_v<u8map, std::unordered_map<std::u8string, int, t::key_hasher, std::equal_to<>>>);
 #endif
@@ -109,7 +112,7 @@ namespace
 			++seen;
 		}
 		check(seen == 3, "iteration visits every element");
-#ifdef PDN_ENABLE_ORDERED_MAP
+#ifdef PDN_USER_OBJECT
 		const int expected[] = { 1, 2, 3 };
 		int index = 0;
 		for (const auto& [key, value] : m)

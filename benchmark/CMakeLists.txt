@@ -35,6 +35,6 @@ endfunction()
 
 pdn_add_benchmark(pdn_benchmark)
 
-# 同一份代码再编译一次，用来观察 PDN_ENABLE_ORDERED_MAP 的代价。
+# 同一份代码再编译一次，用来观察 PDN_USER_OBJECT 的代价。
 pdn_add_benchmark(pdn_benchmark_ordered)
-target_compile_definitions(pdn_benchmark_ordered PRIVATE PDN_ENABLE_ORDERED_MAP)
+target_compile_definitions(pdn_benchmark_ordered PRIVATE PDN_USER_OBJECT=::pdn::ordered_map)

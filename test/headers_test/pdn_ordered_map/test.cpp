@@ -6,35 +6,47 @@
 //   2. heterogeneous lookup: keys are std::u8string, queried with std::u8string_view (how object
 //      is used inside the library);
 //   3. const correctness: return types of at/find on a const object;
-//   4. the erase family: by iterator, by const iterator, by range, by key;
-//   5. integration: under PDN_ENABLE_ORDERED_MAP, object is ordered_map, and serialization after
-//      parsing keeps the insertion order.
+//   4. the erase family and whole-container assignment, on the default container;
+//   5. integration: with PDN_USER_OBJECT=::pdn::ordered_map, object is ordered_map and
+//      serialization after parsing keeps the insertion order.
 //
-// Note: erase compiles here only because the default container was changed from std::deque to
-//     std::list. deque must move-assign every element after the erased position, but the element
-//     is std::pair<const key_t, val_t>, whose operator= is deleted, so on the deque version any
-//     instantiation of erase failed to compile.
+// Notes on the element type:
+//   - it is std::pair<key_t, val_t>, not std::pair<const key_t, val_t>: the key stays mutable so
+//     the elements are assignable, which is what sequence containers need for erase and for
+//     operator= of the whole container. Unlike std::map/std::unordered_map there is no ordering or
+//     hashing invariant that a mutated key could break (lookup is a linear scan).
+//   - appending to the default std::deque invalidates every iterator but keeps references and
+//     pointers to the existing elements valid; that is pinned down by test_append_keeps_references().
 
-#define PDN_ENABLE_ORDERED_MAP
+#define PDN_USER_OBJECT ::pdn::ordered_map
 
 #include <pdn/pdn_ordered_map.h>
 #include <pdn/pdn_parse.h>
 #include <pdn/pdn_serializer.h>
 #include <pdn/pdn_type_config.h>
 
+#include <algorithm>
 #include <cassert>
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 
 namespace
 {
-	using pdn::type::detail::ordered_map;
+	using pdn::ordered_map;
 	using key_t = std::u8string;
+
+	using int_map = ordered_map<key_t, int>;
+
+	// A mutable key keeps the element assignable; that is what lets the standard sequence
+	// containers implement erase and whole-container assignment.
+	static_assert(std::is_same_v<int_map::value_type, std::pair<key_t, int>>);
+	static_assert(std::is_assignable_v<int_map::value_type&, int_map::value_type>);
 
 	void test_map_semantics()
 	{
-		ordered_map<key_t, int> m;
+		int_map m;
 		assert(m.empty());
 		assert(m.size() == 0);
 
@@ -66,7 +78,7 @@ namespace
 		// Const correctness.
 		const auto& cm = m;
 		static_assert(std::is_same_v<decltype(cm.at(u8"b")), const int&>);
-		static_assert(std::is_same_v<decltype(cm.find(u8"b")), ordered_map<key_t, int>::const_iterator>);
+		static_assert(std::is_same_v<decltype(cm.find(u8"b")), int_map::const_iterator>);
 		assert(cm.at(u8"b") == 2);
 		assert(cm.find(std::u8string_view{ u8"b" })->second == 2);
 
@@ -75,9 +87,26 @@ namespace
 		assert(m.size() == 0);
 	}
 
+	void test_append_keeps_references()
+	{
+		int_map m;
+		m[u8"a"] = 1;
+		int& non_const_ref = m.at(u8"a");
+		const int& ref = m.at(u8"a");
+		const int* ptr = &ref;
+
+		// Appending to a deque invalidates iterators but not references or pointers.
+		m[u8"b"] = 2;
+		assert(m.size() == 2);
+		assert(&m.at(u8"a") == ptr);
+		assert(ref == 1);
+		non_const_ref = 11;
+		assert(m.at(u8"a") == 11);
+	}
+
 	void test_erase()
 	{
-		ordered_map<key_t, int> m;
+		int_map m;
 		m[u8"a"] = 1;
 		m[u8"b"] = 2;
 		m[u8"c"] = 3;
@@ -110,14 +139,36 @@ namespace
 		assert(r->second == 3);
 	}
 
+	void test_assign_and_sort()
+	{
+		int_map a;
+		a[u8"b"] = 2;
+		a[u8"a"] = 1;
+
+		int_map b;
+		b[u8"z"] = 0;
+		b = a; // whole-container assignment assigns elements, which a const key would forbid
+		assert(b.size() == 2);
+		assert(b.at(u8"b") == 2);
+		assert(b.begin()->first == u8"b"); // assignment copies the element order too
+
+		// A mutable key also allows reordering the elements like any other sequence.
+		std::sort(b.begin(), b.end(), [](const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; });
+		assert(b.begin()->first == u8"a");
+		assert(b.at(u8"b") == 2); // linear lookup does not depend on the position
+	}
+
 	void test_ordered_object_roundtrip()
 	{
 		using namespace std::string_view_literals;
 
-		// With PDN_ENABLE_ORDERED_MAP in effect, object is ordered_map.
+		// With PDN_USER_OBJECT=::pdn::ordered_map in effect, object is ordered_map.
 		static_assert(std::is_same_v<
 			pdn::type::config::object<key_t, int>,
-			pdn::type::detail::ordered_map<key_t, int>>);
+			ordered_map<key_t, int>>);
+		static_assert(std::is_same_v<
+			pdn::type::object<char8_t>,
+			ordered_map<pdn::type::u8string, pdn::entity<char8_t>>>);
 
 		auto src = u8R"(zeta 1 alpha 2 mid 3)"sv;
 		auto r = pdn::parse(src, pdn::utf8_tag);
@@ -140,7 +191,9 @@ namespace
 int main()
 {
 	test_map_semantics();
+	test_append_keeps_references();
 	test_erase();
+	test_assign_and_sort();
 	test_ordered_object_roundtrip();
 	return 0;
 }

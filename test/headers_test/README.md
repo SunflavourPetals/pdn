@@ -94,7 +94,7 @@ ctest --test-dir build/headers_test -j 4 --output-on-failure                 # �
 cmake -S test/headers_test -B build/headers_test-noext -DCMAKE_CXX_FLAGS=-DPDN_NO_EXTENSIONS
 ```
 
-同理可用 `-DPDN_ENABLE_ORDERED_MAP`、`-DPDN_NO_EXCEPTIONS -DPDN_USER_TERMINATE=std::abort` 等组合。建议每种组合用一个独立的构建目录。
+同理可用 `-DPDN_USER_OBJECT=::pdn::ordered_map`、`-DPDN_NO_EXCEPTIONS -DPDN_USER_TERMINATE=std::abort` 等组合。建议每种组合用一个独立的构建目录。
 
 ## 大 TU 与 `-Wa,-mbig-obj`
 

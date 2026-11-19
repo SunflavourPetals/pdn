@@ -1,6 +1,3 @@
-#define PDN_ENABLE_ORDERED_MAP
-#include <pdn/spdn.h>
-
 #include <array>
 #include <cstddef>
 #include <filesystem>
@@ -8,6 +5,10 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+
+#include <pdn/pdn_ordered_map.h>
+#define PDN_USER_OBJECT ::pdn::ordered_map
+#include <pdn/spdn.h>
 
 namespace
 {

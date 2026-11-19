@@ -17,7 +17,7 @@
 //
 // The storage behind each name is a configuration decision (see pdn_type_config.h): string is
 // std::basic_string, list is std::vector, object is std::unordered_map or, with
-// PDN_ENABLE_ORDERED_MAP, the insertion-ordered detail::ordered_map.
+// PDN_USER_OBJECT, the container template you name (for example pdn::ordered_map).
 //
 // u8char/u16char/u32char are single character values (character<char_t>), not code units; the
 // code unit types are unicode::u8char_t/u16char_t/u32char_t.

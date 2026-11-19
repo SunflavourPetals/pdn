@@ -1,5 +1,3 @@
-#include <pdn/spdn.h>
-
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
@@ -11,6 +9,11 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+
+#ifdef PDN_USER_OBJECT
+#include <pdn/pdn_ordered_map.h>
+#endif
+#include <pdn/spdn.h>
 
 namespace
 {
@@ -421,7 +424,7 @@ int main(int argc, char** argv)
 	}
 
 	std::cout << "pdn benchmark\n";
-#ifdef PDN_ENABLE_ORDERED_MAP
+#ifdef PDN_USER_OBJECT
 	std::cout << "object map: ordered\n";
 #else
 	std::cout << "object map: unordered\n";

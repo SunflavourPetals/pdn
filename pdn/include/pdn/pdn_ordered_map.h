@@ -11,19 +11,35 @@
 
 namespace pdn
 {
+	// An insertion-ordered associative container over a sequence container. New keys are appended
+	// with emplace_back, so iteration follows insertion order; lookup (find/at/contains/count and
+	// operator[]) is a linear scan, unlike the average O(1) of std::unordered_map.
+	//
+	// The element type is std::pair<key_t, val_t>, not the std::pair<const key_t, val_t> used by
+	// std::map and std::unordered_map. Their const key protects an ordering or hashing invariant
+	// that a mutated key would break; this container has no such invariant (lookup is a linear
+	// scan), so the key is left mutable and the elements stay assignable. That keeps the usual
+	// sequence-container operations available: erase, assignment of the whole container, sort, and
+	// so on. Note that mutating a key through an iterator is still a decision the caller owns: the
+	// element being looked up is its own pair, and other containers that reference the key by value
+	// (for example a hash index in user code) are not updated.
+	//
+	// Iterator and reference invalidation is whatever the underlying container guarantees: with
+	// std::deque, appending invalidates all iterators but keeps references and pointers to the
+	// existing elements valid.
 	template <
 		typename key_t,
 		typename val_t,
 		template <typename t, typename alloc> typename container_t = ::std::deque,
-		typename alloc_t = ::std::allocator<::std::pair<const key_t, val_t>>>
-	class ordered_map : public container_t<::std::pair<const key_t, val_t>, alloc_t>
+		typename alloc_t = ::std::allocator<::std::pair<key_t, val_t>>>
+	class ordered_map : public container_t<::std::pair<key_t, val_t>, alloc_t>
 	{
-		using base_type = container_t<::std::pair<const key_t, val_t>, alloc_t>;
+		using base_type = container_t<::std::pair<key_t, val_t>, alloc_t>;
 		using bt = base_type;
 	public:
 		using key_type        = key_t;
 		using mapped_type     = val_t;
-		using value_type      = ::std::pair<const key_t, val_t>;
+		using value_type      = ::std::pair<key_t, val_t>;
 		using size_type       = bt::size_type;
 		using difference_type = bt::difference_type;
 		using allocator_type  = alloc_t;
@@ -96,7 +112,7 @@ namespace pdn
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("pdn::type::detail::ordered_map<key_t, val_t, alloc_t>::at(k_t const&) const", "out_of_range");
+				PDN_USER_TERMINATE("pdn::ordered_map<key_t, val_t, alloc_t>::at(k_t const&) const", "out_of_range");
 #endif
 				::std::terminate();
 #else
@@ -114,7 +130,7 @@ namespace pdn
 			{
 #ifdef PDN_NO_EXCEPTIONS
 #ifdef PDN_USER_TERMINATE
-				PDN_USER_TERMINATE("pdn::type::detail::ordered_map<key_t, val_t, alloc_t>::at(k_t const&)", "out_of_range");
+				PDN_USER_TERMINATE("pdn::ordered_map<key_t, val_t, alloc_t>::at(k_t const&)", "out_of_range");
 #endif
 				::std::terminate();
 #else
