@@ -9,6 +9,7 @@
 // three directly is equivalent and cheaper when only one is needed; the layers below
 // (token, lexer, DFA, decoders) arrive transitively and stay internal.
 
+#include "pdn_version.h"
 #include "pdn_entity.h"
 #include "pdn_parse.h"
 #include "pdn_serializer.h"
