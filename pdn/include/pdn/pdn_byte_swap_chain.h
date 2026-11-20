@@ -1,6 +1,7 @@
 #ifndef PDN_Header_pdn_byte_swap_chain
 #define PDN_Header_pdn_byte_swap_chain
 
+#include <ios>
 #include <cstddef>
 #include <utility>
 #include <cassert>
@@ -184,7 +185,7 @@ namespace pdn
 		{
 			// if eof was reached or stop requested, then no need to call fill_to anytime
 			assert(!istream_ptr->fail() && "[pdn] istream fail or bad in byte_swap_chain::fill_to");
-			istream_ptr->read(target_buffer, chunk_size() * sizeof(value_type));
+			istream_ptr->read(target_buffer, static_cast<::std::streamsize>(chunk_size() * sizeof(value_type)));
 			if (istream_ptr->bad()) [[unlikely]]
 			{
 				request_stop(stop_reason_code::bad_stream);

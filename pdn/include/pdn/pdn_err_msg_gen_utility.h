@@ -82,7 +82,7 @@ namespace pdn::detail::err_msg_gen_util
 	// unit in bytes: 1 for utf-8, 2 for utf-16, 4 for utf-32; BOM bytes are not counted, the callers
 	// mention that separately in the message.
 	// for utf8|16|32_decode_error
-	inline auto offset_of_leading(const auto& msg, const int multi = 1) -> error_msg_string
+	inline auto offset_of_leading(const auto& msg, const ::std::size_t multi = 1) -> error_msg_string
 	{
 		return u8"0x"_em.append(to_s<16, 4>((msg.last_code_unit_offset - msg.result.distance()) * multi));
 	}
