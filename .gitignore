@@ -9,6 +9,8 @@
 *.idb
 *.TMP
 
+*.vcxproj.user
+
 .vs/
 .doc/
 .temp/
